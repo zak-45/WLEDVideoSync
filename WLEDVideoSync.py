@@ -275,6 +275,7 @@ if __name__ == '__main__':
         """
         global webview_process
         webview_process = Process(target=run_webview(window_name))
+        webview_process.daemon = True
         webview_process.start()
 
 
