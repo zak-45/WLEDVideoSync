@@ -1,0 +1,14 @@
+numpy==1.26.4
+opencv-python==4.9.0.80
+setuptools==68.2.0
+PyWinCtl==0.3
+wled==0.17.0
+zeroconf==0.132.2
+nicegui==1.4.22
+str2bool==1.1
+pillow==10.3.0
+fastapi==0.109.2
+starlette==0.36.3
+pywebview==5.1
+pystray==0.19.5
+uvicorn==0.29.0
