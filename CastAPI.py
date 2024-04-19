@@ -957,7 +957,7 @@ async def root_timer_action():
 
 async def info_timer_action():
     """
-    timer occur only when info page is active '/'
+    timer occur only when info page is active '/info'
     :return:
     """
     #  print('timer action')
