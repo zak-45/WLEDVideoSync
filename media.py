@@ -303,8 +303,8 @@ class CASTMedia:
 
                 # resize frame to virtual matrix size
                 frame = Utils.resize_image(frame,
-                                          self.scale_width * self.cast_x,
-                                          self.scale_height * self.cast_y)
+                                           self.scale_width * self.cast_x,
+                                           self.scale_height * self.cast_y)
                 # split to matrix
                 self.cast_frame_buffer = Utils.split_image_to_matrix(frame, self.cast_x, self.cast_y)
 
