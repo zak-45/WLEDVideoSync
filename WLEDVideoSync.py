@@ -439,7 +439,7 @@ if __name__ == '__main__':
     if new_instance is not None:
         # get all active child processes (should be only one)
         active_proc = active_children()
-        print(f'Active Children: {len(active_proc)} stopped')
+        logger.info(f'Active Children: {len(active_proc)} stopped')
         # terminate all active children
         for child in active_proc:
             child.terminate()
@@ -447,4 +447,4 @@ if __name__ == '__main__':
     if webview_process is not None:
         webview_process.terminate()
 
-    print('Application Terminated')
+    logger.info('Application Terminated')

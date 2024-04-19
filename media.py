@@ -61,6 +61,8 @@ def send_multicast_images_to_ips(images_buffer, ip_addresses):
 
 
 class CASTMedia:
+    """ Cast Media to DDP """
+
     count = 0  # initialise count to zero
     t_exit_event = threading.Event()  # thread listen event
 
@@ -347,8 +349,9 @@ class CASTMedia:
         print("_" * 50)
 
         logger.info("Cast closed")
-        time.sleep(2)
         CASTMedia.t_exit_event.clear()
+
+        time.sleep(2)
 
     def cast(self):
         """

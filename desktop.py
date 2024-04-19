@@ -41,6 +41,8 @@ logger = logging.getLogger('WLEDLogger.desktop')
 
 
 class CASTDesktop:
+    """ Cast Desktop to DDP """
+
     count = 0  # initialise count to zero
     t_exit_event = threading.Event()  # thread listen event
 
@@ -49,6 +51,8 @@ class CASTDesktop:
         self.stopcast: bool = True
         self.scale_width: int = 640
         self.scale_height: int = 480
+        self.flip_vh = 0
+        self.flip = False
         self.wled: bool = False
         self.wled_live = False
         self.host: str = '127.0.0.1'
@@ -165,8 +169,10 @@ class CASTDesktop:
                         break
 
                     frame_count += 1
+                    """
                     # resize the frame
                     frame = frame.reformat(self.scale_width, self.scale_height)
+                    """
 
                     # we send frame to output only if exist
                     if output_container:
@@ -180,11 +186,16 @@ class CASTDesktop:
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
 
+                        # flip vertical/horizontal: 0,1,2
+                        if self.flip:
+                            frame = cv2.flip(frame, self.flip_vh)
+
                         # resize frame for sending to ddp device
                         frame_to_send = Utils.resize_image(frame, self.scale_width, self.scale_height)
                         # resize frame to pixelart
                         frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
+                        # send to ddp device
                         if self.protocol == 'ddp':
                             ddp.flush(frame_to_send, self.retry_number)
 
