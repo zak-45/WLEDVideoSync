@@ -167,7 +167,9 @@ class CASTDesktop:
                 CASTDesktop.count -= 1
                 return False
 
+        # this will be device number 0
         ip_addresses.append(self.host)
+
         ddp = DDPDevice(self.host)
 
         # specifics for Multicast
@@ -256,10 +258,6 @@ class CASTDesktop:
                         break
 
                     frame_count += 1
-                    """
-                    # resize the frame
-                    frame = frame.reformat(self.scale_width, self.scale_height)
-                    """
 
                     # we send frame to output only if exist
                     if output_container:
@@ -383,7 +381,9 @@ class CASTDesktop:
                 logger.error('An exception occurred: {}'.format(error))
 
             finally:
-
+                """
+                END
+                """
                 # close av input
                 input_container.close()
                 # close av output if any
