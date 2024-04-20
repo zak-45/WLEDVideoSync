@@ -204,6 +204,30 @@ async def util_blackout():
     return {"blackout": 'done'}
 
 
+@app.get("/api/util/casts_info")
+async def util_casts_info():
+    """
+        Get info from all Casts Thread
+    """
+    logger.info('Got Cast(s) info')
+    Desktop.t_provide_info.set()
+    Media.t_provide_info.set()
+    info_data = {}
+
+    # wait some time
+    time.sleep(1)
+
+    # take info datas
+    if t_data_buffer.qsize() != 0:
+        while not t_data_buffer.qsize() == 0:
+            info_data.update(t_data_buffer.get())
+
+    Desktop.t_provide_info.clear()
+    Media.t_provide_info.clear()
+
+    return {"t_info": info_data}
+
+
 @app.put("/api/{class_name}/update_attribute")
 async def update_attribute_by_name(class_name: str, param: str, value: Union[int, bool, str]):
     """

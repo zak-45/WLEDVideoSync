@@ -352,14 +352,12 @@ class CASTMedia:
                 if shared_buffer is None:
                     logger.warning('No queue buffer defined')
                 else:
-                    t_info = {t_name: {"type", "info"}, "data": {"start": start_time,
-                                                                 "viinput": str(input_media),
-                                                                 "devices": ip_addresses,
-                                                                 "frames": frame_count
-                                                                 }}
+                    t_info = {t_name: {"type": "info", "data": {"start": start_time,
+                                                                "viinput": str(input_media),
+                                                                "devices": ip_addresses,
+                                                                "frames": frame_count
+                                                                }}}
                     shared_buffer.put(t_info)
-
-                CASTMedia.t_provide_info.clear()
 
         """
             Final : End Media Loop

@@ -340,22 +340,20 @@ class CASTDesktop:
                             except Exception as error:
                                 logger.error('An exception occurred: {}'.format(error))
 
-                """
-                instruct the thread to provide info 
-                """
-                if CASTDesktop.t_provide_info.is_set():
+                    """
+                    instruct the thread to provide info 
+                    """
+                    if CASTDesktop.t_provide_info.is_set():
 
-                    if shared_buffer is None:
-                        logger.warning('No queue buffer defined')
-                    else:
-                        t_info = {t_name: {"type", "info"}, "data": {"start": start_time,
-                                                                     "viinput": str(input_filename),
-                                                                     "devices": ip_addresses,
-                                                                     "frames": frame_count
-                                                                     }}
-                        shared_buffer.put(t_info)
-
-                    CASTDesktop.t_provide_info.clear()
+                        if shared_buffer is None:
+                            logger.warning('No queue buffer defined')
+                        else:
+                            t_info = {t_name: {"type": "info", "data": {"start": start_time,
+                                                                        "viinput": str(input_filename),
+                                                                        "devices": ip_addresses,
+                                                                        "frames": frame_count
+                                                                        }}}
+                            shared_buffer.put(t_info)
 
             except Exception as error:
 
