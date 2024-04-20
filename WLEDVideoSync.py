@@ -148,7 +148,6 @@ def run_webview(window_name):
                     [wm.MenuAction('Exit on SysTray', keep_running)]
                     )
         ]
-
     else:
         # Main menu
         menu_items = [wm.Menu('Main',
@@ -368,6 +367,7 @@ if __name__ == '__main__':
         else:
             if not webview_process.is_alive():
                 start_webview_process('Info')
+
 
     def on_details():
         """
