@@ -153,6 +153,8 @@ class CASTMedia:
                 CASTMedia.count -= 1
                 return False
 
+        ip_addresses.append(self.host)
+
         # retrieve matrix setup from wled and set w/h
         if self.wled:
             status = asyncio.run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
@@ -163,7 +165,6 @@ class CASTMedia:
                 CASTMedia.count -= 1
                 return False
 
-        ip_addresses.append(self.host)
         ddp = DDPDevice(self.host)
 
         # specifics for Multicast

@@ -157,6 +157,9 @@ class CASTDesktop:
                 CASTDesktop.count -= 1
                 return False
 
+        # this will be device number 0
+        ip_addresses.append(self.host)
+
         # retrieve matrix setup from wled and set w/h
         if self.wled:
             status = asyncio.run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
@@ -166,9 +169,6 @@ class CASTDesktop:
                 logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
                 CASTDesktop.count -= 1
                 return False
-
-        # this will be device number 0
-        ip_addresses.append(self.host)
 
         ddp = DDPDevice(self.host)
 
