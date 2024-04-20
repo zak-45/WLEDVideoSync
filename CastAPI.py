@@ -20,7 +20,7 @@ API: FastAPI, for integration with third party application (e.g. Chataigne)
 Web GUI based on NiceGUI
 
 """
-
+import asyncio
 import logging
 import logging.config
 
@@ -209,7 +209,7 @@ async def util_casts_info():
     """
         Get info from all Casts Thread
     """
-    logger.info('Got Cast(s) info')
+    logger.info('Request Cast(s) info')
     Desktop.t_provide_info.set()
     Media.t_provide_info.set()
     info_data = {}
@@ -509,6 +509,7 @@ def main_page():
     Row for Cast info / Run / Close : refreshable
     """
     cast_manage()
+    ui.icon('info').on('click', lambda: show_thread_info()).classes('self-center')
 
     ui.separator().classes('mt-6')
 
@@ -967,6 +968,15 @@ def media_dev_view_page():
 """
 helpers
 """
+
+
+async def show_thread_info():
+
+    with ui.dialog() as dialog, ui.card():
+        cast_info = await util_casts_info()
+        ui.json_editor({'content': {'json': cast_info}})
+        ui.button('Close', on_click=dialog.close, color='red')
+        dialog.open()
 
 
 async def cast_icon_color(class_obj):
