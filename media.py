@@ -126,7 +126,6 @@ class CASTMedia:
         Cast devices
         """
         ip_addresses = []
-        cast_ip_addresses = []
 
         """
         viinput can be:
@@ -148,7 +147,7 @@ class CASTMedia:
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
-                logger.info(f'We work with this IP {self.host}')
+                logger.info(f'We work with this IP {self.host} as first device: number 0')
             else:
                 logger.error(f'Error looks like IP {self.host} do not accept connection to port 80')
                 CASTMedia.count -= 1
@@ -184,7 +183,6 @@ class CASTMedia:
                     if self.wled:
                         asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                     ip_addresses.append(cast_ip)
-                    cast_ip_addresses.append(cast_ip)
                     logger.info(f'IP : {cast_ip} for sub image number {i}')
 
         """
@@ -308,7 +306,7 @@ class CASTMedia:
                     multicast manage any number of devices of same configuration
                     each device need to drive the same amount of leds, same config
                     e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
-                    ==> this give 6 devices to set into cast_devices list                        
+                    ==> this give 5 devices to set into cast_devices list (host is auto incl. and will be the first one)                        
                         (tuple of: device index(0...n) , IP address) 
                         we will manage image of 3x16 leds for x and 2x16 for y    
                         
@@ -324,14 +322,14 @@ class CASTMedia:
                 self.cast_frame_buffer = Utils.split_image_to_matrix(frame, self.cast_x, self.cast_y)
 
                 # validate cast_devices number
-                if len(self.cast_devices) != len(self.cast_frame_buffer):
+                if len(ip_addresses) != len(self.cast_frame_buffer):
                     logger.error('Cast devices number != sub images number: check cast_devices ')
                     break
 
                 # send, keep synchronized
                 try:
 
-                    send_multicast_images_to_ips(self.cast_frame_buffer, cast_ip_addresses)
+                    send_multicast_images_to_ips(self.cast_frame_buffer, ip_addresses)
 
                 except Exception as error:
                     logger.error('An exception occurred: {}'.format(error))

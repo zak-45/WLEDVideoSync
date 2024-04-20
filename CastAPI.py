@@ -1036,38 +1036,44 @@ def tabs_info_page():
         p_media = ui.tab('Media')
     with ui.tab_panels(tabs, value=p_desktop).classes('w-full'):
         with ui.tab_panel(p_desktop):
-            # create Graph
-            graph_data = ''
-            for item in desktop_threads:
-                t_id = info_data[item]["data"]["tid"]
-                t_name = item.replace(' ', '_').replace('(', '').replace(')', '')
-                graph_data += "WLEDVideoSync --> " + "|" + str(t_id) + "|" + t_name + "\n"
-            with ui.row():
-                ui.mermaid('''
-                graph LR;''' + graph_data + '''
-                ''')
+            if not desktop_threads:
+                ui.label('No Data')
+            else:
+                # create Graph
+                graph_data = ''
+                for item in desktop_threads:
+                    t_id = info_data[item]["data"]["tid"]
+                    t_name = item.replace(' ', '_').replace('(', '').replace(')', '')
+                    graph_data += "WLEDVideoSync --> " + "|" + str(t_id) + "|" + t_name + "\n"
                 with ui.row():
-                    for item in desktop_threads:
-                        with ui.expansion(item):
-                            editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
-                            editor.run_editor_method('updateProps', {'readOnly': True})
+                    ui.mermaid('''
+                    graph LR;''' + graph_data + '''
+                    ''')
+                    with ui.row():
+                        for item in desktop_threads:
+                            with ui.expansion(item):
+                                editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
+                                editor.run_editor_method('updateProps', {'readOnly': True})
 
         with ui.tab_panel(p_media):
-            # create Graph
-            graph_data = ''
-            for item in media_threads:
-                t_id = info_data[item]["data"]["tid"]
-                t_name = item.replace(' ', '_').replace('(', '').replace(')', '')
-                graph_data += "WLEDVideoSync --> " + "|" + str(t_id) + "|" + t_name + "\n"
-            with ui.row():
-                ui.mermaid('''
-                graph LR;''' + graph_data + '''
-                ''')
+            if not media_threads:
+                ui.label('No Data')
+            else:
+                # create Graph
+                graph_data = ''
+                for item in media_threads:
+                    t_id = info_data[item]["data"]["tid"]
+                    t_name = item.replace(' ', '_').replace('(', '').replace(')', '')
+                    graph_data += "WLEDVideoSync --> " + "|" + str(t_id) + "|" + t_name + "\n"
                 with ui.row():
-                    for item in media_threads:
-                        with ui.expansion(item):
-                            editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
-                            editor.run_editor_method('updateProps', {'readOnly': True})
+                    ui.mermaid('''
+                    graph LR;''' + graph_data + '''
+                    ''')
+                    with ui.row():
+                        for item in media_threads:
+                            with ui.expansion(item):
+                                editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
+                                editor.run_editor_method('updateProps', {'readOnly': True})
 
 
 def show_thread_info():

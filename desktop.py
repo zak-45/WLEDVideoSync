@@ -130,11 +130,13 @@ class CASTDesktop:
 
         start_time = time.time()
 
+        self.frame_buffer = []
+        frame_count = 0
+
         """
         Cast devices
         """
         ip_addresses = []
-        cast_ip_addresses = []
 
         """
         av 
@@ -142,14 +144,31 @@ class CASTDesktop:
         output_container = False
         output_stream = None
 
-        ddp = DDPDevice(self.host)
+        """
+        First, check devices 
+        """
 
-        self.frame_buffer = []
-        frame_count = 0
+        # check IP
+        if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
+            if Utils.check_ip_alive(self.host):
+                logger.info(f'We work with this IP {self.host} as first device: number 0')
+            else:
+                logger.error(f'Error looks like IP {self.host} do not accept connection to port 80')
+                CASTDesktop.count -= 1
+                return False
 
-        # if wled device, autodetect matrix settings (x and y)
+        # retrieve matrix setup from wled and set w/h
         if self.wled:
-            self.scale_width, self.scale_height = asyncio.run(Utils.get_wled_matrix_dimensions(self.host))
+            status = asyncio.run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
+            if status:
+                self.scale_width, self.scale_height = asyncio.run(Utils.get_wled_matrix_dimensions(self.host))
+            else:
+                logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
+                CASTDesktop.count -= 1
+                return False
+
+        ip_addresses.append(self.host)
+        ddp = DDPDevice(self.host)
 
         # specifics for Multicast
         if self.multicast:
@@ -168,8 +187,11 @@ class CASTDesktop:
                     if self.wled:
                         asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                     ip_addresses.append(cast_ip)
-                    cast_ip_addresses.append(cast_ip)
                     logger.info(f'IP : {cast_ip} for sub image number {i}')
+
+        """
+        Second, capture media
+        """
 
         # Open video device (desktop / window)
         input_options = {'c:v': 'libx264rgb', 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
@@ -312,7 +334,7 @@ class CASTDesktop:
                                 multicast manage any number of devices of same configuration
                                 each device need to drive the same amount of leds, same config
                                 e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
-                                ==> this give 6 devices to set into cast_devices list                        
+                                ==> this give 5 devices to set into cast_devices list (host is auto incl.)                    
                                     (tuple of: device index(0...n) , IP address) 
                                     we will manage image of 3x16 leds for x and 2x16 for y    
 
@@ -328,14 +350,14 @@ class CASTDesktop:
                             self.cast_frame_buffer = Utils.split_image_to_matrix(frame, self.cast_x, self.cast_y)
 
                             # validate cast_devices number
-                            if len(self.cast_devices) != len(self.cast_frame_buffer):
+                            if len(ip_addresses) != len(self.cast_frame_buffer):
                                 logger.error('Cast devices number != sub images number: check cast_devices ')
                                 raise Exception
 
                             # send, keep synchronized
                             try:
 
-                                send_multicast_images_to_ips(self.cast_frame_buffer, cast_ip_addresses)
+                                send_multicast_images_to_ips(self.cast_frame_buffer, ip_addresses)
 
                             except Exception as error:
                                 logger.error('An exception occurred: {}'.format(error))
