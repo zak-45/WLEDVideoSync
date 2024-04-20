@@ -21,6 +21,9 @@ Web GUI based on NiceGUI
 
 """
 
+import logging
+import logging.config
+
 from ddp import DDPDevice
 
 import time
@@ -28,15 +31,14 @@ import sys
 import socket
 import json
 
+import queue
+
 import cfg_load as cfg
 
 import desktop
 import media
 from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
-
-import logging
-import logging.config
 
 import ast
 
@@ -84,6 +86,9 @@ if server_port not in range(1, 65536):
     print(f'Bad server Port: {server_port}')
     sys.exit(2)
 
+# to share data between threads
+t_data_buffer = queue.Queue()  # create a thread safe queue
+
 
 class CastAPI:
     dark_mode = False
@@ -124,7 +129,7 @@ async def run_cast(class_obj: str):
     except KeyError:
         raise HTTPException(status_code=400, detail=f"Invalid Class name: {class_obj}")
 
-    my_obj.cast()
+    my_obj.cast(t_data_buffer)
 
     return {"run_cast": True}
 
@@ -303,7 +308,7 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # wait for data (need to be in json format)
             data = await websocket.receive_text()
-            
+
             # once received, decode json
             json_data = json.loads(data)
 
@@ -315,12 +320,12 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # select action to do
             action = json_data["action"]["type"]
-            
+
             # creating parameter list programmatically
             params = json_data["action"]["param"]  # param dict
             if action in allowed_actions:
                 # get all params
-                
+
                 # these are required
                 image_number = json_data["action"]["param"]["image_number"]
                 params["image_number"] = image_number
@@ -1046,7 +1051,7 @@ async def init_cast(class_obj):
     :param class_obj:
     :return:
     """
-    class_obj.cast()
+    class_obj.cast(t_data_buffer)
     cast_manage.refresh()
     logger.info(datetime.now().strftime('%X.%f')[:-5] + ' Run Cast for ' + str(class_obj))
     # just try to avoid mad man click !!

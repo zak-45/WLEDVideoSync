@@ -12,24 +12,26 @@
 # Data will be sent through 'ddp' protocol
 # A preview can be seen via 'cv2' : pixelart look
 #
-import asyncio
-import concurrent.futures
-
 import logging
 import logging.config
 
 import cv2
 import time
-import socket
-from ddp import DDPDevice
+
 import threading
 from threading import current_thread
+import asyncio
+import concurrent.futures
+
+from ddp import DDPDevice
 from utils import CASTUtils as Utils, LogElementHandler
 
 # read config
 logging.config.fileConfig('config/logging.ini')
 # create logger
 logger = logging.getLogger('WLEDLogger.media')
+
+t_send_frame = threading.Event()  # thread listen event to send frame via ddp
 
 
 def send_multicast_image(ip, image):
@@ -39,13 +41,18 @@ def send_multicast_image(ip, image):
     :param image:
     :return:
     """
-    device = DDPDevice(ip)
-    device.flush(image)
+    # timeout provided to not have thread waiting infinitely
+    if t_send_frame.wait(timeout=1):
+        # send ddp data
+        device = DDPDevice(ip)
+        device.flush(image)
+    else:
+        logger.warning('Multicast frame dropped')
 
 
 def send_multicast_images_to_ips(images_buffer, ip_addresses):
     """
-    Create a thread for each image - IP pair and wait for all to finish
+    Create a thread for each image , IP pair and wait for all to finish
     Very simple synchro process
     :param images_buffer:
     :param ip_addresses:
@@ -56,15 +63,21 @@ def send_multicast_images_to_ips(images_buffer, ip_addresses):
         futures = [executor.submit(send_multicast_image, ip, image)
                    for ip, image in zip(ip_addresses, images_buffer)]
 
+        # once all threads up, need to set event because they wait for
+        t_send_frame.set()
+
         # Wait for all threads to complete
         concurrent.futures.wait(futures)
+
+    t_send_frame.clear()
 
 
 class CASTMedia:
     """ Cast Media to DDP """
 
     count = 0  # initialise count to zero
-    t_exit_event = threading.Event()  # thread listen event
+    t_exit_event = threading.Event()  # thread listen event fo exit
+    t_provide_info = threading.Event()  # thread listen event for info
 
     def __init__(self):
         self.rate: int = 25
@@ -94,7 +107,7 @@ class CASTMedia:
         self.cast_devices: list = []
         self.cast_frame_buffer = []
 
-    def t_media_cast(self):
+    def t_media_cast(self, shared_buffer=None):
         """
             Main cast logic
             Cast media : video file, image file or video capture device
@@ -103,6 +116,8 @@ class CASTMedia:
         logger.info(f'Child thread: {t_name}')
 
         CASTMedia.count += 1
+
+        start_time = time.time()
 
         frame_count = 0
         frame_interval = 1.0 / self.rate  # Calculate the time interval between frames
@@ -329,6 +344,23 @@ class CASTMedia:
 
             last_frame = time.time()
 
+            """
+            instruct the thread to provide info 
+            """
+            if CASTMedia.t_provide_info.is_set():
+
+                if shared_buffer is None:
+                    logger.warning('No queue buffer defined')
+                else:
+                    t_info = {t_name: {"type", "info"}, "data": {"start": start_time,
+                                                                 "viinput": str(input_media),
+                                                                 "devices": ip_addresses,
+                                                                 "frames": frame_count
+                                                                 }}
+                    shared_buffer.put(t_info)
+
+                CASTMedia.t_provide_info.clear()
+
         """
             Final : End Media Loop
         """
@@ -353,12 +385,12 @@ class CASTMedia:
 
         time.sleep(2)
 
-    def cast(self):
+    def cast(self, shared_buffer=None):
         """
             this will run the cast into another thread
             avoid to block the main one
         """
-        thread = threading.Thread(target=self.t_media_cast)
+        thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         logger.info('Child Media cast running')
