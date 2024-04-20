@@ -205,7 +205,7 @@ async def util_blackout():
 
 
 @app.get("/api/util/casts_info")
-async def util_casts_info():
+def util_casts_info():
     """
         Get info from all Casts Thread
     """
@@ -489,6 +489,7 @@ def main_page():
         # Create buttons
         ui.button('Desktop', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
         ui.button('Media', on_click=lambda: ui.navigate.to('/Media'), icon='image')
+        ui.button('Infos', on_click=lambda: ui.navigate.to('/CastInfo'), icon='info')
         ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
 
     """
@@ -509,7 +510,11 @@ def main_page():
     Row for Cast info / Run / Close : refreshable
     """
     cast_manage()
-    ui.icon('info').on('click', lambda: show_thread_info()).classes('self-center')
+    ui.icon('info') \
+        .tooltip('Show details') \
+        .on('click', lambda: show_thread_info()) \
+        .classes('self-center') \
+        .style('cursor: pointer')
 
     ui.separator().classes('mt-6')
 
@@ -667,7 +672,8 @@ def main_page_desktop():
 
         with ui.dialog() as dialog, ui.card():
             win_title = Utils.windows_titles()
-            ui.json_editor({'content': {'json': win_title}})
+            editor = ui.json_editor({'content': {'json': win_title}})
+            editor.run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog.close, color='red')
         ui.button('Win TITLES', on_click=dialog.open, color='bg-red-800').tooltip('View windows titles')
 
@@ -836,6 +842,35 @@ def main_page_media():
         ui.button('Run discovery', on_click=discovery_media_notify, color='bg-red-800')
 
 
+@ui.page('/CastInfo')
+def main_page_cast_info():
+    """ Cast info full details page """
+
+    ui.dark_mode(CastAPI.dark_mode)
+
+    apply_colors()
+
+    """
+    Header with button menu
+    """
+    with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
+        ui.link('MAIN', target='/').classes('text-white text-lg font-medium')
+        ui.icon('info')
+        # Create buttons
+        ui.button('Desktop', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
+        ui.button('Media', on_click=lambda: ui.navigate.to('/Media'), icon='image')
+        ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
+
+    tabs_info_page()
+
+    with ui.footer():
+        ui.button('Refresh Page', on_click=lambda: ui.navigate.to('/CastInfo'))
+
+        net_view_page()
+
+        media_dev_view_page()
+
+
 @ui.page('/WLEDVideoSync')
 def splash_page():
     """
@@ -875,6 +910,12 @@ def info_page():
     """ simple cast info page for systray """
     ui.timer(int(app_config['timer']), callback=info_timer_action)
     cast_manage()
+
+
+@ui.page('/DetailsInfo')
+def info_page():
+    """ simple details cast info page for systray """
+    tabs_info_page()
 
 
 @ui.refreshable
@@ -948,7 +989,8 @@ def net_view_page():
     :return:
     """
     with ui.dialog() as dialog, ui.card():
-        ui.json_editor({'content': {'json': Netdevice.http_devices}})
+        editor = ui.json_editor({'content': {'json': Netdevice.http_devices}})
+        editor.run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
     ui.button('Net devices', on_click=dialog.open, color='bg-red-800').tooltip('View network devices')
 
@@ -960,7 +1002,8 @@ def media_dev_view_page():
     :return:
     """
     with ui.dialog() as dialog, ui.card():
-        ui.json_editor({'content': {'json': Utils.dev_list}})
+        editor = ui.json_editor({'content': {'json': Utils.dev_list}})
+        editor.run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
     ui.button('Media devices', on_click=dialog.open, color='bg-red-800').tooltip('View Media devices')
 
@@ -970,11 +1013,68 @@ helpers
 """
 
 
-async def show_thread_info():
+def tabs_info_page():
+    # grab data
+    info_data = util_casts_info()
+    # take only info data key
+    info_data = info_data['t_info']
 
+    # split desktop / media
+    desktop_threads = []
+    media_threads = []
+    for item in info_data:
+        if 'desktop' in item:
+            desktop_threads.append(item)
+        elif 'media' in item:
+            media_threads.append(item)
+
+    """
+    Tabs
+    """
+    with ui.tabs().classes('w-full') as tabs:
+        p_desktop = ui.tab('Desktop')
+        p_media = ui.tab('Media')
+    with ui.tab_panels(tabs, value=p_desktop).classes('w-full'):
+        with ui.tab_panel(p_desktop):
+            # create Graph
+            graph_data = ''
+            for item in desktop_threads:
+                t_id = info_data[item]["data"]["tid"]
+                t_name = item.replace(' ', '_').replace('(', '').replace(')', '')
+                graph_data += "WLEDVideoSync --> " + "|" + str(t_id) + "|" + t_name + "\n"
+            with ui.row():
+                ui.mermaid('''
+                graph LR;''' + graph_data + '''
+                ''')
+                with ui.row():
+                    for item in desktop_threads:
+                        with ui.expansion(item):
+                            editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
+                            editor.run_editor_method('updateProps', {'readOnly': True})
+
+        with ui.tab_panel(p_media):
+            # create Graph
+            graph_data = ''
+            for item in media_threads:
+                t_id = info_data[item]["data"]["tid"]
+                t_name = item.replace(' ', '_').replace('(', '').replace(')', '')
+                graph_data += "WLEDVideoSync --> " + "|" + str(t_id) + "|" + t_name + "\n"
+            with ui.row():
+                ui.mermaid('''
+                graph LR;''' + graph_data + '''
+                ''')
+                with ui.row():
+                    for item in media_threads:
+                        with ui.expansion(item):
+                            editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
+                            editor.run_editor_method('updateProps', {'readOnly': True})
+
+
+def show_thread_info():
     with ui.dialog() as dialog, ui.card():
-        cast_info = await util_casts_info()
-        ui.json_editor({'content': {'json': cast_info}})
+        cast_info = util_casts_info()
+        editor = ui.json_editor({'content': {'json': cast_info}})
+        editor.run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
         dialog.open()
 

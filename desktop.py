@@ -349,6 +349,7 @@ class CASTDesktop:
                             logger.warning('No queue buffer defined')
                         else:
                             t_info = {t_name: {"type": "info", "data": {"start": start_time,
+                                                                        "tid": current_thread().native_id,
                                                                         "viinput": str(input_filename),
                                                                         "devices": ip_addresses,
                                                                         "frames": frame_count
@@ -366,10 +367,13 @@ class CASTDesktop:
                 # close av output if any
                 if output_container:
                     output_container.close()
-                # close preview window if any
-                win = cv2.getWindowProperty("Desktop Preview input: " + str(self.viinput), cv2.WND_PROP_VISIBLE)
-                if win != 0:
-                    cv2.destroyWindow("Desktop Preview input: " + str(self.viinput))
+                if CASTDesktop.count <= 2:  # try to avoid to block if more casts thread and preview True
+                    logger.info('Stop window preview if any')
+                    time.sleep(1)
+                    # close preview window if any
+                    win = cv2.getWindowProperty("Desktop Preview input: " + str(self.viinput), cv2.WND_PROP_VISIBLE)
+                    if win != 0:
+                        cv2.destroyWindow("Desktop Preview input: " + str(self.viinput))
 
         else:
 

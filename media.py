@@ -353,6 +353,7 @@ class CASTMedia:
                     logger.warning('No queue buffer defined')
                 else:
                     t_info = {t_name: {"type": "info", "data": {"start": start_time,
+                                                                "tid": current_thread().native_id,
                                                                 "viinput": str(input_media),
                                                                 "devices": ip_addresses,
                                                                 "frames": frame_count

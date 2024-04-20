@@ -141,7 +141,7 @@ def run_webview(window_name):
         main_window.destroy()
 
     # Menu Items definition
-    if window_name in ['StopSrv', 'Info', 'BlackOut']:
+    if window_name in ['StopSrv', 'Info', 'BlackOut', 'Details']:
         # minimalist Menu
         menu_items = [
             wm.Menu('Options',
@@ -189,6 +189,15 @@ def run_webview(window_name):
             url=f"http://{server_ip}:{server_port}/api/util/blackout",
             width=300,
             height=150
+        )
+
+    elif window_name == 'Details':
+        # info details window : show result from api CastInfo
+        main_window = webview.create_window(
+            title='Casts Details',
+            url=f"http://{server_ip}:{server_port}/DetailsInfo",
+            width=640,
+            height=480
         )
 
     # start webview, dialog or not
@@ -360,6 +369,19 @@ if __name__ == '__main__':
             if not webview_process.is_alive():
                 start_webview_process('Info')
 
+    def on_details():
+        """
+        Menu Info Details option : show details cast information in native OS Window
+        :return:
+        """
+
+        global webview_process
+        if webview_process is None:
+            start_webview_process('Details')
+        else:
+            if not webview_process.is_alive():
+                start_webview_process('Details')
+
 
     def on_exit():
         """
@@ -382,6 +404,7 @@ if __name__ == '__main__':
         MenuItem('BLACKOUT', on_blackout),
         Menu.SEPARATOR,
         MenuItem('Info', on_info),
+        MenuItem('Info details', on_details),
         Menu.SEPARATOR,
         MenuItem('Exit', on_exit)
     )
