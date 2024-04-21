@@ -42,6 +42,7 @@ logging.config.fileConfig('config/logging.ini')
 logger = logging.getLogger('WLEDLogger.desktop')
 
 t_send_frame = threading.Event()  # thread listen event to send frame via ddp
+t_desktop_lock = threading.Lock()   # define lock for to do
 
 
 def send_multicast_image(ip, image):
@@ -88,6 +89,7 @@ class CASTDesktop:
     count = 0  # initialise count to zero
     t_exit_event = threading.Event()  # thread listen event
     t_provide_info = threading.Event()  # thread listen event for info
+    t_todo_event = threading.Event()  # thread listen event for task to do
 
     def __init__(self):
         self.rate: int = 25
@@ -118,6 +120,7 @@ class CASTDesktop:
         self.cast_y: int = 1
         self.cast_devices: list = []
         self.cast_frame_buffer = []
+        self.cast_name_todo = []  # list of thread names that need to execute to do
 
     def t_desktop_cast(self, shared_buffer=None):
         """
@@ -256,6 +259,22 @@ class CASTDesktop:
 
                     if self.stopcast:
                         break
+
+                    """
+                    check if something to do
+                    manage concurrent access to the list by using lock feature
+                    event clear only when no more item in list
+                    """
+                    if CASTDesktop.t_todo_event.is_set():
+                        t_desktop_lock.acquire()
+                        #  take thread name from cast list
+                        for item in self.cast_name_todo:
+                            if item == t_name:
+                                print(f'To do for :{t_name}')
+                                self.cast_name_todo.remove(item)
+                                if len(self.cast_name_todo) == 0:
+                                    CASTDesktop.t_todo_event.clear()
+                        t_desktop_lock.release()
 
                     frame_count += 1
 

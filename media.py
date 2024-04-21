@@ -31,7 +31,8 @@ logging.config.fileConfig('config/logging.ini')
 # create logger
 logger = logging.getLogger('WLEDLogger.media')
 
-t_send_frame = threading.Event()  # thread listen event to send frame via ddp
+t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
+t_media_lock = threading.Lock()   # define lock for to do
 
 
 def send_multicast_image(ip, image):
@@ -78,6 +79,7 @@ class CASTMedia:
     count = 0  # initialise count to zero
     t_exit_event = threading.Event()  # thread listen event fo exit
     t_provide_info = threading.Event()  # thread listen event for info
+    t_todo_event = threading.Event()  # thread listen event for task to do
 
     def __init__(self):
         self.rate: int = 25
@@ -106,6 +108,7 @@ class CASTMedia:
         self.cast_y: int = 1
         self.cast_devices: list = []
         self.cast_frame_buffer = []
+        self.cast_name_todo = []  # list of thread names with action that need to execute 'to do'
 
     def t_media_cast(self, shared_buffer=None):
         """
@@ -227,6 +230,22 @@ class CASTMedia:
             """
             if CASTMedia.t_exit_event.is_set():
                 break
+
+            """
+            check if something to do
+            manage concurrent access to the list by using lock feature
+            event clear only when no more item in list
+            """
+            if CASTMedia.t_todo_event.is_set():
+                t_media_lock.acquire()
+                #  take thread name from cast list
+                for item in self.cast_name_todo:
+                    if item == t_name:
+                        print(f'Todo for :{t_name}')
+                        self.cast_name_todo.remove(item)
+                        if len(self.cast_name_todo) == 0:
+                            CASTMedia.t_todo_event.clear()
+                t_media_lock.release()
 
             #  read media
             success, frame = media.read()
@@ -359,6 +378,7 @@ class CASTMedia:
 
                 if shared_buffer is None:
                     logger.warning('No queue buffer defined')
+                    CASTMedia.t_provide_info.clear()
                 else:
                     t_info = {t_name: {"type": "info", "data": {"start": start_time,
                                                                 "tid": current_thread().native_id,

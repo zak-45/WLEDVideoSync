@@ -86,7 +86,7 @@ if server_port not in range(1, 65536):
     print(f'Bad server Port: {server_port}')
     sys.exit(2)
 
-# to share data between threads
+# to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
 
@@ -1037,7 +1037,7 @@ def tabs_info_page():
     with ui.tab_panels(tabs, value=p_desktop).classes('w-full'):
         with ui.tab_panel(p_desktop):
             if not desktop_threads:
-                ui.label('No Data')
+                ui.label('No CAST').style('text-align:center; font-size: 150%; font-weight: 300')
             else:
                 # create Graph
                 graph_data = ''
@@ -1057,7 +1057,7 @@ def tabs_info_page():
 
         with ui.tab_panel(p_media):
             if not media_threads:
-                ui.label('No Data')
+                ui.label('No CAST').style('text-align:center; font-size: 150%; font-weight: 300')
             else:
                 # create Graph
                 graph_data = ''
