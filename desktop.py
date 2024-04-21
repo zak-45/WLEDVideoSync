@@ -42,7 +42,7 @@ logging.config.fileConfig('config/logging.ini')
 logger = logging.getLogger('WLEDLogger.desktop')
 
 t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
-t_desktop_lock = threading.Lock()   # define lock for to do
+t_desktop_lock = threading.Lock()  # define lock for to do
 
 
 def send_multicast_image(ip, image):
@@ -71,14 +71,14 @@ def send_multicast_images_to_ips(images_buffer, ip_addresses):
     """
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Submit a thread for each image and IP pair
-        futures = [executor.submit(send_multicast_image, ip, image)
-                   for ip, image in zip(ip_addresses, images_buffer)]
+        multicast = [executor.submit(send_multicast_image, ip, image)
+                     for ip, image in zip(ip_addresses, images_buffer)]
 
         # once all threads up, need to set event because they wait for
         t_send_frame.set()
 
         # Wait for all threads to complete
-        concurrent.futures.wait(futures)
+        concurrent.futures.wait(multicast, timeout=1)
 
     t_send_frame.clear()
 
