@@ -41,7 +41,7 @@ logging.config.fileConfig('config/logging.ini')
 # create logger
 logger = logging.getLogger('WLEDLogger.desktop')
 
-t_send_frame = threading.Event()  # thread listen event to send frame via ddp
+t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
 t_desktop_lock = threading.Lock()   # define lock for to do
 
 
@@ -53,7 +53,7 @@ def send_multicast_image(ip, image):
     :return:
     """
     # timeout provided to not have thread waiting infinitely
-    if t_send_frame.wait(timeout=1):
+    if t_send_frame.wait(timeout=.1):
         # send ddp data
         device = DDPDevice(ip)
         device.flush(image)

@@ -37,13 +37,13 @@ t_media_lock = threading.Lock()   # define lock for to do
 
 def send_multicast_image(ip, image):
     """
-    This sends an image to an IP address using DDP
+    This sends an image to an IP address using DDP, used by multicast
     :param ip:
     :param image:
     :return:
     """
     # timeout provided to not have thread waiting infinitely
-    if t_send_frame.wait(timeout=1):
+    if t_send_frame.wait(timeout=.1):
         # send ddp data
         device = DDPDevice(ip)
         device.flush(image)
