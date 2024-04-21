@@ -115,9 +115,10 @@ class CASTMedia:
         t_name = current_thread().name
         logger.info(f'Child thread: {t_name}')
 
-        CASTMedia.count += 1
-
         start_time = time.time()
+        t_multicast = self.multicast
+        t_cast_x = self.cast_x
+        t_cast_y = self.cast_y
 
         frame_count = 0
         frame_interval = 1.0 / self.rate  # Calculate the time interval between frames
@@ -138,7 +139,7 @@ class CASTMedia:
             Please refer to the documentation of source stream to know the right URL.
 
         """
-        input_media = self.viinput
+        t_viinput = self.viinput
 
         """
         First, check devices 
@@ -150,7 +151,6 @@ class CASTMedia:
                 logger.info(f'We work with this IP {self.host} as first device: number 0')
             else:
                 logger.error(f'Error looks like IP {self.host} do not accept connection to port 80')
-                CASTMedia.count -= 1
                 return False
 
         ip_addresses.append(self.host)
@@ -162,21 +162,19 @@ class CASTMedia:
                 self.scale_width, self.scale_height = asyncio.run(Utils.get_wled_matrix_dimensions(self.host))
             else:
                 logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
-                CASTMedia.count -= 1
                 return False
 
         ddp = DDPDevice(self.host)
 
         # specifics for Multicast
-        if self.multicast:
+        if t_multicast:
             # validate cast_devices list
             if not Utils.is_valid_cast_device(str(self.cast_devices)):
                 logger.error("Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
-                CASTMedia.count -= 1
                 return False
             else:
                 logger.info('Virtual Matrix size is :' +
-                            str(self.scale_width * self.cast_x) + 'x' + str(self.scale_height * self.cast_y))
+                            str(self.scale_width * t_cast_x) + 'x' + str(self.scale_height * t_cast_y))
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
@@ -186,18 +184,22 @@ class CASTMedia:
                     ip_addresses.append(cast_ip)
                     logger.info(f'IP : {cast_ip} for sub image number {i}')
 
+        CASTMedia.count += 1
+
         """
         Second, capture media
         """
 
         self.frame_buffer = []
         self.cast_frame_buffer = []
+        t_frame_buffer = []
+        t_cast_frame_buffer = []
 
         # capture media
-        media = cv2.VideoCapture(input_media)
+        media = cv2.VideoCapture(t_viinput)
         # Check if the capture is successful
         if not media.isOpened():
-            logger.error(f"Error: Unable to open media stream {input_media}.")
+            logger.error(f"Error: Unable to open media stream {t_viinput}.")
             CASTMedia.count -= 1
             return False
 
@@ -205,7 +207,7 @@ class CASTMedia:
         length = int(media.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = media.get(cv2.CAP_PROP_FPS)
 
-        logger.info(f"Playing media {input_media} of length {length} at {fps} FPS")
+        logger.info(f"Playing media {t_viinput} of length {length} at {fps} FPS")
 
         # detect if we want specific frame index: only for non-live video
         if self.frame_index != 0 and length != -1:
@@ -241,7 +243,7 @@ class CASTMedia:
 
             frame_count += 1
 
-            if not self.multicast:
+            if not t_multicast:
                 # resize frame for sending to ddp device
                 frame_to_send = Utils.resize_image(frame, self.scale_width, self.scale_height)
                 # resize frame to pixelart
@@ -288,11 +290,10 @@ class CASTMedia:
                                             cv2.LINE_AA)
 
                     # Displaying the image
-                    cv2.imshow("Media Preview input: " + str(self.viinput), frame)
-                    cv2.resizeWindow("Media Preview input: " + str(self.viinput), 640, 480)
+                    cv2.imshow("Media Preview input: " + str(t_viinput), frame)
+                    cv2.resizeWindow("Media Preview input: " + str(t_viinput), 640, 480)
                     if cv2.waitKey(10) & 0xFF == ord("q"):
-                        self.preview = False
-                        cv2.destroyWindow("Media Preview input: " + str(self.viinput))
+                        cv2.destroyWindow("Media Preview input: " + str(t_viinput))
 
                 """
                     stop for non-live video (length not -1)
@@ -317,20 +318,28 @@ class CASTMedia:
 
                 # resize frame to virtual matrix size
                 frame = Utils.resize_image(frame,
-                                           self.scale_width * self.cast_x,
-                                           self.scale_height * self.cast_y)
-                # split to matrix
-                self.cast_frame_buffer = Utils.split_image_to_matrix(frame, self.cast_x, self.cast_y)
+                                           self.scale_width * t_cast_x,
+                                           self.scale_height * t_cast_y)
 
-                # validate cast_devices number
-                if len(ip_addresses) != len(self.cast_frame_buffer):
-                    logger.error('Cast devices number != sub images number: check cast_devices ')
-                    break
+                if frame_count > 1:
+                    # split to matrix
+                    t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+
+                else:
+                    # split to matrix
+                    self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+
+                    # validate cast_devices number
+                    if len(ip_addresses) != len(self.cast_frame_buffer):
+                        logger.error('Cast devices number != sub images number: check cast_devices ')
+                        break
+
+                    t_cast_frame_buffer = self.cast_frame_buffer
 
                 # send, keep synchronized
                 try:
 
-                    send_multicast_images_to_ips(self.cast_frame_buffer, ip_addresses)
+                    send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                 except Exception as error:
                     logger.error('An exception occurred: {}'.format(error))
@@ -353,7 +362,8 @@ class CASTMedia:
                 else:
                     t_info = {t_name: {"type": "info", "data": {"start": start_time,
                                                                 "tid": current_thread().native_id,
-                                                                "viinput": str(input_media),
+                                                                "viinput": str(t_viinput),
+                                                                "multicast": t_multicast,
                                                                 "devices": ip_addresses,
                                                                 "frames": frame_count
                                                                 }}}
@@ -367,14 +377,15 @@ class CASTMedia:
 
         if CASTMedia.count <= 2:  # avoid to block when click as a bad man !!!
             logger.info('Stop window preview if any')
-            win = cv2.getWindowProperty("Media Preview input: " + str(self.viinput), cv2.WND_PROP_VISIBLE)
+            time.sleep(1)
+            win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
             if win != 0:
-                cv2.destroyWindow("Media Preview input: " + str(self.viinput))
+                cv2.destroyWindow("Media Preview input: " + str(t_viinput))
 
         media.release()
 
         print("_" * 50)
-        print(f'Cast {t_name} end using this media: {input_media}')
+        print(f'Cast {t_name} end using this media: {t_viinput}')
         print(f'Using these devices: {str(ip_addresses)}')
         print("_" * 50)
 

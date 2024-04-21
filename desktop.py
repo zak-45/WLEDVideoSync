@@ -126,9 +126,10 @@ class CASTDesktop:
         t_name = current_thread().name
         logger.info(f'Child thread: {t_name}')
 
-        CASTDesktop.count += 1
-
         start_time = time.time()
+        t_multicast = self.multicast
+        t_cast_x = self.cast_x
+        t_cast_y = self.cast_y
 
         self.frame_buffer = []
         frame_count = 0
@@ -154,7 +155,6 @@ class CASTDesktop:
                 logger.info(f'We work with this IP {self.host} as first device: number 0')
             else:
                 logger.error(f'Error looks like IP {self.host} do not accept connection to port 80')
-                CASTDesktop.count -= 1
                 return False
 
         # this will be device number 0
@@ -167,21 +167,19 @@ class CASTDesktop:
                 self.scale_width, self.scale_height = asyncio.run(Utils.get_wled_matrix_dimensions(self.host))
             else:
                 logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
-                CASTDesktop.count -= 1
                 return False
 
         ddp = DDPDevice(self.host)
 
         # specifics for Multicast
-        if self.multicast:
+        if t_multicast:
             # validate cast_devices list
             if not Utils.is_valid_cast_device(str(self.cast_devices)):
                 logger.error("Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
-                CASTDesktop.count -= 1
                 return False
             else:
                 logger.info('Virtual Matrix size is :' +
-                            str(self.scale_width * self.cast_x) + 'x' + str(self.scale_height * self.cast_y))
+                            str(self.scale_width * t_cast_x) + 'x' + str(self.scale_height * t_cast_y))
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
@@ -190,6 +188,8 @@ class CASTDesktop:
                         asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                     ip_addresses.append(cast_ip)
                     logger.info(f'IP : {cast_ip} for sub image number {i}')
+
+        CASTDesktop.count += 1
 
         """
         Second, capture media
@@ -205,12 +205,12 @@ class CASTDesktop:
                     desktop : to stream full screen
                     title=<window name> : to stream only window content
         """
-        input_filename = self.viinput
+        t_viinput = self.viinput
 
         # Open av input container in read mode
         try:
 
-            input_container = av.open(input_filename, 'r', format=input_format, options=input_options)
+            input_container = av.open(t_viinput, 'r', format=input_format, options=input_options)
 
         except Exception as error:
 
@@ -246,7 +246,7 @@ class CASTDesktop:
             # Stream loop
             try:
 
-                logger.info(f"Capture from {input_filename}")
+                logger.info(f"Capture from {t_viinput}")
                 for frame in input_container.decode(input_stream):
                     """
                     instruct the thread to exit 
@@ -275,7 +275,7 @@ class CASTDesktop:
                         if self.flip:
                             frame = cv2.flip(frame, self.flip_vh)
 
-                        if not self.multicast:
+                        if not t_multicast:
                             # resize frame for sending to ddp device
                             frame_to_send = Utils.resize_image(frame, self.scale_width, self.scale_height)
                             # resize frame to pixelart
@@ -322,11 +322,11 @@ class CASTDesktop:
                                                         cv2.LINE_AA)
 
                                 # Displaying the image on the preview Window
-                                cv2.imshow("Desktop Preview input: " + str(self.viinput), frame)
-                                cv2.resizeWindow("Desktop Preview input: " + str(self.viinput), 640, 480)
+                                cv2.imshow("Desktop Preview input: " + str(t_viinput), frame)
+                                cv2.resizeWindow("Desktop Preview input: " + str(t_viinput), 640, 480)
                                 if cv2.waitKey(10) & 0xFF == ord("q"):
                                     self.preview = False
-                                    cv2.destroyWindow("Desktop Preview input: " + str(self.viinput))
+                                    cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
                         else:
                             """
                                 multicast manage any number of devices of same configuration
@@ -342,23 +342,32 @@ class CASTDesktop:
 
                             # resize frame to virtual matrix size
                             frame = Utils.resize_image(frame,
-                                                       self.scale_width * self.cast_x,
-                                                       self.scale_height * self.cast_y)
-                            # split to matrix
-                            self.cast_frame_buffer = Utils.split_image_to_matrix(frame, self.cast_x, self.cast_y)
+                                                       self.scale_width * t_cast_x,
+                                                       self.scale_height * t_cast_y)
 
-                            # validate cast_devices number
-                            if len(ip_addresses) != len(self.cast_frame_buffer):
-                                logger.error('Cast devices number != sub images number: check cast_devices ')
-                                raise Exception
+                            if frame_count > 1:
+                                # split to matrix
+                                t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+
+                            else:
+                                # split to matrix
+                                self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+
+                                # validate cast_devices number
+                                if len(ip_addresses) != len(self.cast_frame_buffer):
+                                    logger.error('Cast devices number != sub images number: check cast_devices ')
+                                    break
+
+                                t_cast_frame_buffer = self.cast_frame_buffer
 
                             # send, keep synchronized
                             try:
 
-                                send_multicast_images_to_ips(self.cast_frame_buffer, ip_addresses)
+                                send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                             except Exception as error:
                                 logger.error('An exception occurred: {}'.format(error))
+                                break
 
                     """
                     instruct the thread to provide info 
@@ -370,7 +379,7 @@ class CASTDesktop:
                         else:
                             t_info = {t_name: {"type": "info", "data": {"start": start_time,
                                                                         "tid": current_thread().native_id,
-                                                                        "viinput": str(input_filename),
+                                                                        "viinput": str(t_viinput),
                                                                         "devices": ip_addresses,
                                                                         "frames": frame_count
                                                                         }}}
@@ -393,18 +402,22 @@ class CASTDesktop:
                     logger.info('Stop window preview if any')
                     time.sleep(1)
                     # close preview window if any
-                    win = cv2.getWindowProperty("Desktop Preview input: " + str(self.viinput), cv2.WND_PROP_VISIBLE)
+                    win = cv2.getWindowProperty("Desktop Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
                     if win != 0:
-                        cv2.destroyWindow("Desktop Preview input: " + str(self.viinput))
+                        cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
 
         else:
 
             logger.warning('av input_container not defined')
 
+        """
+        END +
+        """
+
         CASTDesktop.count -= 1
 
         print("_" * 50)
-        print(f'Cast {t_name} end using this input: {input_filename}')
+        print(f'Cast {t_name} end using this input: {t_viinput}')
         print(f'Using these devices: {str(ip_addresses)}')
         print("_" * 50)
 

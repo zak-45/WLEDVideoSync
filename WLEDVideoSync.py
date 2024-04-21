@@ -131,7 +131,7 @@ Webview : local OS native Window
 
 def run_webview(window_name):
     """
-    create window
+    Create webview process and window
     :return:
     """
     global main_window
@@ -360,7 +360,6 @@ if __name__ == '__main__':
         Menu Info option : show cast information in native OS Window
         :return:
         """
-
         global webview_process
         if webview_process is None:
             start_webview_process('Info')
@@ -374,7 +373,6 @@ if __name__ == '__main__':
         Menu Info Details option : show details cast information in native OS Window
         :return:
         """
-
         global webview_process
         if webview_process is None:
             start_webview_process('Details')
