@@ -34,6 +34,10 @@ logger = logging.getLogger('WLEDLogger.media')
 t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
 t_media_lock = threading.Lock()  # define lock for to do
 
+"""
+MultiCast
+"""
+
 
 def send_multicast_image(ip, image):
     """
@@ -73,12 +77,18 @@ def send_multicast_images_to_ips(images_buffer, ip_addresses):
     t_send_frame.clear()
 
 
+"""
+Class definition
+"""
+
+
 class CASTMedia:
     """ Cast Media to DDP """
 
     count = 0  # initialise count to zero
+
     t_exit_event = threading.Event()  # thread listen event fo exit
-    t_provide_info = threading.Event()  # thread listen event for info
+    t_info_event = threading.Event()  # thread listen event for info
     t_todo_event = threading.Event()  # thread listen event for task to do
 
     def __init__(self):
@@ -110,6 +120,10 @@ class CASTMedia:
         self.cast_frame_buffer = []
         self.cast_name_todo = []  # list of thread names with action that need to execute 'to do'
 
+    """
+    Cast Thread
+    """
+
     def t_media_cast(self, shared_buffer=None):
         """
             Main cast logic
@@ -119,12 +133,15 @@ class CASTMedia:
         logger.info(f'Child thread: {t_name}')
 
         start_time = time.time()
+        t_preview = self.preview
         t_multicast = self.multicast
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
 
         frame_count = 0
         frame_interval = 1.0 / self.rate  # Calculate the time interval between frames
+
+        t_todo_stop = False
 
         """
         Cast devices
@@ -223,13 +240,31 @@ class CASTMedia:
 
         last_frame = time.time()
 
-        # Main loop to read media frame
-        while not self.stopcast:
+        # Main thread loop to read media frame
+        while not self.stopcast and not t_todo_stop:
             """
             instruct the thread to exit 
             """
             if CASTMedia.t_exit_event.is_set():
                 break
+
+            """
+            instruct the thread to provide info 
+            """
+            if CASTMedia.t_info_event.is_set():
+
+                if shared_buffer is None:
+                    logger.warning('No queue buffer defined')
+                    CASTMedia.t_info_event.clear()
+                else:
+                    t_info = {t_name: {"type": "info", "data": {"start": start_time,
+                                                                "tid": current_thread().native_id,
+                                                                "viinput": str(t_viinput),
+                                                                "multicast": t_multicast,
+                                                                "devices": ip_addresses,
+                                                                "frames": frame_count
+                                                                }}}
+                    shared_buffer.put(t_info)
 
             """
             check if something to do
@@ -238,13 +273,25 @@ class CASTMedia:
             """
             if CASTMedia.t_todo_event.is_set():
                 t_media_lock.acquire()
+
                 #  take thread name from cast list
                 for item in self.cast_name_todo:
-                    if item == t_name:
-                        print(f'Todo for :{t_name}')
+                    name, action, added_time = item.split('||')
+                    if name == t_name:
+                        logging.info(f'To do: {action} for :{t_name}')
+
+                        try:
+                            if 'stop' in action:
+                                t_todo_stop = True
+                        except:
+                            self.cast_name_todo.remove(item)
+                            t_media_lock.release()
+                            logger.error(f'Action {action} in ERROR from {t_name}')
+
                         self.cast_name_todo.remove(item)
                         if len(self.cast_name_todo) == 0:
                             CASTMedia.t_todo_event.clear()
+
                 t_media_lock.release()
 
             #  read media
@@ -277,7 +324,7 @@ class CASTMedia:
                     self.frame_buffer.append(frame)
 
                 # preview on fixed size window
-                if self.preview:
+                if t_preview:
 
                     frame = cv2.resize(frame, (640, 480))
                     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -312,7 +359,9 @@ class CASTMedia:
                     cv2.imshow("Media Preview input: " + str(t_viinput), frame)
                     cv2.resizeWindow("Media Preview input: " + str(t_viinput), 640, 480)
                     if cv2.waitKey(10) & 0xFF == ord("q"):
-                        cv2.destroyWindow("Media Preview input: " + str(t_viinput))
+                        win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
+                        if win != 0:
+                            cv2.destroyWindow("Media Preview input: " + str(t_viinput))
 
                 """
                     stop for non-live video (length not -1)
@@ -340,6 +389,7 @@ class CASTMedia:
                                            self.scale_width * t_cast_x,
                                            self.scale_height * t_cast_y)
 
+                # populate global cast buffer from first frame only
                 if frame_count > 1:
                     # split to matrix
                     t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
@@ -364,6 +414,9 @@ class CASTMedia:
                     logger.error('An exception occurred: {}'.format(error))
                     break
 
+            """
+            do we need to sleep
+            """
             delay = time.time() - last_frame
             # sleep depend of the interval (FPS)
             if delay < frame_interval:
@@ -371,31 +424,13 @@ class CASTMedia:
 
             last_frame = time.time()
 
-            """
-            instruct the thread to provide info 
-            """
-            if CASTMedia.t_provide_info.is_set():
-
-                if shared_buffer is None:
-                    logger.warning('No queue buffer defined')
-                    CASTMedia.t_provide_info.clear()
-                else:
-                    t_info = {t_name: {"type": "info", "data": {"start": start_time,
-                                                                "tid": current_thread().native_id,
-                                                                "viinput": str(t_viinput),
-                                                                "multicast": t_multicast,
-                                                                "devices": ip_addresses,
-                                                                "frames": frame_count
-                                                                }}}
-                    shared_buffer.put(t_info)
-
         """
             Final : End Media Loop
         """
 
         CASTMedia.count -= 1
 
-        if CASTMedia.count <= 2:  # avoid to block when click as a bad man !!!
+        if CASTMedia.count <= 2:  # try to avoid blocking when click as a bad man !!!
             logger.info('Stop window preview if any')
             time.sleep(1)
             win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)

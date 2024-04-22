@@ -23,6 +23,7 @@ Web GUI based on NiceGUI
 import asyncio
 import logging
 import logging.config
+import threading
 
 from ddp import DDPDevice
 
@@ -207,25 +208,112 @@ async def util_blackout():
 @app.get("/api/util/casts_info")
 def util_casts_info():
     """
-        Get info from all Casts Thread
+        Get info from all Cast Threads
     """
     logger.info('Request Cast(s) info')
-    Desktop.t_provide_info.set()
-    Media.t_provide_info.set()
+    Desktop.t_info_event.set()
+    Media.t_info_event.set()
     info_data = {}
+    child_list = []
 
-    # wait some time
     time.sleep(1)
 
-    # take info datas
-    if t_data_buffer.qsize() != 0:
-        while not t_data_buffer.qsize() == 0:
-            info_data.update(t_data_buffer.get())
+    # we take only cast threads
+    for item in threading.enumerate():
+        t_name = item.name
+        if 't_media_cast' in t_name or 't_desktop_cast' in t_name:
+            child_list.append(t_name)
 
-    Desktop.t_provide_info.clear()
-    Media.t_provide_info.clear()
+    start_time = time.time()
+    while len(child_list) != 0:
+        # take info datas
+        if not t_data_buffer.empty():
+            # get info dict from a thread
+            data = t_data_buffer.get()
+            # add to return dict
+            info_data.update(data)
+            # remove from child list
+            if list(data.keys())[0] in child_list:
+                child_list.remove(list(data.keys())[0])
+
+        # Check if more than 2 seconds have elapsed
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 2:
+            logger.warning("Cast info execution took more than 2 seconds. List may be incomplete...  Exiting.")
+            child_list = []
+
+    Desktop.t_info_event.clear()
+    Media.t_info_event.clear()
 
     return {"t_info": info_data}
+
+
+@app.get("/api/{class_name}/list_actions")
+async def list_todo_actions(class_name: str):
+    """
+    List to do actions for a Class name
+    :param class_name:
+    :return:
+    """
+    if class_name not in class_to_test:
+        raise HTTPException(status_code=400,
+                            detail=f"Class name: {class_name} not in {class_to_test}")
+    try:
+        class_obj = globals()[class_name]
+    except KeyError:
+        raise HTTPException(status_code=400,
+                            detail=f"Invalid class name: {class_name}")
+
+    if not hasattr(class_obj, 'cast_name_todo'):
+        raise HTTPException(status_code=400,
+                            detail=f"Invalid attribute name")
+
+    return {"actions": class_obj.cast_name_todo}
+
+
+@app.put("/api/{class_name}/cast_actions")
+async def action_to_thread(class_name: str,
+                           cast_name: str = None,
+                           action: str = None,
+                           clear: bool = False,
+                           execute: bool = False):
+    """
+    Add action to cast_name_todo for a specific Cast
+    If clear, remove all to do
+    :param execute: instruct casts to check
+    :param clear: Remove all actions from to do list
+    :param class_name:
+    :param cast_name:
+    :param action:
+    :return:
+    """
+    if class_name not in class_to_test:
+        raise HTTPException(status_code=400,
+                            detail=f"Class name: {class_name} not in {class_to_test}")
+    try:
+        class_obj = globals()[class_name]
+    except KeyError:
+        raise HTTPException(status_code=400,
+                            detail=f"Invalid class name: {class_name}")
+
+    if not hasattr(class_obj, 'cast_name_todo'):
+        raise HTTPException(status_code=400,
+                            detail=f"Invalid attribute name")
+
+    if not clear:
+        if execute:
+            class_obj.t_todo_event.set()
+            return {"message": f"Actions On for {class_obj} "}
+
+        if cast_name is None:
+            raise HTTPException(status_code=400,
+                                detail=f"Invalid Cast/Thread name")
+        else:
+            class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
+            return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
+    else:
+        class_obj.cast_name_todo = []
+        return {"message": f" To do cleared for {class_obj}'"}
 
 
 @app.put("/api/{class_name}/update_attribute")
@@ -936,7 +1024,6 @@ def cast_manage():
                 ui.icon('cast', size='xl', color=my_col)
                 if not Desktop.stopcast:
                     ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop)) \
-                        .props('outline round') \
                         .classes('shadow-lg') \
                         .tooltip('Initiate Desktop Cast')
 
@@ -964,7 +1051,7 @@ def cast_manage():
                 ui.icon('cast', size='xl', color=my_col)
                 if not Media.stopcast:
                     ui.button(icon='touch_app', on_click=lambda: init_cast(Media)) \
-                        .props('outline round').classes('shadow-lg') \
+                        .classes('shadow-lg') \
                         .tooltip('Initiate Media Cast')
 
 
@@ -1052,6 +1139,14 @@ def tabs_info_page():
                     with ui.row():
                         for item in desktop_threads:
                             with ui.expansion(item):
+                                with ui.row():
+                                    ui.icon('cancel').on('click',
+                                                         lambda: action_to_thread(class_name='Desktop',
+                                                                                  cast_name=item,
+                                                                                  action='stop',
+                                                                                  clear=False,
+                                                                                  execute=False))
+                                    ui.icon('editor')
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
 
@@ -1072,6 +1167,14 @@ def tabs_info_page():
                     with ui.row():
                         for item in media_threads:
                             with ui.expansion(item):
+                                with ui.row():
+                                    ui.icon('cancel').on('click',
+                                                         lambda: action_to_thread(class_name='Media',
+                                                                                  cast_name=item,
+                                                                                  action='stop',
+                                                                                  clear=False,
+                                                                                  execute=False))
+                                    ui.icon('editor')
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
 

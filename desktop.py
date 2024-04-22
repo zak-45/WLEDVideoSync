@@ -87,8 +87,9 @@ class CASTDesktop:
     """ Cast Desktop to DDP """
 
     count = 0  # initialise count to zero
+
     t_exit_event = threading.Event()  # thread listen event
-    t_provide_info = threading.Event()  # thread listen event for info
+    t_info_event = threading.Event()  # thread listen event for info
     t_todo_event = threading.Event()  # thread listen event for task to do
 
     def __init__(self):
@@ -130,6 +131,7 @@ class CASTDesktop:
         logger.info(f'Child thread: {t_name}')
 
         start_time = time.time()
+        t_preview = self.preview
         t_multicast = self.multicast
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
@@ -257,8 +259,21 @@ class CASTDesktop:
                     if CASTDesktop.t_exit_event.is_set():
                         break
 
-                    if self.stopcast:
-                        break
+                    """
+                    instruct the thread to provide info 
+                    """
+                    if CASTDesktop.t_info_event.is_set():
+
+                        if shared_buffer is None:
+                            logger.warning('No queue buffer defined')
+                        else:
+                            t_info = {t_name: {"type": "info", "data": {"start": start_time,
+                                                                        "tid": current_thread().native_id,
+                                                                        "viinput": str(t_viinput),
+                                                                        "devices": ip_addresses,
+                                                                        "frames": frame_count
+                                                                        }}}
+                            shared_buffer.put(t_info)
 
                     """
                     check if something to do
@@ -275,6 +290,9 @@ class CASTDesktop:
                                 if len(self.cast_name_todo) == 0:
                                     CASTDesktop.t_todo_event.clear()
                         t_desktop_lock.release()
+
+                    if self.stopcast:
+                        break
 
                     frame_count += 1
 
@@ -309,7 +327,7 @@ class CASTDesktop:
                                 self.frame_buffer.append(frame)
 
                             # preview on fixed size window
-                            if self.preview:
+                            if t_preview:
 
                                 frame = cv2.resize(frame, (640, 480))
                                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -344,8 +362,13 @@ class CASTDesktop:
                                 cv2.imshow("Desktop Preview input: " + str(t_viinput), frame)
                                 cv2.resizeWindow("Desktop Preview input: " + str(t_viinput), 640, 480)
                                 if cv2.waitKey(10) & 0xFF == ord("q"):
-                                    self.preview = False
                                     cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
+                                    # close preview window if any
+                                    win = cv2.getWindowProperty("Desktop Preview input: " + str(t_viinput),
+                                                                cv2.WND_PROP_VISIBLE)
+                                    if win != 0:
+                                        cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
+
                         else:
                             """
                                 multicast manage any number of devices of same configuration
@@ -387,22 +410,6 @@ class CASTDesktop:
                             except Exception as error:
                                 logger.error('An exception occurred: {}'.format(error))
                                 break
-
-                    """
-                    instruct the thread to provide info 
-                    """
-                    if CASTDesktop.t_provide_info.is_set():
-
-                        if shared_buffer is None:
-                            logger.warning('No queue buffer defined')
-                        else:
-                            t_info = {t_name: {"type": "info", "data": {"start": start_time,
-                                                                        "tid": current_thread().native_id,
-                                                                        "viinput": str(t_viinput),
-                                                                        "devices": ip_addresses,
-                                                                        "frames": frame_count
-                                                                        }}}
-                            shared_buffer.put(t_info)
 
             except Exception as error:
 
