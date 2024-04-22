@@ -164,8 +164,8 @@ class CASTDesktop:
                 logger.error(f'Error looks like IP {self.host} do not accept connection to port 80')
                 return False
 
-        # this will be device number 0
-        ip_addresses.append(self.host)
+        if not t_multicast:
+            ip_addresses.append(self.host)
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
