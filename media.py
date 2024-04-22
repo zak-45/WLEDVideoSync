@@ -173,9 +173,6 @@ class CASTMedia:
                 logger.error(f'Error looks like IP {self.host} do not accept connection to port 80')
                 return False
 
-        if not t_multicast:
-            ip_addresses.append(self.host)
-
         # retrieve matrix setup from wled and set w/h
         if self.wled:
             status = asyncio.run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
@@ -201,9 +198,16 @@ class CASTMedia:
                     cast_ip = self.cast_devices[i][1]
                     Utils.check_ip_alive(cast_ip, port=80, timeout=2)
                     if self.wled:
-                        asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
+                        status = asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
+                        if not status:
+                            logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
+                            return False
+
                     ip_addresses.append(cast_ip)
                     logger.info(f'IP : {cast_ip} for sub image number {i}')
+        else:
+
+            ip_addresses.append(self.host)
 
         CASTMedia.count += 1
 
