@@ -280,7 +280,7 @@ async def action_to_thread(class_name: str,
     """
     Add action to cast_name_todo for a specific Cast
     If clear, remove all to do
-    :param execute: instruct casts to check
+    :param execute: instruct casts to execute action in to do list
     :param clear: Remove all actions from to do list
     :param class_name:
     :param cast_name:
@@ -300,20 +300,37 @@ async def action_to_thread(class_name: str,
         raise HTTPException(status_code=400,
                             detail=f"Invalid attribute name")
 
-    if not clear:
-        if execute:
-            class_obj.t_todo_event.set()
-            return {"message": f"Actions On for {class_obj} "}
+    if clear:
 
-        if cast_name is None:
-            raise HTTPException(status_code=400,
-                                detail=f"Invalid Cast/Thread name")
-        else:
-            class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
-            return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
-    else:
         class_obj.cast_name_todo = []
         return {"message": f" To do cleared for {class_obj}'"}
+
+    else:
+
+        if not execute:
+            if cast_name is None or action is None:
+                raise HTTPException(status_code=400,
+                                    detail=f"Invalid Cast/Thread name or action not set")
+            else:
+                class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
+                return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
+
+        else:
+
+            if cast_name is None and action is None:
+                class_obj.t_todo_event.set()
+                return {"message": f"Actions in queue will be executed"}
+
+            elif cast_name is None or action is None:
+
+                raise HTTPException(status_code=400,
+                                    detail=f"Invalid Cast/Thread name or action not set")
+
+            else:
+
+                class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
+                class_obj.t_todo_event.set()
+                return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute put On'"}
 
 
 @app.put("/api/{class_name}/update_attribute")
@@ -575,9 +592,9 @@ def main_page():
         ui.link('MAIN', target='/').classes('text-white text-lg font-medium')
         ui.icon('home')
         # Create buttons
-        ui.button('Desktop', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
-        ui.button('Media', on_click=lambda: ui.navigate.to('/Media'), icon='image')
-        ui.button('Infos', on_click=lambda: ui.navigate.to('/CastInfo'), icon='info')
+        ui.button('Manage', on_click=lambda: ui.navigate.to('/CastManage'), icon='video_settings')
+        ui.button('Desktop Params', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
+        ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
         ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
 
     """
@@ -630,6 +647,36 @@ def main_page():
 
     with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
         ui.button(on_click=footer.toggle).props('fab icon=contact_support')
+
+
+@ui.page('/CastManage')
+def main_page_cast_manage():
+    """ Cast manage with full details page """
+
+    ui.dark_mode(CastAPI.dark_mode)
+
+    apply_colors()
+
+    """
+    Header with button menu
+    """
+    with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
+        ui.label('Cast Manage').classes('text-white text-lg font-medium')
+        ui.icon('video_settings')
+        # Create buttons
+        ui.button('MAIN', on_click=lambda: ui.navigate.to('/'), icon='home')
+        ui.button('Desktop', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
+        ui.button('Media', on_click=lambda: ui.navigate.to('/Media'), icon='image')
+        ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
+
+    tabs_info_page()
+
+    with ui.footer():
+        ui.button('Refresh Page', on_click=lambda: ui.navigate.to('/CastManage'))
+
+        net_view_page()
+
+        media_dev_view_page()
 
 
 @ui.page('/Desktop')
@@ -930,35 +977,6 @@ def main_page_media():
         ui.button('Run discovery', on_click=discovery_media_notify, color='bg-red-800')
 
 
-@ui.page('/CastInfo')
-def main_page_cast_info():
-    """ Cast info full details page """
-
-    ui.dark_mode(CastAPI.dark_mode)
-
-    apply_colors()
-
-    """
-    Header with button menu
-    """
-    with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
-        ui.link('MAIN', target='/').classes('text-white text-lg font-medium')
-        ui.icon('info')
-        # Create buttons
-        ui.button('Desktop', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
-        ui.button('Media', on_click=lambda: ui.navigate.to('/Media'), icon='image')
-        ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
-
-    tabs_info_page()
-
-    with ui.footer():
-        ui.button('Refresh Page', on_click=lambda: ui.navigate.to('/CastInfo'))
-
-        net_view_page()
-
-        media_dev_view_page()
-
-
 @ui.page('/WLEDVideoSync')
 def splash_page():
     """
@@ -1119,8 +1137,8 @@ def tabs_info_page():
     Tabs
     """
     with ui.tabs().classes('w-full') as tabs:
-        p_desktop = ui.tab('Desktop')
-        p_media = ui.tab('Media')
+        p_desktop = ui.tab('Desktop', icon='computer').classes('bg-slate-400')
+        p_media = ui.tab('Media', icon='image').classes('bg-slate-400')
     with ui.tab_panels(tabs, value=p_desktop).classes('w-full'):
         with ui.tab_panel(p_desktop):
             if not desktop_threads:
@@ -1140,13 +1158,20 @@ def tabs_info_page():
                         for item in desktop_threads:
                             with ui.expansion(item):
                                 with ui.row():
-                                    ui.icon('cancel').on('click',
-                                                         lambda: action_to_thread(class_name='Desktop',
+                                    ui.icon('cancel').classes('shadow-lg').on('click',
+                                                                              lambda: action_to_thread(
+                                                                                  class_name='Desktop',
                                                                                   cast_name=item,
                                                                                   action='stop',
                                                                                   clear=False,
-                                                                                  execute=False))
-                                    ui.icon('editor')
+                                                                                  execute=True))
+                                    ui.button(icon='editor', on_click=lambda: action_to_thread(
+                                        class_name='Media',
+                                        cast_name=item,
+                                        action='buffer',
+                                        clear=False,
+                                        execute=True)).classes('shadow-lg')
+
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
 
@@ -1168,13 +1193,19 @@ def tabs_info_page():
                         for item in media_threads:
                             with ui.expansion(item):
                                 with ui.row():
-                                    ui.icon('cancel').on('click',
-                                                         lambda: action_to_thread(class_name='Media',
-                                                                                  cast_name=item,
-                                                                                  action='stop',
-                                                                                  clear=False,
-                                                                                  execute=False))
-                                    ui.icon('editor')
+                                    ui.button(icon='delete_forever',
+                                              on_click=lambda: action_to_thread(class_name='Media',
+                                                                                cast_name=item,
+                                                                                action='stop',
+                                                                                clear=False,
+                                                                                execute=True)).classes('shadow-lg')
+                                    ui.button(icon='add_photo_alternate',
+                                              on_click=lambda: action_to_thread(class_name='Media',
+                                                                                cast_name=item,
+                                                                                action='buffer',
+                                                                                clear=False,
+                                                                                execute=True)).classes('shadow-lg')
+
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
 
