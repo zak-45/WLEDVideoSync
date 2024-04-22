@@ -240,7 +240,7 @@ class CASTMedia:
 
         last_frame = time.time()
 
-        # Main thread loop to read media frame
+        # Main thread loop to read media frame, stop from global call or local
         while not self.stopcast and not t_todo_stop:
             """
             instruct the thread to exit 
@@ -266,6 +266,19 @@ class CASTMedia:
                                                                 }}}
                     shared_buffer.put(t_info)
 
+            #  read media
+            success, frame = media.read()
+            if not success:
+                logger.warning('Error to read media or reached END')
+                break
+
+            # flip vertical/horizontal: 0,1,2
+            if self.flip:
+                frame = cv2.flip(frame, self.flip_vh)
+
+            # convert to RGB
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
             """
             check if something to do
             manage concurrent access to the list by using lock feature
@@ -283,9 +296,22 @@ class CASTMedia:
                         try:
                             if 'stop' in action:
                                 t_todo_stop = True
+                            elif 'buffer' in action:
+                                add_frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                                add_frame = Utils.resize_image(add_frame, 640, 480)
+                                self.frame_buffer.append(add_frame)
+                                if t_multicast:
+                                    # resize frame to virtual matrix size
+                                    add_frame = Utils.resize_image(frame,
+                                                                   self.scale_width * t_cast_x,
+                                                                   self.scale_height * t_cast_y)
+
+                                    self.cast_frame_buffer = Utils.split_image_to_matrix(add_frame,
+                                                                                         t_cast_x, t_cast_y)
+
                         except:
-                            self.cast_name_todo.remove(item)
-                            t_media_lock.release()
+                            # self.cast_name_todo.remove(item)
+                            # t_media_lock.release()
                             logger.error(f'Action {action} in ERROR from {t_name}')
 
                         self.cast_name_todo.remove(item)
@@ -293,19 +319,6 @@ class CASTMedia:
                             CASTMedia.t_todo_event.clear()
 
                 t_media_lock.release()
-
-            #  read media
-            success, frame = media.read()
-            if not success:
-                logger.warning('Error to read media or reached END')
-                break
-
-            # flip vertical/horizontal: 0,1,2
-            if self.flip:
-                frame = cv2.flip(frame, self.flip_vh)
-
-            # convert to RGB
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             frame_count += 1
 
@@ -399,7 +412,7 @@ class CASTMedia:
                     self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
 
                     # validate cast_devices number
-                    if len(ip_addresses) != len(self.cast_frame_buffer):
+                    if len(ip_addresses) < len(self.cast_frame_buffer):
                         logger.error('Cast devices number != sub images number: check cast_devices ')
                         break
 

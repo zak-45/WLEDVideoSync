@@ -139,6 +139,8 @@ class CASTDesktop:
         self.frame_buffer = []
         frame_count = 0
 
+        t_todo_stop = False
+
         """
         Cast devices
         """
@@ -253,6 +255,11 @@ class CASTDesktop:
 
                 logger.info(f"Capture from {t_viinput}")
                 for frame in input_container.decode(input_stream):
+
+                    # if global stop or local stop
+                    if self.stopcast or t_todo_stop:
+                        break
+
                     """
                     instruct the thread to exit 
                     """
@@ -282,21 +289,42 @@ class CASTDesktop:
                     """
                     if CASTDesktop.t_todo_event.is_set():
                         t_desktop_lock.acquire()
+
                         #  take thread name from cast list
                         for item in self.cast_name_todo:
-                            if item == t_name:
-                                print(f'To do for :{t_name}')
+                            name, action, added_time = item.split('||')
+                            if name == t_name:
+                                logging.info(f'To do: {action} for :{t_name}')
+
+                                try:
+                                    if 'stop' in action:
+                                        t_todo_stop = True
+                                    elif 'buffer' in action:
+                                        add_frame = frame.to_ndarray(format="rgb24")
+                                        add_frame = Utils.pixelart_image(add_frame, self.scale_width, self.scale_height)
+                                        add_frame = Utils.resize_image(add_frame, 640, 480)
+                                        self.frame_buffer.append(add_frame)
+                                        if t_multicast:
+                                            # resize frame to virtual matrix size
+                                            frame = Utils.resize_image(frame,
+                                                                       self.scale_width * t_cast_x,
+                                                                       self.scale_height * t_cast_y)
+
+                                            self.cast_frame_buffer = Utils.split_image_to_matrix(frame,
+                                                                                                 t_cast_x, t_cast_y)
+
+                                except:
+                                    # self.cast_name_todo.remove(item)
+                                    # t_desktop_lock.release()
+                                    logger.error(f'Action {action} in ERROR from {t_name}')
+
                                 self.cast_name_todo.remove(item)
                                 if len(self.cast_name_todo) == 0:
                                     CASTDesktop.t_todo_event.clear()
-                        t_desktop_lock.release()
-
-                    if self.stopcast:
-                        break
 
                     frame_count += 1
 
-                    # we send frame to output only if exist
+                    # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
                     if output_container:
                         # Encode the frame
                         packet = output_stream.encode(frame)
