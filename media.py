@@ -31,52 +31,6 @@ logging.config.fileConfig('config/logging.ini')
 # create logger
 logger = logging.getLogger('WLEDLogger.media')
 
-t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
-t_media_lock = threading.Lock()  # define lock for to do
-
-"""
-MultiCast
-"""
-
-
-def send_multicast_image(ip, image):
-    """
-    This sends an image to an IP address using DDP, used by multicast
-    :param ip:
-    :param image:
-    :return:
-    """
-    # timeout provided to not have thread waiting infinitely
-    if t_send_frame.wait(timeout=.1):
-        # send ddp data
-        device = DDPDevice(ip)
-        device.flush(image)
-    else:
-        logger.warning('Multicast frame dropped')
-
-
-def send_multicast_images_to_ips(images_buffer, ip_addresses):
-    """
-    Create a thread for each image , IP pair and wait for all to finish
-    Very simple synchro process
-    :param images_buffer:
-    :param ip_addresses:
-    :return:
-    """
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Submit a thread for each image and IP pair
-        multicast = [executor.submit(send_multicast_image, ip, image)
-                     for ip, image in zip(ip_addresses, images_buffer)]
-
-        # once all threads up, need to set event because they wait for
-        t_send_frame.set()
-
-        # Wait for all threads to complete
-        concurrent.futures.wait(multicast, timeout=1)
-
-    t_send_frame.clear()
-
-
 """
 Class definition
 """
@@ -90,6 +44,7 @@ class CASTMedia:
     t_exit_event = threading.Event()  # thread listen event fo exit
     t_info_event = threading.Event()  # thread listen event for info
     t_todo_event = threading.Event()  # thread listen event for task to do
+    t_media_lock = threading.Lock()  # define lock for to do
 
     def __init__(self):
         self.rate: int = 25
@@ -132,6 +87,8 @@ class CASTMedia:
         t_name = current_thread().name
         logger.info(f'Child thread: {t_name}')
 
+        t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
+
         start_time = time.time()
         t_preview = self.preview
         t_multicast = self.multicast
@@ -147,6 +104,7 @@ class CASTMedia:
         """
         Cast devices
         """
+
         ip_addresses = []
 
         """
@@ -160,7 +118,52 @@ class CASTMedia:
             Please refer to the documentation of source stream to know the right URL.
 
         """
+
         t_viinput = self.viinput
+
+        """
+        MultiCast
+        """
+
+        def send_multicast_image(ip, image):
+            """
+            This sends an image to an IP address using DDP, used by multicast
+            :param ip:
+            :param image:
+            :return:
+            """
+            # timeout provided to not have thread waiting infinitely
+            if t_send_frame.wait(timeout=.1):
+                # send ddp data
+                device = DDPDevice(ip)
+                device.flush(image)
+            else:
+                logger.warning('Multicast frame dropped')
+
+        def send_multicast_images_to_ips(images_buffer, to_ip_addresses):
+            """
+            Create a thread for each image , IP pair and wait for all to finish
+            Very simple synchro process
+            :param to_ip_addresses:
+            :param images_buffer:
+            :return:
+            """
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                # Submit a thread for each image and IP pair
+                multicast = [executor.submit(send_multicast_image, ip, image)
+                             for ip, image in zip(to_ip_addresses, images_buffer)]
+
+                # once all threads up, need to set event because they wait for
+                t_send_frame.set()
+
+                # Wait for all threads to complete
+                concurrent.futures.wait(multicast, timeout=1)
+
+            t_send_frame.clear()
+
+        """
+        End Multicast
+        """
 
         """
         First, check devices 
@@ -291,9 +294,9 @@ class CASTMedia:
             event clear only when no more item in list
             """
             if CASTMedia.t_todo_event.is_set():
-                t_media_lock.acquire()
+                CASTMedia.t_media_lock.acquire()
 
-                #  take thread name from cast list
+                #  take thread name from cast to do list
                 for item in self.cast_name_todo:
                     name, action, added_time = item.split('||')
                     if name == t_name:
@@ -324,7 +327,7 @@ class CASTMedia:
                         if len(self.cast_name_todo) == 0:
                             CASTMedia.t_todo_event.clear()
 
-                t_media_lock.release()
+                CASTMedia.t_media_lock.release()
 
             if not t_multicast:
                 # resize frame for sending to ddp device
@@ -462,9 +465,8 @@ class CASTMedia:
         print("_" * 50)
 
         logger.info("Cast closed")
-        CASTMedia.t_exit_event.clear()
-
         time.sleep(2)
+        CASTMedia.t_exit_event.clear()
 
     def cast(self, shared_buffer=None):
         """

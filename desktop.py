@@ -41,47 +41,6 @@ logging.config.fileConfig('config/logging.ini')
 # create logger
 logger = logging.getLogger('WLEDLogger.desktop')
 
-t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
-t_desktop_lock = threading.Lock()  # define lock for to do
-
-
-def send_multicast_image(ip, image):
-    """
-    This sends an image to an IP address using DDP
-    :param ip:
-    :param image:
-    :return:
-    """
-    # timeout provided to not have thread waiting infinitely
-    if t_send_frame.wait(timeout=.1):
-        # send ddp data
-        device = DDPDevice(ip)
-        device.flush(image)
-    else:
-        logger.warning('Multicast frame dropped')
-
-
-def send_multicast_images_to_ips(images_buffer, ip_addresses):
-    """
-    Create a thread for each image , IP pair and wait for all to finish
-    Very simple synchro process
-    :param images_buffer:
-    :param ip_addresses:
-    :return:
-    """
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Submit a thread for each image and IP pair
-        multicast = [executor.submit(send_multicast_image, ip, image)
-                     for ip, image in zip(ip_addresses, images_buffer)]
-
-        # once all threads up, need to set event because they wait for
-        t_send_frame.set()
-
-        # Wait for all threads to complete
-        concurrent.futures.wait(multicast, timeout=1)
-
-    t_send_frame.clear()
-
 
 class CASTDesktop:
     """ Cast Desktop to DDP """
@@ -91,6 +50,7 @@ class CASTDesktop:
     t_exit_event = threading.Event()  # thread listen event
     t_info_event = threading.Event()  # thread listen event for info
     t_todo_event = threading.Event()  # thread listen event for task to do
+    t_desktop_lock = threading.Lock()  # define lock for to do
 
     def __init__(self):
         self.rate: int = 25
@@ -130,6 +90,8 @@ class CASTDesktop:
         t_name = current_thread().name
         logger.info(f'Child thread: {t_name}')
 
+        t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
+
         start_time = time.time()
         t_preview = self.preview
         t_multicast = self.multicast
@@ -151,6 +113,49 @@ class CASTDesktop:
         """
         output_container = False
         output_stream = None
+
+        """
+        Multicast
+        """
+        def send_multicast_image(ip, image):
+            """
+            This sends an image to an IP address using DDP
+            :param ip:
+            :param image:
+            :return:
+            """
+            # timeout provided to not have thread waiting infinitely
+            if t_send_frame.wait(timeout=.1):
+                # send ddp data
+                device = DDPDevice(ip)
+                device.flush(image)
+            else:
+                logger.warning('Multicast frame dropped')
+
+        def send_multicast_images_to_ips(images_buffer, to_ip_addresses):
+            """
+            Create a thread for each image , IP pair and wait for all to finish
+            Very simple synchro process
+            :param images_buffer:
+            :param to_ip_addresses:
+            :return:
+            """
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                # Submit a thread for each image and IP pair
+                multicast = [executor.submit(send_multicast_image, ip, image)
+                             for ip, image in zip(to_ip_addresses, images_buffer)]
+
+                # once all threads up, need to set event because they wait for
+                t_send_frame.set()
+
+                # Wait for all threads to complete
+                concurrent.futures.wait(multicast, timeout=1)
+
+            t_send_frame.clear()
+
+        """
+        End Multicast
+        """
 
         """
         First, check devices 
@@ -305,7 +310,7 @@ class CASTDesktop:
                         event clear only when no more item in list
                         """
                         if CASTDesktop.t_todo_event.is_set():
-                            t_desktop_lock.acquire()
+                            CASTDesktop.t_desktop_lock.acquire()
 
                             #  take thread name from cast list
                             for item in self.cast_name_todo:
@@ -340,6 +345,8 @@ class CASTDesktop:
                                     self.cast_name_todo.remove(item)
                                     if len(self.cast_name_todo) == 0:
                                         CASTDesktop.t_todo_event.clear()
+
+                            CASTDesktop.t_desktop_lock.release()
 
                         if not t_multicast:
                             # resize frame for sending to ddp device
@@ -484,9 +491,8 @@ class CASTDesktop:
         print("_" * 50)
 
         logger.info('Cast closed')
-        CASTDesktop.t_exit_event.clear()
-
         time.sleep(2)
+        CASTDesktop.t_exit_event.clear()
 
     def cast(self, shared_buffer=None):
         """
