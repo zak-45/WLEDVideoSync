@@ -135,8 +135,8 @@ class CASTDesktop:
         t_multicast = self.multicast
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
+        t_cast_frame_buffer = []
 
-        self.frame_buffer = []
         frame_count = 0
 
         t_todo_stop = False
@@ -206,6 +206,9 @@ class CASTDesktop:
         Second, capture media
         """
 
+        self.frame_buffer = []
+        self.cast_frame_buffer = []
+
         # Open video device (desktop / window)
         input_options = {'c:v': 'libx264rgb', 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
                          'framerate': str(self.rate), 'probesize': '100M'}
@@ -260,6 +263,8 @@ class CASTDesktop:
                 logger.info(f"Capture from {t_viinput}")
                 for frame in input_container.decode(input_stream):
 
+                    frame_count += 1
+
                     # if global stop or local stop
                     if self.stopcast or t_todo_stop:
                         break
@@ -286,63 +291,55 @@ class CASTDesktop:
                                                                         }}}
                             shared_buffer.put(t_info)
 
-                    """
-                    check if something to do
-                    manage concurrent access to the list by using lock feature
-                    event clear only when no more item in list
-                    """
-                    if CASTDesktop.t_todo_event.is_set():
-                        t_desktop_lock.acquire()
-
-                        #  take thread name from cast list
-                        for item in self.cast_name_todo:
-                            name, action, added_time = item.split('||')
-                            if name == t_name:
-                                logging.info(f'To do: {action} for :{t_name}')
-
-                                try:
-                                    if 'stop' in action:
-                                        t_todo_stop = True
-                                    elif 'buffer' in action:
-                                        add_frame = frame.to_ndarray(format="rgb24")
-                                        add_frame = Utils.pixelart_image(add_frame, self.scale_width, self.scale_height)
-                                        add_frame = Utils.resize_image(add_frame, 640, 480)
-                                        self.frame_buffer.append(add_frame)
-                                        if t_multicast:
-                                            # resize frame to virtual matrix size
-                                            frame = Utils.resize_image(frame,
-                                                                       self.scale_width * t_cast_x,
-                                                                       self.scale_height * t_cast_y)
-
-                                            self.cast_frame_buffer = Utils.split_image_to_matrix(frame,
-                                                                                                 t_cast_x, t_cast_y)
-
-                                except:
-                                    # self.cast_name_todo.remove(item)
-                                    # t_desktop_lock.release()
-                                    logger.error(f'Action {action} in ERROR from {t_name}')
-
-                                self.cast_name_todo.remove(item)
-                                if len(self.cast_name_todo) == 0:
-                                    CASTDesktop.t_todo_event.clear()
-
-                    frame_count += 1
-
-                    # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
-                    if output_container:
-                        # Encode the frame
-                        packet = output_stream.encode(frame)
-                        # Mux the encoded packet
-                        output_container.mux(packet)
-
-                    else:
-
+                    if not output_container:
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
 
                         # flip vertical/horizontal: 0,1,2
                         if self.flip:
                             frame = cv2.flip(frame, self.flip_vh)
+
+                        """
+                        check if something to do
+                        manage concurrent access to the list by using lock feature
+                        event clear only when no more item in list
+                        """
+                        if CASTDesktop.t_todo_event.is_set():
+                            t_desktop_lock.acquire()
+
+                            #  take thread name from cast list
+                            for item in self.cast_name_todo:
+                                name, action, added_time = item.split('||')
+                                if name == t_name:
+                                    logging.info(f'To do: {action} for :{t_name}')
+
+                                    try:
+                                        if 'stop' in action:
+                                            t_todo_stop = True
+                                        elif 'buffer' in action:
+
+                                            add_frame = Utils.pixelart_image(frame, self.scale_width,
+                                                                             self.scale_height)
+                                            add_frame = Utils.resize_image(add_frame, self.scale_width,
+                                                                           self.scale_height)
+                                            self.frame_buffer.append(add_frame)
+                                            if t_multicast:
+                                                # resize frame to virtual matrix size
+                                                frame = Utils.resize_image(frame,
+                                                                           self.scale_width * t_cast_x,
+                                                                           self.scale_height * t_cast_y)
+
+                                                self.cast_frame_buffer = Utils.split_image_to_matrix(frame,
+                                                                                                     t_cast_x, t_cast_y)
+
+                                    except:
+                                        # self.cast_name_todo.remove(item)
+                                        # t_desktop_lock.release()
+                                        logger.error(f'Action {action} in ERROR from {t_name}')
+
+                                    self.cast_name_todo.remove(item)
+                                    if len(self.cast_name_todo) == 0:
+                                        CASTDesktop.t_todo_event.clear()
 
                         if not t_multicast:
                             # resize frame for sending to ddp device
@@ -428,7 +425,7 @@ class CASTDesktop:
                                 self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
 
                                 # validate cast_devices number
-                                if len(ip_addresses) != len(self.cast_frame_buffer):
+                                if len(ip_addresses) < len(self.cast_frame_buffer):
                                     logger.error('Cast devices number != sub images number: check cast_devices ')
                                     break
 
@@ -442,6 +439,13 @@ class CASTDesktop:
                             except Exception as error:
                                 logger.error('An exception occurred: {}'.format(error))
                                 break
+                    else:
+
+                        # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
+                        # Encode the frame
+                        packet = output_stream.encode(frame)
+                        # Mux the encoded packet
+                        output_container.mux(packet)
 
             except Exception as error:
 

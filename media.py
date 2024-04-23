@@ -137,6 +137,7 @@ class CASTMedia:
         t_multicast = self.multicast
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
+        t_cast_frame_buffer = []
 
         frame_count = 0
         frame_interval = 1.0 / self.rate  # Calculate the time interval between frames
@@ -217,8 +218,6 @@ class CASTMedia:
 
         self.frame_buffer = []
         self.cast_frame_buffer = []
-        t_frame_buffer = []
-        t_cast_frame_buffer = []
 
         # capture media
         media = cv2.VideoCapture(t_viinput)
@@ -277,6 +276,8 @@ class CASTMedia:
                 logger.warning('Error to read media or reached END')
                 break
 
+            frame_count += 1
+
             # flip vertical/horizontal: 0,1,2
             if self.flip:
                 frame = cv2.flip(frame, self.flip_vh)
@@ -303,7 +304,7 @@ class CASTMedia:
                                 t_todo_stop = True
                             elif 'buffer' in action:
                                 add_frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                                add_frame = Utils.resize_image(add_frame, 640, 480)
+                                add_frame = Utils.resize_image(add_frame, self.scale_width, self.scale_height)
                                 self.frame_buffer.append(add_frame)
                                 if t_multicast:
                                     # resize frame to virtual matrix size
@@ -324,8 +325,6 @@ class CASTMedia:
                             CASTMedia.t_todo_event.clear()
 
                 t_media_lock.release()
-
-            frame_count += 1
 
             if not t_multicast:
                 # resize frame for sending to ddp device

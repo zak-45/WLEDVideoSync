@@ -191,7 +191,7 @@ def run_webview(window_name):
         )
 
     elif window_name == 'Details':
-        # info details window : show result from api CastInfo
+        # info details and manage window : show result from api CastManage
         main_window = webview.create_window(
             title='Casts Details',
             url=f"http://{server_ip}:{server_port}/DetailsInfo",
@@ -401,8 +401,8 @@ if __name__ == '__main__':
         Menu.SEPARATOR,
         MenuItem('BLACKOUT', on_blackout),
         Menu.SEPARATOR,
+        MenuItem('Cast details', on_details),
         MenuItem('Info', on_info),
-        MenuItem('Info details', on_details),
         Menu.SEPARATOR,
         MenuItem('Exit', on_exit)
     )

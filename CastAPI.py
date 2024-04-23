@@ -1013,14 +1013,14 @@ def ws_page():
 
 @ui.page('/info')
 def info_page():
-    """ simple cast info page for systray """
+    """ simple cast info page from systray """
     ui.timer(int(app_config['timer']), callback=info_timer_action)
     cast_manage()
 
 
 @ui.page('/DetailsInfo')
-def info_page():
-    """ simple details cast info page for systray """
+def manage_info_page():
+    """ Manage cast page from systray """
     tabs_info_page()
 
 
@@ -1249,16 +1249,20 @@ def generate_carousel(class_obj):
     for i in range(len(class_obj.frame_buffer)):
         with ui.carousel_slide().classes('-p0'):
             carousel_image = Image.fromarray(class_obj.frame_buffer[i])
+            h, w = class_obj.frame_buffer[i].shape[:2]
             img = ui.interactive_image(carousel_image.resize(size=(640, 480))).classes('w-[640]')
             with img:
-                ui.button(text=str(i), icon='tag') \
+                ui.button(text=str(i)+':size:'+str(h)+'x'+str(w), icon='tag') \
                     .props('flat fab color=white') \
                     .classes('absolute top-0 left-0 m-2') \
                     .tooltip('Image Number')
 
 
 async def cast_to_wled(class_obj, image_number):
-    """ Cast to wled from GUI """
+    """
+    Cast to wled from GUI
+    used on the buffer images
+    """
 
     if not class_obj.wled:
         ui.notify('No WLED device', type='negative')
@@ -1298,7 +1302,7 @@ async def cast_to_wled(class_obj, image_number):
 
 
 async def discovery_net_notify():
-    """ Run zero conf net discovery """
+    """ Call Run zero conf net discovery """
 
     ui.notification('NET Discovery process on go ... let it finish',
                     close_button=True,
@@ -1309,7 +1313,7 @@ async def discovery_net_notify():
 
 
 async def discovery_media_notify():
-    """ Run OS Media discovery by av """
+    """ Call Run OS Media discovery by av """
 
     ui.notification('MEDIA Discovery process on go ... let it finish',
                     close_button=True,
