@@ -8,6 +8,7 @@ from utils import LogElementHandler
 
 import numpy as np
 
+
 # read config
 logging.config.fileConfig('config/logging.ini')
 # create logger

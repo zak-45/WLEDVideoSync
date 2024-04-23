@@ -432,7 +432,7 @@ class CASTMedia:
                     break
 
             """
-            do we need to sleep
+            do we need to sleep.
             """
             delay = time.time() - last_frame
             # sleep depend of the interval (FPS)

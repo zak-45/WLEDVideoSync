@@ -232,7 +232,7 @@ class CASTDesktop:
             CASTDesktop.count -= 1
             return False
 
-        # Output via av only if protocol is other
+        # Define Output via av only if protocol is other
         if 'other' in self.protocol:
             try:
 

@@ -228,11 +228,11 @@ class CASTUtils:
             elif target_height is not None and target_width is None:
                 target_width = int(target_height * aspect_ratio)
 
-            # Resize the image
+            # Resize image
             resized_image = cv2.resize(image, (target_width, target_height), interpolation=interpolation)
 
         else:
-            # Resize the image
+            # Resize image
             resized_image = cv2.resize(image, (target_width, target_height), interpolation=interpolation)
 
         return resized_image

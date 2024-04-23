@@ -3,7 +3,7 @@ a: zak-45
 d : 07/04/2024
 v : 1.0.0
 
-Main WLEDVideoSync
+Main WLEDVideoSync.
 
 Dispatch all into processes
 
