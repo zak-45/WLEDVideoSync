@@ -122,7 +122,7 @@ class CASTMedia:
         t_viinput = self.viinput
 
         """
-        MultiCast
+        MultiCast inner function protected from what happens outside.
         """
 
         def send_multicast_image(ip, image):

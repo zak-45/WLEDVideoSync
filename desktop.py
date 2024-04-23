@@ -115,7 +115,7 @@ class CASTDesktop:
         output_stream = None
 
         """
-        Multicast
+        MultiCast inner function protected from what happens outside.
         """
         def send_multicast_image(ip, image):
             """
