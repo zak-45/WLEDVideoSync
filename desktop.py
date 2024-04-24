@@ -23,6 +23,7 @@
 #
 import logging
 import logging.config
+import traceback
 
 import time
 import av
@@ -33,7 +34,7 @@ from threading import current_thread
 import asyncio
 import concurrent.futures
 
-from ddp import DDPDevice
+from ddp_async import DDPDevice
 from utils import CASTUtils as Utils, LogElementHandler
 
 # read config
@@ -55,8 +56,8 @@ class CASTDesktop:
     def __init__(self):
         self.rate: int = 25
         self.stopcast: bool = True
-        self.scale_width: int = 640
-        self.scale_height: int = 480
+        self.scale_width: int = 128
+        self.scale_height: int = 128
         self.flip_vh = 0
         self.flip = False
         self.wled: bool = False
@@ -86,6 +87,7 @@ class CASTDesktop:
     def t_desktop_cast(self, shared_buffer=None):
         """
             Cast desktop screen or a window content based on the title
+            With big size image, some delay occur, to do : review 'ddp.flush' when necessary
         """
         t_name = current_thread().name
         logger.info(f'Child thread: {t_name}')
@@ -128,7 +130,7 @@ class CASTDesktop:
             if t_send_frame.wait(timeout=.1):
                 # send ddp data
                 device = DDPDevice(ip)
-                device.flush(image)
+                asyncio.run(device.flush(image))
             else:
                 logger.warning('Multicast frame dropped')
 
@@ -213,10 +215,11 @@ class CASTDesktop:
 
         self.frame_buffer = []
         self.cast_frame_buffer = []
+        frame_interval = self.rate
 
         # Open video device (desktop / window)
         input_options = {'c:v': 'libx264rgb', 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
-                         'framerate': str(self.rate), 'probesize': '100M'}
+                         'framerate': str(frame_interval), 'probesize': '100M'}
         input_format = self.viformat
 
         """
@@ -232,7 +235,7 @@ class CASTDesktop:
             input_container = av.open(t_viinput, 'r', format=input_format, options=input_options)
 
         except Exception as error:
-
+            logger.error(traceback.format_exc())
             logger.error('An exception occurred: {}'.format(error))
             CASTDesktop.count -= 1
             return False
@@ -251,7 +254,7 @@ class CASTDesktop:
                 output_stream.thread_type = "AUTO"
 
             except Exception as error:
-
+                logger.error(traceback.format_exc())
                 logger.error('An exception occurred: {}'.format(error))
                 CASTDesktop.count -= 1
                 return False
@@ -280,23 +283,6 @@ class CASTDesktop:
                     if CASTDesktop.t_exit_event.is_set():
                         break
 
-                    """
-                    instruct the thread to provide info 
-                    """
-                    if CASTDesktop.t_info_event.is_set():
-
-                        if shared_buffer is None:
-                            logger.warning('No queue buffer defined')
-                        else:
-                            t_info = {t_name: {"type": "info", "data": {"start": start_time,
-                                                                        "tid": current_thread().native_id,
-                                                                        "viinput": str(t_viinput),
-                                                                        "devices": ip_addresses,
-                                                                        "frames": frame_count
-                                                                        }}}
-                            # this wait until queue access is free
-                            shared_buffer.put(t_info)
-
                     if not output_container:
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
@@ -311,36 +297,46 @@ class CASTDesktop:
                         event clear only when no more item in list
                         """
                         if CASTDesktop.t_todo_event.is_set():
+                            logger.info('inside todo ')
                             CASTDesktop.t_desktop_lock.acquire()
-
-                            #  take thread name from cast list
+                            #  take thread name from cast to do list
                             for item in self.cast_name_todo:
                                 name, action, added_time = item.split('||')
                                 if name == t_name:
                                     logging.info(f'To do: {action} for :{t_name}')
 
+                                    # use try to capture any failure
                                     try:
                                         if 'stop' in action:
                                             t_todo_stop = True
                                         elif 'buffer' in action:
-
-                                            add_frame = Utils.pixelart_image(frame, self.scale_width,
-                                                                             self.scale_height)
+                                            add_frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
                                             add_frame = Utils.resize_image(add_frame, self.scale_width,
                                                                            self.scale_height)
                                             self.frame_buffer.append(add_frame)
                                             if t_multicast:
                                                 # resize frame to virtual matrix size
-                                                frame = Utils.resize_image(frame,
-                                                                           self.scale_width * t_cast_x,
-                                                                           self.scale_height * t_cast_y)
+                                                add_frame = Utils.resize_image(frame,
+                                                                               self.scale_width * t_cast_x,
+                                                                               self.scale_height * t_cast_y)
 
-                                                self.cast_frame_buffer = Utils.split_image_to_matrix(frame,
+                                                self.cast_frame_buffer = Utils.split_image_to_matrix(add_frame,
                                                                                                      t_cast_x, t_cast_y)
+                                        elif 'info' in action:
+                                            t_info = {t_name: {"type": "info", "data": {"start": start_time,
+                                                                                        "tid": current_thread().native_id,
+                                                                                        "viinput": str(t_viinput),
+                                                                                        "multicast": t_multicast,
+                                                                                        "devices": ip_addresses,
+                                                                                        "fps": frame_interval,
+                                                                                        "frames": frame_count
+                                                                                        }}}
+                                            # this wait until queue access is free
+                                            shared_buffer.put(t_info)
+                                            logger.info('we have put')
 
                                     except:
-                                        # self.cast_name_todo.remove(item)
-                                        # t_desktop_lock.release()
+                                        logger.error(traceback.format_exc())
                                         logger.error(f'Action {action} in ERROR from {t_name}')
 
                                     self.cast_name_todo.remove(item)
@@ -357,7 +353,7 @@ class CASTDesktop:
 
                             # send to ddp device
                             if self.protocol == 'ddp':
-                                ddp.flush(frame_to_send, self.retry_number)
+                                asyncio.run(ddp.flush(frame_to_send, self.retry_number))
 
                             # save frame to np buffer if requested (so can be used after by the main)
                             if self.put_to_buffer and frame_count <= self.frame_max:
@@ -445,6 +441,7 @@ class CASTDesktop:
                                 send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                             except Exception as error:
+                                logger.error(traceback.format_exc())
                                 logger.error('An exception occurred: {}'.format(error))
                                 break
                     else:
@@ -456,7 +453,7 @@ class CASTDesktop:
                         output_container.mux(packet)
 
             except Exception as error:
-
+                logger.error(traceback.format_exc())
                 logger.error('An exception occurred: {}'.format(error))
 
             finally:

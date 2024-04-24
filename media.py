@@ -14,6 +14,7 @@
 #
 import logging
 import logging.config
+import traceback
 
 import cv2
 import time
@@ -51,8 +52,8 @@ class CASTMedia:
         self.rate: int = 25
         self.stopcast: bool = True
         self.preview: bool = True
-        self.scale_width: int = 640
-        self.scale_height: int = 480
+        self.scale_width: int = 128
+        self.scale_height: int = 128
         self.wled: bool = False
         self.wled_live = False
         self.host: str = "127.0.0.1"
@@ -84,6 +85,7 @@ class CASTMedia:
         """
             Main cast logic
             Cast media : video file, image file or video capture device
+            With big size image, some delay occur, to do : review 'ddp.flush' when necessary
         """
         t_name = current_thread().name
         logger.info(f'Child thread: {t_name}')
@@ -137,7 +139,7 @@ class CASTMedia:
             if t_send_frame.wait(timeout=.1):
                 # send ddp data
                 device = DDPDevice(ip)
-                device.flush(image)
+                asyncio.run(device.flush(image))
             else:
                 logger.warning('Multicast frame dropped')
 
@@ -256,26 +258,6 @@ class CASTMedia:
             if CASTMedia.t_exit_event.is_set():
                 break
 
-            """
-            instruct the thread to provide info 
-
-            if CASTMedia.t_info_event.is_set():
-                
-                if shared_buffer is None:
-                    logger.warning('No queue buffer defined')
-                    CASTMedia.t_info_event.clear()
-                else:
-
-                    t_info = {t_name: {"type": "info", "data": {"start": start_time,
-                                                                "tid": current_thread().native_id,
-                                                                "viinput": str(t_viinput),
-                                                                "multicast": t_multicast,
-                                                                "devices": ip_addresses,
-                                                                "frames": frame_count
-                                                                }}}
-                    # this wait until queue access is free
-                    shared_buffer.put(t_info)
-            """
             #  read media
             success, frame = media.read()
             if not success:
@@ -299,7 +281,6 @@ class CASTMedia:
             if CASTMedia.t_todo_event.is_set():
                 logger.info('inside todo ')
                 CASTMedia.t_media_lock.acquire()
-                logger.info('got the lock')
                 #  take thread name from cast to do list
                 for item in self.cast_name_todo:
                     name, action, added_time = item.split('||')
@@ -328,13 +309,15 @@ class CASTMedia:
                                                                             "viinput": str(t_viinput),
                                                                             "multicast": t_multicast,
                                                                             "devices": ip_addresses,
+                                                                            "fps": 1/frame_interval,
                                                                             "frames": frame_count
                                                                             }}}
                                 # this wait until queue access is free
                                 shared_buffer.put(t_info)
-                                logger.info('we hav put')
+                                logger.info('we have put')
 
                         except:
+                            logger.error(traceback.format_exc())
                             logger.error(f'Action {action} in ERROR from {t_name}')
 
                         self.cast_name_todo.remove(item)
@@ -446,17 +429,18 @@ class CASTMedia:
                     send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                 except Exception as error:
+                    logger.error(traceback.format_exc())
                     logger.error('An exception occurred: {}'.format(error))
                     break
 
             """
             do we need to sleep.
             """
-            if not CASTMedia.t_todo_event.is_set():
-                delay = time.time() - last_frame
-                # sleep depend of the interval (FPS)
-                if delay < frame_interval:
-                    time.sleep(frame_interval - delay)
+            # if not CASTMedia.t_todo_event.is_set():
+            delay = time.time() - last_frame
+            # sleep depend of the interval (FPS)
+            if delay < frame_interval:
+                time.sleep(frame_interval - delay)
 
             last_frame = time.time()
 

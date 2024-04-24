@@ -10,6 +10,7 @@
 # 
 import logging
 import logging.config
+import traceback
 
 import re
 import av
@@ -60,8 +61,9 @@ class CASTUtils:
                 logger.info('WLED matrix : ' + str(matrix["w"]) + 'x' + str(matrix["h"]))
             await wled.close()
         except Exception as error:
-            await wled.close()
+            logger.error(traceback.format_exc())
             logger.error('An exception occurred: {}'.format(error))
+            await wled.close()
             matrix = {"w": 1, "h": 1}
 
         return matrix["w"], matrix["h"]
@@ -87,6 +89,7 @@ class CASTUtils:
                 else:
                     return False
         except Exception as error:
+            logger.error(traceback.format_exc())
             logger.error(f"Not able to set WLED device {host} in 'live' mode. Got this error : {error}")
             await wled.close()
             return False
@@ -121,8 +124,9 @@ class CASTUtils:
                 elif platform.system() == 'Darwin':
                     av.open('', 'r', format='avfoundation', options={'list_devices': 'True'})
         except Exception as error:
+            logger.error(traceback.format_exc())
             logger.error('An exception occurred: {}'.format(error))
-            print('An exception occurred: {}'.format(error))
+
 
         devicenumber: int = 0
         typedev: str = ''
@@ -379,8 +383,8 @@ class CASTUtils:
             else:
                 return False  # Host is not reachable
         except Exception as error:
+            logger.error(traceback.format_exc())
             logger.error(f'Error on check IP : {error}')
-            print("An error occurred:", error)
             return False
         finally:
             # Close the socket

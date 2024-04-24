@@ -1,5 +1,6 @@
 import logging
 import logging.config
+import traceback
 
 import struct
 import socket
@@ -70,6 +71,7 @@ class DDPDevice:
                 self._online = True
         except OSError as error:
             if not self.connection_warning:
+                logger.error(traceback.format_exc())
                 logger.error(f"Error in DDP connection to {self.name}: {error}")
                 self.connection_warning = True
                 self._online = False

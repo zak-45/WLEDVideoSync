@@ -20,9 +20,11 @@ API: FastAPI, for integration with third party application (e.g. Chataigne)
 Web GUI based on NiceGUI
 
 """
-import asyncio
 import logging
 import logging.config
+import traceback
+
+import asyncio
 import threading
 
 from ddp_async import DDPDevice
@@ -211,20 +213,11 @@ def util_casts_info():
         Get info from all Cast Threads
     """
     logger.info('Request Cast(s) info')
-    """
-    
-    
-    # Clear the queue before new infos
-    with t_data_buffer.mutex:
-        t_data_buffer.queue.clear()
-
-    """
 
     # clear
     child_info_data = {}
     child_list = []
 
-    print('got thread list')
     # we take only cast threads
     for item in threading.enumerate():
         t_name = item.name
@@ -234,52 +227,35 @@ def util_casts_info():
         if 't_media_cast' in t_name:
             Media.cast_name_todo.append(str(t_name) + '||' + 'info' + '||' + str(time.time()))
             child_list.append(t_name)
-    print('added to do')
 
     # request info from threads
     Desktop.t_todo_event.set()
     Media.t_todo_event.set()
 
-    """
     # use to stop the loop in case of
     start_time = time.time()
-    print('loop wait')
-    # now we wait for threads finish to do, last one should clear event
-    while not Desktop.t_todo_event.wait() or not Media.t_todo_event.wait():
-        time.sleep(.1)
-        elapsed_time = time.time() - start_time
-        if elapsed_time > 5:
-            print('too much time')
-            return {"t_info": 'error'}
-    """
-
-    # use to stop the loop in case of
-    start_time = time.time()
-    print('loop 2')
-    logger.info(child_list)
+    logger.info(f'Need to receive info from : {child_list}')
     # loop until all children provided info
     while len(child_list) != 0:
         if not t_data_buffer.empty():
             # wait and get info dict from a thread
-            logger.info('wait for data buffer')
             data = t_data_buffer.get()
             t_data_buffer.task_done()
-            logger.info('got data buffer')
             # add to return dict if child is on the list
             for child_name in data:
                 if child_name in child_list:
                     child_info_data.update(data)
                     # remove from child list
                     child_list.remove(child_name)
-            # Check if more than 5 seconds have elapsed
+            # Check if more than 3 seconds have elapsed
             elapsed_time = time.time() - start_time
-            if elapsed_time > 1:
-                logger.warning("Cast info execution took more than 5 seconds. List may be incomplete...  Exiting.")
+            if elapsed_time > 3:
+                logger.warning("Cast info execution took more than 3 seconds. List may be incomplete...  Exiting.")
                 break
 
     Desktop.t_todo_event.clear()
     Media.t_todo_event.clear()
-    logger.info('end request info')
+    logger.info('End request info')
     return {"t_info": child_info_data}
 
 
@@ -535,9 +511,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 raise Exception
 
     except Exception as error:
-
-        await websocket.send_text('{"result":"internal error"}')
+        logger.error(traceback.format_exc())
         logger.error('WEBSOCKET An exception occurred: {}'.format(error))
+        await websocket.send_text('{"result":"internal error"}')
         await websocket.close()
 
 
@@ -589,14 +565,14 @@ async def cast_image(image_number,
     start_time = time.time() * 1000  # Get the start time in ms
     end_time = start_time + duration_number  # Calculate the end time
 
-    if Media.protocol == "ddp":
+    if class_obj.protocol == "ddp":
         while time.time() * 1000 < end_time:  # Loop until current time exceeds end time in ms
             # Send x frames here
             # we need to resize cause buffer image size is fixed size of 640x480 used for preview
             frame_to_send = Utils.resize_image(images_buffer[image_number],
                                                class_obj.scale_width,
                                                class_obj.scale_height)
-            ddp.flush(frame_to_send, retry_number)
+            asyncio.run(ddp.flush(frame_to_send, retry_number))
             if fps_number != 0:
                 time.sleep(1 / fps_number)  # Sleep in s for the time required to send one frame
 
@@ -707,8 +683,14 @@ def main_page_cast_manage():
         ui.button('Media', on_click=lambda: ui.navigate.to('/Media'), icon='image')
         ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
 
+    """
+    Main tabs infos
+    """
     tabs_info_page()
 
+    """
+    Footer
+    """
     with ui.footer():
         ui.button('Refresh Page', on_click=lambda: ui.navigate.to('/CastManage'))
 
@@ -998,7 +980,8 @@ def main_page_media():
                         for i in range(Media.cast_x * Media.cast_y):
                             light_box_image(i, Image.fromarray(Media.cast_frame_buffer[i]), i, '', Media)
                     except Exception as error:
-                        print('An exception occurred: {}'.format(error))
+                        logger.error(traceback.format_exc())
+                        logger.error('An exception occurred: {}'.format(error))
             else:
                 ui.label('No frame captured yet...')
         else:
@@ -1456,7 +1439,8 @@ def light_box_image(index, image, txt1, txt2, class_obj):
             ui.button('', icon='preview', on_click=dialog.open, color='bg-red-800').tooltip('View image')
 
         except Exception as error:
-            print('An exception occurred: {}'.format(error))
+            logger.error(traceback.format_exc())
+            logger.error('An exception occurred: {}'.format(error))
 
 
 def multi_preview():

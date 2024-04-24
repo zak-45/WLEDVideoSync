@@ -34,6 +34,7 @@ copier assets et media
 
 import logging
 import logging.config
+import traceback
 
 import multiprocessing
 from multiprocessing import active_children
