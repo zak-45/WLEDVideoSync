@@ -75,7 +75,7 @@ class CASTMedia:
         self.cast_y: int = 1
         self.cast_devices: list = []
         self.cast_frame_buffer = []
-        self.cast_name_todo = []  # list of thread names with action that need to execute 'to do'
+        self.cast_name_todo = []  # list of thread names with action that need to execute from 'to do'
 
     """
     Cast Thread
@@ -315,6 +315,13 @@ class CASTMedia:
                                 # this wait until queue access is free
                                 shared_buffer.put(t_info)
                                 logger.info('we have put')
+
+                            elif 'close_preview' in action:
+                                win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput),
+                                                            cv2.WND_PROP_VISIBLE)
+                                if win != 0:
+                                    cv2.destroyWindow("Media Preview input: " + str(t_viinput))
+                                t_preview = False
 
                         except:
                             logger.error(traceback.format_exc())

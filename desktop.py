@@ -335,6 +335,13 @@ class CASTDesktop:
                                             shared_buffer.put(t_info)
                                             logger.info('we have put')
 
+                                        elif 'close_preview' in action:
+                                            win = cv2.getWindowProperty("Desktop Preview input: " + str(t_viinput),
+                                                                        cv2.WND_PROP_VISIBLE)
+                                            if win != 0:
+                                                cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
+                                            t_preview = False
+
                                     except:
                                         logger.error(traceback.format_exc())
                                         logger.error(f'Action {action} in ERROR from {t_name}')

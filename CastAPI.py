@@ -637,11 +637,10 @@ def main_page():
     """
     Log display
     """
-
     """
-        log = ui.log(max_lines=50).classes('w-full h-20')
-        logger.addHandler(LogElementHandler(log))
-        ui.button('Clear Log', on_click=lambda: log.clear()).tooltip('Erase the log file')
+    log = ui.log(max_lines=50).classes('w-full h-20')
+    logger.addHandler(LogElementHandler(log))
+    ui.button('Clear Log', on_click=lambda: log.clear()).tooltip('Erase the log file')
     """
 
     """
@@ -1157,6 +1156,7 @@ def tabs_info_page():
     """
     Tabs
     """
+
     with ui.tabs().classes('w-full') as tabs:
         p_desktop = ui.tab('Desktop', icon='computer').classes('bg-slate-400')
         p_media = ui.tab('Media', icon='image').classes('bg-slate-400')
@@ -1172,33 +1172,34 @@ def tabs_info_page():
                     t_name = item.replace(' ', '_').replace('(', '').replace(')', '')
                     graph_data += "WLEDVideoSync --> " + "|" + str(t_id) + "|" + t_name + "\n"
                 with ui.row():
-                    ui.mermaid('''
-                    graph LR;''' + graph_data + '''
-                    ''')
+                    with ui.card():
+                        ui.mermaid('''
+                        graph LR;''' + graph_data + '''
+                        ''')
                     with ui.row():
                         for item in desktop_threads:
-                            with ui.expansion(item):
+                            with ui.expansion(item, icon='cast'):
                                 with ui.row():
                                     ui.button(icon='delete_forever',
-                                              on_click=lambda: action_to_thread(class_name='Desktop',
-                                                                                cast_name=item,
-                                                                                action='stop',
-                                                                                clear=False,
-                                                                                execute=True)
+                                              on_click=lambda item=item: action_to_thread(class_name='Desktop',
+                                                                                          cast_name=item,
+                                                                                          action='stop',
+                                                                                          clear=False,
+                                                                                          execute=True)
                                               ).classes('shadow-lg').tooltip('Cancel Cast')
                                     ui.button(icon='add_photo_alternate',
-                                              on_click=lambda: action_to_thread(class_name='Desktop',
-                                                                                cast_name=item,
-                                                                                action='buffer',
-                                                                                clear=False,
-                                                                                execute=True)
+                                              on_click=lambda item=item: action_to_thread(class_name='Desktop',
+                                                                                          cast_name=item,
+                                                                                          action='buffer',
+                                                                                          clear=False,
+                                                                                          execute=True)
                                               ).classes('shadow-lg').tooltip('Capture picture')
-                                    ui.button(icon='add_photo_alternate',
-                                              on_click=lambda: action_to_thread(class_name='Desktop',
-                                                                                cast_name=item,
-                                                                                action='close_preview',
-                                                                                clear=False,
-                                                                                execute=True)
+                                    ui.button(icon='cancel_presentation',
+                                              on_click=lambda item=item: action_to_thread(class_name='Desktop',
+                                                                                          cast_name=item,
+                                                                                          action='close_preview',
+                                                                                          clear=False,
+                                                                                          execute=True)
                                               ).classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
@@ -1215,33 +1216,34 @@ def tabs_info_page():
                     t_name = item.replace(' ', '_').replace('(', '').replace(')', '')
                     graph_data += "WLEDVideoSync --> " + "|" + str(t_id) + "|" + t_name + "\n"
                 with ui.row():
-                    ui.mermaid('''
-                    graph LR;''' + graph_data + '''
-                    ''')
+                    with ui.card():
+                        ui.mermaid('''
+                        graph LR;''' + graph_data + '''
+                        ''')
                     with ui.row():
                         for item in media_threads:
-                            with ui.expansion(item):
+                            with ui.expansion(item, icon='cast'):
                                 with ui.row():
                                     ui.button(icon='delete_forever',
-                                              on_click=lambda: action_to_thread(class_name='Media',
-                                                                                cast_name=item,
-                                                                                action='stop',
-                                                                                clear=False,
-                                                                                execute=True)
+                                              on_click=lambda item=item: action_to_thread(class_name='Media',
+                                                                                          cast_name=item,
+                                                                                          action='stop',
+                                                                                          clear=False,
+                                                                                          execute=True)
                                               ).classes('shadow-lg').tooltip('Cancel Cast')
                                     ui.button(icon='add_photo_alternate',
-                                              on_click=lambda: action_to_thread(class_name='Media',
-                                                                                cast_name=item,
-                                                                                action='buffer',
-                                                                                clear=False,
-                                                                                execute=True)
+                                              on_click=lambda item=item: action_to_thread(class_name='Media',
+                                                                                          cast_name=item,
+                                                                                          action='buffer',
+                                                                                          clear=False,
+                                                                                          execute=True)
                                               ).classes('shadow-lg').tooltip('Capture picture')
-                                    ui.button(icon='add_photo_alternate',
-                                              on_click=lambda: action_to_thread(class_name='Media',
-                                                                                cast_name=item,
-                                                                                action='close_preview',
-                                                                                clear=False,
-                                                                                execute=True)
+                                    ui.button(icon='cancel_presentation',
+                                              on_click=lambda item=item: action_to_thread(class_name='Media',
+                                                                                          cast_name=item,
+                                                                                          action='close_preview',
+                                                                                          clear=False,
+                                                                                          execute=True)
                                               ).classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
@@ -1290,7 +1292,7 @@ def generate_carousel(class_obj):
             h, w = class_obj.frame_buffer[i].shape[:2]
             img = ui.interactive_image(carousel_image.resize(size=(640, 480))).classes('w-[640]')
             with img:
-                ui.button(text=str(i)+':size:'+str(w)+'x'+str(h), icon='tag') \
+                ui.button(text=str(i) + ':size:' + str(w) + 'x' + str(h), icon='tag') \
                     .props('flat fab color=white') \
                     .classes('absolute top-0 left-0 m-2') \
                     .tooltip('Image Number')
