@@ -25,7 +25,7 @@ import logging
 import logging.config
 import threading
 
-from ddp import DDPDevice
+from ddp_async import DDPDevice
 
 import time
 import sys
@@ -211,41 +211,76 @@ def util_casts_info():
         Get info from all Cast Threads
     """
     logger.info('Request Cast(s) info')
-    Desktop.t_info_event.set()
-    Media.t_info_event.set()
-    info_data = {}
+    """
+    
+    
+    # Clear the queue before new infos
+    with t_data_buffer.mutex:
+        t_data_buffer.queue.clear()
+
+    """
+
+    # clear
+    child_info_data = {}
     child_list = []
 
-    time.sleep(1)
-
+    print('got thread list')
     # we take only cast threads
     for item in threading.enumerate():
         t_name = item.name
-        if 't_media_cast' in t_name or 't_desktop_cast' in t_name:
+        if 't_desktop_cast' in t_name:
             child_list.append(t_name)
+            Desktop.cast_name_todo.append(str(t_name) + '||' + 'info' + '||' + str(time.time()))
+        if 't_media_cast' in t_name:
+            Media.cast_name_todo.append(str(t_name) + '||' + 'info' + '||' + str(time.time()))
+            child_list.append(t_name)
+    print('added to do')
 
+    # request info from threads
+    Desktop.t_todo_event.set()
+    Media.t_todo_event.set()
+
+    """
+    # use to stop the loop in case of
     start_time = time.time()
-    while len(child_list) != 0:
-        # take info datas
-        if not t_data_buffer.empty():
-            # get info dict from a thread
-            data = t_data_buffer.get()
-            # add to return dict
-            info_data.update(data)
-            # remove from child list
-            if list(data.keys())[0] in child_list:
-                child_list.remove(list(data.keys())[0])
-
-        # Check if more than 2 seconds have elapsed
+    print('loop wait')
+    # now we wait for threads finish to do, last one should clear event
+    while not Desktop.t_todo_event.wait() or not Media.t_todo_event.wait():
+        time.sleep(.1)
         elapsed_time = time.time() - start_time
-        if elapsed_time > 2:
-            logger.warning("Cast info execution took more than 2 seconds. List may be incomplete...  Exiting.")
-            child_list = []
+        if elapsed_time > 5:
+            print('too much time')
+            return {"t_info": 'error'}
+    """
 
-    Desktop.t_info_event.clear()
-    Media.t_info_event.clear()
+    # use to stop the loop in case of
+    start_time = time.time()
+    print('loop 2')
+    logger.info(child_list)
+    # loop until all children provided info
+    while len(child_list) != 0:
+        if not t_data_buffer.empty():
+            # wait and get info dict from a thread
+            logger.info('wait for data buffer')
+            data = t_data_buffer.get()
+            t_data_buffer.task_done()
+            logger.info('got data buffer')
+            # add to return dict if child is on the list
+            for child_name in data:
+                if child_name in child_list:
+                    child_info_data.update(data)
+                    # remove from child list
+                    child_list.remove(child_name)
+            # Check if more than 5 seconds have elapsed
+            elapsed_time = time.time() - start_time
+            if elapsed_time > 1:
+                logger.warning("Cast info execution took more than 5 seconds. List may be incomplete...  Exiting.")
+                break
 
-    return {"t_info": info_data}
+    Desktop.t_todo_event.clear()
+    Media.t_todo_event.clear()
+    logger.info('end request info')
+    return {"t_info": child_info_data}
 
 
 @app.get("/api/{class_name}/list_actions")
@@ -330,7 +365,7 @@ async def action_to_thread(class_name: str,
 
                 class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
                 class_obj.t_todo_event.set()
-                return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute put On'"}
+                return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 
 @app.put("/api/{class_name}/update_attribute")
@@ -626,9 +661,12 @@ def main_page():
     """
     Log display
     """
-    log = ui.log(max_lines=50).classes('w-full h-20')
-    logger.addHandler(LogElementHandler(log))
-    ui.button('Clear Log', on_click=lambda: log.clear()).tooltip('Erase the log file')
+
+    """
+        log = ui.log(max_lines=50).classes('w-full h-20')
+        logger.addHandler(LogElementHandler(log))
+        ui.button('Clear Log', on_click=lambda: log.clear()).tooltip('Erase the log file')
+    """
 
     """
     Footer : usefully links help
@@ -1124,13 +1162,13 @@ def tabs_info_page():
     # take only info data key
     info_data = info_data['t_info']
 
-    # split desktop / media
+    # split desktop / media by using content of thread name
     desktop_threads = []
     media_threads = []
     for item in info_data:
-        if 'desktop' in item:
+        if 't_desktop_cast' in item:
             desktop_threads.append(item)
-        elif 'media' in item:
+        elif 't_media_cast' in item:
             media_threads.append(item)
 
     """
@@ -1158,19 +1196,27 @@ def tabs_info_page():
                         for item in desktop_threads:
                             with ui.expansion(item):
                                 with ui.row():
-                                    ui.icon('cancel').classes('shadow-lg').on('click',
-                                                                              lambda: action_to_thread(
-                                                                                  class_name='Desktop',
-                                                                                  cast_name=item,
-                                                                                  action='stop',
-                                                                                  clear=False,
-                                                                                  execute=True))
-                                    ui.button(icon='editor', on_click=lambda: action_to_thread(
-                                        class_name='Media',
-                                        cast_name=item,
-                                        action='buffer',
-                                        clear=False,
-                                        execute=True)).classes('shadow-lg')
+                                    ui.button(icon='delete_forever',
+                                              on_click=lambda: action_to_thread(class_name='Desktop',
+                                                                                cast_name=item,
+                                                                                action='stop',
+                                                                                clear=False,
+                                                                                execute=True)
+                                              ).classes('shadow-lg').tooltip('Cancel Cast')
+                                    ui.button(icon='add_photo_alternate',
+                                              on_click=lambda: action_to_thread(class_name='Desktop',
+                                                                                cast_name=item,
+                                                                                action='buffer',
+                                                                                clear=False,
+                                                                                execute=True)
+                                              ).classes('shadow-lg').tooltip('Capture picture')
+                                    ui.button(icon='add_photo_alternate',
+                                              on_click=lambda: action_to_thread(class_name='Desktop',
+                                                                                cast_name=item,
+                                                                                action='close_preview',
+                                                                                clear=False,
+                                                                                execute=True)
+                                              ).classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
@@ -1198,13 +1244,22 @@ def tabs_info_page():
                                                                                 cast_name=item,
                                                                                 action='stop',
                                                                                 clear=False,
-                                                                                execute=True)).classes('shadow-lg')
+                                                                                execute=True)
+                                              ).classes('shadow-lg').tooltip('Cancel Cast')
                                     ui.button(icon='add_photo_alternate',
                                               on_click=lambda: action_to_thread(class_name='Media',
                                                                                 cast_name=item,
                                                                                 action='buffer',
                                                                                 clear=False,
-                                                                                execute=True)).classes('shadow-lg')
+                                                                                execute=True)
+                                              ).classes('shadow-lg').tooltip('Capture picture')
+                                    ui.button(icon='add_photo_alternate',
+                                              on_click=lambda: action_to_thread(class_name='Media',
+                                                                                cast_name=item,
+                                                                                action='close_preview',
+                                                                                clear=False,
+                                                                                execute=True)
+                                              ).classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
@@ -1252,7 +1307,7 @@ def generate_carousel(class_obj):
             h, w = class_obj.frame_buffer[i].shape[:2]
             img = ui.interactive_image(carousel_image.resize(size=(640, 480))).classes('w-[640]')
             with img:
-                ui.button(text=str(i)+':size:'+str(h)+'x'+str(w), icon='tag') \
+                ui.button(text=str(i)+':size:'+str(w)+'x'+str(h), icon='tag') \
                     .props('flat fab color=white') \
                     .classes('absolute top-0 left-0 m-2') \
                     .tooltip('Image Number')

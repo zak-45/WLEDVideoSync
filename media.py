@@ -20,10 +20,11 @@ import time
 
 import threading
 from threading import current_thread
+from starlette.concurrency import run_in_threadpool
 import asyncio
 import concurrent.futures
 
-from ddp import DDPDevice
+from ddp_async import DDPDevice
 from utils import CASTUtils as Utils, LogElementHandler
 
 # read config
@@ -257,13 +258,14 @@ class CASTMedia:
 
             """
             instruct the thread to provide info 
-            """
-            if CASTMedia.t_info_event.is_set():
 
+            if CASTMedia.t_info_event.is_set():
+                
                 if shared_buffer is None:
                     logger.warning('No queue buffer defined')
                     CASTMedia.t_info_event.clear()
                 else:
+
                     t_info = {t_name: {"type": "info", "data": {"start": start_time,
                                                                 "tid": current_thread().native_id,
                                                                 "viinput": str(t_viinput),
@@ -271,8 +273,9 @@ class CASTMedia:
                                                                 "devices": ip_addresses,
                                                                 "frames": frame_count
                                                                 }}}
+                    # this wait until queue access is free
                     shared_buffer.put(t_info)
-
+            """
             #  read media
             success, frame = media.read()
             if not success:
@@ -294,14 +297,16 @@ class CASTMedia:
             event clear only when no more item in list
             """
             if CASTMedia.t_todo_event.is_set():
+                logger.info('inside todo ')
                 CASTMedia.t_media_lock.acquire()
-
+                logger.info('got the lock')
                 #  take thread name from cast to do list
                 for item in self.cast_name_todo:
                     name, action, added_time = item.split('||')
                     if name == t_name:
                         logging.info(f'To do: {action} for :{t_name}')
 
+                        # use try to capture any failure
                         try:
                             if 'stop' in action:
                                 t_todo_stop = True
@@ -317,10 +322,19 @@ class CASTMedia:
 
                                     self.cast_frame_buffer = Utils.split_image_to_matrix(add_frame,
                                                                                          t_cast_x, t_cast_y)
+                            elif 'info' in action:
+                                t_info = {t_name: {"type": "info", "data": {"start": start_time,
+                                                                            "tid": current_thread().native_id,
+                                                                            "viinput": str(t_viinput),
+                                                                            "multicast": t_multicast,
+                                                                            "devices": ip_addresses,
+                                                                            "frames": frame_count
+                                                                            }}}
+                                # this wait until queue access is free
+                                shared_buffer.put(t_info)
+                                logger.info('we hav put')
 
                         except:
-                            # self.cast_name_todo.remove(item)
-                            # t_media_lock.release()
                             logger.error(f'Action {action} in ERROR from {t_name}')
 
                         self.cast_name_todo.remove(item)
@@ -335,9 +349,10 @@ class CASTMedia:
                 # resize frame to pixelart
                 frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
-                # send to DDP
+                # send to DDP : need to be async to avoid block main loop
                 if self.protocol == "ddp":
-                    ddp.flush(frame_to_send, self.retry_number)
+                    # run in non-blocking mode
+                    asyncio.run(ddp.flush(frame_to_send, self.retry_number))
 
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:
@@ -378,7 +393,7 @@ class CASTMedia:
                     # Displaying the image
                     cv2.imshow("Media Preview input: " + str(t_viinput), frame)
                     cv2.resizeWindow("Media Preview input: " + str(t_viinput), 640, 480)
-                    if cv2.waitKey(10) & 0xFF == ord("q"):
+                    if cv2.waitKey(1) & 0xFF == ord("q"):
                         win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
                         if win != 0:
                             cv2.destroyWindow("Media Preview input: " + str(t_viinput))
@@ -437,10 +452,11 @@ class CASTMedia:
             """
             do we need to sleep.
             """
-            delay = time.time() - last_frame
-            # sleep depend of the interval (FPS)
-            if delay < frame_interval:
-                time.sleep(frame_interval - delay)
+            if not CASTMedia.t_todo_event.is_set():
+                delay = time.time() - last_frame
+                # sleep depend of the interval (FPS)
+                if delay < frame_interval:
+                    time.sleep(frame_interval - delay)
 
             last_frame = time.time()
 

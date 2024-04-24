@@ -294,6 +294,7 @@ class CASTDesktop:
                                                                         "devices": ip_addresses,
                                                                         "frames": frame_count
                                                                         }}}
+                            # this wait until queue access is free
                             shared_buffer.put(t_info)
 
                     if not output_container:
