@@ -127,7 +127,6 @@ class CASTUtils:
             logger.error(traceback.format_exc())
             logger.error('An exception occurred: {}'.format(error))
 
-
         devicenumber: int = 0
         typedev: str = ''
 
@@ -389,6 +388,14 @@ class CASTUtils:
         finally:
             # Close the socket
             sock.close()
+
+    @staticmethod
+    def check_and_clean_todo_list(class_name):
+        """
+        clean the to do list for a Class
+        """
+        logger.warning(f'Something wrong happened. To Do list has been cleared for {class_name}')
+        # 'class_name.cast_name.to do' = []
 
 
 class HTTPDiscovery:

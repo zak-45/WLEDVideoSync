@@ -10,6 +10,7 @@
 # This utility aim to be cross-platform.
 # You can cast an image file , a video file, or a capture device (USB camera ...)
 # Data will be sent through 'ddp' protocol
+# ddp data are sent by using queue feature to avoid any network problem which cause latency
 # A preview can be seen via 'cv2' : pixelart look
 #
 import logging
@@ -42,6 +43,9 @@ class CASTMedia:
     """ Cast Media to DDP """
 
     count = 0  # initialise count to zero
+    cast_names = []  # should contain running Cast instances
+    cast_names_not_in_sync = False
+    cast_name_todo = []  # list of thread names with action that need to execute from 'to do'
 
     t_exit_event = threading.Event()  # thread listen event fo exit
     t_info_event = threading.Event()  # thread listen event for info
@@ -75,7 +79,6 @@ class CASTMedia:
         self.cast_y: int = 1
         self.cast_devices: list = []
         self.cast_frame_buffer = []
-        self.cast_name_todo = []  # list of thread names with action that need to execute from 'to do'
 
     """
     Cast Thread
@@ -88,7 +91,13 @@ class CASTMedia:
             With big size image, some delay occur, to do : review 'ddp.flush' when necessary
         """
         t_name = current_thread().name
+        CASTMedia.cast_names.append(t_name)
         logger.info(f'Child thread: {t_name}')
+
+        # First we check if cast_names_not_in_sync
+        if CASTMedia.cast_names_not_in_sync:
+            logger.error('Problem with running casts and cast name list. No new cast allowed. Better restart. ')
+            return False
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
 
@@ -250,6 +259,9 @@ class CASTMedia:
 
         last_frame = time.time()
 
+        iteration_number = 0
+        max_iteration = 500
+
         # Main thread loop to read media frame, stop from global call or local
         while not (self.stopcast or t_todo_stop):
             """
@@ -278,11 +290,23 @@ class CASTMedia:
             manage concurrent access to the list by using lock feature
             event clear only when no more item in list
             """
+
+            # Some test to avoid infinite loop
+            if not len(CASTMedia.cast_name_todo) == 0 and iteration_number == 0:
+                iteration_number += 1
+            elif len(CASTMedia.cast_name_todo) == 0:
+                iteration_number = 0
+            elif iteration_number > max_iteration:
+                logger.error('Error in to do list. Stop the cast')
+                break
+            else:
+                iteration_number += 1
+
             if CASTMedia.t_todo_event.is_set():
-                logger.info('inside todo ')
+                logger.info(f"We are inside todo :{CASTMedia.cast_name_todo}")
                 CASTMedia.t_media_lock.acquire()
                 #  take thread name from cast to do list
-                for item in self.cast_name_todo:
+                for item in CASTMedia.cast_name_todo:
                     name, action, added_time = item.split('||')
                     if name == t_name:
                         logging.info(f'To do: {action} for :{t_name}')
@@ -329,10 +353,10 @@ class CASTMedia:
                             logger.error(traceback.format_exc())
                             logger.error(f'Action {action} in ERROR from {t_name}')
 
-                        self.cast_name_todo.remove(item)
-                        if len(self.cast_name_todo) == 0:
-                            CASTMedia.t_todo_event.clear()
+                        CASTMedia.cast_name_todo.remove(item)
 
+                if len(CASTMedia.cast_name_todo) == 0:
+                    CASTMedia.t_todo_event.clear()
                 CASTMedia.t_media_lock.release()
 
             if t_multicast:
@@ -480,6 +504,7 @@ class CASTMedia:
         print(f'Using these devices: {str(ip_addresses)}')
         print("_" * 50)
 
+        CASTMedia.cast_names.remove(t_name)
         logger.info("Cast closed")
         time.sleep(2)
         CASTMedia.t_exit_event.clear()

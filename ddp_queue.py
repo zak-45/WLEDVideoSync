@@ -51,6 +51,11 @@ class DDPDevice:
     def _process_queue(self):
         """Method to process the data queue"""
         while True:
+            # if too much packet waiting, we stop all
+            data_size = self._data_queue.qsize()
+            if data_size > 120:
+                logger.error(f'Queue size too big {data_size}. Stop the Cast')
+                return
             data = self._data_queue.get()  # Get data from the queue
             self.flush_from_queue(data)  # Call flush with the data
             self._data_queue.task_done()  # Mark the task as done

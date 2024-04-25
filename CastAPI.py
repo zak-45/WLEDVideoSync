@@ -66,6 +66,7 @@ Media = media.CASTMedia()
 Netdevice = Net()
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
+action_to_test = ['stop', 'buffer', 'info', 'close_preview']
 
 app.debug = False
 
@@ -221,8 +222,11 @@ def util_casts_info():
     # clear
     child_info_data = {}
     child_list = []
+    # for synchro test
+    desktop_not_synchro = False
+    media_not_synchro = False
 
-    # we take only cast threads
+    # iterate on all threads and we take only cast threads
     for item in threading.enumerate():
         t_name = item.name
         if 't_desktop_cast' in t_name:
@@ -231,6 +235,18 @@ def util_casts_info():
         if 't_media_cast' in t_name:
             Media.cast_name_todo.append(str(t_name) + '||' + 'info' + '||' + str(time.time()))
             child_list.append(t_name)
+
+    # we compare with cast_names list to check synchro
+    for item in Desktop.cast_names:
+        if item not in child_list:
+            desktop_not_synchro = True
+    for item in Media.cast_names:
+        if item not in child_list:
+            media_not_synchro = True
+
+    # set the flags
+    Media.cast_names_not_in_sync = media_not_synchro
+    Desktop.cast_names_not_in_sync = desktop_not_synchro
 
     # request info from threads
     Desktop.t_todo_event.set()
@@ -302,6 +318,7 @@ async def action_to_thread(class_name: str,
     :param action:
     :return:
     """
+
     if class_name not in class_to_test:
         raise HTTPException(status_code=400,
                             detail=f"Class name: {class_name} not in {class_to_test}")
@@ -311,9 +328,17 @@ async def action_to_thread(class_name: str,
         raise HTTPException(status_code=400,
                             detail=f"Invalid class name: {class_name}")
 
+    if cast_name is not None and cast_name not in class_obj.cast_names:
+        raise HTTPException(status_code=400,
+                            detail=f"Invalid Cast name: {cast_name}")
+
     if not hasattr(class_obj, 'cast_name_todo'):
         raise HTTPException(status_code=400,
                             detail=f"Invalid attribute name")
+
+    if action not in action_to_test and action is not None:
+        raise HTTPException(status_code=400,
+                            detail=f"Invalid action name. Allowed : " + str(action_to_test))
 
     if clear:
 
@@ -345,6 +370,7 @@ async def action_to_thread(class_name: str,
 
                 class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
                 class_obj.t_todo_event.set()
+                time.sleep(2)
                 return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 

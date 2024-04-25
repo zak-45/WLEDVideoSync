@@ -19,6 +19,7 @@
 # This utility aim to be cross-platform.
 # You can cast your entire desktop screen or only window content.
 # Data will be sent through 'ddp' protocol or stream via udp:// rtp:// etc ...
+# ddp data are sent by using queue feature to avoid any network problem which cause latency
 #
 #
 import logging
@@ -47,6 +48,9 @@ class CASTDesktop:
     """ Cast Desktop to DDP """
 
     count = 0  # initialise count to zero
+    cast_names = []  # list of running threads
+    cast_names_not_in_sync = False
+    cast_name_todo = []  # list of thread names that need to execute to do
 
     t_exit_event = threading.Event()  # thread listen event
     t_info_event = threading.Event()  # thread listen event for info
@@ -82,7 +86,6 @@ class CASTDesktop:
         self.cast_y: int = 1
         self.cast_devices: list = []
         self.cast_frame_buffer = []
-        self.cast_name_todo = []  # list of thread names that need to execute to do
 
     def t_desktop_cast(self, shared_buffer=None):
         """
@@ -90,7 +93,13 @@ class CASTDesktop:
             With big size image, some delay occur, 'ddp.flush' has been adapted with a queue to try to avoid
         """
         t_name = current_thread().name
+        CASTDesktop.cast_names.append(t_name)
         logger.info(f'Child thread: {t_name}')
+
+        # First we check if cast_names_not_in_sync
+        if self.cast_names_not_in_sync:
+            logger.error('Problem with running casts and cast name list. No new cast allowed. Better restart. ')
+            return False
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
 
@@ -260,6 +269,9 @@ class CASTDesktop:
                 return False
 
         # Main loop
+        iteration_number = 0
+        max_iteration = 500  # max iteration for 'to do' loop
+
         if input_container:
             # input video stream from container (for decode)
             input_stream = input_container.streams.get(video=0)
@@ -269,6 +281,7 @@ class CASTDesktop:
             try:
 
                 logger.info(f"Capture from {t_viinput}")
+
                 for frame in input_container.decode(input_stream):
 
                     frame_count += 1
@@ -304,11 +317,23 @@ class CASTDesktop:
                         manage concurrent access to the list by using lock feature
                         event clear only when no more item in list
                         """
+
+                        # Some test to avoid infinite loop
+                        if not len(CASTDesktop.cast_name_todo) == 0 and iteration_number == 0:
+                            iteration_number += 1
+                        elif len(CASTDesktop.cast_name_todo) == 0:
+                            iteration_number = 0
+                        elif iteration_number > max_iteration:
+                            logger.error('Error in to do list. Stop the cast')
+                            break
+                        else:
+                            iteration_number += 1
+
                         if CASTDesktop.t_todo_event.is_set():
-                            logger.info(f"We are inside todo :{self.cast_name_todo}")
+                            logger.info(f"We are inside todo :{CASTDesktop.cast_name_todo}")
                             CASTDesktop.t_desktop_lock.acquire()
                             #  take thread name from cast to do list
-                            for item in self.cast_name_todo:
+                            for item in CASTDesktop.cast_name_todo:
                                 name, action, added_time = item.split("||")
                                 if name == t_name:
                                     logging.info(f'To do: {action} for :{t_name}')
@@ -356,10 +381,10 @@ class CASTDesktop:
                                         logger.error(traceback.format_exc())
                                         logger.error(f'Action {action} in ERROR from {t_name}')
 
-                                    self.cast_name_todo.remove(item)
-                                    if len(self.cast_name_todo) == 0:
-                                        CASTDesktop.t_todo_event.clear()
+                                    CASTDesktop.cast_name_todo.remove(item)
 
+                            if len(CASTDesktop.cast_name_todo) == 0:
+                                CASTDesktop.t_todo_event.clear()
                             CASTDesktop.t_desktop_lock.release()
 
                         if t_multicast:
@@ -502,6 +527,7 @@ class CASTDesktop:
         print(f'Using these devices: {str(ip_addresses)}')
         print("_" * 50)
 
+        CASTDesktop.cast_names.remove(t_name)
         logger.info('Cast closed')
         time.sleep(2)
         CASTDesktop.t_exit_event.clear()
