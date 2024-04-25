@@ -326,6 +326,7 @@ class CASTDesktop:
                                             t_info = {t_name: {"type": "info", "data": {"start": start_time,
                                                                                         "tid": current_thread().native_id,
                                                                                         "viinput": str(t_viinput),
+                                                                                        "preview": t_preview,
                                                                                         "multicast": t_multicast,
                                                                                         "devices": ip_addresses,
                                                                                         "fps": frame_interval,
@@ -335,10 +336,10 @@ class CASTDesktop:
                                             shared_buffer.put(t_info)
                                             logger.info('we have put')
 
-                                        elif 'close_preview' in action:
+                                        elif "close_preview" in action:
                                             win = cv2.getWindowProperty("Desktop Preview input: " + str(t_viinput),
                                                                         cv2.WND_PROP_VISIBLE)
-                                            if win != 0:
+                                            if not win == 0:
                                                 cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
                                             t_preview = False
 
@@ -406,8 +407,9 @@ class CASTDesktop:
                                     # close preview window if any
                                     win = cv2.getWindowProperty("Desktop Preview input: " + str(t_viinput),
                                                                 cv2.WND_PROP_VISIBLE)
-                                    if win != 0:
+                                    if not win == 0:
                                         cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
+                                    t_preview = False
 
                         else:
                             """
@@ -477,7 +479,7 @@ class CASTDesktop:
                     time.sleep(1)
                     # close preview window if any
                     win = cv2.getWindowProperty("Desktop Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
-                    if win != 0:
+                    if not win == 0:
                         cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
 
         else:

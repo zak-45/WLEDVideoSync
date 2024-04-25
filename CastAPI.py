@@ -1194,13 +1194,14 @@ def tabs_info_page():
                                                                                           clear=False,
                                                                                           execute=True)
                                               ).classes('shadow-lg').tooltip('Capture picture')
-                                    ui.button(icon='cancel_presentation',
-                                              on_click=lambda item=item: action_to_thread(class_name='Desktop',
-                                                                                          cast_name=item,
-                                                                                          action='close_preview',
-                                                                                          clear=False,
-                                                                                          execute=True)
-                                              ).classes('shadow-lg').tooltip('Stop Preview')
+                                    if info_data[item]["data"]["preview"]:
+                                        ui.button(icon='cancel_presentation',
+                                                  on_click=lambda item=item: action_to_thread(class_name='Desktop',
+                                                                                              cast_name=item,
+                                                                                              action='close_preview',
+                                                                                              clear=False,
+                                                                                              execute=True)
+                                                  ).classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
@@ -1238,13 +1239,14 @@ def tabs_info_page():
                                                                                           clear=False,
                                                                                           execute=True)
                                               ).classes('shadow-lg').tooltip('Capture picture')
-                                    ui.button(icon='cancel_presentation',
-                                              on_click=lambda item=item: action_to_thread(class_name='Media',
-                                                                                          cast_name=item,
-                                                                                          action='close_preview',
-                                                                                          clear=False,
-                                                                                          execute=True)
-                                              ).classes('shadow-lg').tooltip('Stop Preview')
+                                    if info_data[item]["data"]["preview"]:
+                                        ui.button(icon='cancel_presentation',
+                                                  on_click=lambda item=item: action_to_thread(class_name='Media',
+                                                                                              cast_name=item,
+                                                                                              action='close_preview',
+                                                                                              clear=False,
+                                                                                              execute=True)
+                                                  ).classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})

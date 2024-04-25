@@ -307,6 +307,7 @@ class CASTMedia:
                                 t_info = {t_name: {"type": "info", "data": {"start": start_time,
                                                                             "tid": current_thread().native_id,
                                                                             "viinput": str(t_viinput),
+                                                                            "preview": t_preview,
                                                                             "multicast": t_multicast,
                                                                             "devices": ip_addresses,
                                                                             "fps": 1/frame_interval,
@@ -319,7 +320,7 @@ class CASTMedia:
                             elif 'close_preview' in action:
                                 win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput),
                                                             cv2.WND_PROP_VISIBLE)
-                                if win != 0:
+                                if not win == 0:
                                     cv2.destroyWindow("Media Preview input: " + str(t_viinput))
                                 t_preview = False
 
@@ -385,8 +386,9 @@ class CASTMedia:
                     cv2.resizeWindow("Media Preview input: " + str(t_viinput), 640, 480)
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
-                        if win != 0:
+                        if not win == 0:
                             cv2.destroyWindow("Media Preview input: " + str(t_viinput))
+                        t_preview = False
 
                 """
                     stop for non-live video (length not -1)
@@ -461,7 +463,7 @@ class CASTMedia:
             logger.info('Stop window preview if any')
             time.sleep(1)
             win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
-            if win != 0:
+            if not win == 0:
                 cv2.destroyWindow("Media Preview input: " + str(t_viinput))
 
         media.release()
