@@ -103,7 +103,7 @@ FastAPI
 
 
 @app.get("/api")
-def read_api_root():
+async def read_api_root():
     """
         Status: see if WLEDVideoSync is running
     """
@@ -111,7 +111,7 @@ def read_api_root():
 
 
 @app.get("/api/{class_obj}/params")
-def all_params(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}')):
+async def all_params(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}')):
     """
         Retrieve all 'params' from a class
     """

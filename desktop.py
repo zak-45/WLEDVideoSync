@@ -283,7 +283,15 @@ class CASTDesktop:
                     if CASTDesktop.t_exit_event.is_set():
                         break
 
-                    if not output_container:
+                    if output_container:
+                        # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
+                        # Encode the frame
+                        packet = output_stream.encode(frame)
+                        # Mux the encoded packet
+                        output_container.mux(packet)
+
+                    else:
+
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
 
@@ -297,11 +305,11 @@ class CASTDesktop:
                         event clear only when no more item in list
                         """
                         if CASTDesktop.t_todo_event.is_set():
-                            logger.info('inside todo ')
+                            logger.info(f"We are inside todo :{self.cast_name_todo}")
                             CASTDesktop.t_desktop_lock.acquire()
                             #  take thread name from cast to do list
                             for item in self.cast_name_todo:
-                                name, action, added_time = item.split('||')
+                                name, action, added_time = item.split("||")
                                 if name == t_name:
                                     logging.info(f'To do: {action} for :{t_name}')
 
@@ -334,13 +342,14 @@ class CASTDesktop:
                                                                                         }}}
                                             # this wait until queue access is free
                                             shared_buffer.put(t_info)
-                                            logger.info('we have put')
+                                            logger.info("we have put on the queue")
 
                                         elif "close_preview" in action:
-                                            win = cv2.getWindowProperty("Desktop Preview input: " + str(t_viinput),
+                                            window_name = str(t_viinput) + str(t_name)
+                                            win = cv2.getWindowProperty("Desktop Preview input: " + window_name,
                                                                         cv2.WND_PROP_VISIBLE)
                                             if not win == 0:
-                                                cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
+                                                cv2.destroyWindow("Desktop Preview input: " + window_name)
                                             t_preview = False
 
                                     except:
@@ -353,7 +362,51 @@ class CASTDesktop:
 
                             CASTDesktop.t_desktop_lock.release()
 
-                        if not t_multicast:
+                        if t_multicast:
+                            """
+                                multicast manage any number of devices of same configuration
+                                each device need to drive the same amount of leds, same config
+                                e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
+                                ==> this give 5 devices to set into cast_devices list (host is auto incl.)                    
+                                    (tuple of: device index(0...n) , IP address) 
+                                    we will manage image of 3x16 leds for x and 2x16 for y    
+
+                                on 10/04/2024: device_number come from list entry order (0...n)
+
+                            """
+
+                            # resize frame to virtual matrix size
+                            frame = Utils.resize_image(frame,
+                                                       self.scale_width * t_cast_x,
+                                                       self.scale_height * t_cast_y)
+
+                            if frame_count > 1:
+                                # split to matrix
+                                t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+
+                            else:
+                                # split to matrix
+                                self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+
+                                # validate cast_devices number
+                                if len(ip_addresses) < len(self.cast_frame_buffer):
+                                    logger.error('Cast devices number != sub images number: check cast_devices ')
+                                    break
+
+                                t_cast_frame_buffer = self.cast_frame_buffer
+
+                            # send, keep synchronized
+                            try:
+
+                                send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
+
+                            except Exception as error:
+                                logger.error(traceback.format_exc())
+                                logger.error('An exception occurred: {}'.format(error))
+                                break
+
+                        else:
+
                             # resize frame for sending to ddp device
                             frame_to_send = Utils.resize_image(frame, self.scale_width, self.scale_height)
                             # resize frame to pixelart
@@ -400,66 +453,17 @@ class CASTDesktop:
                                                         cv2.LINE_AA)
 
                                 # Displaying the image on the preview Window
-                                cv2.imshow("Desktop Preview input: " + str(t_viinput), frame)
-                                cv2.resizeWindow("Desktop Preview input: " + str(t_viinput), 640, 480)
+                                window_name = str(t_viinput) + str(t_name)
+                                cv2.imshow("Desktop Preview input: " + window_name, frame)
+                                cv2.resizeWindow("Desktop Preview input: " + window_name, 640, 480)
                                 if cv2.waitKey(10) & 0xFF == ord("q"):
-                                    cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
+                                    cv2.destroyWindow("Desktop Preview input: " + window_name)
                                     # close preview window if any
-                                    win = cv2.getWindowProperty("Desktop Preview input: " + str(t_viinput),
+                                    win = cv2.getWindowProperty("Desktop Preview input: " + window_name,
                                                                 cv2.WND_PROP_VISIBLE)
                                     if not win == 0:
-                                        cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
+                                        cv2.destroyWindow("Desktop Preview input: " + window_name)
                                     t_preview = False
-
-                        else:
-                            """
-                                multicast manage any number of devices of same configuration
-                                each device need to drive the same amount of leds, same config
-                                e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
-                                ==> this give 5 devices to set into cast_devices list (host is auto incl.)                    
-                                    (tuple of: device index(0...n) , IP address) 
-                                    we will manage image of 3x16 leds for x and 2x16 for y    
-
-                                on 10/04/2024: device_number come from list entry order (0...n)
-
-                            """
-
-                            # resize frame to virtual matrix size
-                            frame = Utils.resize_image(frame,
-                                                       self.scale_width * t_cast_x,
-                                                       self.scale_height * t_cast_y)
-
-                            if frame_count > 1:
-                                # split to matrix
-                                t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
-
-                            else:
-                                # split to matrix
-                                self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
-
-                                # validate cast_devices number
-                                if len(ip_addresses) < len(self.cast_frame_buffer):
-                                    logger.error('Cast devices number != sub images number: check cast_devices ')
-                                    break
-
-                                t_cast_frame_buffer = self.cast_frame_buffer
-
-                            # send, keep synchronized
-                            try:
-
-                                send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
-
-                            except Exception as error:
-                                logger.error(traceback.format_exc())
-                                logger.error('An exception occurred: {}'.format(error))
-                                break
-                    else:
-
-                        # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
-                        # Encode the frame
-                        packet = output_stream.encode(frame)
-                        # Mux the encoded packet
-                        output_container.mux(packet)
 
             except Exception as error:
                 logger.error(traceback.format_exc())
@@ -478,9 +482,10 @@ class CASTDesktop:
                     logger.info('Stop window preview if any')
                     time.sleep(1)
                     # close preview window if any
-                    win = cv2.getWindowProperty("Desktop Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
+                    window_name = str(t_viinput) + str(t_name)
+                    win = cv2.getWindowProperty("Desktop Preview input: " + window_name, cv2.WND_PROP_VISIBLE)
                     if not win == 0:
-                        cv2.destroyWindow("Desktop Preview input: " + str(t_viinput))
+                        cv2.destroyWindow("Desktop Preview input: " + window_name)
 
         else:
 

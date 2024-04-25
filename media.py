@@ -251,7 +251,7 @@ class CASTMedia:
         last_frame = time.time()
 
         # Main thread loop to read media frame, stop from global call or local
-        while not self.stopcast and not t_todo_stop:
+        while not (self.stopcast or t_todo_stop):
             """
             instruct the thread to exit 
             """
@@ -318,10 +318,11 @@ class CASTMedia:
                                 logger.info('we have put')
 
                             elif 'close_preview' in action:
-                                win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput),
+                                window_name = str(t_viinput) + str(t_name)
+                                win = cv2.getWindowProperty("Media Preview input: " + window_name,
                                                             cv2.WND_PROP_VISIBLE)
                                 if not win == 0:
-                                    cv2.destroyWindow("Media Preview input: " + str(t_viinput))
+                                    cv2.destroyWindow("Media Preview input: " + window_name)
                                 t_preview = False
 
                         except:
@@ -334,7 +335,52 @@ class CASTMedia:
 
                 CASTMedia.t_media_lock.release()
 
-            if not t_multicast:
+            if t_multicast:
+                """
+                    multicast manage any number of devices of same configuration
+                    each device need to drive the same amount of leds, same config
+                    e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
+                    ==> this give 5 devices to set into cast_devices list (host is auto incl. and will be the first one)                        
+                        (tuple of: device index(0...n) , IP address) 
+                        we will manage image of 3x16 leds for x and 2x16 for y    
+                        
+                    on 10/04/2024: device_number come from list entry order (0...n)
+                        
+                """
+
+                # resize frame to virtual matrix size
+                frame = Utils.resize_image(frame,
+                                           self.scale_width * t_cast_x,
+                                           self.scale_height * t_cast_y)
+
+                # populate global cast buffer from first frame only
+                if frame_count > 1:
+                    # split to matrix
+                    t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+
+                else:
+                    # split to matrix
+                    self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+
+                    # validate cast_devices number
+                    if len(ip_addresses) < len(self.cast_frame_buffer):
+                        logger.error('Cast devices number != sub images number: check cast_devices ')
+                        break
+
+                    t_cast_frame_buffer = self.cast_frame_buffer
+
+                # send, keep synchronized
+                try:
+
+                    send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
+
+                except Exception as error:
+                    logger.error(traceback.format_exc())
+                    logger.error('An exception occurred: {}'.format(error))
+                    break
+
+            else:
+
                 # resize frame for sending to ddp device
                 frame_to_send = Utils.resize_image(frame, self.scale_width, self.scale_height)
                 # resize frame to pixelart
@@ -382,12 +428,13 @@ class CASTMedia:
                                             cv2.LINE_AA)
 
                     # Displaying the image
-                    cv2.imshow("Media Preview input: " + str(t_viinput), frame)
-                    cv2.resizeWindow("Media Preview input: " + str(t_viinput), 640, 480)
+                    window_name = str(t_viinput) + str(t_name)
+                    cv2.imshow("Media Preview input: " + window_name, frame)
+                    cv2.resizeWindow("Media Preview input: " + window_name, 640, 480)
                     if cv2.waitKey(1) & 0xFF == ord("q"):
-                        win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
+                        win = cv2.getWindowProperty("Media Preview input: " + window_name, cv2.WND_PROP_VISIBLE)
                         if not win == 0:
-                            cv2.destroyWindow("Media Preview input: " + str(t_viinput))
+                            cv2.destroyWindow("Media Preview input: " + window_name)
                         t_preview = False
 
                 """
@@ -398,58 +445,17 @@ class CASTMedia:
                     if frame_count >= length or self.frame_index != 0:
                         logger.info("Reached END ...")
                         break
-            else:
-                """
-                    multicast manage any number of devices of same configuration
-                    each device need to drive the same amount of leds, same config
-                    e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
-                    ==> this give 5 devices to set into cast_devices list (host is auto incl. and will be the first one)                        
-                        (tuple of: device index(0...n) , IP address) 
-                        we will manage image of 3x16 leds for x and 2x16 for y    
-                        
-                    on 10/04/2024: device_number come from list entry order (0...n)
-                        
-                """
-
-                # resize frame to virtual matrix size
-                frame = Utils.resize_image(frame,
-                                           self.scale_width * t_cast_x,
-                                           self.scale_height * t_cast_y)
-
-                # populate global cast buffer from first frame only
-                if frame_count > 1:
-                    # split to matrix
-                    t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
-
-                else:
-                    # split to matrix
-                    self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
-
-                    # validate cast_devices number
-                    if len(ip_addresses) < len(self.cast_frame_buffer):
-                        logger.error('Cast devices number != sub images number: check cast_devices ')
-                        break
-
-                    t_cast_frame_buffer = self.cast_frame_buffer
-
-                # send, keep synchronized
-                try:
-
-                    send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
-
-                except Exception as error:
-                    logger.error(traceback.format_exc())
-                    logger.error('An exception occurred: {}'.format(error))
-                    break
 
             """
             do we need to sleep.
             """
-            # if not CASTMedia.t_todo_event.is_set():
-            delay = time.time() - last_frame
-            # sleep depend of the interval (FPS)
-            if delay < frame_interval:
-                time.sleep(frame_interval - delay)
+            if CASTMedia.t_todo_event.is_set():
+                pass
+            else:
+                delay = time.time() - last_frame
+                # sleep depend of the interval (FPS)
+                if delay < frame_interval:
+                    time.sleep(frame_interval - delay)
 
             last_frame = time.time()
 
@@ -462,9 +468,10 @@ class CASTMedia:
         if CASTMedia.count <= 2:  # try to avoid blocking when click as a bad man !!!
             logger.info('Stop window preview if any')
             time.sleep(1)
-            win = cv2.getWindowProperty("Media Preview input: " + str(t_viinput), cv2.WND_PROP_VISIBLE)
+            window_name = str(t_viinput) + str(t_name)
+            win = cv2.getWindowProperty("Media Preview input: " + window_name, cv2.WND_PROP_VISIBLE)
             if not win == 0:
-                cv2.destroyWindow("Media Preview input: " + str(t_viinput))
+                cv2.destroyWindow("Media Preview input: " + window_name)
 
         media.release()
 
