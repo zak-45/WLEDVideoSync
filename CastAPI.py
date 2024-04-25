@@ -27,12 +27,15 @@ import traceback
 import asyncio
 import threading
 
-from ddp_async import DDPDevice
+from ddp_queue import DDPDevice
 
 import time
 import sys
 import socket
 import json
+import os
+
+import cv2
 
 import queue
 
@@ -132,7 +135,8 @@ async def run_cast(class_obj: str):
     except KeyError:
         raise HTTPException(status_code=400, detail=f"Invalid Class name: {class_obj}")
 
-    my_obj.cast(t_data_buffer)
+    # run cast and pass the queue to share data
+    my_obj.cast(shared_buffer=t_data_buffer)
 
     return {"run_cast": True}
 
@@ -572,7 +576,7 @@ async def cast_image(image_number,
             frame_to_send = Utils.resize_image(images_buffer[image_number],
                                                class_obj.scale_width,
                                                class_obj.scale_height)
-            asyncio.run(ddp.flush(frame_to_send, retry_number))
+            ddp.flush(frame_to_send, retry_number)
             if fps_number != 0:
                 time.sleep(1 / fps_number)  # Sleep in s for the time required to send one frame
 
@@ -1343,6 +1347,37 @@ async def cast_to_wled(class_obj, image_number):
         )
 
 
+async def save_image(class_obj, image_number):
+    """
+    Save image from Buffer
+    used on the buffer images
+    """
+    folder = app_config['img_folder']
+    if folder[-1] == '/':
+        pass
+    else:
+        logger.error("The last character of the folder name is not '/'.")
+        return
+
+    # Get the absolute path of the folder relative to the current working directory
+    absolute_img_folder = os.path.abspath(folder)
+    if os.path.isdir(absolute_img_folder):
+        pass
+    else:
+        logger.error(f"The folder {absolute_img_folder} does not exist.")
+        return
+
+    w, h = class_obj.frame_buffer[image_number].shape[:2]
+    date_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+    class_name = class_obj.__module__
+    filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(h) + "_" + date_time + ".jpg"
+
+    img = cv2.cvtColor(class_obj.frame_buffer[image_number], cv2.COLOR_RGB2BGR)
+    cv2.imwrite(filename, img)
+
+    logger.info(f"Image saved to {filename}")
+
+
 async def discovery_net_notify():
     """ Call Run zero conf net discovery """
 
@@ -1371,7 +1406,7 @@ async def init_cast(class_obj):
     :param class_obj:
     :return:
     """
-    class_obj.cast(t_data_buffer)
+    class_obj.cast(shared_buffer=t_data_buffer)
     cast_manage.refresh()
     logger.info(datetime.now().strftime('%X.%f')[:-5] + ' Run Cast for ' + str(class_obj))
     # just try to avoid mad man click !!
@@ -1434,10 +1469,14 @@ def light_box_image(index, image, txt1, txt2, class_obj):
                 ui.label(str(index)) \
                     .tailwind.font_weight('extrabold').text_color('red-600').background_color('orange-200')
                 with ui.interactive_image(image):
-                    ui.button(on_click=lambda: cast_to_wled(class_obj, index), icon='cast') \
-                        .props('flat fab color=white') \
-                        .classes('absolute top-0 left-0 m-2') \
-                        .tooltip('Cast to WLED')
+                    with ui.row().classes('absolute top-0 left-0 m-2'):
+                        ui.button(on_click=lambda: cast_to_wled(class_obj, index), icon='cast') \
+                            .props('flat fab color=white') \
+                            .tooltip('Cast to WLED')
+                        ui.button(on_click=lambda: save_image(class_obj, index), icon='save') \
+                            .props('flat fab color=white') \
+                            .tooltip('Save Image')
+
                     ui.label(str(index)).classes('absolute-bottom text-subtitle2 text-center').style('background: red')
                 ui.button('Close', on_click=dialog.close, color='red')
             ui.button('', icon='preview', on_click=dialog.open, color='bg-red-800').tooltip('View image')

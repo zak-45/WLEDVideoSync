@@ -25,7 +25,7 @@ from starlette.concurrency import run_in_threadpool
 import asyncio
 import concurrent.futures
 
-from ddp_async import DDPDevice
+from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, LogElementHandler
 
 # read config
@@ -388,8 +388,8 @@ class CASTMedia:
 
                 # send to DDP : need to be async to avoid block main loop
                 if self.protocol == "ddp":
-                    # run in non-blocking mode
-                    asyncio.run(ddp.flush(frame_to_send, self.retry_number))
+                    # send data to queue
+                    ddp.flush(frame_to_send, self.retry_number)
 
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:
@@ -488,6 +488,7 @@ class CASTMedia:
         """
             this will run the cast into another thread
             avoid to block the main one
+            shared_buffer if used need to be a queue
         """
         thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does

@@ -34,7 +34,7 @@ from threading import current_thread
 import asyncio
 import concurrent.futures
 
-from ddp_async import DDPDevice
+from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, LogElementHandler
 
 # read config
@@ -87,7 +87,7 @@ class CASTDesktop:
     def t_desktop_cast(self, shared_buffer=None):
         """
             Cast desktop screen or a window content based on the title
-            With big size image, some delay occur, to do : review 'ddp.flush' when necessary
+            With big size image, some delay occur, 'ddp.flush' has been adapted with a queue to try to avoid
         """
         t_name = current_thread().name
         logger.info(f'Child thread: {t_name}')
@@ -414,7 +414,7 @@ class CASTDesktop:
 
                             # send to ddp device
                             if self.protocol == 'ddp':
-                                asyncio.run(ddp.flush(frame_to_send, self.retry_number))
+                                ddp.flush(frame_to_send, self.retry_number)
 
                             # save frame to np buffer if requested (so can be used after by the main)
                             if self.put_to_buffer and frame_count <= self.frame_max:
@@ -510,6 +510,7 @@ class CASTDesktop:
         """
             this will run the cast into another thread
             avoiding blocking the main one
+            shared_buffer if used need to be a queue
         """
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
