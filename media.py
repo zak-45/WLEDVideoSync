@@ -42,13 +42,14 @@ Class definition
 class CASTMedia:
     """ Cast Media to DDP """
 
-    count = 0  # initialise count to zero
+    count = 0  # initialise running casts count to zero
+
     cast_names = []  # should contain running Cast instances
-    cast_names_not_in_sync = False
-    cast_name_todo = []  # list of thread names with action that need to execute from 'to do'
+    cast_names_not_in_sync = False  # Need to be always False, otherwise some crash happened
+    cast_name_todo = []  # list of cast names with action that need to execute from 'to do'
 
     t_exit_event = threading.Event()  # thread listen event fo exit
-    t_info_event = threading.Event()  # thread listen event for info
+
     t_todo_event = threading.Event()  # thread listen event for task to do
     t_media_lock = threading.Lock()  # define lock for to do
 
@@ -90,14 +91,15 @@ class CASTMedia:
             Cast media : video file, image file or video capture device
             With big size image, some delay occur, to do : review 'ddp.flush' when necessary
         """
-        t_name = current_thread().name
-        CASTMedia.cast_names.append(t_name)
-        logger.info(f'Child thread: {t_name}')
 
         # First we check if cast_names_not_in_sync
         if CASTMedia.cast_names_not_in_sync:
             logger.error('Problem with running casts and cast name list. No new cast allowed. Better restart. ')
             return False
+
+        t_name = current_thread().name
+        CASTMedia.cast_names.append(t_name)
+        logger.info(f'Child thread: {t_name}')
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
 
@@ -189,6 +191,8 @@ class CASTMedia:
                 logger.error(f'Error looks like IP {self.host} do not accept connection to port 80')
                 return False
 
+            ddp = DDPDevice(self.host)  # init here as queue thread not necessary if 127.0.0.1
+
         # retrieve matrix setup from wled and set w/h
         if self.wled:
             status = asyncio.run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
@@ -197,8 +201,6 @@ class CASTMedia:
             else:
                 logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
                 return False
-
-        ddp = DDPDevice(self.host)
 
         # specifics for Multicast
         if t_multicast:
@@ -411,7 +413,7 @@ class CASTMedia:
                 frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
                 # send to DDP : need to be async to avoid block main loop
-                if self.protocol == "ddp":
+                if self.protocol == "ddp" and self.host != '127.0.0.1':
                     # send data to queue
                     ddp.flush(frame_to_send, self.retry_number)
 

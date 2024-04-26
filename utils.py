@@ -116,7 +116,8 @@ class CASTUtils:
         CASTUtils.dev_list = []
 
         try:
-            with av.logging.Capture(True) as logs:
+            with av.logging.Capture(True) as logs:  # this will capture av output
+                # av command depend on running OS
                 if platform.system() == 'Windows':
                     av.open('dummy', 'r', format='dshow', options={'list_devices': 'True'})
                 elif platform.system() == 'Linux':

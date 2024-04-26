@@ -47,13 +47,14 @@ logger = logging.getLogger('WLEDLogger.desktop')
 class CASTDesktop:
     """ Cast Desktop to DDP """
 
-    count = 0  # initialise count to zero
+    count = 0  # initialise running casts count to zero
+
     cast_names = []  # list of running threads
-    cast_names_not_in_sync = False
-    cast_name_todo = []  # list of thread names that need to execute to do
+    cast_names_not_in_sync = False  # Need to be always False, otherwise some crash happened
+    cast_name_todo = []  # list of cast names that need to execute to do
 
     t_exit_event = threading.Event()  # thread listen event
-    t_info_event = threading.Event()  # thread listen event for info
+
     t_todo_event = threading.Event()  # thread listen event for task to do
     t_desktop_lock = threading.Lock()  # define lock for to do
 
@@ -92,14 +93,15 @@ class CASTDesktop:
             Cast desktop screen or a window content based on the title
             With big size image, some delay occur, 'ddp.flush' has been adapted with a queue to try to avoid
         """
+
+        # First we check if cast_names_not_in_sync
+        if CASTDesktop.cast_names_not_in_sync:
+            logger.error('Problem with running casts and cast name list. No new cast allowed. Better restart. ')
+            return False
+
         t_name = current_thread().name
         CASTDesktop.cast_names.append(t_name)
         logger.info(f'Child thread: {t_name}')
-
-        # First we check if cast_names_not_in_sync
-        if self.cast_names_not_in_sync:
-            logger.error('Problem with running casts and cast name list. No new cast allowed. Better restart. ')
-            return False
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
 
@@ -180,6 +182,8 @@ class CASTDesktop:
                 logger.error(f'Error looks like IP {self.host} do not accept connection to port 80')
                 return False
 
+            ddp = DDPDevice(self.host)  # init here as queue thread not necessary if 127.0.0.1
+
         # retrieve matrix setup from wled and set w/h
         if self.wled:
             status = asyncio.run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
@@ -188,8 +192,6 @@ class CASTDesktop:
             else:
                 logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
                 return False
-
-        ddp = DDPDevice(self.host)
 
         # specifics for Multicast
         if t_multicast:
@@ -438,7 +440,7 @@ class CASTDesktop:
                             frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
                             # send to ddp device
-                            if self.protocol == 'ddp':
+                            if self.protocol == 'ddp' and self.host != '127.0.0.1':
                                 ddp.flush(frame_to_send, self.retry_number)
 
                             # save frame to np buffer if requested (so can be used after by the main)

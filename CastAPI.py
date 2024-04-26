@@ -320,49 +320,58 @@ async def action_to_thread(class_name: str,
     """
 
     if class_name not in class_to_test:
+        logger.error(f"Class name: {class_name} not in {class_to_test}")
         raise HTTPException(status_code=400,
                             detail=f"Class name: {class_name} not in {class_to_test}")
     try:
         class_obj = globals()[class_name]
     except KeyError:
+        logger.error(f"Invalid class name: {class_name}")
         raise HTTPException(status_code=400,
                             detail=f"Invalid class name: {class_name}")
 
     if cast_name is not None and cast_name not in class_obj.cast_names:
+        logger.error(f"Invalid Cast name: {cast_name}")
         raise HTTPException(status_code=400,
                             detail=f"Invalid Cast name: {cast_name}")
 
     if not hasattr(class_obj, 'cast_name_todo'):
+        logger.error(f"Invalid attribute name")
         raise HTTPException(status_code=400,
                             detail=f"Invalid attribute name")
 
     if action not in action_to_test and action is not None:
+        logger.error(f"Invalid action name. Allowed : " + str(action_to_test))
         raise HTTPException(status_code=400,
                             detail=f"Invalid action name. Allowed : " + str(action_to_test))
 
     if clear:
 
         class_obj.cast_name_todo = []
+        logger.info(f" To do cleared for {class_obj}'")
         return {"message": f" To do cleared for {class_obj}'"}
 
     else:
 
         if not execute:
             if cast_name is None or action is None:
+                logger.error(f"Invalid Cast/Thread name or action not set")
                 raise HTTPException(status_code=400,
                                     detail=f"Invalid Cast/Thread name or action not set")
             else:
                 class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
+                logger.info(f"Action '{action}' added successfully to : '{class_obj}'")
                 return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
 
         else:
 
             if cast_name is None and action is None:
                 class_obj.t_todo_event.set()
+                logger.info(f"Actions in queue will be executed")
                 return {"message": f"Actions in queue will be executed"}
 
             elif cast_name is None or action is None:
-
+                logger.error(f"Invalid Cast/Thread name or action not set")
                 raise HTTPException(status_code=400,
                                     detail=f"Invalid Cast/Thread name or action not set")
 
@@ -370,6 +379,7 @@ async def action_to_thread(class_name: str,
 
                 class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
                 class_obj.t_todo_event.set()
+                logger.info(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
                 time.sleep(2)
                 return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
@@ -589,6 +599,10 @@ async def cast_image(image_number,
         ip = socket.gethostbyname(class_obj.host)
     else:
         ip = socket.gethostbyname(class_obj.cast_devices[device_number][1])
+
+    if ip == '127.0.0.1':
+        logger.warning('Nothing to do for localhost 127.0.0.1')
+        return
 
     ddp = DDPDevice(ip)
 
