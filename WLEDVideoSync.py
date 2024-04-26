@@ -437,17 +437,19 @@ if __name__ == '__main__':
     """
 
     # start server
-    logger.info('WLEDVideoSync Starting...')
     instance.start()
+    logger.info('WLEDVideoSync Starting...Server run in separate process')
 
     # start pywebview process
     # this will start native OS window and block main thread
     if show_window:
+        logger.info('Starting webview loop...')
         start_webview_process()
 
     # start pystray Icon
     # main infinite loop on systray if requested
     if put_on_systray:
+        logger.info('Starting systray loop...')
         WLEDVideoSync_icon.run()
 
     """
@@ -462,12 +464,13 @@ if __name__ == '__main__':
     if new_instance is not None:
         # get all active child processes (should be only one)
         active_proc = active_children()
-        logger.info(f'Active Children: {len(active_proc)} stopped')
         # terminate all active children
         for child in active_proc:
             child.terminate()
+        logger.info(f'Active Children: {len(active_proc)} stopped')
     # stop webview if any
     if webview_process is not None:
+        logger.info(f'Found webview process...stopping')
         webview_process.terminate()
 
     logger.info('Application Terminated')

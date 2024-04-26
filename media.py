@@ -366,7 +366,7 @@ class CASTMedia:
                     multicast manage any number of devices of same configuration
                     each device need to drive the same amount of leds, same config
                     e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
-                    ==> this give 5 devices to set into cast_devices list (host is auto incl. and will be the first one)                        
+                    ==> this give 6 devices to set into cast_devices list                         
                         (tuple of: device index(0...n) , IP address) 
                         we will manage image of 3x16 leds for x and 2x16 for y    
                         
