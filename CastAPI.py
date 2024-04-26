@@ -584,13 +584,14 @@ async def cast_image(image_number,
     elif buffer_name.lower() == 'multicast':
         images_buffer = class_obj.cast_frame_buffer
 
-    print("image number: ", image_number)
-    print("device number: ", device_number)
-    print("FPS:", fps_number)
-    print("Duration (in ms): ", duration_number)
-    print("retry frame number: ", retry_number)
-    print("class name:", class_name)
-    print("Image from buffer: ", buffer_name)
+    logger.info('Cast one image from buffer')
+    logger.info(f"image number: {image_number}")
+    logger.info(f"device number: {device_number}")
+    logger.info(f"FPS: {fps_number}")
+    logger.info(f"Duration (in ms):  {duration_number}")
+    logger.info(f"retry frame number:  {retry_number}")
+    logger.info(f"class name: {class_name}")
+    logger.info(f"Image from buffer: {buffer_name}")
 
     """
     on 10/04/2024: device_number come from list entry order (0...n)
@@ -612,11 +613,7 @@ async def cast_image(image_number,
     if class_obj.protocol == "ddp":
         while time.time() * 1000 < end_time:  # Loop until current time exceeds end time in ms
             # Send x frames here
-            # we need to resize cause buffer image size is fixed size of 640x480 used for preview
-            frame_to_send = Utils.resize_image(images_buffer[image_number],
-                                               class_obj.scale_width,
-                                               class_obj.scale_height)
-            ddp.flush(frame_to_send, retry_number)
+            ddp.flush(images_buffer[image_number], retry_number)
             if fps_number != 0:
                 time.sleep(1 / fps_number)  # Sleep in s for the time required to send one frame
 
