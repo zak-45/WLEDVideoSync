@@ -222,31 +222,16 @@ def util_casts_info():
     # clear
     child_info_data = {}
     child_list = []
-    # for synchro test
-    desktop_not_synchro = False
-    media_not_synchro = False
 
-    # iterate on all threads and we take only cast threads
+    # iterate on all threads, and we take only cast threads
     for item in threading.enumerate():
         t_name = item.name
         if 't_desktop_cast' in t_name:
             child_list.append(t_name)
             Desktop.cast_name_todo.append(str(t_name) + '||' + 'info' + '||' + str(time.time()))
         if 't_media_cast' in t_name:
-            Media.cast_name_todo.append(str(t_name) + '||' + 'info' + '||' + str(time.time()))
             child_list.append(t_name)
-
-    # we compare with cast_names list to check synchro
-    for item in Desktop.cast_names:
-        if item not in child_list:
-            desktop_not_synchro = True
-    for item in Media.cast_names:
-        if item not in child_list:
-            media_not_synchro = True
-
-    # set the flags
-    Media.cast_names_not_in_sync = media_not_synchro
-    Desktop.cast_names_not_in_sync = desktop_not_synchro
+            Media.cast_name_todo.append(str(t_name) + '||' + 'info' + '||' + str(time.time()))
 
     # request info from threads
     Desktop.t_todo_event.set()
@@ -257,6 +242,13 @@ def util_casts_info():
     logger.info(f'Need to receive info from : {child_list}')
     # loop until all children provided info
     while len(child_list) != 0:
+
+        # Check if more than 3 seconds have elapsed
+        elapsed_time = time.time() - start_time
+        if elapsed_time > 3:
+            logger.warning("Cast info execution took more than 3 seconds. List may be incomplete...  Exiting.")
+            break
+
         if not t_data_buffer.empty():
             # wait and get info dict from a thread
             data = t_data_buffer.get()
@@ -267,11 +259,6 @@ def util_casts_info():
                     child_info_data.update(data)
                     # remove from child list
                     child_list.remove(child_name)
-            # Check if more than 3 seconds have elapsed
-            elapsed_time = time.time() - start_time
-            if elapsed_time > 3:
-                logger.warning("Cast info execution took more than 3 seconds. List may be incomplete...  Exiting.")
-                break
 
     Desktop.t_todo_event.clear()
     Media.t_todo_event.clear()
@@ -340,48 +327,68 @@ async def action_to_thread(class_name: str,
         raise HTTPException(status_code=400,
                             detail=f"Invalid attribute name")
 
+    if clear:
+        logger.info(f" To do cleared for {class_obj}'")
+        return {"message": f" To do cleared for {class_obj}'"}
+
     if action not in action_to_test and action is not None:
         logger.error(f"Invalid action name. Allowed : " + str(action_to_test))
         raise HTTPException(status_code=400,
                             detail=f"Invalid action name. Allowed : " + str(action_to_test))
 
-    if clear:
+    if class_name == 'Desktop':
+        class_obj.t_desktop_lock.acquire()
+    elif class_name == 'Media':
+        class_obj.t_media_lock.acquire()
 
-        class_obj.cast_name_todo = []
-        logger.info(f" To do cleared for {class_obj}'")
-        return {"message": f" To do cleared for {class_obj}'"}
+    if not execute:
+        if cast_name is None or action is None:
+            if class_name == 'Desktop':
+                class_obj.t_desktop_lock.release()
+            elif class_name == 'Media':
+                class_obj.t_media_lock.release()
+            logger.error(f"Invalid Cast/Thread name or action not set")
+            raise HTTPException(status_code=400,
+                                detail=f"Invalid Cast/Thread name or action not set")
+        else:
+            class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
+            if class_name == 'Desktop':
+                class_obj.t_desktop_lock.release()
+            elif class_name == 'Media':
+                class_obj.t_media_lock.release()
+            logger.info(f"Action '{action}' added successfully to : '{class_obj}'")
+            return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
 
     else:
 
-        if not execute:
-            if cast_name is None or action is None:
-                logger.error(f"Invalid Cast/Thread name or action not set")
-                raise HTTPException(status_code=400,
-                                    detail=f"Invalid Cast/Thread name or action not set")
-            else:
-                class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
-                logger.info(f"Action '{action}' added successfully to : '{class_obj}'")
-                return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
+        if cast_name is None and action is None:
+            if class_name == 'Desktop':
+                class_obj.t_desktop_lock.release()
+            elif class_name == 'Media':
+                class_obj.t_media_lock.release()
+            class_obj.t_todo_event.set()
+            logger.info(f"Actions in queue will be executed")
+            return {"message": f"Actions in queue will be executed"}
+
+        elif cast_name is None or action is None:
+            if class_name == 'Desktop':
+                class_obj.t_desktop_lock.release()
+            elif class_name == 'Media':
+                class_obj.t_media_lock.release()
+            logger.error(f"Invalid Cast/Thread name or action not set")
+            raise HTTPException(status_code=400,
+                                detail=f"Invalid Cast/Thread name or action not set")
 
         else:
 
-            if cast_name is None and action is None:
-                class_obj.t_todo_event.set()
-                logger.info(f"Actions in queue will be executed")
-                return {"message": f"Actions in queue will be executed"}
-
-            elif cast_name is None or action is None:
-                logger.error(f"Invalid Cast/Thread name or action not set")
-                raise HTTPException(status_code=400,
-                                    detail=f"Invalid Cast/Thread name or action not set")
-
-            else:
-
-                class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
-                class_obj.t_todo_event.set()
-                logger.info(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
-                time.sleep(2)
-                return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
+            class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
+            if class_name == 'Desktop':
+                class_obj.t_desktop_lock.release()
+            elif class_name == 'Media':
+                class_obj.t_media_lock.release()
+            class_obj.t_todo_event.set()
+            logger.info(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
+            return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 
 @app.put("/api/{class_name}/update_attribute")
@@ -853,7 +860,10 @@ def main_page_desktop():
                 media_grid = ui.grid(columns=8)
                 with media_grid:
                     for i in range(len(Desktop.frame_buffer)):
-                        light_box_image(i, Image.fromarray(Desktop.frame_buffer[i]), '', '', Desktop)
+                        # put fixed size for preview
+                        img = Utils.resize_image(Desktop.frame_buffer[i], 640, 480)
+                        img = Image.fromarray(img)
+                        light_box_image(i, img, '', '', Desktop)
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
                     generate_carousel(Desktop)
 

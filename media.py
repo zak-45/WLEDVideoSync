@@ -45,7 +45,6 @@ class CASTMedia:
     count = 0  # initialise running casts count to zero
 
     cast_names = []  # should contain running Cast instances
-    cast_names_not_in_sync = False  # Need to be always False, otherwise some crash happened
     cast_name_todo = []  # list of cast names with action that need to execute from 'to do'
 
     t_exit_event = threading.Event()  # thread listen event fo exit
@@ -91,11 +90,6 @@ class CASTMedia:
             Cast media : video file, image file or video capture device
             With big size image, some delay occur, to do : review 'ddp.flush' when necessary
         """
-
-        # First we check if cast_names_not_in_sync
-        if CASTMedia.cast_names_not_in_sync:
-            logger.error('Problem with running casts and cast name list. No new cast allowed. Better restart. ')
-            return False
 
         t_name = current_thread().name
         CASTMedia.cast_names.append(t_name)
@@ -259,10 +253,7 @@ class CASTMedia:
             Media Loop
         """
 
-        last_frame = time.time()
-
-        iteration_number = 0
-        max_iteration = 500
+        last_frame_time = time.time()
 
         # Main thread loop to read media frame, stop from global call or local
         while not (self.stopcast or t_todo_stop):
@@ -293,24 +284,17 @@ class CASTMedia:
             event clear only when no more item in list
             """
 
-            # Some test to avoid infinite loop
-            if not len(CASTMedia.cast_name_todo) == 0 and iteration_number == 0:
-                iteration_number += 1
-            elif len(CASTMedia.cast_name_todo) == 0:
-                iteration_number = 0
-            elif iteration_number > max_iteration:
-                logger.error('Error in to do list. Stop the cast')
-                break
-            else:
-                iteration_number += 1
-
             if CASTMedia.t_todo_event.is_set():
                 logger.info(f"We are inside todo :{CASTMedia.cast_name_todo}")
                 CASTMedia.t_media_lock.acquire()
                 #  take thread name from cast to do list
                 for item in CASTMedia.cast_name_todo:
                     name, action, added_time = item.split('||')
-                    if name == t_name:
+
+                    if name not in CASTMedia.cast_names:
+                        CASTMedia.cast_name_todo.remove(item)
+
+                    elif name == t_name:
                         logging.info(f'To do: {action} for :{t_name}')
 
                         # use try to capture any failure
@@ -478,12 +462,12 @@ class CASTMedia:
             if CASTMedia.t_todo_event.is_set():
                 pass
             else:
-                delay = time.time() - last_frame
+                delay = time.time() - last_frame_time
                 # sleep depend of the interval (FPS)
                 if delay < frame_interval:
                     time.sleep(frame_interval - delay)
 
-            last_frame = time.time()
+            last_frame_time = time.time()
 
         """
             Final : End Media Loop
