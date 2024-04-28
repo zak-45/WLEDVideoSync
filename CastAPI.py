@@ -223,15 +223,12 @@ def util_casts_info():
     child_info_data = {}
     child_list = []
 
-    # iterate on all threads, and we take only cast threads
-    for item in threading.enumerate():
-        t_name = item.name
-        if 't_desktop_cast' in t_name:
-            child_list.append(t_name)
-            Desktop.cast_name_todo.append(str(t_name) + '||' + 'info' + '||' + str(time.time()))
-        if 't_media_cast' in t_name:
-            child_list.append(t_name)
-            Media.cast_name_todo.append(str(t_name) + '||' + 'info' + '||' + str(time.time()))
+    for item in Desktop.cast_names:
+        child_list.append(item)
+        Desktop.cast_name_todo.append(str(item) + '||' + 'info' + '||' + str(time.time()))
+    for item in Media.cast_names:
+        child_list.append(item)
+        Media.cast_name_todo.append(str(item) + '||' + 'info' + '||' + str(time.time()))
 
     # request info from threads
     Desktop.t_todo_event.set()
@@ -244,6 +241,7 @@ def util_casts_info():
     while len(child_list) != 0:
 
         # Check if more than 3 seconds have elapsed
+        # this could happen with mad man click on remove Cast for example
         elapsed_time = time.time() - start_time
         if elapsed_time > 3:
             logger.warning("Cast info execution took more than 3 seconds. List may be incomplete...  Exiting.")
