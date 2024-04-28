@@ -237,31 +237,26 @@ def util_casts_info():
     # use to stop the loop in case of
     start_time = time.time()
     logger.info(f'Need to receive info from : {child_list}')
-    # loop until all children provided info
-    while len(child_list) != 0:
 
-        # Check if more than 3 seconds have elapsed
-        # this could happen with mad man click on remove Cast for example
-        elapsed_time = time.time() - start_time
-        if elapsed_time > 3:
-            logger.warning("Cast info execution took more than 3 seconds. List may be incomplete...  Exiting.")
+    # iterate through all Cast Names
+    for item in child_list:
+        # wait and get info dict from a thread
+        try:
+            data = t_data_buffer.get(timeout=3)
+            child_info_data.update(data)
+            t_data_buffer.task_done()
+        except queue.Empty:
+            logger.warning('Empty queue')
             break
 
-        if not t_data_buffer.empty():
-            # wait and get info dict from a thread
-            data = t_data_buffer.get()
-            t_data_buffer.task_done()
-            # add to return dict if child is on the list
-            for child_name in data:
-                if child_name in child_list:
-                    child_info_data.update(data)
-                    # remove from child list
-                    child_list.remove(child_name)
+    # sort the dict
+    sort_child_info_data = dict(sorted(child_info_data.items()))
 
     Desktop.t_todo_event.clear()
     Media.t_todo_event.clear()
     logger.info('End request info')
-    return {"t_info": child_info_data}
+
+    return {"t_info": sort_child_info_data}
 
 
 @app.get("/api/{class_name}/list_actions")
