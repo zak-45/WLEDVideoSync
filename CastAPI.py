@@ -1222,17 +1222,20 @@ def tabs_info_page():
                         ''')
                     with ui.row():
                         for item in desktop_threads:
-                            with ui.expansion(item, icon='cast'):
+                            item_exp = ui.expansion(item, icon='cast')
+                            with item_exp:
                                 with ui.row():
                                     ui.button(icon='delete_forever',
-                                              on_click=lambda item=item: action_to_thread(class_name='Desktop',
-                                                                                          cast_name=item,
-                                                                                          action='stop',
-                                                                                          clear=False,
-                                                                                          execute=True)
+                                              on_click=lambda item=item, item_exp=item_exp: action_from_tabs(
+                                                  class_name='Desktop',
+                                                  cast_name=item,
+                                                  action='stop',
+                                                  clear=False,
+                                                  execute=True,
+                                                  exp_item=item_exp)
                                               ).classes('shadow-lg').tooltip('Cancel Cast')
                                     ui.button(icon='add_photo_alternate',
-                                              on_click=lambda item=item: action_to_thread(class_name='Desktop',
+                                              on_click=lambda item=item: action_from_tabs(class_name='Desktop',
                                                                                           cast_name=item,
                                                                                           action='buffer',
                                                                                           clear=False,
@@ -1240,7 +1243,7 @@ def tabs_info_page():
                                               ).classes('shadow-lg').tooltip('Capture picture')
                                     if info_data[item]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
-                                                  on_click=lambda item=item: action_to_thread(class_name='Desktop',
+                                                  on_click=lambda item=item: action_from_tabs(class_name='Desktop',
                                                                                               cast_name=item,
                                                                                               action='close_preview',
                                                                                               clear=False,
@@ -1267,17 +1270,20 @@ def tabs_info_page():
                         ''')
                     with ui.row():
                         for item in media_threads:
-                            with ui.expansion(item, icon='cast'):
+                            item_exp = ui.expansion(item, icon='cast')
+                            with item_exp:
                                 with ui.row():
                                     ui.button(icon='delete_forever',
-                                              on_click=lambda item=item: action_to_thread(class_name='Media',
-                                                                                          cast_name=item,
-                                                                                          action='stop',
-                                                                                          clear=False,
-                                                                                          execute=True)
+                                              on_click=lambda item=item, item_exp=item_exp: action_from_tabs(
+                                                  class_name='Media',
+                                                  cast_name=item,
+                                                  action='stop',
+                                                  clear=False,
+                                                  execute=True,
+                                                  exp_item=item_exp)
                                               ).classes('shadow-lg').tooltip('Cancel Cast')
                                     ui.button(icon='add_photo_alternate',
-                                              on_click=lambda item=item: action_to_thread(class_name='Media',
+                                              on_click=lambda item=item: action_from_tabs(class_name='Media',
                                                                                           cast_name=item,
                                                                                           action='buffer',
                                                                                           clear=False,
@@ -1285,7 +1291,7 @@ def tabs_info_page():
                                               ).classes('shadow-lg').tooltip('Capture picture')
                                     if info_data[item]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
-                                                  on_click=lambda item=item: action_to_thread(class_name='Media',
+                                                  on_click=lambda item=item: action_from_tabs(class_name='Media',
                                                                                               cast_name=item,
                                                                                               action='close_preview',
                                                                                               clear=False,
@@ -1294,6 +1300,17 @@ def tabs_info_page():
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
+
+
+async def action_from_tabs(class_name, cast_name, action, clear, execute, exp_item=None):
+    await action_to_thread(class_name, cast_name, action, clear, execute)
+    if action == 'stop':
+        exp_item.close()
+        ui.notification(f'Stopping {cast_name}...', type='warning', position='center', timeout=2)
+    elif action == 'buffer':
+        ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=2)
+    elif action == 'close_preview':
+        ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=2)
 
 
 def show_thread_info():
