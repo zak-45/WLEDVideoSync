@@ -670,29 +670,44 @@ def main_page():
     with (ui.row().classes('self-center')):
         with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
             ui.label('Filters/Effects Desktop')
-            with ui.row():
+            with ui.row().classes('w-44'):
                 with ui.column():
                     ui.checkbox('Flip') \
-                        .bind_value_to(Desktop, 'flip')
+                        .bind_value(Desktop, 'flip')
                     ui.number('type', min=0, max=1) \
-                        .bind_value_to(Desktop, 'flip_vh', lambda value: int(value or 0))
-                with ui.row():
-                    ui.slider(min=0, max=100, step=1, value=0) \
-                        .props('label-always') \
-                        .bind_value_to(Desktop, 'saturation', lambda value: int(value or 0))
-                    ui.label('saturation')
-                    ui.slider(min=0, max=100, step=1, value=0) \
-                        .props('label-always') \
-                        .bind_value_to(Desktop, 'brightness', lambda value: int(value or 0))
-                    ui.label('brightness')
-                    ui.slider(min=0, max=100, step=1, value=0) \
-                        .props('label-always') \
-                        .bind_value_to(Desktop, 'contrast', lambda value: int(value or 0))
-                    ui.label('contrast')
-                    ui.slider(min=0, max=100, step=1, value=0) \
-                        .props('label-always') \
-                        .bind_value_to(Desktop, 'sharpen', lambda value: int(value or 0))
-                    ui.label('sharpen')
+                        .bind_value(Desktop, 'flip_vh')
+                    with ui.row():
+                        with ui.column():
+                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
+                                .bind_value(Desktop, 'balance_r')
+                            ui.label('R').classes('self-center')
+                        with ui.column():
+                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
+                                .bind_value(Desktop, 'balance_g')
+                            ui.label('G').classes('self-center')
+                        with ui.column():
+                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
+                                .bind_value(Desktop, 'balance_b')
+                            ui.label('B').classes('self-center')
+                    ui.button('reset', on_click=lambda: reset_rgb('Desktop')).classes('self-center')
+        with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+            with ui.row().classes('w-32').style('justify-content: flex-end'):
+                ui.label('saturation')
+                ui.slider(min=0, max=100, step=1, value=0) \
+                    .props('label-always') \
+                    .bind_value(Desktop, 'saturation')
+                ui.label('brightness')
+                ui.slider(min=0, max=100, step=1, value=0) \
+                    .props('label-always') \
+                    .bind_value(Desktop, 'brightness')
+                ui.label('contrast')
+                ui.slider(min=0, max=100, step=1, value=0) \
+                    .props('label-always') \
+                    .bind_value(Desktop, 'contrast')
+                ui.label('sharpen')
+                ui.slider(min=0, max=100, step=1, value=0) \
+                    .props('label-always') \
+                    .bind_value(Desktop, 'sharpen')
 
         with ui.card():
             # refreshable
@@ -704,31 +719,46 @@ def main_page():
                 .classes('self-center') \
                 .style('cursor: pointer')
 
-        with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+        with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
             ui.label('Filters/Effects Media')
-            with ui.row():
+            with ui.row().classes('w-44'):
                 with ui.column():
                     ui.checkbox('Flip') \
-                        .bind_value_to(Media, 'flip')
+                        .bind_value(Media, 'flip')
                     ui.number('type', min=0, max=1) \
-                        .bind_value_to(Media, 'flip_vh', lambda value: int(value or 0))
-                with ui.row():
-                    ui.slider(min=0, max=100, step=1, value=0) \
-                        .props('label-always') \
-                        .bind_value_to(Media, 'saturation', lambda value: int(value or 0))
-                    ui.label('saturation')
-                    ui.slider(min=0, max=100, step=1, value=0) \
-                        .props('label-always') \
-                        .bind_value_to(Media, 'brightness', lambda value: int(value or 0))
-                    ui.label('brightness')
-                    ui.slider(min=0, max=100, step=1, value=0) \
-                        .props('label-always') \
-                        .bind_value_to(Media, 'contrast', lambda value: int(value or 0))
-                    ui.label('contrast')
-                    ui.slider(min=0, max=100, step=1, value=0) \
-                        .props('label-always') \
-                        .bind_value_to(Media, 'sharpen', lambda value: int(value or 0))
-                    ui.label('sharpen')
+                        .bind_value(Media, 'flip_vh')
+                    with ui.row():
+                        with ui.column():
+                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
+                                .bind_value(Media, 'balance_r')
+                            ui.label('R').classes('self-center')
+                        with ui.column():
+                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
+                                .bind_value(Media, 'balance_g')
+                            ui.label('G').classes('self-center')
+                        with ui.column():
+                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
+                                .bind_value(Media, 'balance_b')
+                            ui.label('B').classes('self-center')
+                    ui.button('reset', on_click=lambda: reset_rgb('Media')).classes('self-center')
+        with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+            with ui.row().classes('w-32').style('justify-content: flex-end'):
+                ui.label('saturation')
+                ui.slider(min=0, max=100, step=1, value=0) \
+                    .props('label-always') \
+                    .bind_value(Media, 'saturation')
+                ui.label('brightness').classes('text-right')
+                ui.slider(min=0, max=100, step=1, value=0) \
+                    .props('label-always') \
+                    .bind_value(Media, 'brightness')
+                ui.label('contrast')
+                ui.slider(min=0, max=100, step=1, value=0) \
+                    .props('label-always') \
+                    .bind_value(Media, 'contrast')
+                ui.label('sharpen')
+                ui.slider(min=0, max=100, step=1, value=0) \
+                    .props('label-always') \
+                    .bind_value(Media, 'sharpen')
 
     ui.separator().classes('mt-6')
 
@@ -1237,6 +1267,15 @@ def media_dev_view_page():
 """
 helpers
 """
+
+
+def reset_rgb(class_name):
+    """ reset RGB value """
+
+    class_obj = globals()[class_name]
+    class_obj.balance_r = 0
+    class_obj.balance_g = 0
+    class_obj.balance_b = 0
 
 
 def tabs_info_page():

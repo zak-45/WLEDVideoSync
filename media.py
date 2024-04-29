@@ -73,6 +73,8 @@ class CASTMedia:
         self.contrast = 0
         self.sharpen = 0
         self.balance_r = 0
+        self.balance_g = 0
+        self.balance_b = 0
         self.frame_buffer = []
         self.frame_index: int = 0
         self.put_to_buffer: bool = False
@@ -276,29 +278,32 @@ class CASTMedia:
 
             frame_count += 1
 
+            # convert to RGB
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
             # apply filters if any
             if self.saturation != 0 or \
                     self.brightness != 0 or \
                     self.contrast != 0 or \
                     self.sharpen != 0 or \
-                    self.balance_r != 0:
+                    self.balance_r != 0 or \
+                    self.balance_g != 0 or \
+                    self.balance_b != 0:
+
                 # apply filters
                 filters = {"saturation": self.saturation,
                            "brightness": self.brightness,
                            "contrast": self.contrast,
                            "sharpen": self.sharpen,
-                           "balance_r": None,
-                           "balance_g": None,
-                           "balance_b": None}
+                           "balance_r": self.balance_r,
+                           "balance_g": self.balance_g,
+                           "balance_b": self.balance_b}
 
                 frame = ImageUtils.process_raw_image(frame, filters=filters)
 
             # flip vertical/horizontal: 0,1,2
             if self.flip:
                 frame = cv2.flip(frame, self.flip_vh)
-
-            # convert to RGB
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             """
             check if something to do

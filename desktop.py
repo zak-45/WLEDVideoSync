@@ -318,16 +318,8 @@ class CASTDesktop:
                                 self.balance_r != 0 or \
                                 self.balance_g != 0 or\
                                 self.balance_b != 0:
-                            # apply filters
-                            filters = {"saturation": self.saturation,
-                                       "brightness": self.brightness,
-                                       "contrast": self.contrast,
-                                       "sharpen": self.sharpen,
-                                       "balance_r": None,
-                                       "balance_g": None,
-                                       "balance_b": None}
 
-                            """
+                            # apply filters
                             filters = {"saturation": self.saturation,
                                        "brightness": self.brightness,
                                        "contrast": self.contrast,
@@ -335,7 +327,6 @@ class CASTDesktop:
                                        "balance_r": self.balance_r,
                                        "balance_g": self.balance_g,
                                        "balance_b": self.balance_b}
-                            """
 
                             frame = ImageUtils.process_raw_image(frame, filters=filters)
 

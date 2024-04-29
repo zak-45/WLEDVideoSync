@@ -471,7 +471,7 @@ class ImageUtils:
         if filters["sharpen"] != 0:
             img = ImageUtils.filter_sharpen(img, filters["sharpen"])
 
-        if filters["balance_r"] is not None:
+        if filters["balance_r"] != 0 or filters["balance_g"] != 0 or filters['balance_b']:
             img = ImageUtils.filter_balance(
                 img,
                 {
@@ -484,40 +484,12 @@ class ImageUtils:
         return img
 
     @staticmethod
-    def filter_sharpen(img, alpha):
-        kernel = np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]]) * alpha
-        kernel[1, 1] += 1
-        img = cv2.filter2D(img, -1, kernel)
-        return img
-
-    @staticmethod
     def filter_balance(img, alpha):
         # scale the red, green, and blue channels
         scale = np.array([alpha["r"], alpha["g"], alpha["b"]])[np.newaxis, np.newaxis, :]
 
         img = (img * scale).astype(np.uint8)
         return img
-
-    @staticmethod
-    def filter_contrast(img, alpha):
-        # Compute the mean luminance (gray level)
-        mean_luminance = np.mean(img)
-
-        # Create a gray image of mean luminance
-        gray_img = np.full_like(img, mean_luminance)
-
-        # Enhance contrast
-        enhanced_img = cv2.addWeighted(img, alpha, gray_img, 1 - alpha, 0)
-        return enhanced_img
-
-    @staticmethod
-    def filter_brightness(img, alpha):
-        # Create a black image
-        black_img = np.zeros_like(img)
-
-        # Enhance brightness
-        enhanced_img = cv2.addWeighted(img, alpha, black_img, 1 - alpha, 0)
-        return enhanced_img
 
     @staticmethod
     def filter_saturation(img, alpha):
@@ -534,6 +506,34 @@ class ImageUtils:
         # Merge and convert back to RGB
         enhanced_img = cv2.cvtColor(cv2.merge([h, s_enhanced, v]), cv2.COLOR_HSV2RGB)
         return enhanced_img
+
+    @staticmethod
+    def filter_brightness(img, alpha):
+        # Create a black image
+        black_img = np.zeros_like(img)
+
+        # Enhance brightness
+        enhanced_img = cv2.addWeighted(img, alpha, black_img, 1 - alpha, 0)
+        return enhanced_img
+
+    @staticmethod
+    def filter_contrast(img, alpha):
+        # Compute the mean luminance (gray level)
+        mean_luminance = np.mean(img)
+
+        # Create a gray image of mean luminance
+        gray_img = np.full_like(img, mean_luminance)
+
+        # Enhance contrast
+        enhanced_img = cv2.addWeighted(img, alpha, gray_img, 1 - alpha, 0)
+        return enhanced_img
+
+    @staticmethod
+    def filter_sharpen(img, alpha):
+        kernel = np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]]) * alpha
+        kernel[1, 1] += 1
+        img = cv2.filter2D(img, -1, kernel)
+        return img
 
     @staticmethod
     def image_to_ascii(image):
@@ -553,4 +553,3 @@ class ImageUtils:
         for i in range(0, ascii_str_len, width):
             ascii_img += ascii_str[i: i + width] + "\n"
         return ascii_img
-
