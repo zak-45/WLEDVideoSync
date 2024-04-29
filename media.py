@@ -67,7 +67,7 @@ class CASTMedia:
         self.viinput: int = 0
         self.keep_ratio: bool = True
         self.flip: bool = False
-        self.flip_vh: int = 0
+        self.flip_vh: int = 0  # 0 , 1
         self.frame_buffer = []
         self.frame_index: int = 0
         self.put_to_buffer: bool = False

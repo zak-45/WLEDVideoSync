@@ -45,6 +45,7 @@ import desktop
 import media
 from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
+from utils import ImageUtils
 
 import ast
 
@@ -666,12 +667,32 @@ def main_page():
     """
     Row for Cast info / Run / Close : refreshable
     """
-    cast_manage()
-    ui.icon('info') \
-        .tooltip('Show details') \
-        .on('click', lambda: show_thread_info()) \
-        .classes('self-center') \
-        .style('cursor: pointer')
+    with (ui.row().classes('self-center')):
+        with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+            ui.label('Filters/Effects')
+            with ui.column():
+                ui.checkbox('Flip') \
+                    .bind_value_to(Desktop, 'flip')
+                ui.number('type', min=0, max=1) \
+                    .bind_value_to(Desktop, 'flip_vh', lambda value: int(value or 0))
+
+        with ui.card():
+            # refreshable
+            cast_manage()
+            # no refreshable
+            ui.icon('info') \
+                .tooltip('Show details') \
+                .on('click', lambda: show_thread_info()) \
+                .classes('self-center') \
+                .style('cursor: pointer')
+
+        with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+            ui.label('Filters/Effects')
+            with ui.column():
+                ui.checkbox('Flip') \
+                    .bind_value_to(Media, 'flip')
+                ui.number('type', min=0, max=1) \
+                    .bind_value_to(Media, 'flip_vh', lambda value: int(value or 0))
 
     ui.separator().classes('mt-6')
 
@@ -1220,9 +1241,11 @@ def tabs_info_page():
                         ui.mermaid('''
                         graph LR;''' + graph_data + '''
                         ''')
-                    with ui.row():
+                    casts_row = ui.row()
+                    with casts_row:
                         for item in desktop_threads:
-                            item_exp = ui.expansion(item, icon='cast')
+                            item_exp = ui.expansion(item, icon='cast') \
+                                .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
                             with item_exp:
                                 with ui.row():
                                     ui.button(icon='delete_forever',
@@ -1270,7 +1293,8 @@ def tabs_info_page():
                         ''')
                     with ui.row():
                         for item in media_threads:
-                            item_exp = ui.expansion(item, icon='cast')
+                            item_exp = ui.expansion(item, icon='cast') \
+                                .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
                             with item_exp:
                                 with ui.row():
                                     ui.button(icon='delete_forever',
@@ -1306,11 +1330,12 @@ async def action_from_tabs(class_name, cast_name, action, clear, execute, exp_it
     await action_to_thread(class_name, cast_name, action, clear, execute)
     if action == 'stop':
         exp_item.close()
-        ui.notification(f'Stopping {cast_name}...', type='warning', position='center', timeout=2)
+        ui.notification(f'Stopping {cast_name}...', type='warning', position='center', timeout=1)
+        exp_item.delete()
     elif action == 'buffer':
-        ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=2)
+        ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=1)
     elif action == 'close_preview':
-        ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=2)
+        ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=1)
 
 
 def show_thread_info():
@@ -1404,7 +1429,7 @@ async def cast_to_wled(class_obj, image_number):
         )
 
 
-async def save_image(class_obj, image_number):
+async def save_image(class_obj, image_number, ascii_art=False):
     """
     Save image from Buffer
     used on the buffer images
@@ -1427,10 +1452,21 @@ async def save_image(class_obj, image_number):
     w, h = class_obj.frame_buffer[image_number].shape[:2]
     date_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     class_name = class_obj.__module__
-    filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(h) + "_" + date_time + ".jpg"
 
-    img = cv2.cvtColor(class_obj.frame_buffer[image_number], cv2.COLOR_RGB2BGR)
-    cv2.imwrite(filename, img)
+    if ascii_art:
+        img = class_obj.frame_buffer[image_number]
+        img = Image.fromarray(img)
+        img = ImageUtils.image_to_ascii(img)
+        filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
+            h) + "_" + date_time + ".txt"
+        with open(filename, 'w') as ascii_file:
+            ascii_file.write(img)
+
+    else:
+        filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
+            h) + "_" + date_time + ".jpg"
+        img = cv2.cvtColor(class_obj.frame_buffer[image_number], cv2.COLOR_RGB2BGR)
+        cv2.imwrite(filename, img)
 
     logger.info(f"Image saved to {filename}")
 
@@ -1441,7 +1477,7 @@ async def discovery_net_notify():
     ui.notification('NET Discovery process on go ... let it finish',
                     close_button=True,
                     type='warning',
-                    timeout=8)
+                    timeout=6)
     await run_in_threadpool(Netdevice.discover)
     net_view_page.refresh()
 
@@ -1533,6 +1569,9 @@ def light_box_image(index, image, txt1, txt2, class_obj):
                         ui.button(on_click=lambda: save_image(class_obj, index), icon='save') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image')
+                        ui.button(on_click=lambda: save_image(class_obj, index, ascii_art=True), icon='text_format') \
+                            .props('flat fab color=white') \
+                            .tooltip('Save Image as Ascii ART')
 
                     ui.label(str(index)).classes('absolute-bottom text-subtitle2 text-center').style('background: red')
                 ui.button('Close', on_click=dialog.close, color='red')

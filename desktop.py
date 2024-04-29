@@ -36,7 +36,7 @@ import asyncio
 import concurrent.futures
 
 from ddp_queue import DDPDevice
-from utils import CASTUtils as Utils, LogElementHandler
+from utils import CASTUtils as Utils, LogElementHandler, ImageUtils as Img
 
 # read config
 logging.config.fileConfig('config/logging.ini')
