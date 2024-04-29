@@ -27,7 +27,7 @@ import asyncio
 import concurrent.futures
 
 from ddp_queue import DDPDevice
-from utils import CASTUtils as Utils, LogElementHandler
+from utils import CASTUtils as Utils, LogElementHandler, ImageUtils
 
 # read config
 logging.config.fileConfig('config/logging.ini')
@@ -68,6 +68,11 @@ class CASTMedia:
         self.keep_ratio: bool = True
         self.flip: bool = False
         self.flip_vh: int = 0  # 0 , 1
+        self.saturation = 0
+        self.brightness = 0
+        self.contrast = 0
+        self.sharpen = 0
+        self.balance_r = 0
         self.frame_buffer = []
         self.frame_index: int = 0
         self.put_to_buffer: bool = False
@@ -270,6 +275,23 @@ class CASTMedia:
                 break
 
             frame_count += 1
+
+            # apply filters if any
+            if self.saturation != 0 or \
+                    self.brightness != 0 or \
+                    self.contrast != 0 or \
+                    self.sharpen != 0 or \
+                    self.balance_r != 0:
+                # apply filters
+                filters = {"saturation": self.saturation,
+                           "brightness": self.brightness,
+                           "contrast": self.contrast,
+                           "sharpen": self.sharpen,
+                           "balance_r": None,
+                           "balance_g": None,
+                           "balance_b": None}
+
+                frame = ImageUtils.process_raw_image(frame, filters=filters)
 
             # flip vertical/horizontal: 0,1,2
             if self.flip:

@@ -450,26 +450,25 @@ class LogElementHandler(logging.Handler):
 class ImageUtils:
 
     @staticmethod
-    def process_raw_image(img: np.ndarray, resolution: 1024, filters: dict) -> np.ndarray:
-        img = cv2.resize(img, resolution, interpolation=cv2.INTER_AREA)
+    def process_raw_image(img: np.ndarray, filters: dict) -> np.ndarray:
         img = ImageUtils.apply_filters_cv2(img, filters)
         return img
 
     @staticmethod
     def apply_filters_cv2(img: np.ndarray, filters: dict) -> np.ndarray:
         # Convert to HSV for color adjustment
-        if filters["saturation"] is not None:
+        if filters["saturation"] != 0:
             img = ImageUtils.filter_saturation(img, filters["saturation"])
 
         # Adjust brightness
-        if filters["brightness"] is not None:
+        if filters["brightness"] != 0:
             img = ImageUtils.filter_brightness(img, filters["brightness"])
 
         # Adjust contrast
-        if filters["contrast"] is not None:
+        if filters["contrast"] != 0:
             img = ImageUtils.filter_contrast(img, filters["contrast"])
 
-        if filters["sharpen"] is not None:
+        if filters["sharpen"] != 0:
             img = ImageUtils.filter_sharpen(img, filters["sharpen"])
 
         if filters["balance_r"] is not None:
@@ -555,10 +554,3 @@ class ImageUtils:
             ascii_img += ascii_str[i: i + width] + "\n"
         return ascii_img
 
-    @staticmethod
-    def stretch_array_repeat(arr, stretch_factor):
-        # Repeat the array elements along the column axis
-        stretched_arr = np.repeat(arr, stretch_factor, axis=0)
-        # Repeat the array elements along the row axis
-        stretched_arr = np.repeat(stretched_arr, stretch_factor, axis=1)
-        return stretched_arr

@@ -36,7 +36,7 @@ import asyncio
 import concurrent.futures
 
 from ddp_queue import DDPDevice
-from utils import CASTUtils as Utils, LogElementHandler, ImageUtils as Img
+from utils import CASTUtils as Utils, LogElementHandler, ImageUtils
 
 # read config
 logging.config.fileConfig('config/logging.ini')
@@ -64,6 +64,13 @@ class CASTDesktop:
         self.scale_height: int = 128
         self.flip_vh = 0
         self.flip = False
+        self.saturation = 0
+        self.brightness = 0
+        self.contrast = 0
+        self.sharpen = 0
+        self.balance_r = 0
+        self.balance_g = 0
+        self.balance_b = 0
         self.wled: bool = False
         self.wled_live = False
         self.host: str = '127.0.0.1'
@@ -124,6 +131,7 @@ class CASTDesktop:
         """
         MultiCast inner function protected from what happens outside.
         """
+
         def send_multicast_image(ip, image):
             """
             This sends an image to an IP address using DDP
@@ -301,6 +309,35 @@ class CASTDesktop:
 
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
+
+                        # apply filters if any
+                        if self.saturation != 0 or \
+                                self.brightness != 0 or \
+                                self.contrast != 0 or \
+                                self.sharpen != 0 or \
+                                self.balance_r != 0 or \
+                                self.balance_g != 0 or\
+                                self.balance_b != 0:
+                            # apply filters
+                            filters = {"saturation": self.saturation,
+                                       "brightness": self.brightness,
+                                       "contrast": self.contrast,
+                                       "sharpen": self.sharpen,
+                                       "balance_r": None,
+                                       "balance_g": None,
+                                       "balance_b": None}
+
+                            """
+                            filters = {"saturation": self.saturation,
+                                       "brightness": self.brightness,
+                                       "contrast": self.contrast,
+                                       "sharpen": self.sharpen,
+                                       "balance_r": self.balance_r,
+                                       "balance_g": self.balance_g,
+                                       "balance_b": self.balance_b}
+                            """
+
+                            frame = ImageUtils.process_raw_image(frame, filters=filters)
 
                         # flip vertical/horizontal: 0,1,2
                         if self.flip:

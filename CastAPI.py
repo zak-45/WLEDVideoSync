@@ -669,12 +669,30 @@ def main_page():
     """
     with (ui.row().classes('self-center')):
         with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-            ui.label('Filters/Effects')
-            with ui.column():
-                ui.checkbox('Flip') \
-                    .bind_value_to(Desktop, 'flip')
-                ui.number('type', min=0, max=1) \
-                    .bind_value_to(Desktop, 'flip_vh', lambda value: int(value or 0))
+            ui.label('Filters/Effects Desktop')
+            with ui.row():
+                with ui.column():
+                    ui.checkbox('Flip') \
+                        .bind_value_to(Desktop, 'flip')
+                    ui.number('type', min=0, max=1) \
+                        .bind_value_to(Desktop, 'flip_vh', lambda value: int(value or 0))
+                with ui.row():
+                    ui.slider(min=0, max=100, step=1, value=0) \
+                        .props('label-always') \
+                        .bind_value_to(Desktop, 'saturation', lambda value: int(value or 0))
+                    ui.label('saturation')
+                    ui.slider(min=0, max=100, step=1, value=0) \
+                        .props('label-always') \
+                        .bind_value_to(Desktop, 'brightness', lambda value: int(value or 0))
+                    ui.label('brightness')
+                    ui.slider(min=0, max=100, step=1, value=0) \
+                        .props('label-always') \
+                        .bind_value_to(Desktop, 'contrast', lambda value: int(value or 0))
+                    ui.label('contrast')
+                    ui.slider(min=0, max=100, step=1, value=0) \
+                        .props('label-always') \
+                        .bind_value_to(Desktop, 'sharpen', lambda value: int(value or 0))
+                    ui.label('sharpen')
 
         with ui.card():
             # refreshable
@@ -687,12 +705,30 @@ def main_page():
                 .style('cursor: pointer')
 
         with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-            ui.label('Filters/Effects')
-            with ui.column():
-                ui.checkbox('Flip') \
-                    .bind_value_to(Media, 'flip')
-                ui.number('type', min=0, max=1) \
-                    .bind_value_to(Media, 'flip_vh', lambda value: int(value or 0))
+            ui.label('Filters/Effects Media')
+            with ui.row():
+                with ui.column():
+                    ui.checkbox('Flip') \
+                        .bind_value_to(Media, 'flip')
+                    ui.number('type', min=0, max=1) \
+                        .bind_value_to(Media, 'flip_vh', lambda value: int(value or 0))
+                with ui.row():
+                    ui.slider(min=0, max=100, step=1, value=0) \
+                        .props('label-always') \
+                        .bind_value_to(Media, 'saturation', lambda value: int(value or 0))
+                    ui.label('saturation')
+                    ui.slider(min=0, max=100, step=1, value=0) \
+                        .props('label-always') \
+                        .bind_value_to(Media, 'brightness', lambda value: int(value or 0))
+                    ui.label('brightness')
+                    ui.slider(min=0, max=100, step=1, value=0) \
+                        .props('label-always') \
+                        .bind_value_to(Media, 'contrast', lambda value: int(value or 0))
+                    ui.label('contrast')
+                    ui.slider(min=0, max=100, step=1, value=0) \
+                        .props('label-always') \
+                        .bind_value_to(Media, 'sharpen', lambda value: int(value or 0))
+                    ui.label('sharpen')
 
     ui.separator().classes('mt-6')
 
@@ -1393,7 +1429,7 @@ async def cast_to_wled(class_obj, image_number):
     """
 
     if not class_obj.wled:
-        ui.notify('No WLED device', type='negative')
+        ui.notify('No WLED device', type='negative', position='center')
         return
 
     is_alive = Utils.check_ip_alive(class_obj.host)
