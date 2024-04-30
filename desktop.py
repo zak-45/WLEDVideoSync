@@ -48,6 +48,7 @@ class CASTDesktop:
     """ Cast Desktop to DDP """
 
     count = 0  # initialise running casts count to zero
+    total_frame = 0  # total number of processed frames
 
     cast_names = []  # list of running threads
     cast_name_todo = []  # list of cast names that need to execute to do
@@ -62,8 +63,8 @@ class CASTDesktop:
         self.stopcast: bool = True
         self.scale_width: int = 128
         self.scale_height: int = 128
-        self.flip_vh = 0
-        self.flip = False
+        self.flip_vh: int = 0
+        self.flip: bool = False
         self.saturation = 0
         self.brightness = 0
         self.contrast = 0
@@ -102,6 +103,9 @@ class CASTDesktop:
 
         t_name = current_thread().name
         CASTDesktop.cast_names.append(t_name)
+        if CASTDesktop.count == 0:
+            CASTDesktop.total_frame = 0
+
         logger.info(f'Child thread: {t_name}')
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
@@ -287,6 +291,7 @@ class CASTDesktop:
                 for frame in input_container.decode(input_stream):
 
                     frame_count += 1
+                    CASTDesktop.total_frame += 1
 
                     # if global stop or local stop
                     if self.stopcast or t_todo_stop:
@@ -330,7 +335,7 @@ class CASTDesktop:
 
                             frame = ImageUtils.process_raw_image(frame, filters=filters)
 
-                        # flip vertical/horizontal: 0,1,2
+                        # flip vertical/horizontal: 0,1
                         if self.flip:
                             frame = cv2.flip(frame, self.flip_vh)
 
@@ -341,7 +346,7 @@ class CASTDesktop:
                         """
 
                         if CASTDesktop.t_todo_event.is_set():
-                            logger.info(f"We are inside todo :{CASTDesktop.cast_name_todo}")
+                            logger.debug(f"We are inside todo :{CASTDesktop.cast_name_todo}")
                             CASTDesktop.t_desktop_lock.acquire()
                             #  take thread name from cast to do list
                             for item in CASTDesktop.cast_name_todo:
@@ -351,7 +356,7 @@ class CASTDesktop:
                                     CASTDesktop.cast_name_todo.remove(item)
 
                                 elif name == t_name:
-                                    logging.info(f'To do: {action} for :{t_name}')
+                                    logging.debug(f'To do: {action} for :{t_name}')
 
                                     # use try to capture any failure
                                     try:
@@ -382,10 +387,12 @@ class CASTDesktop:
                                                                                         "devices": ip_addresses,
                                                                                         "fps": frame_interval,
                                                                                         "frames": frame_count
-                                                                                        }}}
+                                                                                        }
+                                                               }
+                                                      }
                                             # this wait until queue access is free
                                             shared_buffer.put(t_info)
-                                            logger.info("we have put on the queue")
+                                            logger.debug("we have put on the queue")
 
                                         elif "close_preview" in action:
                                             window_name = str(t_viinput) + str(t_name)

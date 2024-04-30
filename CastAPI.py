@@ -27,6 +27,8 @@ import traceback
 import asyncio
 import threading
 
+import psutil
+
 from ddp_queue import DDPDevice
 
 import time
@@ -218,7 +220,7 @@ def util_casts_info():
     """
         Get info from all Cast Threads
     """
-    logger.info('Request Cast(s) info')
+    logger.debug('Request Cast(s) info')
 
     # clear
     child_info_data = {}
@@ -237,7 +239,7 @@ def util_casts_info():
 
     # use to stop the loop in case of
     start_time = time.time()
-    logger.info(f'Need to receive info from : {child_list}')
+    logger.debug(f'Need to receive info from : {child_list}')
 
     # iterate through all Cast Names
     for item in child_list:
@@ -255,7 +257,7 @@ def util_casts_info():
 
     Desktop.t_todo_event.clear()
     Media.t_todo_event.clear()
-    logger.info('End request info')
+    logger.debug('End request info')
 
     return {"t_info": sort_child_info_data}
 
@@ -322,7 +324,7 @@ async def action_to_thread(class_name: str,
                             detail=f"Invalid attribute name")
 
     if clear:
-        logger.info(f" To do cleared for {class_obj}'")
+        logger.debug(f" To do cleared for {class_obj}'")
         return {"message": f" To do cleared for {class_obj}'"}
 
     if action not in action_to_test and action is not None:
@@ -350,7 +352,7 @@ async def action_to_thread(class_name: str,
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            logger.info(f"Action '{action}' added successfully to : '{class_obj}'")
+            logger.debug(f"Action '{action}' added successfully to : '{class_obj}'")
             return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
 
     else:
@@ -361,7 +363,7 @@ async def action_to_thread(class_name: str,
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
             class_obj.t_todo_event.set()
-            logger.info(f"Actions in queue will be executed")
+            logger.debug(f"Actions in queue will be executed")
             return {"message": f"Actions in queue will be executed"}
 
         elif cast_name is None or action is None:
@@ -381,7 +383,7 @@ async def action_to_thread(class_name: str,
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
             class_obj.t_todo_event.set()
-            logger.info(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
+            logger.debug(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
             return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 
@@ -553,7 +555,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
     except Exception as error:
         logger.error(traceback.format_exc())
-        logger.error('WEBSOCKET An exception occurred: {}'.format(error))
+        logger.error(f'WEBSOCKET An exception occurred: {error}')
         await websocket.send_text('{"result":"internal error"}')
         await websocket.close()
 
@@ -675,7 +677,7 @@ def main_page():
                     ui.checkbox('Flip') \
                         .bind_value(Desktop, 'flip')
                     ui.number('type', min=0, max=1) \
-                        .bind_value(Desktop, 'flip_vh')
+                        .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0))
                     with ui.row():
                         with ui.column():
                             ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
@@ -709,15 +711,19 @@ def main_page():
                     .props('label-always') \
                     .bind_value(Desktop, 'sharpen')
 
-        with ui.card():
-            # refreshable
-            cast_manage()
-            # no refreshable
-            ui.icon('info') \
-                .tooltip('Show details') \
-                .on('click', lambda: show_thread_info()) \
-                .classes('self-center') \
-                .style('cursor: pointer')
+        with ui.card().tight().classes('w-42'):
+            with ui.column():
+                # refreshable
+                cast_manage()
+                # no refreshable
+                ui.icon('info') \
+                    .tooltip('Show details') \
+                    .on('click', lambda: show_thread_info()) \
+                    .classes('self-center') \
+                    .style('cursor: pointer')
+                # refreshable
+                with ui.expansion('Stats', icon='query_stats').classes('self-center w-full'):
+                    system_stats()
 
         with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
             ui.label('Filters/Effects Media')
@@ -726,7 +732,7 @@ def main_page():
                     ui.checkbox('Flip') \
                         .bind_value(Media, 'flip')
                     ui.number('type', min=0, max=1) \
-                        .bind_value(Media, 'flip_vh')
+                        .bind_value(Media, 'flip_vh', forward=lambda value: int(value or 0))
                     with ui.row():
                         with ui.column():
                             ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
@@ -1181,7 +1187,7 @@ def cast_manage():
     refreshable cast parameters  on the root page '/'
     :return:
     """
-    with ui.card().classes('self-center'):
+    with ui.card().tight().classes('self-center'):
         with ui.row():
             with ui.column(wrap=True):
                 if Desktop.count > 0:
@@ -1262,6 +1268,17 @@ def media_dev_view_page():
         editor.run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
     ui.button('Media devices', on_click=dialog.open, color='bg-red-800').tooltip('View Media devices')
+
+
+@ui.refreshable
+def system_stats():
+    cpu = psutil.cpu_percent()
+    ram_dict = dict(psutil.virtual_memory()._asdict())
+    ram = psutil.virtual_memory().percent
+
+    ui.label(f'Total frames: {Desktop.total_frame + Media.total_frame}').classes('self-center')
+    ui.separator()
+    ui.label(f'CPU:  {cpu}% ==== RAM:  {ram}%').classes('self-center')
 
 
 """
@@ -1435,6 +1452,7 @@ async def root_timer_action():
     """
     #  print('timer action')
     cast_manage.refresh()
+    system_stats.refresh()
 
 
 async def info_timer_action():

@@ -43,6 +43,7 @@ class CASTMedia:
     """ Cast Media to DDP """
 
     count = 0  # initialise running casts count to zero
+    total_frame = 0  # total number of processed frames
 
     cast_names = []  # should contain running Cast instances
     cast_name_todo = []  # list of cast names with action that need to execute from 'to do'
@@ -100,6 +101,9 @@ class CASTMedia:
 
         t_name = current_thread().name
         CASTMedia.cast_names.append(t_name)
+        if CASTMedia.count == 0:
+            CASTMedia.total_frame = 0
+
         logger.info(f'Child thread: {t_name}')
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
@@ -277,6 +281,7 @@ class CASTMedia:
                 break
 
             frame_count += 1
+            CASTMedia.total_frame += 1
 
             # convert to RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -301,7 +306,7 @@ class CASTMedia:
 
                 frame = ImageUtils.process_raw_image(frame, filters=filters)
 
-            # flip vertical/horizontal: 0,1,2
+            # flip vertical/horizontal: 0,1
             if self.flip:
                 frame = cv2.flip(frame, self.flip_vh)
 
@@ -312,7 +317,7 @@ class CASTMedia:
             """
 
             if CASTMedia.t_todo_event.is_set():
-                logger.info(f"We are inside todo :{CASTMedia.cast_name_todo}")
+                logger.debug(f"We are inside todo :{CASTMedia.cast_name_todo}")
                 CASTMedia.t_media_lock.acquire()
                 #  take thread name from cast to do list
                 for item in CASTMedia.cast_name_todo:
@@ -322,7 +327,7 @@ class CASTMedia:
                         CASTMedia.cast_name_todo.remove(item)
 
                     elif name == t_name:
-                        logging.info(f'To do: {action} for :{t_name}')
+                        logging.debug(f'To do: {action} for :{t_name}')
 
                         # use try to capture any failure
                         try:
@@ -349,10 +354,12 @@ class CASTMedia:
                                                                             "devices": ip_addresses,
                                                                             "fps": 1/frame_interval,
                                                                             "frames": frame_count
-                                                                            }}}
+                                                                            }
+                                                   }
+                                          }
                                 # this wait until queue access is free
                                 shared_buffer.put(t_info)
-                                logger.info('we have put')
+                                logger.debug('we have put')
 
                             elif 'close_preview' in action:
                                 window_name = str(t_viinput) + str(t_name)
