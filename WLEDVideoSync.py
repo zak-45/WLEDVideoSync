@@ -87,6 +87,7 @@ Params
 webview_process = None
 new_instance = None
 main_window = None
+netstat_process = None
 
 #  validate network config
 server_ip = server_config['server_ip']
@@ -273,6 +274,18 @@ if __name__ == '__main__':
     show_window = str2bool((app_config['show_window']))
 
     """
+    Net Stats
+    """
+
+    def start_net_stat():
+        global netstat_process
+
+        from utils import NetGraph
+        netstat_process = Process(target=NetGraph.run)
+        netstat_process.daemon = True
+        netstat_process.start()
+
+    """
     Pywebview
     """
 
@@ -369,6 +382,19 @@ if __name__ == '__main__':
                 start_webview_process('Info')
 
 
+    def on_net():
+        """
+        Menu Info option : show cast information in native OS Window
+        :return:
+        """
+        global netstat_process
+        if netstat_process is None:
+            start_net_stat()
+        else:
+            if not netstat_process.is_alive():
+                start_net_stat()
+
+
     def on_details():
         """
         Menu Info Details option : show details cast information in native OS Window
@@ -404,6 +430,7 @@ if __name__ == '__main__':
         Menu.SEPARATOR,
         MenuItem('Cast details', on_details),
         MenuItem('Info', on_info),
+        MenuItem('Net Info', on_net),
         Menu.SEPARATOR,
         MenuItem('Exit', on_exit)
     )

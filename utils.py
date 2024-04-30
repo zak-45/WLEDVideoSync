@@ -22,6 +22,10 @@ from wled import WLED
 
 import time
 
+import psutil
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
 from zeroconf import ServiceBrowser, Zeroconf
 import socket
 import ipaddress
@@ -570,3 +574,57 @@ class ImageUtils:
         for i in range(0, ascii_str_len, width):
             ascii_img += ascii_str[i: i + width] + "\n"
         return ascii_img
+
+
+class NetGraph:
+    timestamps = []
+    mb_rec = []
+    mb_sent = []
+    last_rec = psutil.net_io_counters().bytes_recv
+    last_sent = psutil.net_io_counters().bytes_sent
+
+    @staticmethod
+    def update_data(i):
+        """
+        Will update data from psutil
+        # plt.xlabel('Time')
+        # plt.ylabel('MB')
+        # plt.title("Real-Time Bandwidth utilization")
+
+        """
+        # global last_rec, last_sent
+        bytes_rec = psutil.net_io_counters().bytes_recv
+        bytes_sent = psutil.net_io_counters().bytes_sent
+
+        new_rec = (bytes_rec - NetGraph.last_rec) / 1024 / 1024
+        new_sent = (bytes_sent - NetGraph.last_sent) / 1024 / 1024
+
+        NetGraph.timestamps.append(time.time())
+        NetGraph.mb_rec.append(new_rec)
+        NetGraph.mb_sent.append(new_sent)
+
+        if len(NetGraph.timestamps) > 600:
+            NetGraph.timestamps.pop(0)
+            NetGraph.mb_rec.pop(0)
+            NetGraph.mb_sent.pop(0)
+
+        NetGraph.ax.clear()
+        NetGraph.ax.plot(NetGraph.timestamps, NetGraph.mb_rec, label='MB Received')
+        NetGraph.ax.plot(NetGraph.timestamps, NetGraph.mb_sent, label='MB Sent')
+
+        NetGraph.ax.legend()
+
+        NetGraph.last_rec = bytes_rec
+        NetGraph.last_sent = bytes_sent
+
+    # Initialize the plot
+    fig, ax = plt.subplots()
+    fig.set_size_inches(5, 2)
+    fig.suptitle('Network Utilization')
+    anim = FuncAnimation(fig, update_data, interval=1000, cache_frame_data=False)
+    # this one to avoid  UserWarning: Animation was deleted without rendering anything.
+    anim._draw_was_started = True
+
+    @staticmethod
+    def run():
+        plt.show()
