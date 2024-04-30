@@ -384,7 +384,7 @@ if __name__ == '__main__':
 
     def on_net():
         """
-        Menu Info option : show cast information in native OS Window
+        Menu Net  option : show Network bandwidth utilization
         :return:
         """
         global netstat_process
