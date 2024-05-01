@@ -85,6 +85,7 @@ Params
 """
 #  globals
 webview_process = None
+instance = None
 new_instance = None
 main_window = None
 netstat_process = None
@@ -177,14 +178,6 @@ def run_webview(window_name):
             height=240
         )
 
-    elif window_name == 'StopSrv':
-        # Stop server window with confirmation
-        main_window = webview.create_window(
-            title='Confirmation dialog',
-            html='<p>Confirmation</p>',
-            hidden=True
-        )
-
     elif window_name == 'BlackOut':
         # Blackout window : show result from api blackout
         main_window = webview.create_window(
@@ -203,11 +196,8 @@ def run_webview(window_name):
             height=480
         )
 
-    # start webview, dialog or not
-    if window_name == 'StopSrv':
-        webview.start(dialog_stop_server, main_window)
-    else:
-        webview.start(menu=menu_items)
+    # start webview
+    webview.start(menu=menu_items)
 
 
 def keep_running():
@@ -251,7 +241,7 @@ def dialog_stop_server(window):
             # this work here as we have only server instance as child
             for srv_child in active_child:
                 srv_child.terminate()
-            logger.warning('Server stopped')
+            logger.warning('"Child" Server stopped')
 
     else:
 
@@ -279,6 +269,7 @@ if __name__ == '__main__':
     Net Stats
     """
 
+
     def start_net_stat():
         global netstat_process
 
@@ -286,6 +277,7 @@ if __name__ == '__main__':
         netstat_process = Process(target=NetGraph.run)
         netstat_process.daemon = True
         netstat_process.start()
+
 
     """
     Pywebview
@@ -298,7 +290,7 @@ if __name__ == '__main__':
         :return:
         """
         global webview_process
-        webview_process = Process(target=run_webview(window_name))
+        webview_process = Process(target=run_webview, args=(window_name,))
         webview_process.daemon = True
         webview_process.start()
 
@@ -334,12 +326,12 @@ if __name__ == '__main__':
         Menu Stop  server option : show in native OS Window
         :return:
         """
-        global webview_process
-        if webview_process is None:
-            start_webview_process('StopSrv')
-        else:
-            if not webview_process.is_alive():
-                start_webview_process('StopSrv')
+        stop_window = webview.create_window(
+            title='Confirmation dialog',
+            html=f'<p>Confirmation</p>',
+            hidden=True
+        )
+        webview.start(dialog_stop_server, stop_window)
 
 
     def on_restart_srv():
@@ -348,7 +340,9 @@ if __name__ == '__main__':
         :return:
         """
         global new_instance
+
         if instance.is_alive():
+            logger.warning(f'Already running instance : {instance}')
             return
         new_instance = UvicornServer(config=config)
         if not new_instance.is_alive():
