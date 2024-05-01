@@ -26,6 +26,7 @@ import traceback
 
 import asyncio
 import threading
+import multiprocessing
 
 import psutil
 
@@ -48,6 +49,7 @@ import media
 from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
 from utils import ImageUtils
+from utils import NetGraph
 
 import ast
 
@@ -63,6 +65,19 @@ from starlette.concurrency import run_in_threadpool
 
 from nicegui import app, ui
 from nicegui.events import ValueChangeEventArguments
+
+"""
+Main test for platform
+    MacOS need specific case
+    Linux(POSIX) - Windows use the same 
+"""
+if sys.platform == 'darwin':
+    ctx = multiprocessing.get_context('spawn')
+    Process = ctx.Process
+    Queue = ctx.Queue
+else:
+    Process = multiprocessing.Process
+    Queue = multiprocessing.Queue
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
@@ -102,6 +117,7 @@ t_data_buffer = queue.Queue()  # create a thread safe queue
 
 class CastAPI:
     dark_mode = False
+    netstat_process = None
 
 
 """
@@ -786,6 +802,7 @@ def main_page():
         net_view_page()  # refreshable
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
+        ui.button('Net Info', on_click=net_util_view, color='bg-red-800')
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \
                 .classes('text-white')
@@ -1715,6 +1732,16 @@ def cast_devices_view():
                                 new_tab=True).style(text_decoration)
         ui.button('Close', on_click=dialog.close, color='red')
     ui.button('DEVICE', icon='preview', on_click=dialog.open).tooltip('View Cast devices')
+
+
+def net_util_view():
+    """
+        View network utilization
+    """
+    # Create another process to run in non-blocking mode
+    CastAPI.netstat_process = Process(target=NetGraph.run)
+    CastAPI.netstat_process.daemon = True
+    CastAPI.netstat_process.start()
 
 
 """

@@ -164,7 +164,9 @@ def run_webview(window_name):
     if window_name == 'Main':
         # Main window : splash screen
         main_window = webview.create_window(title='WLEDVideoSync',
-                                            url=f'http://127.0.0.1:{server_port}/WLEDVideoSync')
+                                            url=f'http://127.0.0.1:{server_port}/WLEDVideoSync',
+                                            width=1260,
+                                            height=720)
 
     elif window_name == 'Info':
         # Info window : cast
