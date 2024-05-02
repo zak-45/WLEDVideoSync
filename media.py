@@ -22,7 +22,7 @@ import time
 
 import threading
 from threading import current_thread
-from starlette.concurrency import run_in_threadpool
+
 import asyncio
 import concurrent.futures
 

@@ -23,9 +23,6 @@ Web GUI based on NiceGUI
 import logging
 import logging.config
 import traceback
-
-import asyncio
-import threading
 import multiprocessing
 
 import psutil

@@ -492,7 +492,7 @@ class ImageUtils:
         if filters["sharpen"] != 0:
             img = ImageUtils.filter_sharpen(img, filters["sharpen"])
 
-        if filters["balance_r"] != 0 or filters["balance_g"] != 0 or filters['balance_b']:
+        if filters["balance_r"] != 0 or filters["balance_g"] != 0 or filters['balance_b'] != 0:
             img = ImageUtils.filter_balance(
                 img,
                 {
@@ -584,7 +584,7 @@ class NetGraph:
     last_sent = psutil.net_io_counters().bytes_sent
 
     @staticmethod
-    def update_data(i):
+    def update_data(data):
         """
         Will update data from psutil
         # plt.xlabel('Time')
