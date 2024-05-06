@@ -312,6 +312,8 @@ class CASTDesktop:
 
                     else:
 
+                        # frame = frame.reformat(800,600)
+
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
 
@@ -506,7 +508,7 @@ class CASTDesktop:
                                 window_name = str(t_viinput) + str(t_name)
                                 cv2.imshow("Desktop Preview input: " + window_name, frame)
                                 cv2.resizeWindow("Desktop Preview input: " + window_name, 640, 480)
-                                if cv2.waitKey(10) & 0xFF == ord("q"):
+                                if cv2.waitKey(1) & 0xFF == ord("q"):
                                     cv2.destroyWindow("Desktop Preview input: " + window_name)
                                     # close preview window if any
                                     win = cv2.getWindowProperty("Desktop Preview input: " + window_name,

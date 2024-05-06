@@ -116,7 +116,7 @@ class CASTMedia:
         t_cast_frame_buffer = []
 
         frame_count = 0
-        frame_interval = 1.0 / self.rate  # Calculate the time interval between frames
+        delay = 1.0 / self.rate  # Calculate the time interval between frames
 
         t_todo_stop = False
 
@@ -352,7 +352,7 @@ class CASTMedia:
                                                                             "preview": t_preview,
                                                                             "multicast": t_multicast,
                                                                             "devices": ip_addresses,
-                                                                            "fps": 1/frame_interval,
+                                                                            "fps": 1/delay,
                                                                             "frames": frame_count
                                                                             }
                                                    }
@@ -496,10 +496,10 @@ class CASTMedia:
             if CASTMedia.t_todo_event.is_set():
                 pass
             else:
-                delay = time.time() - last_frame_time
+                elapsed_time = time.time() - last_frame_time
                 # sleep depend of the interval (FPS)
-                if delay < frame_interval:
-                    time.sleep(frame_interval - delay)
+                if elapsed_time < delay:
+                    time.sleep(delay - elapsed_time)
 
             last_frame_time = time.time()
 

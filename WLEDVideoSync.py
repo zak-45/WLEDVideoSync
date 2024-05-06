@@ -174,12 +174,15 @@ def run_webview(window_name):
         main_window = webview.create_window(
             title='Cast Info',
             url=f"http://{server_ip}:{server_port}/info",
-            width=460,
-            height=240
+            width=440,
+            height=200
         )
 
     elif window_name == 'BlackOut':
         # Blackout window : show result from api blackout
+        if main_window is not None:
+            print(main_window)
+            main_window.destroy()
         main_window = webview.create_window(
             title='BLACKOUT',
             url=f"http://{server_ip}:{server_port}/api/util/blackout",
@@ -189,6 +192,8 @@ def run_webview(window_name):
 
     elif window_name == 'Details':
         # info details and manage window : show result from api CastManage
+        if main_window is not None:
+            main_window.destroy()
         main_window = webview.create_window(
             title='Casts Details',
             url=f"http://{server_ip}:{server_port}/DetailsInfo",
@@ -306,11 +311,9 @@ if __name__ == '__main__':
         :return:
         """
         global webview_process
-        if webview_process is None:
-            start_webview_process()
-        else:
-            if not webview_process.is_alive():
-                start_webview_process()
+        if webview_process is not None:
+            webview_process.terminate()
+        start_webview_process()
 
 
     def on_open_bro():
@@ -358,12 +361,9 @@ if __name__ == '__main__':
         :return:
         """
         global webview_process
-        if webview_process is None:
-            start_webview_process('BlackOut')
-        else:
-            if not webview_process.is_alive():
-                start_webview_process('BlackOut')
-
+        if webview_process is not None:
+            webview_process.terminate()
+        start_webview_process('BlackOut')
 
     def on_info():
         """
@@ -371,11 +371,9 @@ if __name__ == '__main__':
         :return:
         """
         global webview_process
-        if webview_process is None:
-            start_webview_process('Info')
-        else:
-            if not webview_process.is_alive():
-                start_webview_process('Info')
+        if webview_process is not None:
+            webview_process.terminate()
+        start_webview_process('Info')
 
 
     def on_net():
@@ -397,11 +395,9 @@ if __name__ == '__main__':
         :return:
         """
         global webview_process
-        if webview_process is None:
-            start_webview_process('Details')
-        else:
-            if not webview_process.is_alive():
-                start_webview_process('Details')
+        if webview_process is not None:
+            webview_process.terminate()
+        start_webview_process('Details')
 
 
     def on_exit():
