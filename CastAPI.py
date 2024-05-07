@@ -918,13 +918,13 @@ def main_page_desktop():
 
             with ui.grid(columns=2):
                 ui.label('Protocol:')
-                ui.label(Media.protocol)
+                ui.label(Desktop.protocol)
 
                 ui.label('Port:')
-                ui.label(str(Media.port))
+                ui.label(str(Desktop.port))
 
                 ui.label('No of Packet:')
-                ui.label(str(Media.retry_number))
+                ui.label(str(Desktop.retry_number))
 
     exp_edit_param = ui.expansion('Edit', icon='edit', on_value_change=lambda: exp_param.close())
     with exp_edit_param.classes('w-full'):
@@ -1004,8 +1004,8 @@ def main_page_desktop():
         # columns number  = cast_x, number of cards = cast_x * cast_y
         if Desktop.multicast:
             with ui.row():
-                multi_preview()
-                cast_devices_view()
+                multi_preview(Desktop)
+                cast_devices_view(Desktop)
             if len(Desktop.cast_frame_buffer) > 0:
                 with ui.grid(columns=Desktop.cast_x):
                     try:
@@ -1171,8 +1171,8 @@ def main_page_media():
         # columns number  = cast_x, number of cards = cast_x * cast_y
         if Media.multicast:
             with ui.row():
-                multi_preview()
-                cast_devices_view()
+                multi_preview(Media)
+                cast_devices_view(Media)
             if len(Media.cast_frame_buffer) > 0:
                 with ui.grid(columns=Media.cast_x):
                     try:
@@ -1738,7 +1738,7 @@ def light_box_image(index, image, txt1, txt2, class_obj):
             logger.error('An exception occurred: {}'.format(error))
 
 
-def multi_preview():
+def multi_preview(class_name):
     """
     Generate matrix image preview for multicast
     :return:
@@ -1746,17 +1746,17 @@ def multi_preview():
     with ui.dialog() as dialog:
         dialog.style('width: 200px')
         grid_col = ''
-        for c in range(Media.cast_x):
+        for c in range(class_name.cast_x):
             grid_col += '1fr '
         with ui.grid(columns=grid_col).classes('w-full gap-0'):
-            for i in range(len(Media.cast_frame_buffer)):
-                with ui.image(Image.fromarray(Media.cast_frame_buffer[i])).classes('w-60'):
+            for i in range(len(class_name.cast_frame_buffer)):
+                with ui.image(Image.fromarray(class_name.cast_frame_buffer[i])).classes('w-60'):
                     ui.label(str(i))
         ui.button('Close', on_click=dialog.close, color='red')
     ui.button('FULL', icon='preview', on_click=dialog.open).tooltip('View ALL images')
 
 
-def cast_devices_view():
+def cast_devices_view(class_name):
     """
     view cast_devices list
     :return:
@@ -1765,16 +1765,16 @@ def cast_devices_view():
         dialog.style('width: 800px')
         with ui.card():
             with ui.grid(columns=3):
-                for i in range(len(Media.cast_devices)):
+                for i in range(len(class_name.cast_devices)):
                     with ui.card():
-                        ui.label('No: ' + str(Media.cast_devices[i][0]))
-                        if Utils.validate_ip_address(str(Media.cast_devices[i][1])):
+                        ui.label('No: ' + str(class_name.cast_devices[i][0]))
+                        if Utils.validate_ip_address(str(class_name.cast_devices[i][1])):
                             text_decoration = "color: green; text-decoration: underline"
                         else:
                             text_decoration = "color: red; text-decoration: red wavy underline"
 
-                        ui.link('IP  :  ' + str(Media.cast_devices[i][1]),
-                                'http://' + str(Media.cast_devices[i][1]),
+                        ui.link('IP  :  ' + str(class_name.cast_devices[i][1]),
+                                'http://' + str(class_name.cast_devices[i][1]),
                                 new_tab=True).style(text_decoration)
         ui.button('Close', on_click=dialog.close, color='red')
     ui.button('DEVICE', icon='preview', on_click=dialog.open).tooltip('View Cast devices')
