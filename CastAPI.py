@@ -895,6 +895,15 @@ def main_page_desktop():
         {'id': 0, 'vooutput': Desktop.vooutput, 'voformat': Desktop.voformat}
     ]
 
+    columns_e = [
+        {'name': 'multicast', 'label': 'MultiCast', 'field': 'multicast', 'align': 'left'},
+        {'name': 'matrix-x', 'label': 'H', 'field': 'matrix-x'},
+        {'name': 'matrix-y', 'label': 'V', 'field': 'matrix-y'}
+    ]
+    rows_e = [
+        {'id': 0, 'multicast': Desktop.multicast, 'matrix-x': Desktop.cast_x, 'matrix-y': Desktop.cast_y}
+    ]
+
     exp_param = ui.expansion('Parameters', icon='settings', value=True)
     with exp_param.classes('w-full'):
 
@@ -905,6 +914,7 @@ def main_page_desktop():
             ui.table(columns=columns_b, rows=rows_b).classes('w-60')
             ui.table(columns=columns_c, rows=rows_c).classes('w-60')
             ui.table(columns=columns_d, rows=rows_d).classes('w-60')
+            ui.table(columns=columns_e, rows=rows_e).classes('w-60')
 
             with ui.grid(columns=2):
                 ui.label('Protocol:')
@@ -956,6 +966,19 @@ def main_page_desktop():
                 new_frame_max.tooltip('Max number of frame to capture')
                 new_frame_max.bind_value_to(Desktop, 'frame_max', lambda value: int(value or 0))
 
+            with ui.card():
+                new_multicast = ui.input('Multicast', value=str(Desktop.multicast))
+                new_multicast.bind_value_to(Desktop, 'multicast', lambda value: str2bool(value))
+                new_cast_x = ui.number('Matrix X', value=Desktop.cast_x, min=0, max=1920, precision=0)
+                new_cast_x.bind_value_to(Desktop, 'cast_x', lambda value: int(value or 0))
+                new_cast_y = ui.number('Matrix Y', value=Desktop.cast_y, min=0, max=1080, precision=0)
+                new_cast_y.bind_value_to(Desktop, 'cast_y', lambda value: int(value or 0))
+
+            with ui.card():
+                new_cast_devices = ui.input('Cast Devices', value=str(Desktop.cast_devices))
+                new_cast_devices.on('focusout',
+                                    lambda: update_attribute_by_name('Desktop', 'cast_devices', new_cast_devices.value))
+
     ui.separator().classes('mt-6')
 
     with ui.expansion('BUFFER', icon='grid_view', on_value_change=lambda: exp_edit_param.close()) \
@@ -975,6 +998,27 @@ def main_page_desktop():
         else:
 
             ui.label('No image to show...')
+
+    with ui.expansion('MULTICAST', icon='grid_view', on_value_change=lambda: exp_edit_param.close()) \
+            .classes('w-full'):
+        # columns number  = cast_x, number of cards = cast_x * cast_y
+        if Desktop.multicast:
+            with ui.row():
+                multi_preview()
+                cast_devices_view()
+            if len(Desktop.cast_frame_buffer) > 0:
+                with ui.grid(columns=Desktop.cast_x):
+                    try:
+                        for i in range(Desktop.cast_x * Desktop.cast_y):
+                            light_box_image(i, Image.fromarray(Desktop.cast_frame_buffer[i]), i, '', Desktop)
+                    except Exception as error:
+                        logger.error(traceback.format_exc())
+                        logger.error('An exception occurred: {}'.format(error))
+            else:
+                ui.label('No frame captured yet...')
+        else:
+            with ui.card():
+                ui.label('Multicast not set').style('text-align:center; font-size: 150%; font-weight: 300')
 
     with ui.footer():
 

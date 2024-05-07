@@ -430,7 +430,7 @@ class CASTMedia:
                 # resize frame to pixelart
                 frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
-                # send to DDP : need to be async to avoid block main loop
+                # send to DDP : run in separate thread to avoid block main loop
                 if self.protocol == "ddp" and ip_addresses[0] != '127.0.0.1':
                     # send data to queue
                     ddp.flush(frame_to_send, self.retry_number)

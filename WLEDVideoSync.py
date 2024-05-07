@@ -181,7 +181,6 @@ def run_webview(window_name):
     elif window_name == 'BlackOut':
         # Blackout window : show result from api blackout
         if main_window is not None:
-            print(main_window)
             main_window.destroy()
         main_window = webview.create_window(
             title='BLACKOUT',
@@ -295,10 +294,13 @@ if __name__ == '__main__':
         :return:
         """
         global webview_process
+        """
         webview_process = Process(target=run_webview, args=(window_name,))
         webview_process.daemon = True
         webview_process.start()
-
+        """
+        # start in blocking mode
+        run_webview(window_name)
 
     """
     Pystray 
@@ -405,6 +407,11 @@ if __name__ == '__main__':
         Menu Exit option : stop main Loop and continue
         :return:
         """
+        global webview_process
+        if main_window is not None:
+            main_window.destroy()
+        if webview_process is not None:
+            webview_process.terminate()
         WLEDVideoSync_icon.stop()
 
 
