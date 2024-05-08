@@ -691,11 +691,15 @@ def main_page():
         with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
             ui.label('Filters/Effects Desktop')
             with ui.row().classes('w-44'):
-                with ui.column():
-                    ui.checkbox('Flip') \
-                        .bind_value(Desktop, 'flip')
-                    ui.number('type', min=0, max=1) \
-                        .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0))
+                ui.checkbox('Flip') \
+                    .bind_value(Desktop, 'flip') \
+                    .classes('w-20')
+                ui.number('type', min=0, max=1) \
+                    .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0)) \
+                    .classes('w-20')
+                ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 0))
+                ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height', forward=lambda value: int(value or 0))
+                with ui.column(wrap=True):
                     with ui.row():
                         with ui.column():
                             ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
@@ -746,11 +750,15 @@ def main_page():
         with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
             ui.label('Filters/Effects Media')
             with ui.row().classes('w-44'):
-                with ui.column():
-                    ui.checkbox('Flip') \
-                        .bind_value(Media, 'flip')
-                    ui.number('type', min=0, max=1) \
-                        .bind_value(Media, 'flip_vh', forward=lambda value: int(value or 0))
+                ui.checkbox('Flip') \
+                    .bind_value(Media, 'flip') \
+                    .classes('w-20')
+                ui.number('type', min=0, max=1) \
+                    .bind_value(Media, 'flip_vh', forward=lambda value: int(value or 0)) \
+                    .classes('w-20')
+                ui.number('W').classes('w-20').bind_value(Media, 'scale_width', forward=lambda value: int(value or 0))
+                ui.number('H').classes('w-20').bind_value(Media, 'scale_height', forward=lambda value: int(value or 0))
+                with ui.column(wrap=True):
                     with ui.row():
                         with ui.column():
                             ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \

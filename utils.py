@@ -292,18 +292,6 @@ class CASTUtils:
 
         return sub_images
 
-    # preview image of np array
-    @staticmethod
-    def preview(winname, np_image):
-        cv2.imshow(winname, np_image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            cv2.destroyAllWindows()
-
-    # kill all preview image
-    @staticmethod
-    def preview_kill():
-        cv2.destroyAllWindows()
-
     # validate json received by ws
     @staticmethod
     def validate_ws_json_input(input_data):
