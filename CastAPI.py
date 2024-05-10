@@ -875,8 +875,8 @@ def main_page_desktop():
 
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
-        {'name': 'scale_width', 'label': 'H', 'field': 'scale_width'},
-        {'name': 'scale_height', 'label': 'V', 'field': 'scale_height'}
+        {'name': 'scale_width', 'label': 'W', 'field': 'scale_width'},
+        {'name': 'scale_height', 'label': 'H', 'field': 'scale_height'}
     ]
     rows_a = [
         {'id': 0, 'rate': Desktop.rate, 'scale_width': Desktop.scale_width, 'scale_height': Desktop.scale_height}
@@ -1056,8 +1056,8 @@ def main_page_media():
 
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
-        {'name': 'scale_width', 'label': 'H', 'field': 'scale_width'},
-        {'name': 'scale_height', 'label': 'V', 'field': 'scale_height'}
+        {'name': 'scale_width', 'label': 'W', 'field': 'scale_width'},
+        {'name': 'scale_height', 'label': 'H', 'field': 'scale_height'}
     ]
     rows_a = [
         {'id': 0, 'rate': Media.rate, 'scale_width': Media.scale_width, 'scale_height': Media.scale_height}
