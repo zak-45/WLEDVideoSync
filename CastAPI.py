@@ -112,6 +112,7 @@ if server_port not in range(1, 65536):
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
+
 class CastAPI:
     dark_mode = False
     netstat_process = None
@@ -644,7 +645,7 @@ NiceGUI
 
 
 @ui.page('/')
-async def main_page():
+def main_page():
     global player
     """
     Root page definition
@@ -682,12 +683,16 @@ async def main_page():
 
     ui.separator().classes('mt-6')
     ui.image("./assets/intro.gif").classes('self-center').tailwind.border_width('8').width('1/6')
-    center_card = ui.card().classes('self-center')
+
+    """
+    Video Player
+    """
+    center_card = ui.card().classes('self-center w-1/3')
     with center_card:
-        player = ui.video(app_config["video_file"])
+        player = ui.video(app_config["video_file"]).classes('self-center')
         player.on('ended', lambda _: ui.notify('Video playback completed'))
         player.set_visibility(False)
-        with ui.row():
+        with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
                 .on('click',
@@ -700,7 +705,10 @@ async def main_page():
                     lambda visible=False:
                     (player.set_visibility(visible), video_file.set_visibility(visible))) \
                 .tooltip("Hide Video Player")
-            video_file = ui.button('Choose file', on_click=pick_file, icon='folder')
+            video_file = ui.icon('folder', color='orange', size='md') \
+                .style("cursor: pointer") \
+                .on('click', pick_file) \
+                .tooltip('Select audio / video file')
             video_file.set_visibility(False)
 
     """
@@ -1822,8 +1830,9 @@ async def pick_file() -> None:
     global player
     result = await LocalFilePicker('~', multiple=False)
     ui.notify(f'You chose {result}')
-    result = str(result[0]).replace('\\', '/')
-    player.set_source(result)
+    if result is not None:
+        result = str(result[0]).replace('\\', '/')
+        player.set_source(result)
 
 
 """
