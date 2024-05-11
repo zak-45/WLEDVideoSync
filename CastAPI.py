@@ -47,6 +47,7 @@ from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
 from utils import ImageUtils
 from utils import NetGraph
+from utils import LocalFilePicker
 
 import ast
 
@@ -75,7 +76,6 @@ if sys.platform == 'darwin':
 else:
     Process = multiprocessing.Process
     Queue = multiprocessing.Queue
-
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
@@ -112,7 +112,6 @@ if server_port not in range(1, 65536):
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
-
 class CastAPI:
     dark_mode = False
     netstat_process = None
@@ -123,7 +122,7 @@ FastAPI
 """
 
 
-@app.get("/api")
+@app.get("/api", tags=["root"])
 async def read_api_root():
     """
         Status: see if WLEDVideoSync is running
@@ -131,7 +130,7 @@ async def read_api_root():
     return {"Status": "WLEDVideoSync is Running ..."}
 
 
-@app.get("/api/{class_obj}/params")
+@app.get("/api/{class_obj}/params", tags=["params"])
 async def all_params(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}')):
     """
         Retrieve all 'params' from a class
@@ -145,7 +144,7 @@ async def all_params(class_obj: str = Path(description=f'Class name, should be i
     return {"all_params": class_params}
 
 
-@app.get("/api/{class_obj}/run_cast")
+@app.get("/api/{class_obj}/run_cast", tags=["casts"])
 async def run_cast(class_obj: str):
     """
       Run the cast() from {class_obj}
@@ -163,7 +162,7 @@ async def run_cast(class_obj: str):
     return {"run_cast": True}
 
 
-@app.get("/api/util/active_win")
+@app.get("/api/util/active_win", tags=["desktop"])
 async def util_active_win():
     """
        Show title from actual active window
@@ -171,7 +170,7 @@ async def util_active_win():
     return {"window_title": Utils.active_window()}
 
 
-@app.get("/api/util/win_titles")
+@app.get("/api/util/win_titles", tags=["desktop"])
 async def util_win_titles():
     """
         Retrieve all titles from windows
@@ -179,7 +178,7 @@ async def util_win_titles():
     return {"windows_titles": Utils.windows_titles()}
 
 
-@app.get("/api/util/device_list")
+@app.get("/api/util/device_list", tags=["media"])
 async def util_device_list():
     """
         Show available devices
@@ -187,7 +186,7 @@ async def util_device_list():
     return {"device_list": Utils.dev_list}
 
 
-@app.get("/api/util/device_list_update")
+@app.get("/api/util/device_list_update", tags=["media"])
 async def util_device_list_update():
     """
         Update available devices list
@@ -198,7 +197,7 @@ async def util_device_list_update():
     return {"device_list": status}
 
 
-@app.get("/api/util/device_net_scan")
+@app.get("/api/util/device_net_scan", tags=["network"])
 async def util_device_net_scan():
     """
         Scan network devices with zeroconf
@@ -208,7 +207,7 @@ async def util_device_net_scan():
     return {"net_device_list": 'done'}
 
 
-@app.get("/api/util/blackout")
+@app.get("/api/util/blackout", tags=["utility"])
 async def util_blackout():
     """
         Put ALL ddp devices Off and stop all Casts
@@ -233,7 +232,7 @@ async def util_blackout():
     return {"blackout": 'done'}
 
 
-@app.get("/api/util/casts_info")
+@app.get("/api/util/casts_info", tags=["casts"])
 def util_casts_info():
     """
         Get info from all Cast Threads
@@ -280,7 +279,7 @@ def util_casts_info():
     return {"t_info": sort_child_info_data}
 
 
-@app.get("/api/{class_name}/list_actions")
+@app.get("/api/{class_name}/list_actions", tags=["casts"])
 async def list_todo_actions(class_name: str):
     """
     List to do actions for a Class name
@@ -303,7 +302,7 @@ async def list_todo_actions(class_name: str):
     return {"actions": class_obj.cast_name_todo}
 
 
-@app.put("/api/{class_name}/cast_actions")
+@app.put("/api/{class_name}/cast_actions", tags=["casts"])
 async def action_to_thread(class_name: str,
                            cast_name: str = None,
                            action: str = None,
@@ -405,7 +404,7 @@ async def action_to_thread(class_name: str,
             return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 
-@app.put("/api/{class_name}/update_attribute")
+@app.put("/api/{class_name}/update_attribute", tags=["params"])
 async def update_attribute_by_name(class_name: str, param: str, value: Union[int, bool, str]):
     """
         Update  attribute for a specific class name
@@ -645,7 +644,8 @@ NiceGUI
 
 
 @ui.page('/')
-def main_page():
+async def main_page():
+    global player
     """
     Root page definition
     """
@@ -681,8 +681,27 @@ def main_page():
         ui.label('MEDIA: Cast Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
 
     ui.separator().classes('mt-6')
-
-    ui.image("/assets/intro.gif").classes('self-center').tailwind.border_width('8').width('1/6')
+    ui.image("./assets/intro.gif").classes('self-center').tailwind.border_width('8').width('1/6')
+    center_card = ui.card().classes('self-center')
+    with center_card:
+        player = ui.video(app_config["video_file"])
+        player.on('ended', lambda _: ui.notify('Video playback completed'))
+        player.set_visibility(False)
+        with ui.row():
+            ui.icon('switch_video', color='blue', size='md') \
+                .style("cursor: pointer") \
+                .on('click',
+                    lambda visible=True:
+                    (player.set_visibility(visible), video_file.set_visibility(visible))) \
+                .tooltip("Show Video Player")
+            ui.icon('cancel_presentation', color='red', size='md') \
+                .style("cursor: pointer") \
+                .on('click',
+                    lambda visible=False:
+                    (player.set_visibility(visible), video_file.set_visibility(visible))) \
+                .tooltip("Hide Video Player")
+            video_file = ui.button('Choose file', on_click=pick_file, icon='folder')
+            video_file.set_visibility(False)
 
     """
     Row for Cast info / Run / Close : refreshable
@@ -698,7 +717,8 @@ def main_page():
                     .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0)) \
                     .classes('w-20')
                 ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 0))
-                ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height', forward=lambda value: int(value or 0))
+                ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height',
+                                                          forward=lambda value: int(value or 0))
                 with ui.column(wrap=True):
                     with ui.row():
                         with ui.column():
@@ -1798,6 +1818,14 @@ def net_util_view():
     CastAPI.netstat_process.start()
 
 
+async def pick_file() -> None:
+    global player
+    result = await LocalFilePicker('~', multiple=False)
+    ui.notify(f'You chose {result}')
+    result = str(result[0]).replace('\\', '/')
+    player.set_source(result)
+
+
 """
 Customization
 """
@@ -1817,10 +1845,10 @@ def custom_openapi():
     # Add WebSocket route to the schema
     openapi_schema["paths"]["/ws/docs"] = {
         "get": {
-            "summary": "WebSocket - only for reference",
+            "summary": "webSocket - only for reference",
             "description": websocket_info,
             "responses": {200: {}},
-            "tags": "W"
+            "tags": ["websocket"]
         }
     }
     app.openapi_schema = openapi_schema

@@ -174,7 +174,7 @@ def run_webview(window_name):
         main_window = webview.create_window(
             title='Cast Info',
             url=f"http://{server_ip}:{server_port}/info",
-            width=440,
+            width=450,
             height=200
         )
 
