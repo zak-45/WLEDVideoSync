@@ -697,19 +697,27 @@ def main_page():
                 .style("cursor: pointer") \
                 .on('click',
                     lambda visible=True:
-                    (player.set_visibility(visible), video_file.set_visibility(visible))) \
+                    (player.set_visibility(visible),
+                     video_file.set_visibility(visible),
+                     video_url.set_visibility(visible))) \
                 .tooltip("Show Video Player")
             ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
                 .on('click',
                     lambda visible=False:
-                    (player.set_visibility(visible), video_file.set_visibility(visible))) \
+                    (player.set_visibility(visible),
+                     video_file.set_visibility(visible),
+                     video_url.set_visibility(visible))) \
                 .tooltip("Hide Video Player")
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
                 .on('click', pick_file) \
                 .tooltip('Select audio / video file')
             video_file.set_visibility(False)
+            video_url = ui.input('Enter video Url', placeholder='http://....')
+            video_url.set_visibility(False)
+            video_url.without_auto_validation()
+            video_url.on_value_change(lambda: player.set_source(video_url.value))
 
     """
     Row for Cast info / Run / Close : refreshable
