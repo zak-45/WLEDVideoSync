@@ -18,4 +18,3 @@ imageio
 pyav
 async-timeout
 cfg-load
-ifaddr
