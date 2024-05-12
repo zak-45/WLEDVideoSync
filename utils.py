@@ -635,6 +635,7 @@ class LocalFilePicker(ui.dialog):
         """
         super().__init__()
 
+        self.drives_toggle = None
         self.path = Path(directory).expanduser()
         if upper_limit is None:
             self.upper_limit = None
