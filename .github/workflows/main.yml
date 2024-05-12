@@ -1,1 +1,91 @@
+# Cross-compile workflow that is manually triggered
 
+name: Cross Compile Manual workflow
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      mytag:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Input Tag'
+        # Default value if no value is explicitly provided
+        default: '0.0.0.0'
+        # Input has to be provided for the workflow to run
+        required: true
+        # The data type of the input
+        type: string
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        
+    runs-on: ${{matrix.os}}
+   
+    steps:
+      - name: Check-out repository
+        uses: actions/checkout@v3
+
+      - name: Ubuntu specific
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
+          sudo apt-get install ffmpeg
+
+      - name: MacOS specific
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew update
+          brew install portaudio
+          brew reinstall libsndfile
+         
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements*.txt
+
+      - name: Install Dependencies for All
+        run: |
+          pip install -r requirements.txt
+          
+      - name: Build Executable for ${{runner.os}}
+        uses: Nuitka/Nuitka-Action@v1.0
+        with:
+          nuitka-version: 1.8.5
+          script-name: WLEDAudioSyncRTBeat.py
+          company-name: zak-45
+          file-version: ${{github.event.inputs.mytag}}
+          windows-icon-from-ico: assets/WLEDAudioSync30.ico
+          macos-app-icon: assets/WLEDAudioSync30.ico
+          onefile: true
+          onefile-tempdir-spec: ./WLEDAudioSyncRTBeat
+          output-file: WLEDAudioSyncRTBeat-${{runner.os}}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{runner.os}} Build
+          if-no-files-found: warn
+          path: 'build/WLEDAudioSyncRTBeat-${{runner.os}}**'
+            
+      - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          commit: main
+          tag: ${{github.event.inputs.mytag}}
+          artifacts: 'build/WLEDAudioSyncRTBeat-${{runner.os}}**'
+          
