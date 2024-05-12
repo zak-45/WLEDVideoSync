@@ -699,16 +699,19 @@ def main_page():
                     lambda visible=True:
                     (player.set_visibility(visible),
                      video_file.set_visibility(visible),
-                     video_url.set_visibility(visible))) \
+                     video_url.set_visibility(visible),
+                     hide_player.set_visibility(visible))) \
                 .tooltip("Show Video Player")
-            ui.icon('cancel_presentation', color='red', size='md') \
+            hide_player = ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
                 .on('click',
                     lambda visible=False:
                     (player.set_visibility(visible),
                      video_file.set_visibility(visible),
-                     video_url.set_visibility(visible))) \
+                     video_url.set_visibility(visible),
+                     hide_player.set_visibility(visible))) \
                 .tooltip("Hide Video Player")
+            hide_player.set_visibility(False)
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
                 .on('click', pick_file) \
@@ -1837,7 +1840,7 @@ def net_util_view():
 async def pick_file() -> None:
     global player
     result = await LocalFilePicker('~', multiple=False)
-    ui.notify(f'You chose {result}')
+    ui.notify(f'Selected :  {result}')
     if result is not None:
         result = str(result[0]).replace('\\', '/')
         player.set_source(result)
