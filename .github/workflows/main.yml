@@ -77,6 +77,8 @@ jobs:
           include-module: |
             CastAPI
             zeroconf._utils.ipaddress
+            zeroconf._handlers.answers
+            pygments.formatters.html
           include-data-dir: |
             log=log
             assets=assets
