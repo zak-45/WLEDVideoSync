@@ -86,6 +86,7 @@ jobs:
             config=config
             media=media
             nicegui=nicegui
+          include-data-file: favicon.ico=favicon.ico
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

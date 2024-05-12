@@ -121,15 +121,6 @@ class CASTDesktop:
 
         t_todo_stop = False
 
-        filter_params = [self.saturation,
-                         self.brightness,
-                         self.contrast,
-                         self.sharpen,
-                         self.balance_r,
-                         self.balance_g,
-                         self.balance_r
-                         ]
-
         """
         Cast devices
         """
@@ -325,6 +316,15 @@ class CASTDesktop:
 
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
+
+                        filter_params = [self.saturation,
+                                         self.brightness,
+                                         self.contrast,
+                                         self.sharpen,
+                                         self.balance_r,
+                                         self.balance_g,
+                                         self.balance_b
+                                         ]
 
                         # apply filters if any
                         if any(param != 0 for param in filter_params):

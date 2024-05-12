@@ -120,15 +120,6 @@ class CASTMedia:
 
         t_todo_stop = False
 
-        filter_params = [self.saturation,
-                         self.brightness,
-                         self.contrast,
-                         self.sharpen,
-                         self.balance_r,
-                         self.balance_g,
-                         self.balance_r
-                         ]
-
         """
         Cast devices
         """
@@ -294,6 +285,15 @@ class CASTMedia:
 
             # convert to RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            filter_params = [self.saturation,
+                             self.brightness,
+                             self.contrast,
+                             self.sharpen,
+                             self.balance_r,
+                             self.balance_g,
+                             self.balance_b
+                             ]
 
             # apply filters if any
             if any(param != 0 for param in filter_params):
