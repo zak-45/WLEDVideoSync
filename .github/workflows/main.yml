@@ -74,7 +74,14 @@ jobs:
           onefile: true
           onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDVideoSync-${{runner.os}}
-          include-module: CastAPI, zeroconf._utils.ipaddress
+          include-module: |
+            CastAPI 
+            zeroconf._utils.ipaddress
+          include-data-dir: |
+            logs=logs
+            assets=assets
+            config=config
+            media=media
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
