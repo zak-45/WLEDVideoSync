@@ -65,13 +65,13 @@ jobs:
         uses: Nuitka/Nuitka-Action@v1.0
         with:
           nuitka-version: 1.8.5
-          script-name: WLEDAudioSyncRTBeat.py
+          script-name: WLEDVideoSync.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
           windows-icon-from-ico: assets/WLEDAudioSync30.ico
           macos-app-icon: assets/WLEDAudioSync30.ico
           onefile: true
-          onefile-tempdir-spec: ./WLEDAudioSyncRTBeat
+          onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDAudioSyncRTBeat-${{runner.os}}
 
       - name: Upload Artifacts
@@ -79,7 +79,7 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDAudioSyncRTBeat-${{runner.os}}**'
+          path: 'build/WLEDVideoSync-${{runner.os}}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -87,5 +87,5 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDAudioSyncRTBeat-${{runner.os}}**'
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}**'
           
