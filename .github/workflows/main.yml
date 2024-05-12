@@ -78,7 +78,7 @@ jobs:
             CastAPI 
             zeroconf._utils.ipaddress
           include-data-dir: |
-            logs=logs
+            log=log
             assets=assets
             config=config
             media=media
