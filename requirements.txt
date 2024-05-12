@@ -16,3 +16,6 @@ psutil==5.9.8
 matplotlib==3.8.4
 imageio
 pyav
+async-timeout
+cfg-load
+uvicorn
