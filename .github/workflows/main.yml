@@ -74,7 +74,8 @@ jobs:
           onefile: true
           onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDVideoSync-${{runner.os}}
-          include-module: | 
+          include-module: |
+            CastAPI
             zeroconf._utils.ipaddress
           include-data-dir: |
             log=log
