@@ -70,6 +70,7 @@ jobs:
           file-version: ${{github.event.inputs.mytag}}
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
+          macos-create-app-bundle: true
           onefile: true
           onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDAudioSyncRTBeat-${{runner.os}}
