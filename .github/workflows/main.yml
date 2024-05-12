@@ -68,7 +68,7 @@ jobs:
           script-name: WLEDVideoSync.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
-          enable-plugin=tk-inter: true
+          enable-plugin: tk-inter
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
           macos-create-app-bundle: true
