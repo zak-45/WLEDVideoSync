@@ -1,0 +1,283 @@
+/* variables */
+:root {
+  --nicegui-default-padding: 1rem;
+  --nicegui-default-gap: 1rem;
+}
+
+/* prevent q-layout from getting strange outline when focussed */
+.nicegui-layout {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* flex containers */
+.nicegui-content,
+.nicegui-header,
+.nicegui-footer,
+.nicegui-drawer,
+.nicegui-tab-panel,
+.nicegui-card,
+.nicegui-carousel-slide,
+.nicegui-step .q-stepper__nav,
+.nicegui-step .q-stepper__step-inner,
+.nicegui-expansion .q-expansion-item__content,
+.nicegui-scroll-area .q-scrollarea__content,
+.nicegui-splitter .q-splitter__panel,
+.nicegui-timeline-entry .q-timeline__content,
+.nicegui-row,
+.nicegui-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--nicegui-default-gap);
+  padding: var(--nicegui-default-padding);
+}
+.nicegui-header,
+.nicegui-footer,
+.nicegui-step .q-stepper__nav,
+.nicegui-row {
+  flex-direction: row;
+}
+.nicegui-row,
+.nicegui-column {
+  padding: 0;
+}
+.nicegui-card-tight {
+  padding: 0;
+  gap: 0;
+}
+
+/* original padding for some Quasar elements */
+.nicegui-step .q-stepper__nav {
+  padding: 8px 0 0 0;
+  gap: 8px;
+}
+.nicegui-timeline-entry .q-timeline__content {
+  padding: 0 0 24px 0;
+}
+.nicegui-splitter .q-splitter__panel {
+  padding: 0;
+}
+
+/* let step content fill the whole stepper for easier layout manipulation (#1788) */
+.nicegui-stepper {
+  display: flex;
+  flex-direction: column;
+}
+.nicegui-stepper .q-stepper__content {
+  flex-grow: 1;
+}
+.nicegui-stepper .q-stepper__step-content,
+.nicegui-stepper .q-stepper__step-inner {
+  height: 100%;
+}
+
+/* HACK: avoid stutter when expansion item is toggled */
+.nicegui-expansion .q-expansion-item__content {
+  padding: 0 var(--nicegui-default-padding);
+}
+.nicegui-expansion .q-expansion-item__content::before,
+.nicegui-expansion .q-expansion-item__content::after {
+  content: ""; /* the gap compensates for the missing vertical padding */
+}
+
+/* revert Tailwind's CSS reset for ui.editor and ui.markdown */
+.nicegui-editor .q-editor__content h1,
+.nicegui-markdown h1 {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 1rem;
+  margin-top: 1.5rem;
+  font-weight: 300;
+}
+.nicegui-editor .q-editor__content h2,
+.nicegui-markdown h2 {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 1.25rem;
+  font-weight: 300;
+}
+.nicegui-editor .q-editor__content h3,
+.nicegui-markdown h3 {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+  font-weight: 400;
+}
+.nicegui-editor .q-editor__content h4,
+.nicegui-markdown h4 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  margin-bottom: 0.25rem;
+  margin-top: 0.75rem;
+  font-weight: 400;
+}
+.nicegui-editor .q-editor__content h5,
+.nicegui-markdown h5 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  margin-bottom: 0.125rem;
+  margin-top: 0.5rem;
+  font-weight: 400;
+}
+.nicegui-editor .q-editor__content h6,
+.nicegui-markdown h6 {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  margin-bottom: 0.125rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+.nicegui-editor .q-editor__content a,
+.nicegui-markdown a {
+  text-decoration-line: underline;
+  color: rgb(37 99 235); /* blue-600 */
+}
+.nicegui-editor .q-editor__content a:hover,
+.nicegui-markdown a:hover {
+  color: rgb(30 64 175); /* blue-800 */
+}
+.nicegui-editor .q-editor__content a:visited,
+.nicegui-markdown a:visited {
+  color: rgb(147 51 234); /* purple-600 */
+}
+.nicegui-editor .q-editor__content hr,
+.nicegui-markdown hr {
+  margin-block-start: 0.5em;
+  margin-block-end: 0.5em;
+  height: 1px;
+  border-style: none;
+  background-color: rgba(128, 128, 128, 0.25);
+}
+.nicegui-editor .q-editor__content ul,
+.nicegui-markdown ul {
+  list-style-type: initial;
+  padding-inline-start: 2.5rem;
+  margin-block-start: 0.25rem;
+  margin-block-end: 0.25rem;
+}
+.nicegui-editor .q-editor__content ol,
+.nicegui-markdown ol {
+  list-style-type: decimal;
+  padding-inline-start: 2.5rem;
+  margin-block-start: 0.25rem;
+  margin-block-end: 0.25rem;
+}
+.nicegui-editor .q-editor__content blockquote,
+.nicegui-markdown blockquote {
+  border-left: 0.25rem solid #8884;
+  padding: 0.25rem 1rem 0.25rem 1rem;
+  margin: 0.5rem 0;
+}
+.nicegui-editor .q-editor__content p,
+.nicegui-markdown p {
+  margin: 0.5rem 0;
+}
+.nicegui-editor .q-editor__content table,
+.nicegui-markdown table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+.nicegui-editor .q-editor__content th,
+.nicegui-markdown th {
+  padding: 0.5rem;
+  border: 1px solid #8884;
+}
+.nicegui-editor .q-editor__content td,
+.nicegui-markdown td {
+  padding: 0.5rem;
+  border: 1px solid #8884;
+}
+.nicegui-markdown .codehilite pre {
+  margin: 0.5rem 0;
+}
+
+/* other NiceGUI elements */
+.nicegui-grid {
+  display: grid;
+  gap: var(--nicegui-default-gap);
+}
+.nicegui-link {
+  text-decoration-line: underline;
+  color: rgb(59 130 246);
+}
+.nicegui-link:hover,
+.nicegui-link:active {
+  opacity: 0.8;
+}
+.nicegui-separator {
+  width: 100%;
+}
+.nicegui-aggrid,
+.nicegui-echart,
+.nicegui-leaflet,
+.nicegui-log,
+.nicegui-scroll-area {
+  width: 100%;
+  height: 16rem;
+}
+.nicegui-log {
+  padding: 0.5rem;
+  scroll-padding-bottom: 0.5rem;
+  scroll-snap-type: y proximity;
+  overflow-y: scroll;
+  outline: 1px solid rgba(127, 159, 191, 0.15);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  white-space: pre;
+  background-color: rgba(127, 159, 191, 0.05);
+}
+.nicegui-log > :last-child {
+  scroll-snap-align: end;
+}
+h6.q-timeline__title {
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+.nicegui-code {
+  position: relative;
+  background-color: rgba(127, 159, 191, 0.1);
+  border: 1pt solid rgba(127, 159, 191, 0.15);
+  box-shadow: 0 0 0.5em rgba(127, 159, 191, 0.05);
+  border-radius: 0.25rem;
+}
+.nicegui-code .codehilite {
+  padding: 0 0.5rem;
+}
+
+/* connection popup */
+#popup {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  border: 1pt solid rgba(127, 159, 191, 0.25);
+  border-radius: 0.25em;
+  box-shadow: 0 0 0.5em rgba(127, 159, 191, 0.05);
+  margin: 2em;
+  padding: 1.5em 4em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  opacity: 0;
+  transition-duration: 500ms;
+  pointer-events: none;
+  z-index: 1000;
+}
+.body--dark #popup {
+  background-color: black;
+}
+.body--light #popup {
+  background-color: white;
+}
+#popup[style*="opacity: 1;"] {
+  transition-delay: 2000ms;
+}
+#popup > span:first-child {
+  font-weight: bold;
+}
+#popup > span:first-child::before {
+  content: "⚠️";
+  position: absolute;
+  left: 1.5em;
+}
