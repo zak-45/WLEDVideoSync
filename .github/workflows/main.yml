@@ -68,8 +68,8 @@ jobs:
           script-name: WLEDVideoSync.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
-          windows-icon-from-ico: assets/WLEDAudioSync30.ico
-          macos-app-icon: assets/WLEDAudioSync30.ico
+          windows-icon-from-ico: assets/favicon.ico
+          macos-app-icon: assets/favicon.ico
           onefile: true
           onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDAudioSyncRTBeat-${{runner.os}}
