@@ -64,7 +64,7 @@ jobs:
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.0
         with:
-          nuitka-version: 1.8.5
+          nuitka-version: 2.2.1
           script-name: WLEDVideoSync.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
@@ -73,7 +73,10 @@ jobs:
           macos-create-app-bundle: true
           onefile: true
           onefile-tempdir-spec: ./WLEDVideoSync
-          output-file: WLEDAudioSyncRTBeat-${{runner.os}}
+          output-file: WLEDVideoSync-${{runner.os}}
+          include-module: CastAPI=pygments.formatters.html=zeroconf._utils.ipaddress=zeroconf._handlers.answers
+          include-data-dir: assets=config=log=media
+          include-data-files: favicon.ico
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
