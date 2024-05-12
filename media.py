@@ -120,6 +120,15 @@ class CASTMedia:
 
         t_todo_stop = False
 
+        filter_params = [self.saturation,
+                         self.brightness,
+                         self.contrast,
+                         self.sharpen,
+                         self.balance_r,
+                         self.balance_g,
+                         self.balance_r
+                         ]
+
         """
         Cast devices
         """
@@ -287,14 +296,7 @@ class CASTMedia:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             # apply filters if any
-            if self.saturation != 0 or \
-                    self.brightness != 0 or \
-                    self.contrast != 0 or \
-                    self.sharpen != 0 or \
-                    self.balance_r != 0 or \
-                    self.balance_g != 0 or \
-                    self.balance_b != 0:
-
+            if any(param != 0 for param in filter_params):
                 # apply filters
                 filters = {"saturation": self.saturation,
                            "brightness": self.brightness,

@@ -258,9 +258,9 @@ class CASTUtils:
         w, h = (width_x, height_y)
 
         # Resize input to "pixelated" size
-        temp = cv2.resize(image_np, (w, h), interpolation=cv2.INTER_LINEAR)
+        temp_img = cv2.resize(image_np, (w, h), interpolation=cv2.INTER_LINEAR)
         # Initialize output image
-        pixelart_img = cv2.resize(temp, (orig_width, orig_height), interpolation=cv2.INTER_NEAREST)
+        pixelart_img = cv2.resize(temp_img, (orig_width, orig_height), interpolation=cv2.INTER_NEAREST)
 
         return pixelart_img
 
