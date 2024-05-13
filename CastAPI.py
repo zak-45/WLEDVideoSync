@@ -782,6 +782,29 @@ def main_page():
                     .on('click', lambda: show_thread_info()) \
                     .classes('self-center') \
                     .style('cursor: pointer')
+                with ui.row().classes('self-center'):
+                    with ui.card():
+                        with ui.row():
+                            ui.checkbox('Top') \
+                                .bind_value(Desktop, 'preview_top', forward=lambda value: int(value)) \
+                                .tooltip('Preview always on TOP')
+                            ui.knob(640, min=8, max=1920, step=1, show_value=True) \
+                                .bind_value(Desktop, 'preview_w') \
+                                .tooltip('Preview size W')
+                            ui.knob(480, min=8, max=1080, step=1, show_value=True) \
+                                .bind_value(Desktop, 'preview_h') \
+                                .tooltip('Preview size H')
+                    with ui.card():
+                        with ui.row():
+                            ui.knob(640, min=8, max=1920, step=1, show_value=True) \
+                                .bind_value(Media, 'preview_w') \
+                                .tooltip('Preview size W')
+                            ui.knob(480, min=8, max=1080, step=1, show_value=True) \
+                                .bind_value(Media, 'preview_h') \
+                                .tooltip('Preview size H')
+                            ui.checkbox('Top') \
+                                .bind_value(Media, 'preview_top', forward=lambda value: int(value)) \
+                                .tooltip('Preview always on TOP')
                 # refreshable
                 with ui.expansion('Stats', icon='query_stats').classes('self-center w-full'):
                     system_stats()

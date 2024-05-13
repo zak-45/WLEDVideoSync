@@ -81,6 +81,9 @@ class CASTDesktop:
         self.viformat: str = 'gdigrab'  # 'gdigrab' for win
         self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>'
         self.preview = True
+        self.preview_top: int = 0
+        self.preview_w: int = 640
+        self.preview_h: int = 480
         self.text = False
         self.custom_text: str = ""
         self.voformat: str = 'h264'
@@ -477,7 +480,7 @@ class CASTDesktop:
                             # preview on fixed size window
                             if t_preview:
 
-                                frame = cv2.resize(frame, (640, 480))
+                                frame = cv2.resize(frame, (self.preview_w, self.preview_h))
                                 frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
                                 # put text on the image
@@ -507,16 +510,16 @@ class CASTDesktop:
                                                         cv2.LINE_AA)
 
                                 # Displaying the image on the preview Window
-                                window_name = str(t_viinput) + str(t_name)
-                                cv2.imshow("Desktop Preview input: " + window_name, frame)
-                                cv2.resizeWindow("Desktop Preview input: " + window_name, 640, 480)
+                                window_name = "Desktop Preview input: " + str(t_viinput) + str(t_name)
+                                cv2.imshow(window_name, frame)
+                                cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
+                                cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, self.preview_top)
                                 if cv2.waitKey(1) & 0xFF == ord("q"):
-                                    cv2.destroyWindow("Desktop Preview input: " + window_name)
+                                    cv2.destroyWindow(window_name)
                                     # close preview window if any
-                                    win = cv2.getWindowProperty("Desktop Preview input: " + window_name,
-                                                                cv2.WND_PROP_VISIBLE)
+                                    win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                                     if not win == 0:
-                                        cv2.destroyWindow("Desktop Preview input: " + window_name)
+                                        cv2.destroyWindow(window_name)
                                     t_preview = False
 
             except Exception as error:
