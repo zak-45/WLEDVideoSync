@@ -110,6 +110,24 @@ class UvicornServer(multiprocessing.Process):
 """
 Webview : local OS native Window
 """
+"""
+Pywebview
+"""
+
+
+def start_webview_process(window_name='Main'):
+    """
+    start a pywebview process and call a window
+    :return:
+    """
+    global webview_process
+    """
+    webview_process = Process(target=run_webview, args=(window_name,))
+    webview_process.daemon = True
+    webview_process.start()
+    """
+    # start in blocking mode
+    run_webview(window_name)
 
 
 def run_webview(window_name):
@@ -350,7 +368,7 @@ def on_exit():
 
 
 """
-Net Stats
+Net Stats Process
 """
 
 
@@ -361,26 +379,6 @@ def start_net_stat():
     netstat_process = Process(target=NetGraph.run)
     netstat_process.daemon = True
     netstat_process.start()
-
-
-"""
-Pywebview
-"""
-
-
-def start_webview_process(window_name='Main'):
-    """
-    start a pywebview process and call a window
-    :return:
-    """
-    global webview_process
-    """
-    webview_process = Process(target=run_webview, args=(window_name,))
-    webview_process.daemon = True
-    webview_process.start()
-    """
-    # start in blocking mode
-    run_webview(window_name)
 
 
 """

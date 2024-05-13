@@ -416,7 +416,7 @@ class CASTUtils:
         clean the to do list for a Class
         """
         logger.warning(f'Something wrong happened. To Do list has been cleared for {class_name}')
-        # 'class_name.cast_name.to do' = []
+        class_name.cast_name.todo = []
 
 
 class HTTPDiscovery:
