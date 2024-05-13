@@ -78,7 +78,7 @@ class CASTUtils:
     @staticmethod
     async def put_wled_live(host, on: bool = True, live: bool = True, timeout: int = 2):
         """
-        Put wled host(s) on live mode if requested ( this should avoid wled take control )
+        Put wled host on live mode if requested ( this should avoid wled take control )
         :param on:
         :param live:
         :param timeout:
@@ -95,6 +95,9 @@ class CASTUtils:
                     return True
                 else:
                     return False
+            else:
+                logger.warning(f"Not able to connect to WLED device: {host}")
+                return False
         except Exception as error:
             logger.error(traceback.format_exc())
             logger.error(f"Not able to set WLED device {host} in 'live' mode. Got this error : {error}")

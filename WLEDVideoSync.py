@@ -10,7 +10,6 @@ Dispatch all into processes
 Webview : provide native OS window
 pystray : put on systray if requested
 
-
 """
 
 import logging
