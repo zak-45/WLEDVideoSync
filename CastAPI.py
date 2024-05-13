@@ -687,7 +687,7 @@ def main_page():
     """
     Video Player
     """
-    center_card = ui.card().classes('self-center w-1/3')
+    center_card = ui.card().classes('self-center w-1/3 bg-slate-300')
     with center_card:
         player = ui.video(app_config["video_file"]).classes('self-center')
         player.on('ended', lambda _: ui.notify('Video playback completed'))
@@ -726,7 +726,7 @@ def main_page():
     Row for Cast info / Run / Close : refreshable
     """
     with (ui.row().classes('self-center')):
-        with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+        with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
             ui.label('Filters/Effects Desktop')
             with ui.row().classes('w-44'):
                 ui.checkbox('Flip') \
@@ -783,7 +783,7 @@ def main_page():
                     .classes('self-center') \
                     .style('cursor: pointer')
                 with ui.row().classes('self-center'):
-                    with ui.card():
+                    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
                         with ui.row():
                             ui.checkbox('Top') \
                                 .bind_value(Desktop, 'preview_top', forward=lambda value: int(value)) \
@@ -794,7 +794,7 @@ def main_page():
                             ui.knob(480, min=8, max=1080, step=1, show_value=True) \
                                 .bind_value(Desktop, 'preview_h') \
                                 .tooltip('Preview size H')
-                    with ui.card():
+                    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
                         with ui.row():
                             ui.knob(640, min=8, max=1920, step=1, show_value=True) \
                                 .bind_value(Media, 'preview_w') \
@@ -809,7 +809,7 @@ def main_page():
                 with ui.expansion('Stats', icon='query_stats').classes('self-center w-full'):
                     system_stats()
 
-        with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+        with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
             ui.label('Filters/Effects Media')
             with ui.row().classes('w-44'):
                 ui.checkbox('Flip') \
