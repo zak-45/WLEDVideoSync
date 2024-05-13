@@ -367,11 +367,10 @@ class CASTMedia:
                                 logger.debug('we have put')
 
                             elif 'close_preview' in action:
-                                window_name = str(t_viinput) + str(t_name)
-                                win = cv2.getWindowProperty("Media Preview input: " + window_name,
-                                                            cv2.WND_PROP_VISIBLE)
+                                window_name = "Media Preview input: " + str(t_viinput) + str(t_name)
+                                win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                                 if not win == 0:
-                                    cv2.destroyWindow("Media Preview input: " + window_name)
+                                    cv2.destroyWindow(window_name)
                                 t_preview = False
 
                         except:
