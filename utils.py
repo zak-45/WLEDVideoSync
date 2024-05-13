@@ -71,7 +71,6 @@ class CASTUtils:
             logger.error(traceback.format_exc())
             logger.error('An exception occurred: {}'.format(error))
             await wled.close()
-            matrix = {"w": 1, "h": 1}
 
         return matrix["w"], matrix["h"]
 
