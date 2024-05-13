@@ -753,8 +753,9 @@ def main_page():
                                 .bind_value(Desktop, 'balance_b')
                             ui.label('B').classes('self-center')
                     ui.button('reset', on_click=lambda: reset_rgb('Desktop')).classes('self-center')
+
         with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-            with ui.row().classes('w-32').style('justify-content: flex-end'):
+            with ui.row().classes('w-20').style('justify-content: flex-end'):
                 ui.label('saturation')
                 ui.slider(min=0, max=100, step=1, value=0) \
                     .props('label-always') \
@@ -785,26 +786,26 @@ def main_page():
                 with ui.row().classes('self-center'):
                     with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
                         with ui.row():
-                            ui.checkbox('Top') \
+                            ui.checkbox('') \
                                 .bind_value(Desktop, 'preview_top', forward=lambda value: int(value)) \
-                                .tooltip('Preview always on TOP')
+                                .tooltip('Preview always on TOP').classes('w-10')
                             ui.knob(640, min=8, max=1920, step=1, show_value=True) \
                                 .bind_value(Desktop, 'preview_w') \
-                                .tooltip('Preview size W')
+                                .tooltip('Preview size W').classes('w-10')
                             ui.knob(480, min=8, max=1080, step=1, show_value=True) \
                                 .bind_value(Desktop, 'preview_h') \
-                                .tooltip('Preview size H')
+                                .tooltip('Preview size H').classes('w-10')
                     with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
                         with ui.row():
                             ui.knob(640, min=8, max=1920, step=1, show_value=True) \
                                 .bind_value(Media, 'preview_w') \
-                                .tooltip('Preview size W')
+                                .tooltip('Preview size W').classes('w-10')
                             ui.knob(480, min=8, max=1080, step=1, show_value=True) \
                                 .bind_value(Media, 'preview_h') \
-                                .tooltip('Preview size H')
-                            ui.checkbox('Top') \
+                                .tooltip('Preview size H').classes('w-10')
+                            ui.checkbox('') \
                                 .bind_value(Media, 'preview_top', forward=lambda value: int(value)) \
-                                .tooltip('Preview always on TOP')
+                                .tooltip('Preview always on TOP').classes('w-10')
                 # refreshable
                 with ui.expansion('Stats', icon='query_stats').classes('self-center w-full'):
                     system_stats()
@@ -835,8 +836,9 @@ def main_page():
                                 .bind_value(Media, 'balance_b')
                             ui.label('B').classes('self-center')
                     ui.button('reset', on_click=lambda: reset_rgb('Media')).classes('self-center')
+
         with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-            with ui.row().classes('w-32').style('justify-content: flex-end'):
+            with ui.row().classes('w-20').style('justify-content: flex-end'):
                 ui.label('saturation')
                 ui.slider(min=0, max=100, step=1, value=0) \
                     .props('label-always') \
