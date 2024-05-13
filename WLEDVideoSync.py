@@ -10,25 +10,6 @@ Dispatch all into processes
 Webview : provide native OS window
 pystray : put on systray if requested
 
-Nuitka compilation :
-nuitka WLEDVideoSync.py
---standalone
---follow-imports
---include-module=CastAPI
---include-module=pygments.formatters.html
---include-module=zeroconf._utils.ipaddress
---include-module=zeroconf._handlers.answers
---disable-console
---force-stdout-spec=log/WLEDVideoSync_stdout.txt
---force-stderr-spec=log/WLEDVideoSync_stderr.txt
-
-and need nicegui files
-python -m nuitka --follow-imports --include-plugin-directory=plugin_dir program.py
---windows-disable-console
---windows-force-stdout-spec = ./static/log/build.out.txt
---windows-force-stderr-spec = ./static/log/build.err.txt
-copier favicon.ico
-copier assets et media
 
 """
 
@@ -256,6 +237,154 @@ def dialog_stop_server(window):
 
 
 """
+Pystray
+"""
+
+
+def on_open():
+    """
+    Menu Open option : show GUI app in native OS Window
+    :return:
+    """
+    global webview_process
+    if webview_process is not None:
+        webview_process.terminate()
+    start_webview_process()
+
+
+def on_open_bro():
+    """
+    Menu Open Browser option : show GUI app in default browser
+    :return:
+    """
+    webbrowser.open(f"http://{server_ip}:{server_port}", new=0, autoraise=True)
+
+
+def on_stop_srv():
+    """
+    Menu Stop  server option : show in native OS Window
+    :return:
+    """
+    stop_window = webview.create_window(
+        title='Confirmation dialog',
+        html=f'<p>Confirmation</p>',
+        hidden=True
+    )
+    webview.start(dialog_stop_server, stop_window)
+
+
+def on_restart_srv():
+    """
+    Menu restart  server option
+    :return:
+    """
+    global new_instance
+
+    if instance.is_alive():
+        logger.warning(f'Already running instance : {instance}')
+        return
+    new_instance = UvicornServer(config=config)
+    if not new_instance.is_alive():
+        logger.warning('Server restarted')
+        new_instance.start()
+
+    time.sleep(2)
+
+
+def on_blackout():
+    """
+    Put all WLED DDP devices to Off : show in native OS Window
+    :return:
+    """
+    global webview_process
+    if webview_process is not None:
+        webview_process.terminate()
+    start_webview_process('BlackOut')
+
+
+def on_info():
+    """
+    Menu Info option : show cast information in native OS Window
+    :return:
+    """
+    global webview_process
+    if webview_process is not None:
+        webview_process.terminate()
+    start_webview_process('Info')
+
+
+def on_net():
+    """
+    Menu Net  option : show Network bandwidth utilization
+    :return:
+    """
+    global netstat_process
+    if netstat_process is None:
+        start_net_stat()
+    else:
+        if not netstat_process.is_alive():
+            start_net_stat()
+
+
+def on_details():
+    """
+    Menu Info Details option : show details cast information in native OS Window
+    :return:
+    """
+    global webview_process
+    if webview_process is not None:
+        webview_process.terminate()
+    start_webview_process('Details')
+
+
+def on_exit():
+    """
+    Menu Exit option : stop main Loop and continue
+    :return:
+    """
+    global webview_process
+    if main_window is not None:
+        main_window.destroy()
+    if webview_process is not None:
+        webview_process.terminate()
+    WLEDVideoSync_icon.stop()
+
+
+"""
+Net Stats
+"""
+
+
+def start_net_stat():
+    global netstat_process
+
+    from utils import NetGraph
+    netstat_process = Process(target=NetGraph.run)
+    netstat_process.daemon = True
+    netstat_process.start()
+
+
+"""
+Pywebview
+"""
+
+
+def start_webview_process(window_name='Main'):
+    """
+    start a pywebview process and call a window
+    :return:
+    """
+    global webview_process
+    """
+    webview_process = Process(target=run_webview, args=(window_name,))
+    webview_process.daemon = True
+    webview_process.start()
+    """
+    # start in blocking mode
+    run_webview(window_name)
+
+
+"""
 MAIN Logic 
 """
 
@@ -270,150 +399,8 @@ if __name__ == '__main__':
     show_window = str2bool((app_config['show_window']))
 
     """
-    Net Stats
-    """
-
-
-    def start_net_stat():
-        global netstat_process
-
-        from utils import NetGraph
-        netstat_process = Process(target=NetGraph.run)
-        netstat_process.daemon = True
-        netstat_process.start()
-
-
-    """
-    Pywebview
-    """
-
-
-    def start_webview_process(window_name='Main'):
-        """
-        start a pywebview process and call a window
-        :return:
-        """
-        global webview_process
-        """
-        webview_process = Process(target=run_webview, args=(window_name,))
-        webview_process.daemon = True
-        webview_process.start()
-        """
-        # start in blocking mode
-        run_webview(window_name)
-
-    """
     Pystray 
     """
-
-
-    def on_open():
-        """
-        Menu Open option : show GUI app in native OS Window
-        :return:
-        """
-        global webview_process
-        if webview_process is not None:
-            webview_process.terminate()
-        start_webview_process()
-
-
-    def on_open_bro():
-        """
-        Menu Open Browser option : show GUI app in default browser
-        :return:
-        """
-        webbrowser.open(f"http://{server_ip}:{server_port}", new=0, autoraise=True)
-
-
-    def on_stop_srv():
-        """
-        Menu Stop  server option : show in native OS Window
-        :return:
-        """
-        stop_window = webview.create_window(
-            title='Confirmation dialog',
-            html=f'<p>Confirmation</p>',
-            hidden=True
-        )
-        webview.start(dialog_stop_server, stop_window)
-
-
-    def on_restart_srv():
-        """
-        Menu restart  server option
-        :return:
-        """
-        global new_instance
-
-        if instance.is_alive():
-            logger.warning(f'Already running instance : {instance}')
-            return
-        new_instance = UvicornServer(config=config)
-        if not new_instance.is_alive():
-            logger.warning('Server restarted')
-            new_instance.start()
-
-        time.sleep(2)
-
-
-    def on_blackout():
-        """
-        Put all WLED DDP devices to Off : show in native OS Window
-        :return:
-        """
-        global webview_process
-        if webview_process is not None:
-            webview_process.terminate()
-        start_webview_process('BlackOut')
-
-    def on_info():
-        """
-        Menu Info option : show cast information in native OS Window
-        :return:
-        """
-        global webview_process
-        if webview_process is not None:
-            webview_process.terminate()
-        start_webview_process('Info')
-
-
-    def on_net():
-        """
-        Menu Net  option : show Network bandwidth utilization
-        :return:
-        """
-        global netstat_process
-        if netstat_process is None:
-            start_net_stat()
-        else:
-            if not netstat_process.is_alive():
-                start_net_stat()
-
-
-    def on_details():
-        """
-        Menu Info Details option : show details cast information in native OS Window
-        :return:
-        """
-        global webview_process
-        if webview_process is not None:
-            webview_process.terminate()
-        start_webview_process('Details')
-
-
-    def on_exit():
-        """
-        Menu Exit option : stop main Loop and continue
-        :return:
-        """
-        global webview_process
-        if main_window is not None:
-            main_window.destroy()
-        if webview_process is not None:
-            webview_process.terminate()
-        WLEDVideoSync_icon.stop()
-
 
     # pystray definition
     pystray_image = Image.open('favicon.ico')
@@ -481,7 +468,7 @@ if __name__ == '__main__':
     """
     STOP
     """
-    # Once Exit option selected from the systray Menu loop closed ... OR no systray ... continue ...
+    # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     logger.info('stop app')
     # stop initial server
     instance.stop()
