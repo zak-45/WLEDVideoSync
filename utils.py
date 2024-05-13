@@ -306,19 +306,24 @@ class CASTUtils:
         """
 
         if not isinstance(input_data, dict):
+            logger.error('WEBSOCKET: need Json')
             return False
 
         if "action" not in input_data:
+            logger.error('WEBSOCKET: action key is missing')
             return False
 
         action = input_data["action"]
         if not isinstance(action, dict):
+            logger.error('WEBSOCKET: need Json')
             return False
 
         if "type" not in action or not isinstance(action["type"], str):
+            logger.error('WEBSOCKET: need type str')
             return False
 
         if "param" not in action or not isinstance(action["param"], dict):
+            logger.error('WEBSOCKET: param Json')
             return False
 
         # Define mandatory parameters and their expected types
@@ -331,6 +336,7 @@ class CASTUtils:
         # Check for mandatory parameters
         for param, param_type in mandatory_params.items():
             if param not in action["param"] or not isinstance(action["param"][param], param_type):
+                logger.error('WEBSOCKET: mandatory params missing or type not adequate')
                 return False
 
         return True
