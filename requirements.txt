@@ -4,7 +4,7 @@ setuptools==68.2.0
 PyWinCtl==0.3
 wled==0.17.0
 zeroconf==0.132.2
-nicegui==1.4.22
+nicegui==1.4.25
 str2bool==1.1
 pillow==10.3.0
 fastapi==0.109.2
