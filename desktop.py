@@ -97,6 +97,7 @@ class CASTDesktop:
         self.cast_y: int = 1
         self.cast_devices: list = []
         self.cast_frame_buffer = []
+        self.ddp_multi_names = []
 
     def t_desktop_cast(self, shared_buffer=None):
         """
@@ -148,9 +149,11 @@ class CASTDesktop:
             """
             # timeout provided to not have thread waiting infinitely
             if t_send_frame.wait(timeout=.1):
-                # send ddp data
-                device = DDPDevice(ip)
-                asyncio.run(device.flush(image))
+                # send ddp data only once by IP
+                for device in self.ddp_multi_names:
+                    if ip == device.name:
+                        asyncio.run(device.flush(image))
+                        break
             else:
                 logger.warning('Multicast frame dropped')
 
@@ -222,6 +225,9 @@ class CASTDesktop:
                             return False
 
                     ip_addresses.append(cast_ip)
+                    # create ddp device for each IP
+                    self.ddp_multi_names.append(DDPDevice(cast_ip))
+
                     logger.info(f'IP : {cast_ip} for sub image number {i}')
         else:
 

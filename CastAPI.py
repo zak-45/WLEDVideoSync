@@ -1931,5 +1931,4 @@ ui.run(title='WLEDVideoSync',
        host=server_ip,
        port=server_port,
        reconnect_timeout=int(server_config['reconnect_timeout']),
-       endpoint_documentation='none',
        reload=False)

@@ -11,6 +11,9 @@ Webview : provide native OS window
 pystray : put on systray if requested
 
 """
+# macOS packaging support
+from multiprocessing import freeze_support  # noqa
+freeze_support()  # noqa
 
 import logging
 import logging.config
@@ -387,8 +390,6 @@ MAIN Logic
 
 if __name__ == '__main__':
 
-    multiprocessing.freeze_support()
-
     """
     Main Params
     """
@@ -415,7 +416,7 @@ if __name__ == '__main__':
         MenuItem('Info', on_info),
         MenuItem('Net Info', on_net),
         Menu.SEPARATOR,
-        MenuItem(f'Exit - {server_port}', on_exit)
+        MenuItem(f'Exit - server :  {server_port}', on_exit)
     )
 
     WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
