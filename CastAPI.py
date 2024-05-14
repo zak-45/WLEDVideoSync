@@ -1538,16 +1538,17 @@ def tabs_info_page():
                                                                                           cast_name=item,
                                                                                           action='buffer',
                                                                                           clear=False,
-                                                                                          execute=True)
-                                              ).classes('shadow-lg').tooltip('Capture picture')
+                                                                                          execute=True)) \
+                                        .classes('shadow-lg').tooltip('Capture picture')
                                     if info_data[item]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
-                                                  on_click=lambda item=item: action_from_tabs(class_name='Media',
-                                                                                              cast_name=item,
-                                                                                              action='close_preview',
-                                                                                              clear=False,
-                                                                                              execute=True)
-                                                  ).classes('shadow-lg').tooltip('Stop Preview')
+                                                              on_click=lambda item=item:
+                                                                  action_from_tabs(class_name='Media',
+                                                                                   cast_name=item,
+                                                                                   action='close_preview',
+                                                                                   clear=False,
+                                                                                   execute=True)) \
+                                            .classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
