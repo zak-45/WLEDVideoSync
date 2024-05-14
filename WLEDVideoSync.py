@@ -229,7 +229,7 @@ def dialog_stop_server(window):
     :param window:
     :return:
     """
-    result = window.create_confirmation_dialog('Confirmation', 'Do you really want to stop the Server?')
+    result = window.create_confirmation_dialog(f'Confirmation-{server_port}', 'Do you really want to stop the Server?')
     if result:
         # initial instance
         if instance.is_alive():
