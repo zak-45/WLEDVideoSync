@@ -162,7 +162,7 @@ def run_webview(window_name):
     # Window creation
     if window_name == 'Main':
         # Main window : splash screen
-        main_window = webview.create_window(title='WLEDVideoSync',
+        main_window = webview.create_window(title=f'WLEDVideoSync {server_port}',
                                             url=f'http://127.0.0.1:{server_port}/WLEDVideoSync',
                                             width=1180,
                                             height=720)
@@ -170,7 +170,7 @@ def run_webview(window_name):
     elif window_name == 'Info':
         # Info window : cast
         main_window = webview.create_window(
-            title='Cast Info',
+            title=f'Cast Info {server_port}',
             url=f"http://{server_ip}:{server_port}/info",
             width=450,
             height=200
@@ -181,7 +181,7 @@ def run_webview(window_name):
         if main_window is not None:
             main_window.destroy()
         main_window = webview.create_window(
-            title='BLACKOUT',
+            title=f'BLACKOUT {server_port}',
             url=f"http://{server_ip}:{server_port}/api/util/blackout",
             width=300,
             height=150
@@ -192,7 +192,7 @@ def run_webview(window_name):
         if main_window is not None:
             main_window.destroy()
         main_window = webview.create_window(
-            title='Casts Details',
+            title=f'Casts Details {server_port}',
             url=f"http://{server_ip}:{server_port}/DetailsInfo",
             width=640,
             height=480
@@ -415,7 +415,7 @@ if __name__ == '__main__':
         MenuItem('Info', on_info),
         MenuItem('Net Info', on_net),
         Menu.SEPARATOR,
-        MenuItem('Exit', on_exit)
+        MenuItem(f'Exit - {server_port}', on_exit)
     )
 
     WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
