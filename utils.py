@@ -576,23 +576,35 @@ class ImageUtils:
     @staticmethod
     def grid_on_image(image, cols, rows):
 
-        # Calculate cell size based on image dimensions and grid size
-        cell_width = image.shape[1] // cols
-        cell_height = image.shape[0] // rows
+        if cols == 0 or rows == 0:
+            logger.error('Rows / cols could not be zero')
 
-        # Draw the grid
-        for i in range(1, rows):
-            cv2.line(image, (0, i * cell_height), (image.shape[1], i * cell_height), (255, 255, 255), 2)
-        for j in range(1, cols):
-            cv2.line(image, (j * cell_width, 0), (j * cell_width, image.shape[0]), (255, 255, 255), 2)
+        else:
 
-        # Add numbers to the grid
-        count = 0
-        for i in range(rows):
-            for j in range(cols):
-                cv2.putText(image, str(count), (j * cell_width + 10, i * cell_height + 90),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                count += 1
+            # Calculate cell size based on image dimensions and grid size
+            cell_width = image.shape[1] // cols
+            cell_height = image.shape[0] // rows
+
+            # Calculate font size based on image size
+            font_scale = min(image.shape[0], image.shape[1]) // 250
+            if font_scale < .3:
+                font_scale = .3
+            # Draw the grid
+            for i in range(1, rows):
+                cv2.line(image, (0, i * cell_height), (image.shape[1], i * cell_height), (255, 255, 255), 2)
+            for j in range(1, cols):
+                cv2.line(image, (j * cell_width, 0), (j * cell_width, image.shape[0]), (255, 255, 255), 2)
+
+            # Add numbers to the grid
+            count = 0
+            for i in range(rows):
+                for j in range(cols):
+                    # Calculate text position dynamically
+                    text_x = j * cell_width + int(0.1 * cell_width)
+                    text_y = i * cell_height + int(0.8 * cell_height)
+                    cv2.putText(image, str(count), (text_x, text_y),
+                                cv2.FONT_HERSHEY_SIMPLEX, font_scale, (255, 255, 255), 2)
+                    count += 1
 
         return image
 
