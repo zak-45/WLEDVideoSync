@@ -577,7 +577,7 @@ class ImageUtils:
     def grid_on_image(image, cols, rows):
 
         if cols == 0 or rows == 0:
-            logger.error('Rows / cols could not be zero')
+            logger.error('Rows / cols should not be zero')
 
         else:
 
@@ -589,6 +589,7 @@ class ImageUtils:
             font_scale = min(image.shape[0], image.shape[1]) // 250
             if font_scale < .3:
                 font_scale = .3
+
             # Draw the grid
             for i in range(1, rows):
                 cv2.line(image, (0, i * cell_height), (image.shape[1], i * cell_height), (255, 255, 255), 2)
