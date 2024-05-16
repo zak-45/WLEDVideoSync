@@ -160,7 +160,7 @@ class CASTMedia:
                 # send ddp data, we select DDPDevice based on the IP
                 for device in self.ddp_multi_names:
                     if ip == device.name:
-                        device.flush(image, self.retry_number)
+                        device.send_to_queue(image, self.retry_number)
                         break
             else:
                 logger.warning('Multicast frame dropped')
@@ -443,7 +443,7 @@ class CASTMedia:
                 # send to DDP : run in separate thread to avoid block main loop
                 if self.protocol == "ddp" and ip_addresses[0] != '127.0.0.1':
                     # send data to queue
-                    ddp.flush(frame_to_send, self.retry_number)
+                    ddp.send_to_queue(frame_to_send, self.retry_number)
 
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:

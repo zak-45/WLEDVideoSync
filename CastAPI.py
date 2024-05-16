@@ -636,7 +636,7 @@ async def cast_image(image_number,
     if class_obj.protocol == "ddp":
         while time.time() * 1000 < end_time:  # Loop until current time exceeds end time in ms
             # Send x frames here
-            ddp.flush(images_buffer[image_number], retry_number)
+            ddp.send_to_queue(images_buffer[image_number], retry_number)
             if fps_number != 0:
                 time.sleep(1 / fps_number)  # Sleep in s for the time required to send one frame
 

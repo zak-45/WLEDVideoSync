@@ -149,10 +149,10 @@ class CASTDesktop:
             """
             # timeout provided to not have thread waiting infinitely
             if t_send_frame.wait(timeout=.2):
-                # send ddp data only once by IP
+                # send ddp data, we select DDPDevice based on the IP
                 for device in self.ddp_multi_names:
                     if ip == device.name:
-                        device.flush(image, self.retry_number)
+                        device.send_to_queue(image, self.retry_number)
                         break
             else:
                 logger.warning('Multicast frame dropped')
@@ -478,7 +478,7 @@ class CASTDesktop:
 
                             # send to ddp device
                             if self.protocol == 'ddp' and ip_addresses[0] != '127.0.0.1':
-                                ddp.flush(frame_to_send, self.retry_number)
+                                ddp.send_to_queue(frame_to_send, self.retry_number)
 
                             # save frame to np buffer if requested (so can be used after by the main)
                             if self.put_to_buffer and frame_count <= self.frame_max:

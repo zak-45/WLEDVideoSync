@@ -59,7 +59,7 @@ class DDPDevice:
             self.flush_from_queue(data)  # Call flush with the data
             self._data_queue.task_done()  # Mark the task as done
 
-    def flush(self, data, retry_number=0):
+    def send_to_queue(self, data, retry_number=0):
         """Method to add data to the queue"""
         self.retry_number = retry_number
         self._data_queue.put(data)  # Put data into the queue
