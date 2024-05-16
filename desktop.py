@@ -468,6 +468,10 @@ class CASTDesktop:
                                 logger.error('An exception occurred: {}'.format(error))
                                 break
 
+                            # preview on fixed size window
+                            if t_preview:
+                                t_preview = self.preview_window(frame, t_viinput, t_name, t_preview, grid=True)
+
                         else:
 
                             # resize frame for sending to ddp device
@@ -485,7 +489,7 @@ class CASTDesktop:
 
                             # preview on fixed size window
                             if t_preview:
-                                t_preview = self.preview_window(frame, t_viinput, t_name, t_preview, grid=True)
+                                t_preview = self.preview_window(frame, t_viinput, t_name, t_preview, grid=False)
 
             except Exception as error:
                 logger.error(traceback.format_exc())

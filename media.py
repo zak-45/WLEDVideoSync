@@ -424,14 +424,16 @@ class CASTMedia:
 
                 # send, keep synchronized
                 try:
+
                     send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
-                    if t_preview:
-                        t_preview = self.preview_window(frame, t_viinput, t_name, t_preview, grid=True)
 
                 except Exception as error:
                     logger.error(traceback.format_exc())
                     logger.error('An exception occurred: {}'.format(error))
                     break
+
+                if t_preview:
+                    t_preview = self.preview_window(frame, t_viinput, t_name, t_preview, grid=True)
 
             else:
 
