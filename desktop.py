@@ -152,7 +152,7 @@ class CASTDesktop:
                 # send ddp data only once by IP
                 for device in self.ddp_multi_names:
                     if ip == device.name:
-                        asyncio.run(device.flush(image, self.retry_number))
+                        device.flush(image, self.retry_number)
                         break
             else:
                 logger.warning('Multicast frame dropped')

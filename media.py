@@ -424,17 +424,15 @@ class CASTMedia:
                     t_cast_frame_buffer = self.cast_frame_buffer
 
                 # send, keep synchronized
-                send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
-                """
                 try:
 
-                   
+                    send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                 except Exception as error:
                     logger.error(traceback.format_exc())
                     logger.error('An exception occurred: {}'.format(error))
                     break
-                """
+
             else:
 
                 # resize frame for sending to ddp device
