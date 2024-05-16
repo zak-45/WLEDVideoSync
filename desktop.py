@@ -102,7 +102,6 @@ class CASTDesktop:
     def t_desktop_cast(self, shared_buffer=None):
         """
             Cast desktop screen or a window content based on the title
-            With big size image, some delay occur, 'ddp.flush' has been adapted with a queue to try to avoid
         """
 
         t_name = current_thread().name
@@ -194,7 +193,7 @@ class CASTDesktop:
                 logger.error(f'Error looks like IP {self.host} do not accept connection to port 80')
                 return False
 
-            ddp = DDPDevice(self.host)  # init here as queue thread not necessary if 127.0.0.1
+            ddp_host = DDPDevice(self.host)  # init here as queue thread not necessary if 127.0.0.1
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
@@ -478,7 +477,7 @@ class CASTDesktop:
 
                             # send to ddp device
                             if self.protocol == 'ddp' and ip_addresses[0] != '127.0.0.1':
-                                ddp.send_to_queue(frame_to_send, self.retry_number)
+                                ddp_host.send_to_queue(frame_to_send, self.retry_number)
 
                             # save frame to np buffer if requested (so can be used after by the main)
                             if self.put_to_buffer and frame_count <= self.frame_max:
