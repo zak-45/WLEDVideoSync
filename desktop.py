@@ -485,48 +485,7 @@ class CASTDesktop:
 
                             # preview on fixed size window
                             if t_preview:
-
-                                frame = cv2.resize(frame, (self.preview_w, self.preview_h))
-                                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
-                                # put text on the image
-                                if self.text:
-                                    if self.custom_text == "":
-                                        text_to_show = "WLEDVideoSync"
-                                    else:
-                                        text_to_show = self.custom_text
-                                    # font
-                                    font = cv2.FONT_HERSHEY_SIMPLEX
-                                    # org
-                                    org = (50, 50)
-                                    # fontScale
-                                    fontscale = .5
-                                    # Blue color in BGR
-                                    color = (255, 0, 0)
-                                    # Line thickness of 2 px
-                                    thickness = 2
-                                    # Using cv2.putText() method
-                                    frame = cv2.putText(frame,
-                                                        text_to_show,
-                                                        org,
-                                                        font,
-                                                        fontscale,
-                                                        color,
-                                                        thickness,
-                                                        cv2.LINE_AA)
-
-                                # Displaying the image on the preview Window
-                                window_name = "Desktop Preview input: " + str(t_viinput) + str(t_name)
-                                cv2.imshow(window_name, frame)
-                                cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
-                                cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, self.preview_top)
-                                if cv2.waitKey(1) & 0xFF == ord("q"):
-                                    cv2.destroyWindow(window_name)
-                                    # close preview window if any
-                                    win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                                    if not win == 0:
-                                        cv2.destroyWindow(window_name)
-                                    t_preview = False
+                                t_preview = self.preview_window(frame, t_viinput, t_name, t_preview, grid=True)
 
             except Exception as error:
                 logger.error(traceback.format_exc())
@@ -569,6 +528,54 @@ class CASTDesktop:
         logger.info('Cast closed')
         time.sleep(2)
         CASTDesktop.t_exit_event.clear()
+
+    def preview_window(self, frame, t_viinput, t_name, t_preview, grid=False):
+
+        frame = cv2.resize(frame, (self.preview_w, self.preview_h))
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        # put text on the image
+        if self.text:
+            if self.custom_text == "":
+                text_to_show = "WLEDVideoSync"
+            else:
+                text_to_show = self.custom_text
+            # font
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            # org
+            org = (50, 50)
+            # fontScale
+            fontscale = .5
+            # Blue color in BGR
+            color = (255, 0, 0)
+            # Line thickness of 2 px
+            thickness = 2
+            # Using cv2.putText() method
+            frame = cv2.putText(frame,
+                                text_to_show,
+                                org,
+                                font,
+                                fontscale,
+                                color,
+                                thickness,
+                                cv2.LINE_AA)
+
+        # Displaying the image on the preview Window
+        window_name = "Desktop Preview input: " + str(t_viinput) + str(t_name)
+        if grid:
+            frame = ImageUtils.grid_on_image(frame, self.cast_y, self.cast_x)
+        cv2.imshow(window_name, frame)
+        cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, self.preview_top)
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            cv2.destroyWindow(window_name)
+            # close preview window if any
+            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+            if not win == 0:
+                cv2.destroyWindow(window_name)
+            t_preview = False
+
+        return t_preview
 
     def cast(self, shared_buffer=None):
         """

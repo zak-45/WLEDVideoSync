@@ -573,6 +573,29 @@ class ImageUtils:
             ascii_img += ascii_str[i: i + width] + "\n"
         return ascii_img
 
+    @staticmethod
+    def grid_on_image(image, rows, cols):
+
+        # Calculate cell size based on image dimensions and grid size
+        cell_width = image.shape[1] // cols
+        cell_height = image.shape[0] // rows
+
+        # Draw the grid
+        for i in range(1, rows):
+            cv2.line(image, (0, i * cell_height), (image.shape[1], i * cell_height), (255, 255, 255), 2)
+        for j in range(1, cols):
+            cv2.line(image, (j * cell_width, 0), (j * cell_width, image.shape[0]), (255, 255, 255), 2)
+
+        # Add numbers to the grid
+        count = 0
+        for i in range(rows):
+            for j in range(cols):
+                cv2.putText(image, str(count), (j * cell_width + 10, i * cell_height + 90),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                count += 1
+
+        return image
+
 
 class NetGraph:
     timestamps = []
