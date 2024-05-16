@@ -574,7 +574,7 @@ class ImageUtils:
         return ascii_img
 
     @staticmethod
-    def grid_on_image(image, rows, cols):
+    def grid_on_image(image, cols, rows):
 
         # Calculate cell size based on image dimensions and grid size
         cell_width = image.shape[1] // cols

@@ -540,7 +540,7 @@ class CASTMedia:
         # Displaying the image
         window_name = "Media Preview input: " + str(t_viinput) + str(t_name)
         if grid:
-            frame = ImageUtils.grid_on_image(frame, self.cast_y, self.cast_x)
+            frame = ImageUtils.grid_on_image(frame, self.cast_x, self.cast_y)
         cv2.imshow(window_name, frame)
         cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
         cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, self.preview_top)
