@@ -155,12 +155,16 @@ class CASTMedia:
             :param image:
             :return:
             """
+            if frame_count > 2000:
+                print(frame_count)
+
             # timeout provided to not have thread waiting infinitely
-            if t_send_frame.wait(timeout=.1):
+            # if t_send_frame.wait(timeout=.2):
+            if t_send_frame.wait():
                 # send ddp data only once by IP
                 for device in self.ddp_multi_names:
                     if ip == device.name:
-                        asyncio.run(device.flush(image))
+                        device.flush(image, self.retry_number)
                         break
             else:
                 logger.warning('Multicast frame dropped')
@@ -182,7 +186,9 @@ class CASTMedia:
                 t_send_frame.set()
 
                 # Wait for all threads to complete
-                concurrent.futures.wait(multicast, timeout=1)
+                # concurrent.futures.wait(multicast, timeout=1)
+                print('frame_set')
+                concurrent.futures.wait(multicast)
 
             t_send_frame.clear()
 
@@ -213,7 +219,7 @@ class CASTMedia:
                 logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
                 return False
 
-        # specifics for Multicast
+        # specifics to Multicast
         if t_multicast:
             # validate cast_devices list
             if not Utils.is_valid_cast_device(str(self.cast_devices)):
@@ -225,17 +231,20 @@ class CASTMedia:
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
-                    Utils.check_ip_alive(cast_ip, port=80, timeout=2)
-                    if self.wled:
-                        status = asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
-                        if not status:
-                            logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
-                            return False
+                    valid_ip = Utils.check_ip_alive(cast_ip, port=80, timeout=2)
+                    if valid_ip:
+                        if self.wled:
+                            status = asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
+                            if not status:
+                                logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
+                                return False
 
-                    ip_addresses.append(cast_ip)
-                    # create ddp device for each IP
-                    self.ddp_multi_names.append(DDPDevice(cast_ip))
-                    logger.info(f'IP : {cast_ip} for sub image number {i}')
+                        ip_addresses.append(cast_ip)
+                        # create ddp device for each IP
+                        self.ddp_multi_names.append(DDPDevice(cast_ip))
+                        logger.info(f'IP : {cast_ip} for sub image number {i}')
+                    else:
+                        logging.error(f'Not able to validate ip : {cast_ip}')
         else:
 
             ip_addresses.append(self.host)
@@ -414,24 +423,24 @@ class CASTMedia:
                 else:
                     # split to matrix
                     self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
-
                     # validate cast_devices number
                     if len(ip_addresses) < len(self.cast_frame_buffer):
                         logger.error('Cast devices number != sub images number: check cast_devices ')
                         break
-
                     t_cast_frame_buffer = self.cast_frame_buffer
 
                 # send, keep synchronized
+                send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
+                """
                 try:
 
-                    send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
+                   
 
                 except Exception as error:
                     logger.error(traceback.format_exc())
                     logger.error('An exception occurred: {}'.format(error))
                     break
-
+                """
             else:
 
                 # resize frame for sending to ddp device

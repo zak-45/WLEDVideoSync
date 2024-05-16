@@ -148,11 +148,11 @@ class CASTDesktop:
             :return:
             """
             # timeout provided to not have thread waiting infinitely
-            if t_send_frame.wait(timeout=.1):
+            if t_send_frame.wait(timeout=.2):
                 # send ddp data only once by IP
                 for device in self.ddp_multi_names:
                     if ip == device.name:
-                        asyncio.run(device.flush(image))
+                        asyncio.run(device.flush(image, self.retry_number))
                         break
             else:
                 logger.warning('Multicast frame dropped')
@@ -217,18 +217,20 @@ class CASTDesktop:
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
-                    Utils.check_ip_alive(cast_ip, port=80, timeout=2)
-                    if self.wled:
-                        status = asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
-                        if not status:
-                            logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
-                            return False
+                    valid_ip = Utils.check_ip_alive(cast_ip, port=80, timeout=2)
+                    if valid_ip:
+                        if self.wled:
+                            status = asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
+                            if not status:
+                                logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
+                                return False
 
-                    ip_addresses.append(cast_ip)
-                    # create ddp device for each IP
-                    self.ddp_multi_names.append(DDPDevice(cast_ip))
-
-                    logger.info(f'IP : {cast_ip} for sub image number {i}')
+                        ip_addresses.append(cast_ip)
+                        # create ddp device for each IP
+                        self.ddp_multi_names.append(DDPDevice(cast_ip))
+                        logger.info(f'IP : {cast_ip} for sub image number {i}')
+                    else:
+                        logging.error(f'Not able to validate ip : {cast_ip}')
         else:
 
             ip_addresses.append(self.host)

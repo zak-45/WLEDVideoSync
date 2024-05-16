@@ -54,16 +54,18 @@ class DDPDevice:
             # if too much packet waiting, we stop all
             data_size = self._data_queue.qsize()
             if data_size > 120:
-                logger.error(f'Queue size too big {data_size}. Stop the Cast')
-                return
+                logger.error(f'Queue size too big {data_size}. Better to stop the Cast')
+                # return
             data = self._data_queue.get()  # Get data from the queue
             self.flush_from_queue(data)  # Call flush with the data
             self._data_queue.task_done()  # Mark the task as done
+            print('queue processed')
 
     def flush(self, data, retry_number=0):
         """Method to add data to the queue"""
         self.retry_number = retry_number
         self._data_queue.put(data)  # Put data into the queue
+        print('flush')
 
     def flush_from_queue(self, data):
         self.frame_count += 1
@@ -85,6 +87,7 @@ class DDPDevice:
                 logger.error(f"Error in DDP connection to {self.name}: {error}")
                 self.connection_warning = True
                 self._online = False
+        print('flush_from_queue')
 
     @staticmethod
     def send_out(sock, dest, port, data, frame_count, retry_number):
@@ -125,3 +128,4 @@ class DDPDevice:
         packet_to_send = 1 + retry_number
         for i in range(packet_to_send):
             sock.sendto(bytes(udpdata), (dest, port))
+        print('send packet')
