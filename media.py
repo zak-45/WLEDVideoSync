@@ -155,13 +155,9 @@ class CASTMedia:
             :param image:
             :return:
             """
-            if frame_count > 2000:
-                print(frame_count)
-
             # timeout provided to not have thread waiting infinitely
-            # if t_send_frame.wait(timeout=.2):
-            if t_send_frame.wait():
-                # send ddp data only once by IP
+            if t_send_frame.wait(timeout=.2):
+                # send ddp data, we select DDPDevice based on the IP
                 for device in self.ddp_multi_names:
                     if ip == device.name:
                         device.flush(image, self.retry_number)
@@ -185,10 +181,8 @@ class CASTMedia:
                 # once all threads up, need to set event because they wait for
                 t_send_frame.set()
 
-                # Wait for all threads to complete
-                # concurrent.futures.wait(multicast, timeout=1)
-                print('frame_set')
-                concurrent.futures.wait(multicast)
+                # Wait for all threads to complete, let 1 second
+                concurrent.futures.wait(multicast, timeout=1)
 
             t_send_frame.clear()
 
