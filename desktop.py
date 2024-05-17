@@ -105,7 +105,6 @@ class CASTDesktop:
         """
 
         t_name = current_thread().name
-        CASTDesktop.cast_names.append(t_name)
         if CASTDesktop.count == 0:
             CASTDesktop.total_frame = 0
 
@@ -286,8 +285,9 @@ class CASTDesktop:
                 CASTDesktop.count -= 1
                 return False
 
-        # Main loop
+        CASTDesktop.cast_names.append(t_name)
 
+        # Main loop
         if input_container:
             # input video stream from container (for decode)
             input_stream = input_container.streams.get(video=0)
@@ -415,9 +415,9 @@ class CASTDesktop:
                                                 cv2.destroyWindow(window_name)
                                             t_preview = False
 
-                                    except:
+                                    except Exception as error:
                                         logger.error(traceback.format_exc())
-                                        logger.error(f'Action {action} in ERROR from {t_name}')
+                                        logger.error(f'Action {action} in ERROR from {t_name}: {error}')
 
                                     CASTDesktop.cast_name_todo.remove(item)
 
@@ -446,6 +446,9 @@ class CASTDesktop:
                             if frame_count > 1:
                                 # split to matrix
                                 t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+                                # save frame to np buffer if requested (so can be used after by the main)
+                                if self.put_to_buffer and frame_count <= self.frame_max:
+                                    self.frame_buffer.append(frame)
 
                             else:
                                 # split to matrix

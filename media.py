@@ -103,7 +103,6 @@ class CASTMedia:
         """
 
         t_name = current_thread().name
-        CASTMedia.cast_names.append(t_name)
         if CASTMedia.count == 0:
             CASTMedia.total_frame = 0
 
@@ -270,11 +269,12 @@ class CASTMedia:
             logger.info(f"Take frame number {self.frame_index}")
             media.set(1, self.frame_index - 1)
 
+        CASTMedia.cast_names.append(t_name)
+        last_frame_time = time.time()
+
         """
             Media Loop
         """
-
-        last_frame_time = time.time()
 
         # Main thread loop to read media frame, stop from global call or local
         while not (self.stopcast or t_todo_stop):
@@ -380,9 +380,9 @@ class CASTMedia:
                                     cv2.destroyWindow(window_name)
                                 t_preview = False
 
-                        except:
+                        except Exception as error:
                             logger.error(traceback.format_exc())
-                            logger.error(f'Action {action} in ERROR from {t_name}')
+                            logger.error(f'Action {action} in ERROR from {t_name} : {error}')
 
                         CASTMedia.cast_name_todo.remove(item)
 
@@ -412,6 +412,9 @@ class CASTMedia:
                 if frame_count > 1:
                     # split to matrix
                     t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+                    # put frame to np buffer (so can be used after by the main)
+                    if self.put_to_buffer and frame_count <= self.frame_max:
+                        self.frame_buffer.append(frame)
 
                 else:
                     # split to matrix
