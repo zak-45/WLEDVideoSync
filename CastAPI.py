@@ -1065,7 +1065,7 @@ def main_page_desktop():
                         # put fixed size for preview
                         img = Utils.resize_image(Desktop.frame_buffer[i], 640, 480)
                         img = Image.fromarray(img)
-                        light_box_image(i, img, '', '', Desktop)
+                        light_box_image(i, img, '', '', Desktop, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
                     generate_carousel(Desktop)
 
@@ -1084,7 +1084,10 @@ def main_page_desktop():
                 with ui.grid(columns=Desktop.cast_x):
                     try:
                         for i in range(Desktop.cast_x * Desktop.cast_y):
-                            light_box_image(i, Image.fromarray(Desktop.cast_frame_buffer[i]), i, '', Desktop)
+                            # put fixed size for preview
+                            img = Utils.resize_image(Desktop.cast_frame_buffer[i], 640, 480)
+                            img = Image.fromarray(img)
+                            light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
                     except Exception as error:
                         logger.error(traceback.format_exc())
                         logger.error('An exception occurred: {}'.format(error))
@@ -1232,7 +1235,7 @@ def main_page_media():
                         # put fixed size for preview
                         img = Utils.resize_image(Media.frame_buffer[i], 640, 480)
                         img = Image.fromarray(img)
-                        light_box_image(i, img, '', '', Media)
+                        light_box_image(i, img, '', '', Media, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
                     generate_carousel(Media)
 
@@ -1251,7 +1254,10 @@ def main_page_media():
                 with ui.grid(columns=Media.cast_x):
                     try:
                         for i in range(Media.cast_x * Media.cast_y):
-                            light_box_image(i, Image.fromarray(Media.cast_frame_buffer[i]), i, '', Media)
+                            # put fixed size for preview
+                            img = Utils.resize_image(Media.cast_frame_buffer[i], 640, 480)
+                            img = Image.fromarray(img)
+                            light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
                     except Exception as error:
                         logger.error(traceback.format_exc())
                         logger.error('An exception occurred: {}'.format(error))
@@ -1660,7 +1666,7 @@ async def cast_to_wled(class_obj, image_number):
         )
 
 
-async def save_image(class_obj, image_number, ascii_art=False):
+async def save_image(class_obj, buffer, image_number, ascii_art=False):
     """
     Save image from Buffer
     used on the buffer images
@@ -1680,12 +1686,18 @@ async def save_image(class_obj, image_number, ascii_art=False):
         logger.error(f"The folder {absolute_img_folder} does not exist.")
         return
 
-    w, h = class_obj.frame_buffer[image_number].shape[:2]
+    # select right buffer
+    if buffer == 'frame_buffer':
+        buffer = class_obj.frame_buffer
+    else:
+        buffer = class_obj.cast_frame_buffer
+
+    w, h = buffer[image_number].shape[:2]
     date_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     class_name = class_obj.__module__
 
     if ascii_art:
-        img = class_obj.frame_buffer[image_number]
+        img = buffer[image_number]
         img = Image.fromarray(img)
         img = ImageUtils.image_to_ascii(img)
         filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
@@ -1696,7 +1708,7 @@ async def save_image(class_obj, image_number, ascii_art=False):
     else:
         filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
             h) + "_" + date_time + ".jpg"
-        img = cv2.cvtColor(class_obj.frame_buffer[image_number], cv2.COLOR_RGB2BGR)
+        img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
         cv2.imwrite(filename, img)
 
     logger.info(f"Image saved to {filename}")
@@ -1770,7 +1782,7 @@ def generate_table(columns_x, rows_y):
     return list_columns, list_rows
 
 
-def light_box_image(index, image, txt1, txt2, class_obj):
+def light_box_image(index, image, txt1, txt2, class_obj, buffer):
     """
     Provide basic 'lightbox' effect for image
     :param class_obj:
@@ -1797,10 +1809,10 @@ def light_box_image(index, image, txt1, txt2, class_obj):
                         ui.button(on_click=lambda: cast_to_wled(class_obj, index), icon='cast') \
                             .props('flat fab color=white') \
                             .tooltip('Cast to WLED')
-                        ui.button(on_click=lambda: save_image(class_obj, index), icon='save') \
+                        ui.button(on_click=lambda: save_image(class_obj, buffer, index), icon='save') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image')
-                        ui.button(on_click=lambda: save_image(class_obj, index, ascii_art=True), icon='text_format') \
+                        ui.button(on_click=lambda: save_image(class_obj, buffer, index, ascii_art=True), icon='text_format') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image as Ascii ART')
 

@@ -449,7 +449,7 @@ if __name__ == '__main__':
 
     # start server
     instance.start()
-    logger.info('WLEDVideoSync Starting...Server run in separate process')
+    logger.info('WLEDVideoSync Started...Server run in separate process')
 
     # start pywebview process
     # this will start native OS window and block main thread
