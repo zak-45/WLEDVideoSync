@@ -264,11 +264,11 @@ def util_casts_info():
     for item in child_list:
         # wait and get info dict from a thread
         try:
-            data = t_data_buffer.get(timeout=3)
+            data = t_data_buffer.get(timeout=1)
             child_info_data.update(data)
             t_data_buffer.task_done()
         except queue.Empty:
-            logger.warning('Empty queue')
+            logger.error('Empty queue, but Desktop/Media cast names list not')
             break
 
     # sort the dict
@@ -443,6 +443,8 @@ async def update_attribute_by_name(class_name: str, param: str, value: Union[int
                                     detail=f"Value '{value}' for attribute '{param}' " f"must be an integer")
             value = int(value)
     elif expected_type == list:
+        if value is None or value == '':
+            value = []
         value = ast.literal_eval(str(value))
         if not isinstance(value, list):
             raise HTTPException(status_code=400,
@@ -1052,6 +1054,7 @@ def main_page_desktop():
                 new_cast_devices = ui.input('Cast Devices', value=str(Desktop.cast_devices))
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Desktop', 'cast_devices', new_cast_devices.value))
+                ui.button('Manage', on_click=lambda: cast_device_manage(Desktop))
 
     ui.separator().classes('mt-6')
 
@@ -1222,6 +1225,7 @@ def main_page_media():
                 new_cast_devices = ui.input('Cast Devices', value=str(Media.cast_devices))
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Media', 'cast_devices', new_cast_devices.value))
+                ui.button('Manage', on_click=lambda: cast_device_manage(Media))
 
     ui.separator().classes('mt-6')
 
@@ -1429,6 +1433,66 @@ helpers
 """
 
 
+def cast_device_manage(class_name):
+    with ui.dialog() as dialog, ui.card().classes('w-1/3'):
+        dialog.open()
+        columns = [
+            {'field': 'number', 'editable': True, 'sortable': True, 'checkboxSelection': True},
+            {'field': 'ip', 'editable': True},
+            {'field': 'id', 'hide': True},
+        ]
+        rows = [
+        ]
+
+        def handle_cell_value_change(e):
+            new_row = e.args['data']
+            ui.notify(f'Updated row to: {e.args["data"]}')
+            rows[:] = [row | new_row if row['id'] == new_row['id'] else row for row in rows]
+
+        aggrid = ui.aggrid({
+            'columnDefs': columns,
+            'rowData': rows,
+            'rowSelection': 'multiple',
+            'stopEditingWhenCellsLoseFocus': True,
+        }).on('cellValueChanged', handle_cell_value_change)
+
+        def add_row():
+            row_new_id = max((dx['id'] for dx in rows), default=-1) + 1
+            rows.append({'number': 0, 'ip': '127.0.0.1', 'id': row_new_id})
+            aggrid.update()
+
+        def add_net():
+            i = len(class_name.cast_devices)
+            for net in Netdevice.http_devices:
+                i += 1
+                row_new_id = max((dx['id'] for dx in rows), default=-1) + 1
+                rows.append({'number': i, 'ip': Netdevice.http_devices[net]['address'], 'id': row_new_id})
+                aggrid.update()
+
+        async def update_cast_devices():
+            new_cast_devices = []
+            for row in await aggrid.get_selected_rows():
+                new_cast_device = tuple((row["number"], row["ip"]))
+                new_cast_devices.append(new_cast_device)
+
+            sorted_devices = sorted(new_cast_devices, key=lambda x: x[0])
+            class_name.cast_devices.clear()
+            class_name.cast_devices.extend(sorted_devices)
+            dialog.close()
+            ui.notify('New data entered into cast_devices, you need to validate/refresh to see them ')
+
+        for item in class_name.cast_devices:
+            new_id = max((dx['id'] for dx in rows), default=-1) + 1
+            rows.append({'number': item[0], 'ip': item[1], 'id': new_id})
+
+        with ui.row():
+            ui.button('Add row', on_click=add_row)
+            ui.button('Add Net', on_click=add_net)
+            ui.button('Select all', on_click=lambda: aggrid.run_grid_method('selectAll'))
+            ui.button('Validate', on_click=lambda: update_cast_devices())
+            ui.button('Close', on_click=lambda: dialog.close())
+
+
 def reset_rgb(class_name):
     """ reset RGB value """
 
@@ -1550,12 +1614,12 @@ def tabs_info_page():
                                         .classes('shadow-lg').tooltip('Capture picture')
                                     if info_data[item]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
-                                                              on_click=lambda item=item:
-                                                                  action_from_tabs(class_name='Media',
-                                                                                   cast_name=item,
-                                                                                   action='close_preview',
-                                                                                   clear=False,
-                                                                                   execute=True)) \
+                                                  on_click=lambda item=item:
+                                                  action_from_tabs(class_name='Media',
+                                                                   cast_name=item,
+                                                                   action='close_preview',
+                                                                   clear=False,
+                                                                   execute=True)) \
                                             .classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
@@ -1812,7 +1876,8 @@ def light_box_image(index, image, txt1, txt2, class_obj, buffer):
                         ui.button(on_click=lambda: save_image(class_obj, buffer, index), icon='save') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image')
-                        ui.button(on_click=lambda: save_image(class_obj, buffer, index, ascii_art=True), icon='text_format') \
+                        ui.button(on_click=lambda: save_image(class_obj, buffer, index, ascii_art=True),
+                                  icon='text_format') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image as Ascii ART')
 
