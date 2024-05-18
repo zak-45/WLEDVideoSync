@@ -703,9 +703,17 @@ def main_page():
                     lambda visible=True:
                     (player.set_visibility(visible),
                      video_file.set_visibility(visible),
+                     cast_player.set_visibility(visible),
                      video_url.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
                 .tooltip("Show Video Player")
+
+            cast_player = ui.icon('cast') \
+                .style("cursor: pointer") \
+                .on('click', lambda: player_cast(player.source)) \
+                .tooltip('Cast Video')
+            cast_player.set_visibility(False)
+
             hide_player = ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
                 .on('click',
@@ -713,6 +721,7 @@ def main_page():
                     (player.set_visibility(visible),
                      video_file.set_visibility(visible),
                      video_url.set_visibility(visible),
+                     cast_player.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
                 .tooltip("Hide Video Player")
             hide_player.set_visibility(False)
@@ -1433,8 +1442,13 @@ helpers
 """
 
 
+def player_cast(source):
+    Media.viinput = source
+    Media.cast(shared_buffer=t_data_buffer)
+
+
 def cast_device_manage(class_name):
-    with ui.dialog() as dialog, ui.card().classes('w-1/3'):
+    with ui.dialog() as dialog, ui.card().classes('w-1/2'):
         dialog.open()
         columns = [
             {'field': 'number', 'editable': True, 'sortable': True, 'checkboxSelection': True},
@@ -1474,12 +1488,11 @@ def cast_device_manage(class_name):
             for row in await aggrid.get_selected_rows():
                 new_cast_device = tuple((row["number"], row["ip"]))
                 new_cast_devices.append(new_cast_device)
-
             sorted_devices = sorted(new_cast_devices, key=lambda x: x[0])
             class_name.cast_devices.clear()
             class_name.cast_devices.extend(sorted_devices)
             dialog.close()
-            ui.notify('New data entered into cast_devices, you need to validate/refresh to see them ')
+            ui.notify('New data entered into cast_devices, click on validate/refresh to see them ')
 
         for item in class_name.cast_devices:
             new_id = max((dx['id'] for dx in rows), default=-1) + 1
