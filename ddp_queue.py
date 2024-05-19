@@ -104,6 +104,7 @@ class DDPDevice:
     def send_packet(sock, dest, port, sequence, packet_count, data, last, retry_number):
         bytes_length = len(data)
         udpdata = bytearray()
+
         header = struct.pack(
             "!BBBBLH",
             DDPDevice.VER1 | (DDPDevice.PUSH if last else 0),

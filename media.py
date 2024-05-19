@@ -365,7 +365,8 @@ class CASTMedia:
                                                                             "multicast": t_multicast,
                                                                             "devices": ip_addresses,
                                                                             "fps": 1 / delay,
-                                                                            "frames": frame_count
+                                                                            "frames": frame_count,
+                                                                            "length": length
                                                                             }
                                                    }
                                           }
@@ -414,7 +415,9 @@ class CASTMedia:
                     t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                     # put frame to np buffer (so can be used after by the main)
                     if self.put_to_buffer and frame_count <= self.frame_max:
-                        self.frame_buffer.append(frame)
+                        add_frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                        add_frame = Utils.resize_image(add_frame, self.scale_width, self.scale_height)
+                        self.frame_buffer.append(add_frame)
 
                 else:
                     # split to matrix
@@ -452,7 +455,9 @@ class CASTMedia:
 
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:
-                    self.frame_buffer.append(frame)
+                    add_frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                    add_frame = Utils.resize_image(add_frame, self.scale_width, self.scale_height)
+                    self.frame_buffer.append(add_frame)
 
                 # preview on fixed size window
                 if t_preview:

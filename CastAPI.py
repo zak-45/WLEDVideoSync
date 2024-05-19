@@ -1312,15 +1312,19 @@ def ws_page():
     """
     ui.label('WEBSOCKETS Doc').classes('self-center')
     doc_txt = ui.textarea('WE endpoints').style('width: 50%')
-    doc_txt.value = ('Use /cast_image:x:z:f:d:r:c:i to send image number x (Media.buffer[x])'
-                     ' to cast device z (Media.cast_devices[z])'
-                     'image_number = int'
-                     'device_number = int if -1 take host'
-                     'class_name = str (Desktop or Media)'
-                     'fps_number = int max 60'
-                     'duration_number = int'
-                     'retry_number = int if < 0 set to 0'
-                     'buffer_name = BUFFER or  MULTICAST'
+    doc_txt.value = ('Use cast_image:x:z:f:d:r:c:i \n to send image number x (Media.buffer[x]) \n'
+                     ' to cast device z (Media.cast_devices[z]) \n'
+                     'image_number = int \n'
+                     'device_number = int if -1 take host from Media\n'
+                     'class_name = str (Desktop or Media) \n'
+                     'fps_number = int max 60 \n'
+                     'duration_number = int \n'
+                     'retry_number = int if < 0 set to 0 \n'
+                     'buffer_name = BUFFER or  MULTICAST \n'
+                     'example: \n\n'
+                     '{"action":'
+                     '{"type":"cast_image", '
+                     '"param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}'
                      )
 
 
