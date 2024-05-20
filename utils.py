@@ -20,6 +20,10 @@ import numpy as np
 import pywinctl as pwc
 from wled import WLED
 
+from PIL import Image
+import io
+import base64
+
 import time
 
 import psutil
@@ -467,6 +471,18 @@ class LogElementHandler(logging.Handler):
 
 
 class ImageUtils:
+
+    @staticmethod
+    def image_array_to_base64(nparray):
+        # Convert NumPy array to PIL Image
+        image = Image.fromarray(nparray)
+        # Save the image to a bytes buffer
+        buffered = io.BytesIO()
+        image.save(buffered, format="JPEG")
+        # Encode the bytes as Base64
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        # The img_str is the Base64 string representation of the image
+        return img_str
 
     @staticmethod
     def process_raw_image(img: np.ndarray, filters: dict) -> np.ndarray:

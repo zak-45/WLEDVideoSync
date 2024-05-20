@@ -82,7 +82,7 @@ Media = media.CASTMedia()
 Netdevice = Net()
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
-action_to_test = ['stop', 'buffer', 'info', 'close_preview']
+action_to_test = ['stop', 'shot', 'info', 'close_preview']
 
 app.debug = False
 
@@ -139,12 +139,50 @@ async def all_params(class_obj: str = Path(description=f'Class name, should be i
     if class_obj not in class_to_test:
         raise HTTPException(status_code=400, detail=f"Class name: {class_obj} not in {class_to_test}")
     class_params = vars(globals()[class_obj])
+    # to avoid delete param from the class, need to copy to another dict
     return_data = {k: v for k, v in class_params.items()}
     if class_obj != 'Netdevice':
         del return_data['frame_buffer']
         del return_data['cast_frame_buffer']
         del return_data['ddp_multi_names']
     return {"all_params": return_data}
+
+
+@app.get("/api/{class_obj}/buffer", tags=["buffer"])
+async def buffer_count(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}')):
+    """
+        Retrieve frame buffer length from a class (image number)
+    """
+    if class_obj not in class_to_test:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} not in {class_to_test}")
+    class_name = globals()[class_obj]
+
+    return {"buffer_count": len(class_name.frame_buffer)}
+
+
+@app.get("/api/{class_obj}/buffer/{number}", tags=["buffer"])
+async def buffer_image(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}'), number: int = 0):
+    """
+        Retrieve image number from buffer class, result base64 image
+    """
+    if class_obj not in class_to_test:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} not in {class_to_test}")
+
+    try:
+        class_name = globals()[class_obj]
+    except KeyError:
+        raise HTTPException(status_code=400, detail=f"Invalid Class name: {class_obj}")
+
+    if number > len(class_name.frame_buffer):
+        raise HTTPException(status_code=400, detail=f"Image number : {number} not exist for Class name: {class_obj} ")
+
+    try:
+        img = ImageUtils.image_array_to_base64(class_name.frame_buffer[number])
+        # img = json.dumps(class_name.frame_buffer[number].tolist())
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {error}")
+
+    return {"buffer_base64": img}
 
 
 @app.get("/api/{class_obj}/run_cast", tags=["casts"])
@@ -1566,7 +1604,7 @@ def tabs_info_page():
                             with item_exp:
                                 with ui.row():
                                     ui.button(icon='delete_forever',
-                                              on_click=lambda item=item, item_exp=item_exp: action_from_tabs(
+                                              on_click=lambda item=item, item_exp=item_exp: action_to_casts(
                                                   class_name='Desktop',
                                                   cast_name=item,
                                                   action='stop',
@@ -1575,19 +1613,19 @@ def tabs_info_page():
                                                   exp_item=item_exp)
                                               ).classes('shadow-lg').tooltip('Cancel Cast')
                                     ui.button(icon='add_photo_alternate',
-                                              on_click=lambda item=item: action_from_tabs(class_name='Desktop',
-                                                                                          cast_name=item,
-                                                                                          action='buffer',
-                                                                                          clear=False,
-                                                                                          execute=True)
+                                              on_click=lambda item=item: action_to_casts(class_name='Desktop',
+                                                                                         cast_name=item,
+                                                                                         action='shot',
+                                                                                         clear=False,
+                                                                                         execute=True)
                                               ).classes('shadow-lg').tooltip('Capture picture')
                                     if info_data[item]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
-                                                  on_click=lambda item=item: action_from_tabs(class_name='Desktop',
-                                                                                              cast_name=item,
-                                                                                              action='close_preview',
-                                                                                              clear=False,
-                                                                                              execute=True)
+                                                  on_click=lambda item=item: action_to_casts(class_name='Desktop',
+                                                                                             cast_name=item,
+                                                                                             action='close_preview',
+                                                                                             clear=False,
+                                                                                             execute=True)
                                                   ).classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
@@ -1615,7 +1653,7 @@ def tabs_info_page():
                             with item_exp:
                                 with ui.row():
                                     ui.button(icon='delete_forever',
-                                              on_click=lambda item=item, item_exp=item_exp: action_from_tabs(
+                                              on_click=lambda item=item, item_exp=item_exp: action_to_casts(
                                                   class_name='Media',
                                                   cast_name=item,
                                                   action='stop',
@@ -1624,33 +1662,33 @@ def tabs_info_page():
                                                   exp_item=item_exp)
                                               ).classes('shadow-lg').tooltip('Cancel Cast')
                                     ui.button(icon='add_photo_alternate',
-                                              on_click=lambda item=item: action_from_tabs(class_name='Media',
-                                                                                          cast_name=item,
-                                                                                          action='buffer',
-                                                                                          clear=False,
-                                                                                          execute=True)) \
+                                              on_click=lambda item=item: action_to_casts(class_name='Media',
+                                                                                         cast_name=item,
+                                                                                         action='shot',
+                                                                                         clear=False,
+                                                                                         execute=True)) \
                                         .classes('shadow-lg').tooltip('Capture picture')
                                     if info_data[item]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
                                                   on_click=lambda item=item:
-                                                  action_from_tabs(class_name='Media',
-                                                                   cast_name=item,
-                                                                   action='close_preview',
-                                                                   clear=False,
-                                                                   execute=True)) \
+                                                  action_to_casts(class_name='Media',
+                                                                  cast_name=item,
+                                                                  action='close_preview',
+                                                                  clear=False,
+                                                                  execute=True)) \
                                             .classes('shadow-lg').tooltip('Stop Preview')
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
                                 editor.run_editor_method('updateProps', {'readOnly': True})
 
 
-async def action_from_tabs(class_name, cast_name, action, clear, execute, exp_item=None):
+async def action_to_casts(class_name, cast_name, action, clear, execute, exp_item=None):
     await action_to_thread(class_name, cast_name, action, clear, execute)
     if action == 'stop':
         exp_item.close()
         ui.notification(f'Stopping {cast_name}...', type='warning', position='center', timeout=1)
         exp_item.delete()
-    elif action == 'buffer':
+    elif action == 'shot':
         ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=1)
     elif action == 'close_preview':
         ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=1)

@@ -88,7 +88,6 @@ class CASTDesktop:
         self.custom_text: str = ""
         self.voformat: str = 'h264'
         self.vooutput: str = 'udp://127.0.0.1:12345?pkt_size=1316'
-        self.active: bool = False
         self.put_to_buffer: bool = False
         self.frame_buffer: list = []
         self.frame_max: int = 8
@@ -233,8 +232,6 @@ class CASTDesktop:
 
             ip_addresses.append(self.host)
 
-        CASTDesktop.count += 1
-
         """
         Second, capture media
         """
@@ -263,7 +260,6 @@ class CASTDesktop:
         except Exception as error:
             logger.error(traceback.format_exc())
             logger.error('An exception occurred: {}'.format(error))
-            CASTDesktop.count -= 1
             return False
 
         # Define Output via av only if protocol is other
@@ -282,10 +278,10 @@ class CASTDesktop:
             except Exception as error:
                 logger.error(traceback.format_exc())
                 logger.error('An exception occurred: {}'.format(error))
-                CASTDesktop.count -= 1
                 return False
 
         CASTDesktop.cast_names.append(t_name)
+        CASTDesktop.count += 1
 
         # Main loop
         if input_container:
@@ -376,7 +372,7 @@ class CASTDesktop:
                                     try:
                                         if 'stop' in action:
                                             t_todo_stop = True
-                                        elif 'buffer' in action:
+                                        elif 'shot' in action:
                                             add_frame = Utils.pixelart_image(frame,
                                                                              self.scale_width,
                                                                              self.scale_height)

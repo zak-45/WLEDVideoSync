@@ -241,8 +241,6 @@ class CASTMedia:
 
             ip_addresses.append(self.host)
 
-        CASTMedia.count += 1
-
         """
         Second, capture media
         """
@@ -255,7 +253,6 @@ class CASTMedia:
         # Check if the capture is successful
         if not media.isOpened():
             logger.error(f"Error: Unable to open media stream {t_viinput}.")
-            CASTMedia.count -= 1
             return False
 
         media.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -271,6 +268,7 @@ class CASTMedia:
 
         CASTMedia.cast_names.append(t_name)
         last_frame_time = time.time()
+        CASTMedia.count += 1
 
         """
             Media Loop
@@ -345,7 +343,7 @@ class CASTMedia:
                         try:
                             if 'stop' in action:
                                 t_todo_stop = True
-                            elif 'buffer' in action:
+                            elif 'shot' in action:
                                 add_frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
                                 add_frame = Utils.resize_image(add_frame, self.scale_width, self.scale_height)
                                 self.frame_buffer.append(add_frame)
