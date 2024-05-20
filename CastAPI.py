@@ -139,11 +139,12 @@ async def all_params(class_obj: str = Path(description=f'Class name, should be i
     if class_obj not in class_to_test:
         raise HTTPException(status_code=400, detail=f"Class name: {class_obj} not in {class_to_test}")
     class_params = vars(globals()[class_obj])
+    return_data = {k: v for k, v in class_params.items()}
     if class_obj != 'Netdevice':
-        del class_params['frame_buffer']
-        del class_params['cast_frame_buffer']
-        del class_params['ddp_multi_names']
-    return {"all_params": class_params}
+        del return_data['frame_buffer']
+        del return_data['cast_frame_buffer']
+        del return_data['ddp_multi_names']
+    return {"all_params": return_data}
 
 
 @app.get("/api/{class_obj}/run_cast", tags=["casts"])
