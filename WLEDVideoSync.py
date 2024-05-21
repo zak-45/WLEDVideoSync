@@ -11,9 +11,6 @@ Webview : provide native OS window
 pystray : put on systray if requested
 
 """
-# macOS packaging support
-from multiprocessing import freeze_support  # noqa
-freeze_support()  # noqa
 
 import logging
 import logging.config
@@ -389,6 +386,10 @@ MAIN Logic
 """
 
 if __name__ == '__main__':
+    # macOS packaging support
+    from multiprocessing import freeze_support  # noqa
+
+    freeze_support()  # noqa
 
     """
     Main Params
