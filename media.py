@@ -488,6 +488,8 @@ class CASTMedia:
         """
 
         CASTMedia.count -= 1
+        CASTMedia.cast_names.remove(t_name)
+        CASTMedia.t_exit_event.clear()
 
         if CASTMedia.count <= 2:  # try to avoid blocking when click as a bad man !!!
             logger.info('Stop window preview if any')
@@ -504,10 +506,8 @@ class CASTMedia:
         print(f'Using these devices: {str(ip_addresses)}')
         print("_" * 50)
 
-        CASTMedia.cast_names.remove(t_name)
         logger.info("Cast closed")
-        time.sleep(2)
-        CASTMedia.t_exit_event.clear()
+        time.sleep(1)
 
     """
     preview window

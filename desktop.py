@@ -521,16 +521,16 @@ class CASTDesktop:
         """
 
         CASTDesktop.count -= 1
+        CASTDesktop.cast_names.remove(t_name)
+        CASTDesktop.t_exit_event.clear()
 
         print("_" * 50)
         print(f'Cast {t_name} end using this input: {t_viinput}')
         print(f'Using these devices: {str(ip_addresses)}')
         print("_" * 50)
 
-        CASTDesktop.cast_names.remove(t_name)
         logger.info('Cast closed')
         time.sleep(2)
-        CASTDesktop.t_exit_event.clear()
 
     def preview_window(self, frame, t_viinput, t_name, t_preview, grid=False):
 

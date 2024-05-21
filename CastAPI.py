@@ -178,11 +178,35 @@ async def buffer_image(class_obj: str = Path(description=f'Class name, should be
 
     try:
         img = ImageUtils.image_array_to_base64(class_name.frame_buffer[number])
-        # img = json.dumps(class_name.frame_buffer[number].tolist())
     except Exception as error:
         raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {error}")
 
     return {"buffer_base64": img}
+
+
+@app.get("/api/{class_obj}/buffer/{number}/save", tags=["buffer"])
+async def buffer_image_save(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}'),
+                            number: int = 0):
+    """
+        Retrieve image number from buffer class, save it to default folder
+    """
+    if class_obj not in class_to_test:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} not in {class_to_test}")
+
+    try:
+        class_name = globals()[class_obj]
+    except KeyError:
+        raise HTTPException(status_code=400, detail=f"Invalid Class name: {class_obj}")
+
+    if number > len(class_name.frame_buffer):
+        raise HTTPException(status_code=400, detail=f"Image number : {number} not exist for Class name: {class_obj} ")
+
+    try:
+        await save_image(class_name, 'frame_buffer', number)
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {error}")
+
+    return {"buffer_save": True}
 
 
 @app.get("/api/{class_obj}/run_cast", tags=["casts"])
@@ -259,16 +283,16 @@ async def util_blackout():
     Desktop.stopcast = True
     Media.stopcast = True
 
+    async def wled_off(class_name):
+        await Utils.put_wled_live(class_name.host, on=False, live=False, timeout=1)
+        if class_name.multicast:
+            for cast_item in class_name.cast_devices:
+                await Utils.put_wled_live(cast_item[1], on=False, live=False, timeout=1)
+
     if Desktop.wled:
-        await Utils.put_wled_live(Desktop.host, on=False, live=False, timeout=1)
-        if Desktop.multicast:
-            for item in Desktop.cast_devices:
-                await Utils.put_wled_live(item[1], on=False, live=False, timeout=1)
+        await wled_off(Desktop)
     if Media.wled:
-        await Utils.put_wled_live(Media.host, on=False, live=False, timeout=1)
-        if Media.multicast:
-            for item in Media.cast_devices:
-                await Utils.put_wled_live(item[1], on=False, live=False, timeout=1)
+        await wled_off(Media)
 
     return {"blackout": 'done'}
 
