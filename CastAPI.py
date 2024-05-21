@@ -51,7 +51,6 @@ from utils import LocalFilePicker
 
 import ast
 
-from typing import Union
 from datetime import datetime
 from str2bool import str2bool
 
@@ -134,7 +133,7 @@ async def read_api_root():
 @app.get("/api/{class_obj}/params", tags=["params"])
 async def all_params(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}')):
     """
-        Retrieve all 'params' from a class
+        Retrieve all 'params/attributes' from a class
     """
     if class_obj not in class_to_test:
         raise HTTPException(status_code=400, detail=f"Class name: {class_obj} not in {class_to_test}")
@@ -146,6 +145,86 @@ async def all_params(class_obj: str = Path(description=f'Class name, should be i
         del return_data['cast_frame_buffer']
         del return_data['ddp_multi_names']
     return {"all_params": return_data}
+
+
+@app.put("/api/{class_name}/update_attribute", tags=["params"])
+async def update_attribute_by_name(class_name: str, param: str, value: str):
+    """
+        Update  attribute for a specific class name
+    """
+    if class_name not in class_to_test:
+        raise HTTPException(status_code=400,
+                            detail=f"Class name: {class_name} not in {class_to_test}")
+
+    try:
+        class_obj = globals()[class_name]
+    except KeyError:
+        raise HTTPException(status_code=400,
+                            detail=f"Invalid class name: {class_name}")
+
+    if not hasattr(class_obj, param):
+        raise HTTPException(status_code=400,
+                            detail=f"Invalid attribute name: {param}")
+
+    # determine type from class attribute
+    expected_type = type(getattr(class_obj, param))
+
+    # main type validation
+    if expected_type == bool:
+        if str2bool(value) is None:
+            raise HTTPException(status_code=400,
+                                detail=f"Value '{value}' for attribute '{param}' must be a boolean")
+        else:
+            value = str2bool(value)
+    elif expected_type == int:
+        if param != "viinput":
+            if not isinstance(value, int) and not str(value).isdigit():
+                raise HTTPException(status_code=400,
+                                    detail=f"Value '{value}' for attribute '{param}' " f"must be an integer")
+            value = int(value)
+    elif expected_type == list:
+        if value is None or value == '':
+            value = []
+        value = ast.literal_eval(str(value))
+        if not isinstance(value, list):
+            raise HTTPException(status_code=400,
+                                detail=f"Value '{value}' for attribute '{param}' must be a list")
+    elif expected_type == str:
+        if not isinstance(value, str):
+            raise HTTPException(status_code=400,
+                                detail=f"Value '{value}' for attribute '{param}' must be a string")
+    else:
+        raise HTTPException(status_code=400,
+                            detail=f"Unsupported attribute type '{expected_type}' for attribute '{param}'")
+
+    # special case for viinput , str or int, depend on the entry
+    if param == 'viinput':
+        try:
+            value = int(value)
+        except ValueError:
+            logger.info("viinput act as string only")
+
+    # append title if needed
+    if class_name == 'Desktop' and param == 'viinput' and 'desktop' not in value:
+        value = 'title=' + value
+
+    # check valid IP
+    if param == 'host':
+        is_valid = Utils.validate_ip_address(value)
+        if not is_valid:
+            raise HTTPException(status_code=400,
+                                detail=f"Value '{value}' for attribute '{param}' must be IP address")
+
+    # check cast devices comply to [(0,'IP'), ... ]
+    if param == 'cast_devices':
+        is_valid = Utils.is_valid_cast_device(str(value))
+        if not is_valid:
+            raise HTTPException(status_code=400,
+                                detail=f"Value '{value}' for attribute '{param}' not comply to list [(0,'IP'),...]")
+
+    # set new value to class attribute
+    setattr(class_obj, param, value)
+    return {"message": f"Attribute '{param}' updated successfully for : '{class_obj}'"}
 
 
 @app.get("/api/{class_obj}/buffer", tags=["buffer"])
@@ -161,7 +240,8 @@ async def buffer_count(class_obj: str = Path(description=f'Class name, should be
 
 
 @app.get("/api/{class_obj}/buffer/{number}", tags=["buffer"])
-async def buffer_image(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}'), number: int = 0):
+async def buffer_image(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}'),
+                       number: int = 0):
     """
         Retrieve image number from buffer class, result base64 image
     """
@@ -210,7 +290,7 @@ async def buffer_image_save(class_obj: str = Path(description=f'Class name, shou
 
 
 @app.get("/api/{class_obj}/run_cast", tags=["casts"])
-async def run_cast(class_obj: str):
+async def run_cast(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}')):
     """
       Run the cast() from {class_obj}
     """
@@ -345,7 +425,7 @@ def util_casts_info():
 
 
 @app.get("/api/{class_name}/list_actions", tags=["casts"])
-async def list_todo_actions(class_name: str):
+async def list_todo_actions(class_name: str = Path(description=f'Class name, should be in: {class_to_test}')):
     """
     List to do actions for a Class name
     :param class_name:
@@ -368,7 +448,7 @@ async def list_todo_actions(class_name: str):
 
 
 @app.put("/api/{class_name}/cast_actions", tags=["casts"])
-async def action_to_thread(class_name: str,
+async def action_to_thread(class_name: str = Path(description=f'Class name, should be in: {class_to_test}'),
                            cast_name: str = None,
                            action: str = None,
                            clear: bool = False,
@@ -468,86 +548,6 @@ async def action_to_thread(class_name: str,
             class_obj.t_todo_event.set()
             logger.debug(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
             return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
-
-
-@app.put("/api/{class_name}/update_attribute", tags=["params"])
-async def update_attribute_by_name(class_name: str, param: str, value: Union[int, bool, str]):
-    """
-        Update  attribute for a specific class name
-    """
-    if class_name not in class_to_test:
-        raise HTTPException(status_code=400,
-                            detail=f"Class name: {class_name} not in {class_to_test}")
-
-    try:
-        class_obj = globals()[class_name]
-    except KeyError:
-        raise HTTPException(status_code=400,
-                            detail=f"Invalid class name: {class_name}")
-
-    if not hasattr(class_obj, param):
-        raise HTTPException(status_code=400,
-                            detail=f"Invalid attribute name: {param}")
-
-    # determine type from class attribute
-    expected_type = type(getattr(class_obj, param))
-
-    # main type validation
-    if expected_type == bool:
-        if str2bool(value) is None:
-            raise HTTPException(status_code=400,
-                                detail=f"Value '{value}' for attribute '{param}' must be a boolean")
-        else:
-            value = str2bool(value)
-    elif expected_type == int:
-        if param != "viinput":
-            if not isinstance(value, int) and not str(value).isdigit():
-                raise HTTPException(status_code=400,
-                                    detail=f"Value '{value}' for attribute '{param}' " f"must be an integer")
-            value = int(value)
-    elif expected_type == list:
-        if value is None or value == '':
-            value = []
-        value = ast.literal_eval(str(value))
-        if not isinstance(value, list):
-            raise HTTPException(status_code=400,
-                                detail=f"Value '{value}' for attribute '{param}' must be a list")
-    elif expected_type == str:
-        if not isinstance(value, str):
-            raise HTTPException(status_code=400,
-                                detail=f"Value '{value}' for attribute '{param}' must be a string")
-    else:
-        raise HTTPException(status_code=400,
-                            detail=f"Unsupported attribute type '{expected_type}' for attribute '{param}'")
-
-    # special case for viinput , str or int, depend on the entry
-    if param == 'viinput':
-        try:
-            value = int(value)
-        except ValueError:
-            logger.info("viinput act as string only")
-
-    # append title if needed
-    if class_name == 'Desktop' and param == 'viinput' and 'desktop' not in value:
-        value = 'title=' + value
-
-    # check valid IP
-    if param == 'host':
-        is_valid = Utils.validate_ip_address(value)
-        if not is_valid:
-            raise HTTPException(status_code=400,
-                                detail=f"Value '{value}' for attribute '{param}' must be IP address")
-
-    # check cast devices comply to [(0,'IP'), ... ]
-    if param == 'cast_devices':
-        is_valid = Utils.is_valid_cast_device(str(value))
-        if not is_valid:
-            raise HTTPException(status_code=400,
-                                detail=f"Value '{value}' for attribute '{param}' not comply to list [(0,'IP'),...]")
-
-    # set new value to class attribute
-    setattr(class_obj, param, value)
-    return {"message": f"Attribute '{param}' updated successfully for : '{class_obj}'"}
 
 
 """
