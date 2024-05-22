@@ -43,6 +43,9 @@ logging.config.fileConfig('config/logging.ini')
 # create logger
 logger = logging.getLogger('WLEDLogger.utils')
 
+# do not show graph at module load, suspend interactive mode (e.g. PyCharm)
+plt.ioff()
+
 
 class CASTUtils:
     dev_list: list = []

@@ -293,6 +293,7 @@ class CASTDesktop:
             try:
 
                 logger.info(f"Capture from {t_viinput}")
+                logger.info(f"Stopcast value : {self.stopcast}")
 
                 for frame in input_container.decode(input_stream):
 

@@ -386,9 +386,8 @@ MAIN Logic
 """
 
 if __name__ == '__main__':
-    # macOS packaging support
+    # packaging support (compile)
     from multiprocessing import freeze_support  # noqa
-
     freeze_support()  # noqa
 
     """

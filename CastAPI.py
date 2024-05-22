@@ -790,7 +790,7 @@ def main_page():
             hide_player.set_visibility(False)
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
-                .on('click', pick_file) \
+                .on('click', player_pick_file) \
                 .tooltip('Select audio / video file')
             video_file.set_visibility(False)
             video_url = ui.input('Enter video Url', placeholder='http://....')
@@ -1929,6 +1929,7 @@ def generate_table(columns_x, rows_y):
 def light_box_image(index, image, txt1, txt2, class_obj, buffer):
     """
     Provide basic 'lightbox' effect for image
+    :param buffer:
     :param class_obj:
     :param index:
     :param image:
@@ -2022,7 +2023,7 @@ def net_util_view():
     CastAPI.netstat_process.start()
 
 
-async def pick_file() -> None:
+async def player_pick_file() -> None:
     global player
     result = await LocalFilePicker('~', multiple=False)
     ui.notify(f'Selected :  {result}')

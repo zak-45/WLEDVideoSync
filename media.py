@@ -260,6 +260,7 @@ class CASTMedia:
         fps = media.get(cv2.CAP_PROP_FPS)
 
         logger.info(f"Playing media {t_viinput} of length {length} at {fps} FPS")
+        logger.info(f"Stopcast value : {self.stopcast}")
 
         # detect if we want specific frame index: only for non-live video
         if self.frame_index != 0 and length != -1:
