@@ -31,6 +31,7 @@ from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
 from uvicorn import Config, Server
+from nicegui import native
 
 import cfg_load as cfg
 from str2bool import str2bool
@@ -75,7 +76,14 @@ server_ip = server_config['server_ip']
 if not Utils.validate_ip_address(server_ip):
     print(f'Bad server IP: {server_ip}')
     sys.exit(1)
-server_port = int(server_config['server_port'])
+
+server_port = server_config['server_port']
+
+if server_port == 'auto':
+    server_port = native.find_open_port()
+else:
+    server_port = int(server_config['server_port'])
+
 if server_port not in range(1, 65536):
     print(f'Bad server Port: {server_port}')
     sys.exit(2)
@@ -163,7 +171,7 @@ def run_webview(window_name):
     if window_name == 'Main':
         # Main window : splash screen
         main_window = webview.create_window(title=f'WLEDVideoSync {server_port}',
-                                            url=f'http://127.0.0.1:{server_port}/WLEDVideoSync',
+                                            url=f'http://{server_ip}:{server_port}/WLEDVideoSync',
                                             width=1180,
                                             height=720)
 

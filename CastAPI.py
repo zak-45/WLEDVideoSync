@@ -98,15 +98,6 @@ server_config = cast_config.get('server')
 app_config = cast_config.get('app')
 color_config = cast_config.get('colors')
 
-# Validate network config
-server_ip = server_config['server_ip']
-if not Utils.validate_ip_address(server_ip):
-    print(f'Bad server IP: {server_ip}')
-    sys.exit(1)
-server_port = int(server_config['server_port'])
-if server_port not in range(1, 65536):
-    print(f'Bad server Port: {server_port}')
-    sys.exit(2)
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
@@ -1361,9 +1352,9 @@ def splash_page():
     """
     ui.dark_mode(True)
     ui.image('assets/intro.gif').classes('self-center').style('width: 50%')
-    ui.button('MAIN INTERFACE', on_click=lambda: ui.navigate.to(f'http://{server_ip}:{server_port}/')) \
+    ui.button('MAIN INTERFACE', on_click=lambda: ui.navigate.to(f'/')) \
         .classes('self-center')
-    ui.button('API', on_click=lambda: ui.navigate.to(f'http://{server_ip}:{server_port}/docs')) \
+    ui.button('API', on_click=lambda: ui.navigate.to(f'/docs')) \
         .classes('self-center')
 
 
@@ -2088,7 +2079,5 @@ app.add_static_files('/log', 'log')
 ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',
        show=False,
-       host=server_ip,
-       port=server_port,
        reconnect_timeout=int(server_config['reconnect_timeout']),
        reload=False)
