@@ -26,7 +26,6 @@ import base64
 
 import time
 import shelve
-import dbm.dumb
 import os
 
 import psutil

@@ -80,6 +80,7 @@ jobs:
             zeroconf._utils.ipaddress
             zeroconf._handlers.answers
             pygments.formatters.html
+            dbm.dumb
           include-data-dir: |
             log=log
             assets=assets

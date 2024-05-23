@@ -37,7 +37,6 @@ import cfg_load as cfg
 from str2bool import str2bool
 
 import shelve
-import dbm.dumb
 
 # read config
 logging.config.fileConfig('config/logging.ini')
