@@ -60,6 +60,8 @@ class CASTDesktop:
     t_todo_event = threading.Event()  # thread listen event for task to do
     t_desktop_lock = threading.Lock()  # define lock for to do
 
+    server_port = Utils.get_server_port()
+
     def __init__(self):
         self.rate: int = 25
         self.stopcast: bool = True
@@ -119,8 +121,6 @@ class CASTDesktop:
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
         t_cast_frame_buffer = []
-
-        server_port = Utils.get_server_port()
 
         frame_count = 0
 
@@ -410,7 +410,7 @@ class CASTDesktop:
                                             logger.debug("we have put on the queue")
 
                                         elif "close_preview" in action:
-                                            window_name = (f"{server_port}-Desktop Preview input: " +
+                                            window_name = (f"{CASTDesktop.server_port}-Desktop Preview input: " +
                                                            str(t_viinput) +
                                                            str(t_name))
                                             win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
@@ -476,7 +476,12 @@ class CASTDesktop:
 
                             # preview on fixed size window
                             if t_preview:
-                                t_preview = self.preview_window(frame, server_port, t_viinput, t_name, t_preview, grid=True)
+                                t_preview = self.preview_window(frame,
+                                                                CASTDesktop.server_port,
+                                                                t_viinput,
+                                                                t_name,
+                                                                t_preview,
+                                                                grid=True)
 
                         else:
 
@@ -495,7 +500,12 @@ class CASTDesktop:
 
                             # preview on fixed size window
                             if t_preview:
-                                t_preview = self.preview_window(frame, server_port, t_viinput, t_name, t_preview, grid=False)
+                                t_preview = self.preview_window(frame,
+                                                                CASTDesktop.server_port,
+                                                                t_viinput,
+                                                                t_name,
+                                                                t_preview,
+                                                                grid=False)
 
             except Exception as error:
                 logger.error(traceback.format_exc())
@@ -514,7 +524,7 @@ class CASTDesktop:
                     logger.info('Stop window preview if any')
                     time.sleep(1)
                     # close preview window if any
-                    window_name = f"{server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
+                    window_name = f"{CASTDesktop.server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
                     win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                     if not win == 0:
                         cv2.destroyWindow(window_name)
