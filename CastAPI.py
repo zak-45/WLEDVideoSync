@@ -35,6 +35,7 @@ import os
 import socket
 import json
 import cv2
+import configparser
 
 import queue
 
@@ -871,6 +872,12 @@ def main_page():
                             ui.checkbox('') \
                                 .bind_value(Media, 'preview_top', forward=lambda value: int(value)) \
                                 .tooltip('Preview always on TOP').classes('w-10')
+
+                # presets
+                with ui.row().classes('self-center'):
+                    manage_presets('Desktop')
+                    manage_presets('Media')
+
                 # refreshable
                 with ui.expansion('Stats', icon='query_stats').classes('self-center w-full'):
                     system_stats()
@@ -1500,7 +1507,63 @@ helpers
 """
 
 
+def manage_presets(class_name):
+    """ Manage presets"""
+    ui.button('save preset', on_click=lambda: save_preset(class_name)).classes('w-20')
+    ui.button('load preset', on_click=lambda: load_preset(class_name)).classes('w-20')
+
+
+async def save_preset(class_name):
+    """ save preset to ini file """
+
+    def save_file(f_name):
+        f_name = './config/presets/' + f_name + '.ini'
+        class_obj = globals()[class_name]
+        preset = configparser.ConfigParser()
+
+        preset['DEFAULT']['balance_r'] = str(class_obj.balance_r)
+        preset['DEFAULT']['balance_g'] = str(class_obj.balance_g)
+        preset['DEFAULT']['balance_b'] = str(class_obj.balance_b)
+        preset['DEFAULT']['scale_width'] = str(class_obj.scale_width)
+        preset['DEFAULT']['scale_height'] = str(class_obj.scale_height)
+        preset['DEFAULT']['flip'] = str(class_obj.flip)
+        preset['DEFAULT']['flip_vh'] = str(class_obj.flip_vh)
+        preset['DEFAULT']['saturation'] = str(class_obj.saturation)
+        preset['DEFAULT']['brightness'] = str(class_obj.brightness)
+        preset['DEFAULT']['contrast'] = str(class_obj.contrast)
+        preset['DEFAULT']['sharpen'] = str(class_obj.sharpen)
+
+        with open(f_name, 'w') as configfile:  # save
+            preset.write(configfile)
+
+        dialog.close()
+        ui.notification(f'Preset saved for {class_name} as {f_name}')
+
+    with ui.dialog() as dialog:
+        dialog.open()
+        with ui.card():
+            file_name = ui.input('Enter name', placeholder='preset name')
+            with ui.row():
+                ui.button('OK', on_click=lambda: save_file(file_name.value))
+                ui.button('Cancel', on_click=dialog.close)
+
+
+async def load_preset(class_name):
+    """ load a preset """
+    with ui.dialog() as dialog:
+        dialog.open()
+        with ui.card():
+            ui.label(class_name)
+            ui.button('Cancel', on_click=dialog.close)
+            result = await LocalFilePicker('./config/presets', multiple=False)
+            preset_config = cfg.load(result[0])
+            ui.label(f'Preset to load: {preset_config}')
+            with ui.row():
+                ui.button('OK')
+
+
 def player_cast(source):
+    """ Cast from video player only for Media"""
     Media.viinput = source
     Media.cast(shared_buffer=t_data_buffer)
 
