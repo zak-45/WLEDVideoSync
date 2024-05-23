@@ -35,8 +35,10 @@ from threading import current_thread
 import asyncio
 import concurrent.futures
 
+
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, LogElementHandler, ImageUtils
+
 
 # read config
 logging.config.fileConfig('config/logging.ini')
@@ -117,6 +119,8 @@ class CASTDesktop:
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
         t_cast_frame_buffer = []
+
+        server_port = Utils.get_server_port()
 
         frame_count = 0
 
@@ -406,7 +410,9 @@ class CASTDesktop:
                                             logger.debug("we have put on the queue")
 
                                         elif "close_preview" in action:
-                                            window_name = "Desktop Preview input: " + str(t_viinput) + str(t_name)
+                                            window_name = (f"{server_port}-Desktop Preview input: " +
+                                                           str(t_viinput) +
+                                                           str(t_name))
                                             win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                                             if not win == 0:
                                                 cv2.destroyWindow(window_name)
@@ -470,7 +476,7 @@ class CASTDesktop:
 
                             # preview on fixed size window
                             if t_preview:
-                                t_preview = self.preview_window(frame, t_viinput, t_name, t_preview, grid=True)
+                                t_preview = self.preview_window(frame, server_port, t_viinput, t_name, t_preview, grid=True)
 
                         else:
 
@@ -489,7 +495,7 @@ class CASTDesktop:
 
                             # preview on fixed size window
                             if t_preview:
-                                t_preview = self.preview_window(frame, t_viinput, t_name, t_preview, grid=False)
+                                t_preview = self.preview_window(frame, server_port, t_viinput, t_name, t_preview, grid=False)
 
             except Exception as error:
                 logger.error(traceback.format_exc())
@@ -508,10 +514,10 @@ class CASTDesktop:
                     logger.info('Stop window preview if any')
                     time.sleep(1)
                     # close preview window if any
-                    window_name = str(t_viinput) + str(t_name)
-                    win = cv2.getWindowProperty("Desktop Preview input: " + window_name, cv2.WND_PROP_VISIBLE)
+                    window_name = f"{server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
+                    win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                     if not win == 0:
-                        cv2.destroyWindow("Desktop Preview input: " + window_name)
+                        cv2.destroyWindow(window_name)
 
         else:
 
@@ -533,7 +539,7 @@ class CASTDesktop:
         logger.info('Cast closed')
         time.sleep(2)
 
-    def preview_window(self, frame, t_viinput, t_name, t_preview, grid=False):
+    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, grid=False):
 
         frame = cv2.resize(frame, (self.preview_w, self.preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -565,7 +571,7 @@ class CASTDesktop:
                                 cv2.LINE_AA)
 
         # Displaying the image on the preview Window
-        window_name = "Desktop Preview input: " + str(t_viinput) + str(t_name)
+        window_name = f"{server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
         if grid:
             frame = ImageUtils.grid_on_image(frame, self.cast_x,  self.cast_y)
         cv2.imshow(window_name, frame)

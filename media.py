@@ -96,7 +96,7 @@ class CASTMedia:
     Cast Thread
     """
 
-    def t_media_cast(self, shared_buffer=None):
+    def t_media_cast(self, server_port=0, shared_buffer=None):
         """
             Main cast logic
             Cast media : video file, image file or video capture device
@@ -117,11 +117,13 @@ class CASTMedia:
         t_cast_y = self.cast_y
         t_cast_frame_buffer = []
 
+        server_port = Utils.get_server_port()
+
         frame_count = 0
         delay = 1.0 / self.rate  # Calculate the time interval between frames
 
         t_todo_stop = False
-
+        
         """
         Cast devices
         """
@@ -374,7 +376,7 @@ class CASTMedia:
                                 logger.debug('we have put')
 
                             elif 'close_preview' in action:
-                                window_name = "Media Preview input: " + str(t_viinput) + str(t_name)
+                                window_name = f"{server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
                                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                                 if not win == 0:
                                     cv2.destroyWindow(window_name)
@@ -438,7 +440,7 @@ class CASTMedia:
                     break
 
                 if t_preview:
-                    t_preview = self.preview_window(frame, t_viinput, t_name, t_preview, grid=True)
+                    t_preview = self.preview_window(frame, server_port, t_viinput, t_name, t_preview, grid=True)
 
             else:
 
@@ -460,7 +462,7 @@ class CASTMedia:
 
                 # preview on fixed size window
                 if t_preview:
-                    t_preview = self.preview_window(frame, t_viinput, t_name, t_preview)
+                    t_preview = self.preview_window(frame, server_port, t_viinput, t_name, t_preview)
 
                 """
                     stop for non-live video (length not -1)
@@ -495,10 +497,10 @@ class CASTMedia:
         if CASTMedia.count <= 2:  # try to avoid blocking when click as a bad man !!!
             logger.info('Stop window preview if any')
             time.sleep(1)
-            window_name = str(t_viinput) + str(t_name)
-            win = cv2.getWindowProperty("Media Preview input: " + window_name, cv2.WND_PROP_VISIBLE)
+            window_name = f"{server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
+            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
             if not win == 0:
-                cv2.destroyWindow("Media Preview input: " + window_name)
+                cv2.destroyWindow(window_name)
 
         media.release()
 
@@ -513,7 +515,7 @@ class CASTMedia:
     """
     preview window
     """
-    def preview_window(self, frame, t_viinput, t_name, t_preview, grid=False):
+    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, grid=False):
 
         frame = cv2.resize(frame, (self.preview_w, self.preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -545,7 +547,7 @@ class CASTMedia:
                                 cv2.LINE_AA)
 
         # Displaying the image
-        window_name = "Media Preview input: " + str(t_viinput) + str(t_name)
+        window_name = f"{server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
         if grid:
             frame = ImageUtils.grid_on_image(frame, self.cast_x, self.cast_y)
         cv2.imshow(window_name, frame)
@@ -559,13 +561,14 @@ class CASTMedia:
 
         return t_preview
 
-    def cast(self, shared_buffer=None):
+    def cast(self, server_port=0, shared_buffer=None):
         """
             this will run the cast into another thread
             avoid to block the main one
+            server_port = port on which run calling main process
             shared_buffer if used need to be a queue
         """
-        thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
+        thread = threading.Thread(target=self.t_media_cast, args=(server_port, shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         logger.info('Child Media cast running')

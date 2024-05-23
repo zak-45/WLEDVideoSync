@@ -19,6 +19,7 @@ import traceback
 import multiprocessing
 from multiprocessing import active_children
 import sys
+import os
 import time
 import webbrowser
 
@@ -35,6 +36,8 @@ from nicegui import native
 
 import cfg_load as cfg
 from str2bool import str2bool
+
+import shelve
 
 # read config
 logging.config.fileConfig('config/logging.ini')
@@ -90,6 +93,7 @@ if server_port not in range(1, 65536):
 
 # systray
 put_on_systray = str2bool(app_config['put_on_systray'])
+
 
 """
 Uvicorn class    
@@ -228,7 +232,7 @@ def go_to_home():
     :return:
     """
     if main_window is not None:
-        main_window.load_url(f'http://127.0.0.1:{server_port}/WLEDVideoSync')
+        main_window.load_url(f'http://{server_ip}:{server_port}/WLEDVideoSync')
 
 
 def dialog_stop_server(window):
@@ -454,6 +458,10 @@ if __name__ == '__main__':
     """
     START
     """
+    pid = os.getpid()
+    tmp_file = f"./tmp/{pid}_file"
+    outfile = shelve.open(tmp_file)
+    outfile["server_port"] = server_port
 
     # start server
     instance.start()
@@ -475,7 +483,16 @@ if __name__ == '__main__':
     STOP
     """
     # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
-    logger.info('stop app')
+    outfile.close()
+    logger.info('Remove tmp files')
+    try:
+        os.remove(tmp_file+".dat")
+        os.remove(tmp_file + ".bak")
+        os.remove(tmp_file + ".dir")
+    except:
+        pass
+
+    logger.info('Stop app')
     # stop initial server
     instance.stop()
     logger.info('Server is stopped')

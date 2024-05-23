@@ -25,6 +25,8 @@ import io
 import base64
 
 import time
+import shelve
+import os
 
 import psutil
 import matplotlib.pyplot as plt
@@ -36,7 +38,10 @@ import ipaddress
 
 from pathlib import Path
 from typing import Optional
+
 from nicegui import events, ui
+from nicegui.server import Server
+
 
 # read config
 logging.config.fileConfig('config/logging.ini')
@@ -54,6 +59,23 @@ class CASTUtils:
 
     def __init__(self):
         pass
+
+    @staticmethod
+    def get_server_port():
+        """ Retrieve server port number """
+        try:
+            # if nicegui launch server
+            server_port = Server.instance.config.port
+        except:
+            # server run in another process (e.g. Uvicorn)
+            p_pid = os.getppid()
+            tmp_file = f"./tmp/{p_pid}_file"
+            if os.path.isfile(tmp_file + ".dat"):
+                infile = shelve.open(tmp_file)
+                server_port = infile["server_port"]
+            else:
+                server_port = 0
+        return server_port
 
     @staticmethod
     async def get_wled_matrix_dimensions(host, timeout: int = 2):

@@ -33,8 +33,6 @@ import time
 import sys
 import socket
 import json
-import os
-
 import cv2
 
 import queue
@@ -62,6 +60,7 @@ from starlette.concurrency import run_in_threadpool
 
 from nicegui import app, ui
 from nicegui.events import ValueChangeEventArguments
+
 
 """
 Main test for platform
@@ -97,7 +96,6 @@ cast_config = cfg.load('config/WLEDVideoSync.ini')
 server_config = cast_config.get('server')
 app_config = cast_config.get('app')
 color_config = cast_config.get('colors')
-
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
