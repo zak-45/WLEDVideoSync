@@ -540,6 +540,35 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
             return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 
+@app.get("/api/config/presets/{file_name}/{class_name}", tags=["presets"])
+async def apply_preset_api(class_name: str = Path(description=f'Class name, should be in: {class_to_test}'),
+                           file_name: str = None):
+    """
+    Apply preset to Class name from saved one
+    :param class_name:
+    :param file_name: preset name
+    :return:
+    """
+    if class_name not in class_to_test:
+        raise HTTPException(status_code=400,
+                            detail=f"Class name: {class_name} not in {class_to_test}")
+    try:
+        class_obj = globals()[class_name]
+    except KeyError:
+        raise HTTPException(status_code=400,
+                            detail=f"Invalid class name: {class_name}")
+    try:
+        result = await load_preset(class_name=class_name, interactive=False, file_name=file_name)
+        if result is False:
+            raise HTTPException(status_code=400,
+                                detail=f"Apply preset return value : {result}")
+    except Exception as error:
+        raise HTTPException(status_code=400,
+                            detail=f"Not able to apply preset : {error}")
+
+    return {"apply_preset": True}
+
+
 """
 FastAPI WebSockets
 """
@@ -1518,48 +1547,101 @@ async def save_preset(class_name):
 
     def save_file(f_name):
         f_name = './config/presets/' + f_name + '.ini'
-        class_obj = globals()[class_name]
-        preset = configparser.ConfigParser()
 
-        preset['DEFAULT']['balance_r'] = str(class_obj.balance_r)
-        preset['DEFAULT']['balance_g'] = str(class_obj.balance_g)
-        preset['DEFAULT']['balance_b'] = str(class_obj.balance_b)
-        preset['DEFAULT']['scale_width'] = str(class_obj.scale_width)
-        preset['DEFAULT']['scale_height'] = str(class_obj.scale_height)
-        preset['DEFAULT']['flip'] = str(class_obj.flip)
-        preset['DEFAULT']['flip_vh'] = str(class_obj.flip_vh)
-        preset['DEFAULT']['saturation'] = str(class_obj.saturation)
-        preset['DEFAULT']['brightness'] = str(class_obj.brightness)
-        preset['DEFAULT']['contrast'] = str(class_obj.contrast)
-        preset['DEFAULT']['sharpen'] = str(class_obj.sharpen)
+        if os.path.isfile(f_name):
 
-        with open(f_name, 'w') as configfile:  # save
-            preset.write(configfile)
+            ui.notification(f'Preset {f_name} already exist ', type='warning')
 
-        dialog.close()
-        ui.notification(f'Preset saved for {class_name} as {f_name}')
+        elif f_name == ' ' or f_name is None:
+
+            ui.notification(f'Preset name could not be blank :  {f_name}', type='negative')
+
+        else:
+
+            class_obj = globals()[class_name]
+            preset = configparser.ConfigParser()
+
+            preset['RGB'] = {}
+            preset['RGB']['balance_r'] = str(class_obj.balance_r)
+            preset['RGB']['balance_g'] = str(class_obj.balance_g)
+            preset['RGB']['balance_b'] = str(class_obj.balance_b)
+            preset['SCALE'] = {}
+            preset['SCALE']['scale_width'] = str(class_obj.scale_width)
+            preset['SCALE']['scale_height'] = str(class_obj.scale_height)
+            preset['FLIP'] = {}
+            preset['FLIP']['flip'] = str(class_obj.flip)
+            preset['FLIP']['flip_vh'] = str(class_obj.flip_vh)
+            preset['FILTERS'] = {}
+            preset['FILTERS']['saturation'] = str(class_obj.saturation)
+            preset['FILTERS']['brightness'] = str(class_obj.brightness)
+            preset['FILTERS']['contrast'] = str(class_obj.contrast)
+            preset['FILTERS']['sharpen'] = str(class_obj.sharpen)
+
+            with open(f_name, 'w') as configfile:  # save
+                preset.write(configfile)
+
+            dialog.close()
+            ui.notification(f'Preset saved for {class_name} as {f_name}')
 
     with ui.dialog() as dialog:
         dialog.open()
         with ui.card():
-            file_name = ui.input('Enter name', placeholder='preset name')
+            ui.label(class_name).classes('self-center')
+            ui.separator()
+            file_name = ui.input('Enter name',
+                                 placeholder='preset name',
+                                 validation=lambda value: 'Too short' if len(value) < 2 else None)
             with ui.row():
                 ui.button('OK', on_click=lambda: save_file(file_name.value))
                 ui.button('Cancel', on_click=dialog.close)
 
 
-async def load_preset(class_name):
+async def load_preset(class_name, interactive=True, file_name=None):
     """ load a preset """
-    with ui.dialog() as dialog:
-        dialog.open()
-        with ui.card():
-            ui.label(class_name)
-            ui.button('Cancel', on_click=dialog.close)
-            result = await LocalFilePicker('./config/presets', multiple=False)
-            preset_config = cfg.load(result[0])
-            ui.label(f'Preset to load: {preset_config}')
-            with ui.row():
-                ui.button('OK')
+
+    if class_name not in ['Desktop', 'Media']:
+        return False
+
+    def apply_preset():
+        class_obj = globals()[class_name]
+        class_obj.balance_r = int(preset_rgb['balance_r'])
+        class_obj.balance_g = int(preset_rgb['balance_g'])
+        class_obj.balance_b = int(preset_rgb['balance_b'])
+        class_obj.flip = str2bool(preset_flip['flip'])
+        class_obj.flip_vh = int(preset_flip['flip_vh'])
+        class_obj.scale_width = int(preset_scale['scale_width'])
+        class_obj.scale_height = int(preset_scale['scale_height'])
+        class_obj.saturation = int(preset_filters['saturation'])
+        class_obj.brightness = int(preset_filters['brightness'])
+        class_obj.contrast = int(preset_filters['contrast'])
+        class_obj.sharpen = int(preset_filters['sharpen'])
+
+    if interactive:
+        with ui.dialog() as dialog:
+            dialog.open()
+            with ui.card().classes('self-center'):
+                ui.label(class_name).classes('self-center')
+                ui.separator()
+                ui.button('EXIT', on_click=dialog.close)
+                result = await LocalFilePicker('config/presets', multiple=False)
+                if result is not None:
+                    preset_config = cfg.load(result[0])
+                    preset_rgb = preset_config.get('RGB')
+                    preset_flip = preset_config.get('FLIP')
+                    preset_scale = preset_config.get('SCALE')
+                    preset_filters = preset_config.get('FILTERS')
+                    with ui.row():
+                        ui.button('OK', on_click=apply_preset)
+                else:
+                    preset_config = 'None'
+                ui.label(f'Preset to load: {preset_config}')
+    else:
+        preset_config = cfg.load('config/presets/' + file_name)
+        preset_rgb = preset_config.get('RGB')
+        preset_flip = preset_config.get('FLIP')
+        preset_scale = preset_config.get('SCALE')
+        preset_filters = preset_config.get('FILTERS')
+        apply_preset()
 
 
 def player_cast(source):
@@ -2144,6 +2226,8 @@ app.openapi = custom_openapi
 app.add_static_files('/assets', 'assets')
 app.add_static_files('/media', 'media')
 app.add_static_files('/log', 'log')
+app.add_static_files('/config', 'config')
+app.add_static_files('/tmp', 'tmp')
 
 ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',
