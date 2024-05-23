@@ -82,6 +82,7 @@ jobs:
             pygments.formatters.html
             dbm.dumb
           include-data-dir: |
+            tmp=tmp
             log=log
             assets=assets
             config=config
