@@ -62,7 +62,6 @@ from starlette.concurrency import run_in_threadpool
 from nicegui import app, ui
 from nicegui.events import ValueChangeEventArguments
 
-
 """
 Main test for platform
     MacOS need specific case
@@ -1043,7 +1042,7 @@ def main_page_desktop():
     ]
 
     exp_param = ui.expansion('Parameters', icon='settings', value=True)
-    with exp_param.classes('w-full'):
+    with exp_param.classes('w-full bg-sky-800'):
 
         cast_icon(Desktop)
 
@@ -1065,7 +1064,7 @@ def main_page_desktop():
                 ui.label(str(Desktop.retry_number))
 
     exp_edit_param = ui.expansion('Edit', icon='edit', on_value_change=lambda: exp_param.close())
-    with exp_edit_param.classes('w-full'):
+    with exp_edit_param.classes('w-full bg-sky-800'):
         with ui.row():
             ui.icon('restore_page', color='blue', size='sm') \
                 .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
@@ -1135,8 +1134,8 @@ def main_page_desktop():
                     generate_carousel(Desktop)
 
         else:
-
-            ui.label('No image to show...')
+            with ui.card():
+                ui.label('No image to show...')
 
     with ui.expansion('MULTICAST', icon='grid_view', on_value_change=lambda: exp_edit_param.close()) \
             .classes('w-full'):
@@ -1157,7 +1156,8 @@ def main_page_desktop():
                         logger.error(traceback.format_exc())
                         logger.error('An exception occurred: {}'.format(error))
             else:
-                ui.label('No frame captured yet...')
+                with ui.card():
+                    ui.label('No frame captured yet...').style('background: red')
         else:
             with ui.card():
                 ui.label('Multicast not set').style('text-align:center; font-size: 150%; font-weight: 300')
@@ -1219,7 +1219,7 @@ def main_page_media():
         {'id': 0, 'multicast': Media.multicast, 'matrix-x': Media.cast_x, 'matrix-y': Media.cast_y}
     ]
     media_exp_param = ui.expansion('Parameters', icon='settings', value=True)
-    with media_exp_param.classes('w-full'):
+    with media_exp_param.classes('w-full bg-sky-800'):
 
         cast_icon(Media)
 
@@ -1240,7 +1240,7 @@ def main_page_media():
                 ui.label(str(Media.retry_number))
 
     media_exp_edit_param = ui.expansion('Edit', icon='edit', on_value_change=lambda: media_exp_param.close())
-    with media_exp_edit_param.classes('w-full'):
+    with media_exp_edit_param.classes('w-full bg-sky-800'):
         with ui.row():
             ui.icon('restore_page', color='blue', size='sm') \
                 .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
@@ -1306,8 +1306,8 @@ def main_page_media():
                     generate_carousel(Media)
 
         else:
-
-            ui.label('No image to show...')
+            with ui.card():
+                ui.label('No image to show...')
 
     with ui.expansion('MULTICAST', icon='grid_view', on_value_change=lambda: media_exp_edit_param.close()) \
             .classes('w-full'):
@@ -1328,7 +1328,8 @@ def main_page_media():
                         logger.error(traceback.format_exc())
                         logger.error('An exception occurred: {}'.format(error))
             else:
-                ui.label('No frame captured yet...')
+                with ui.card():
+                    ui.label('No frame captured yet...').style('background: red')
         else:
             with ui.card():
                 ui.label('Multicast not set').style('text-align:center; font-size: 150%; font-weight: 300')
@@ -2054,6 +2055,7 @@ def custom_openapi():
 def apply_colors():
     """
     Layout Colors come from config file
+    bg image can be customized
     :return:
     """
     ui.colors(primary=color_config['primary'],
@@ -2065,6 +2067,11 @@ def apply_colors():
               info=color_config['info'],
               warning=color_config['warning']
               )
+
+    ui.query('body').style(f'background-image: url({color_config["bg-image"]}); '
+                           'background-size: cover;'
+                           'background-repeat: no-repeat;'
+                           'background-position: center;')
 
 
 """

@@ -63,18 +63,17 @@ class CASTUtils:
     @staticmethod
     def get_server_port():
         """ Retrieve server port number """
+        server_port = 0
         try:
-            # if nicegui launch server
-            server_port = Server.instance.config.port
-        except:
             # server run in another process (e.g. Uvicorn)
             p_pid = os.getppid()
             tmp_file = f"./tmp/{p_pid}_file"
             if os.path.isfile(tmp_file + ".dat"):
                 infile = shelve.open(tmp_file)
                 server_port = infile["server_port"]
-            else:
-                server_port = 0
+        except:
+            server_port = 99
+
         return server_port
 
     @staticmethod
