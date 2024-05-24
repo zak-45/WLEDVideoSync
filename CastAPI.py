@@ -2228,6 +2228,7 @@ app.add_static_files('/media', 'media')
 app.add_static_files('/log', 'log')
 app.add_static_files('/config', 'config')
 app.add_static_files('/tmp', 'tmp')
+app.add_static_files('/xtra', 'xtra')
 
 ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',
