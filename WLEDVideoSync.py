@@ -457,6 +457,8 @@ if __name__ == '__main__':
     """
     START
     """
+
+    # store server port info for others processes
     pid = os.getpid()
     tmp_file = f"./tmp/{pid}_file"
     outfile = shelve.open(tmp_file)
@@ -481,6 +483,7 @@ if __name__ == '__main__':
     """
     STOP
     """
+
     # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     outfile.close()
     logger.info('Remove tmp files')
