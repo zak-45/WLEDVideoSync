@@ -40,7 +40,6 @@ from pathlib import Path
 from typing import Optional
 
 from nicegui import events, ui
-from nicegui.server import Server
 
 
 # read config
@@ -65,7 +64,7 @@ class CASTUtils:
         """ Retrieve server port number """
         server_port = 0
         try:
-            # server run in another process (e.g. Uvicorn)
+            # server running in another process (e.g. Uvicorn)
             p_pid = os.getppid()
             tmp_file = f"./tmp/{p_pid}_file"
             if os.path.isfile(tmp_file + ".dat"):
@@ -411,7 +410,7 @@ class CASTUtils:
         return re.search(pattern, input_string) is not None
 
     @staticmethod
-    def check_ip_alive(ip_address, port=80, timeout=5):
+    def check_ip_alive(ip_address, port=80, timeout=2):
         """
         efficiently check if an IP address is alive or not by testing connection on specified port
          e.g. WLED allow port 80

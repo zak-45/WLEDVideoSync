@@ -488,7 +488,7 @@ if __name__ == '__main__':
     outfile.close()
     logger.info('Remove tmp files')
     try:
-        os.remove(tmp_file+".dat")
+        os.remove(tmp_file + ".dat")
         os.remove(tmp_file + ".bak")
         os.remove(tmp_file + ".dir")
     except:
