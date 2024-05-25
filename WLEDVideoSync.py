@@ -16,6 +16,7 @@ import logging
 import logging.config
 
 import multiprocessing
+import platform
 from multiprocessing import active_children
 import sys
 import os
@@ -92,7 +93,6 @@ if server_port not in range(1, 65536):
 
 # systray
 put_on_systray = str2bool(app_config['put_on_systray'])
-
 
 """
 Uvicorn class    
@@ -408,29 +408,29 @@ if __name__ == '__main__':
     show_window = str2bool((app_config['show_window']))
 
     """
-    Pystray 
+    Pystray only for Windows 
     """
+    if sys.platform == 'win32':
+        # pystray definition
+        pystray_image = Image.open('favicon.ico')
 
-    # pystray definition
-    pystray_image = Image.open('favicon.ico')
+        pystray_menu = Menu(
+            MenuItem('Open', on_open),
+            MenuItem('Open in Browser', on_open_bro),
+            Menu.SEPARATOR,
+            MenuItem('Stop server', on_stop_srv),
+            MenuItem('ReStart server', on_restart_srv),
+            Menu.SEPARATOR,
+            MenuItem('BLACKOUT', on_blackout),
+            Menu.SEPARATOR,
+            MenuItem('Cast details', on_details),
+            MenuItem('Info', on_info),
+            MenuItem('Net Info', on_net),
+            Menu.SEPARATOR,
+            MenuItem(f'Exit - server :  {server_port}', on_exit)
+        )
 
-    pystray_menu = Menu(
-        MenuItem('Open', on_open),
-        MenuItem('Open in Browser', on_open_bro),
-        Menu.SEPARATOR,
-        MenuItem('Stop server', on_stop_srv),
-        MenuItem('ReStart server', on_restart_srv),
-        Menu.SEPARATOR,
-        MenuItem('BLACKOUT', on_blackout),
-        Menu.SEPARATOR,
-        MenuItem('Cast details', on_details),
-        MenuItem('Info', on_info),
-        MenuItem('Net Info', on_net),
-        Menu.SEPARATOR,
-        MenuItem(f'Exit - server :  {server_port}', on_exit)
-    )
-
-    WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
+        WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
 
     """
     Uvicorn
@@ -468,17 +468,22 @@ if __name__ == '__main__':
     instance.start()
     logger.info('WLEDVideoSync Started...Server run in separate process')
 
-    # start pywebview process
-    # this will start native OS window and block main thread
-    if show_window:
-        logger.info('Starting webview loop...')
-        start_webview_process()
+    if sys.platform == 'win32':
+        # start pywebview process
+        # this will start native OS window and block main thread
+        if show_window:
+            logger.info('Starting webview loop...')
+            start_webview_process()
 
-    # start pystray Icon
-    # main infinite loop on systray if requested
-    if put_on_systray:
-        logger.info('Starting systray loop...')
-        WLEDVideoSync_icon.run()
+        # start pystray Icon
+        # main infinite loop on systray if requested
+        if put_on_systray:
+            logger.info('Starting systray loop...')
+            WLEDVideoSync_icon.run()
+
+    else:
+
+        import CastAPI
 
     """
     STOP
@@ -487,12 +492,12 @@ if __name__ == '__main__':
     # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     outfile.close()
     logger.info('Remove tmp files')
-    try:
+    if os.path.isfile(tmp_file + ".dat"):
         os.remove(tmp_file + ".dat")
+    if os.path.isfile(tmp_file + ".bak"):
         os.remove(tmp_file + ".bak")
+    if os.path.isfile(tmp_file + ".dir"):
         os.remove(tmp_file + ".dir")
-    except:
-        pass
 
     logger.info('Stop app')
     # stop initial server
