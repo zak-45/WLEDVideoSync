@@ -13,8 +13,18 @@
 # ddp data are sent by using queue feature to avoid any network problem which cause latency
 # A preview can be seen via 'cv2' : pixelart look
 #
+# in case of camera status() timeout in linux
+# from cv2 import cv2
+#
+# camera = cv2.VideoCapture(0)
+# camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+# status, image = camera.read()
+#
+# camera.release()
+
 import logging
 import logging.config
+import sys
 import traceback
 
 import cv2
@@ -93,6 +103,7 @@ class CASTMedia:
         self.cast_devices: list = []
         self.cast_frame_buffer = []
         self.ddp_multi_names = []
+        self.force_mjpeg = False
 
     """
     Cast Thread
@@ -258,6 +269,8 @@ class CASTMedia:
             return False
 
         media.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        if sys.platform == 'linux' and self.force_mjpeg:
+            media.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         length = int(media.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = media.get(cv2.CAP_PROP_FPS)
 
@@ -501,7 +514,7 @@ class CASTMedia:
         CASTMedia.cast_names.remove(t_name)
         CASTMedia.t_exit_event.clear()
 
-        if CASTMedia.count <= 2:  # try to avoid blocking when click as a bad man !!!
+        if CASTMedia.count <= 2 and t_preview is True:  # try to avoid blocking when click as a bad man !!!
             logger.info('Stop window preview if any')
             time.sleep(1)
             window_name = f"{CASTMedia.server_port}-Media Preview input: " + str(t_viinput) + str(t_name)

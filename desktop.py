@@ -520,7 +520,7 @@ class CASTDesktop:
                 # close av output if any
                 if output_container:
                     output_container.close()
-                if CASTDesktop.count <= 2:  # try to avoid to block if more casts thread and preview True
+                if CASTDesktop.count <= 2 and t_preview is True:  # try to avoid block if  casts thread and preview True
                     logger.info('Stop window preview if any')
                     time.sleep(1)
                     # close preview window if any
