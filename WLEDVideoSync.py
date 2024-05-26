@@ -29,7 +29,9 @@ import webview
 import webview.menu as wm
 
 from PIL import Image
-from pystray import Icon, Menu, MenuItem
+
+if sys.platform == 'win32':
+    from pystray import Icon, Menu, MenuItem
 
 from uvicorn import Config, Server
 from nicegui import native
