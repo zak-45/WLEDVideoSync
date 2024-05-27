@@ -45,6 +45,13 @@ from str2bool import str2bool
 
 import shelve
 
+"""
+When this env var exist, this mean run from the one-file executable.
+Load of the config is not possible, folder config should not exist.
+This avoid FileNotFoundError.
+This env not exist when run the program under WLEDVideoSync folder.
+Expected way to work.
+"""
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     logging.config.fileConfig('config/logging.ini')
@@ -410,12 +417,13 @@ if __name__ == '__main__':
     freeze_support()  # noqa
 
     # test to see if executed from compiled version
+    # instruct user to go to WLEDVideoSync folder to execute program
     if "NUITKA_ONEFILE_PARENT" in os.environ:
         print('Extracting executable to WLEDVideoSync folder')
         print('You can safely delete this file after extraction finished to save some space')
         print('-' * 50)
         print('Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file')
-        print('Thanks to use WLEDVideoSync')
+        print('Enjoy using WLEDVideoSync')
         sys.exit()
 
     """
