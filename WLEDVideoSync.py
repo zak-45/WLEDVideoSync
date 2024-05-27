@@ -405,8 +405,17 @@ MAIN Logic
 if __name__ == '__main__':
     # packaging support (compile)
     from multiprocessing import freeze_support  # noqa
-
     freeze_support()  # noqa
+
+    # test to see if executed from compiled version
+    # test to see if executed from compiled version
+    if "NUITKA_ONEFILE_PARENT" in os.environ:
+        print('Extracting executable to WLEDVideoSync folder')
+        print('You can safely delete this file after extraction finished to save some space')
+        print('-' * 50)
+        print('Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file')
+        print('Thanks to use WLEDVideoSync')
+        sys.exit()
 
     """
     Main Params
