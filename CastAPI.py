@@ -60,7 +60,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
-from nicegui import app, ui
+from nicegui import app, ui, native
 from nicegui.events import ValueChangeEventArguments
 
 """
@@ -100,6 +100,24 @@ color_config = cast_config.get('colors')
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
+
+
+#  validate network config
+server_ip = server_config['server_ip']
+if not Utils.validate_ip_address(server_ip):
+    print(f'Bad server IP: {server_ip}')
+    sys.exit(1)
+
+server_port = server_config['server_port']
+
+if server_port == 'auto':
+    server_port = native.find_open_port()
+else:
+    server_port = int(server_config['server_port'])
+
+if server_port not in range(1, 65536):
+    print(f'Bad server Port: {server_port}')
+    sys.exit(2)
 
 
 class CastAPI:
@@ -2232,6 +2250,8 @@ app.add_static_files('/xtra', 'xtra')
 
 ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',
+       host=server_ip,
+       port=server_port,
        show=False,
        reconnect_timeout=int(server_config['reconnect_timeout']),
        reload=False)

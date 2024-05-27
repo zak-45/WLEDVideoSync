@@ -14,13 +14,8 @@
 # A preview can be seen via 'cv2' : pixelart look
 #
 # in case of camera status() timeout in linux
-# from cv2 import cv2
-#
-# camera = cv2.VideoCapture(0)
 # camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-# status, image = camera.read()
 #
-# camera.release()
 
 import logging
 import logging.config
@@ -268,17 +263,23 @@ class CASTMedia:
             logger.error(f"Error: Unable to open media stream {t_viinput}.")
             return False
 
-        media.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-        if sys.platform == 'linux' and self.force_mjpeg:
-            media.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-        length = int(media.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = media.get(cv2.CAP_PROP_FPS)
+
+        # retrieve frame count, if 1 we assume image (should be no?)
+        length = int(media.get(cv2.CAP_PROP_FRAME_COUNT))
+        if length == 1:
+            media = cv2.imread(str(t_viinput))
+            frame = media
+        else:
+            media.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            if self.force_mjpeg:
+                media.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
         logger.info(f"Playing media {t_viinput} of length {length} at {fps} FPS")
         logger.info(f"Stopcast value : {self.stopcast}")
 
         # detect if we want specific frame index: only for non-live video
-        if self.frame_index != 0 and length != -1:
+        if self.frame_index != 0 and length > 1:
             logger.info(f"Take frame number {self.frame_index}")
             media.set(1, self.frame_index - 1)
 
@@ -299,10 +300,11 @@ class CASTMedia:
                 break
 
             #  read media
-            success, frame = media.read()
-            if not success:
-                logger.warning('Error to read media or reached END')
-                break
+            if length != 1:
+                success, frame = media.read()
+                if not success:
+                    logger.warning('Error to read media or reached END')
+                    break
 
             frame_count += 1
             CASTMedia.total_frame += 1

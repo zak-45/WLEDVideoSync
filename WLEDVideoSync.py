@@ -401,6 +401,7 @@ MAIN Logic
 if __name__ == '__main__':
     # packaging support (compile)
     from multiprocessing import freeze_support  # noqa
+
     freeze_support()  # noqa
 
     """
@@ -408,6 +409,12 @@ if __name__ == '__main__':
     """
 
     show_window = str2bool((app_config['show_window']))
+
+    # store server port info for others processes
+    pid = os.getpid()
+    tmp_file = f"./tmp/{pid}_file"
+    outfile = shelve.open(tmp_file)
+    outfile["server_port"] = server_port
 
     """
     Pystray only for Windows 
@@ -434,43 +441,36 @@ if __name__ == '__main__':
 
         WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
 
-    """
-    Uvicorn
-    
-        app : CastAPI.py
-        host : 0.0.0.0 for all network interfaces
-        port : Bind to a socket with this port
-        log_level :  Set the log level. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'.
-        timeout_graceful_shutdown : After this timeout, the server will start terminating requests
+        """
+        Uvicorn
         
-    """
-    # uvicorn server definition
-    config = Config(app="CastAPI:app",
-                    host=server_ip,
-                    port=server_port,
-                    workers=int(server_config['workers']),
-                    log_level=server_config['log_level'],
-                    reload=False,
-                    timeout_keep_alive=10,
-                    timeout_graceful_shutdown=1)
+            app : CastAPI.py
+            host : 0.0.0.0 for all network interfaces
+            port : Bind to a socket with this port
+            log_level :  Set the log level. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'.
+            timeout_graceful_shutdown : After this timeout, the server will start terminating requests
+            
+        """
+        # uvicorn server definition
+        config = Config(app="CastAPI:app",
+                        host=server_ip,
+                        port=server_port,
+                        workers=int(server_config['workers']),
+                        log_level=server_config['log_level'],
+                        reload=False,
+                        timeout_keep_alive=10,
+                        timeout_graceful_shutdown=1)
 
-    instance = UvicornServer(config=config)
+        instance = UvicornServer(config=config)
 
-    """
-    START
-    """
+        """
+        START
+        """
 
-    # store server port info for others processes
-    pid = os.getpid()
-    tmp_file = f"./tmp/{pid}_file"
-    outfile = shelve.open(tmp_file)
-    outfile["server_port"] = server_port
+        # start server
+        instance.start()
+        logger.info('WLEDVideoSync Started...Server run in separate process')
 
-    # start server
-    instance.start()
-    logger.info('WLEDVideoSync Started...Server run in separate process')
-
-    if sys.platform == 'win32':
         # start pywebview process
         # this will start native OS window and block main thread
         if show_window:
