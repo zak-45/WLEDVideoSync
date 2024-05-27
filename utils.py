@@ -8,7 +8,7 @@
 #          CAST utilities
 #
 # pywinctl provide a cross-platform window mgt.
-to avoid cv2 imshow freeze
+to avoid cv2 imshow freeze (linux)
 import numpy as np
 import cv2
 cv2.imshow('ffmpeg fix', np.array([1], dtype=np.uint8))
