@@ -182,6 +182,7 @@ class CASTUtils:
         devicenumber: int = 0
         typedev: str = ''
 
+        # linux
         if platform.system() == 'Linux':
             from linuxpy.video import device as linux_dev
 
@@ -195,7 +196,7 @@ class CASTUtils:
                 CASTUtils.dev_list.append((devname, typedev, devicenumber))
 
         else:
-
+            # Win / darwin / others
             for i, name in enumerate(logs):
                 if platform.system() == 'Windows':
                     if '"' in name[2] and 'Alternative' not in name[2]:
