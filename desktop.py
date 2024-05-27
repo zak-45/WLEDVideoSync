@@ -603,9 +603,7 @@ class CASTDesktop:
         cv2.imshow(window_name, frame)
         cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
         top = 0
-        if self.preview_top is False:
-            top = 0
-        elif self.preview_top is True:
+        if self.preview_top is True:
             top = 1
         cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
         if cv2.waitKey(1) & 0xFF == ord("q"):
