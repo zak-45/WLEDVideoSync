@@ -483,6 +483,10 @@ if __name__ == '__main__':
             logger.info('Starting systray loop...')
             WLEDVideoSync_icon.run()
 
+    else:
+        while instance.is_alive():
+            time.sleep(1)
+
     """
     STOP
     """
