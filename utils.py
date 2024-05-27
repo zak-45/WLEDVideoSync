@@ -49,7 +49,6 @@ from typing import Optional
 
 from nicegui import events, ui
 
-
 # read config
 logging.config.fileConfig('config/logging.ini')
 # create logger
@@ -156,18 +155,18 @@ class CASTUtils:
         Update Media device list depend on OS
         av is used to try to have cross-platform solution
         """
-        import av
         CASTUtils.dev_list = []
 
         try:
+            import av
+
             with av.logging.Capture(True) as logs:  # this will capture av output
                 # av command depend on running OS
                 if platform.system() == 'Windows':
                     av.open('dummy', 'r', format='dshow', options={'list_devices': 'True'})
-                elif platform.system() == 'Linux':
-                    av.open('', 'r', format='v4l2', options={'list_devices': 'True'})
                 elif platform.system() == 'Darwin':
                     av.open('', 'r', format='avfoundation', options={'list_devices': 'True'})
+
         except Exception as error:
             logger.error(traceback.format_exc())
             logger.error('An exception occurred: {}'.format(error))
@@ -175,43 +174,53 @@ class CASTUtils:
         devicenumber: int = 0
         typedev: str = ''
 
-        for i, name in enumerate(logs):
-            if platform.system() == 'Windows':
-                if '"' in name[2] and 'Alternative' not in name[2]:
-                    devname = name[2]
-                    typedev = logs[i + 1][2].replace(" (", "")
-                    CASTUtils.dev_list.append((devname, typedev, devicenumber))
-                    devicenumber += 1
+        if platform.system() == 'Linux':
+            from linuxpy.video import device as linux_dev
 
-            elif platform.system() == 'Darwin':
-                if 'AVFoundation video device' in name:
-                    typedev = 'video'
-                elif 'AVFoundation audio device' in name:
-                    typedev = 'audio'
-                else:
-                    numbers_in_brackets = re.findall(r'\[(\d+)\]', name)
-                    if numbers_in_brackets:
-                        devicenumber = int(numbers_in_brackets[0])
+            dev = linux_dev.iter_devices()
+            i = 0
+            for item in dev:
+                i += 1
+                devname = item
+                typedev = 'VIDEO'
+                devicenumber = i
+                CASTUtils.dev_list.append((devname, typedev, devicenumber))
 
-                    # Define the regular expression pattern to match
-                    pattern = r"\[\d+\] (.*)"
-                    # Use re.search() to find the first match
-                    match = re.search(pattern, name)
-                    if match:
-                        # Extract the desired substring
-                        devname = match.group(1)
+        else:
+
+            for i, name in enumerate(logs):
+                if platform.system() == 'Windows':
+                    if '"' in name[2] and 'Alternative' not in name[2]:
+                        devname = name[2]
+                        typedev = logs[i + 1][2].replace(" (", "")
+                        CASTUtils.dev_list.append((devname, typedev, devicenumber))
+                        devicenumber += 1
+
+                elif platform.system() == 'Darwin':
+                    if 'AVFoundation video device' in name:
+                        typedev = 'video'
+                    elif 'AVFoundation audio device' in name:
+                        typedev = 'audio'
                     else:
-                        devname = "unknown"
+                        numbers_in_brackets = re.findall(r'\[(\d+)\]', name)
+                        if numbers_in_brackets:
+                            devicenumber = int(numbers_in_brackets[0])
 
-                    CASTUtils.dev_list.append((devname, typedev, devicenumber))
+                        # Define the regular expression pattern to match
+                        pattern = r"\[\d+\] (.*)"
+                        # Use re.search() to find the first match
+                        match = re.search(pattern, name)
+                        if match:
+                            # Extract the desired substring
+                            devname = match.group(1)
+                        else:
+                            devname = "unknown"
 
-            elif platform.system() == 'Linux':
-                devname = name[0]
-                CASTUtils.dev_list.append((devname, None, None))
+                        CASTUtils.dev_list.append((devname, typedev, devicenumber))
 
-            else:
-                print(f"unsupported platform : {platform.system()}")
-                return False
+                else:
+                    print(f"unsupported platform : {platform.system()}")
+                    return False
 
         return True
 
