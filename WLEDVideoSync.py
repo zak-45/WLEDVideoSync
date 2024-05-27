@@ -10,6 +10,10 @@ Dispatch all into processes
 Webview : provide native OS window
 pystray : put on systray if requested
 
+# 27/05/2024: cv2.imshow with import av  freeze
+
+on linux, preview default to False: should work but on some test make memory dump
+
 """
 
 import logging
@@ -485,6 +489,7 @@ if __name__ == '__main__':
 
     else:
 
+        # for OS  Linux, Darwin : this will execute ui.run : nicegui main loop
         import CastAPI
 
     """

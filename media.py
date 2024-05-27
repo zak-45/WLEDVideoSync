@@ -15,7 +15,9 @@
 #
 # in case of camera status() timeout in linux
 # camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+# 27/05/2024: cv2.imshow with import av  freeze
 #
+
 
 import logging
 import logging.config

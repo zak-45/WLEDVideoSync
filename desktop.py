@@ -20,7 +20,7 @@
 # You can cast your entire desktop screen or only window content.
 # Data will be sent through 'ddp' protocol or stream via udp:// rtp:// etc ...
 # ddp data are sent by using queue feature to avoid any network problem which cause latency
-#
+# 27/05/2024: cv2.imshow with import av  freeze
 #
 import sys
 

@@ -19,6 +19,8 @@ API: FastAPI, for integration with third party application (e.g. Chataigne)
 
 Web GUI based on NiceGUI
 
+# 27/05/2024: cv2.imshow with import av  freeze
+
 """
 import logging
 import logging.config
