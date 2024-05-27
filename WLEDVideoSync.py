@@ -417,36 +417,6 @@ if __name__ == '__main__':
     outfile["server_port"] = server_port
 
     """
-    Uvicorn
-
-        app : CastAPI.py
-        host : 0.0.0.0 for all network interfaces
-        port : Bind to a socket with this port
-        log_level :  Set the log level. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'.
-        timeout_graceful_shutdown : After this timeout, the server will start terminating requests
-
-    """
-    # uvicorn server definition
-    config = Config(app="CastAPI:app",
-                    host=server_ip,
-                    port=server_port,
-                    workers=int(server_config['workers']),
-                    log_level=server_config['log_level'],
-                    reload=False,
-                    timeout_keep_alive=10,
-                    timeout_graceful_shutdown=1)
-
-    instance = UvicornServer(config=config)
-
-    """
-    START
-    """
-
-    # start server
-    instance.start()
-    logger.info('WLEDVideoSync Started...Server run in separate process')
-
-    """
     Pystray only for Windows 
     """
     if sys.platform == 'win32':
@@ -471,6 +441,36 @@ if __name__ == '__main__':
 
         WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
 
+        """
+        Uvicorn
+
+            app : CastAPI.py
+            host : 0.0.0.0 for all network interfaces
+            port : Bind to a socket with this port
+            log_level :  Set the log level. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'.
+            timeout_graceful_shutdown : After this timeout, the server will start terminating requests
+
+        """
+        # uvicorn server definition
+        config = Config(app="CastAPI:app",
+                        host=server_ip,
+                        port=server_port,
+                        workers=int(server_config['workers']),
+                        log_level=server_config['log_level'],
+                        reload=False,
+                        timeout_keep_alive=10,
+                        timeout_graceful_shutdown=1)
+
+        instance = UvicornServer(config=config)
+
+        """
+        START
+        """
+
+        # start server
+        instance.start()
+        logger.info('WLEDVideoSync Started...Server run in separate process')
+
         # start pywebview process
         # this will start native OS window and block main thread
         if show_window:
@@ -484,8 +484,8 @@ if __name__ == '__main__':
             WLEDVideoSync_icon.run()
 
     else:
-        while instance.is_alive():
-            time.sleep(1)
+
+        import CastAPI
 
     """
     STOP
