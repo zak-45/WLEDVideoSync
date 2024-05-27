@@ -1,3 +1,4 @@
+"""
 # a: zak-45
 # d: 13/03/2024
 # v: 1.0.0
@@ -7,13 +8,20 @@
 #          CAST utilities
 #
 # pywinctl provide a cross-platform window mgt.
-# 
+to avoid cv2 imshow freeze
+import numpy as np
+import cv2
+cv2.imshow('ffmpeg fix', np.array([1], dtype=np.uint8))
+cv2.destroyAllWindows()
+import av
+#
+"""
+
 import logging
 import logging.config
 import traceback
 
 import re
-import av
 import platform
 import cv2
 import numpy as np
@@ -148,7 +156,7 @@ class CASTUtils:
         Update Media device list depend on OS
         av is used to try to have cross-platform solution
         """
-
+        import av
         CASTUtils.dev_list = []
 
         try:

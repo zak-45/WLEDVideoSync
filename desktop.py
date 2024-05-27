@@ -27,8 +27,6 @@ import logging.config
 import traceback
 
 import time
-import av
-import cv2
 
 import threading
 from threading import current_thread
@@ -38,6 +36,12 @@ import concurrent.futures
 
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, ImageUtils
+
+import cv2
+import numpy as np
+cv2.imshow('ffmpeg fix', np.array([1], dtype=np.uint8))
+cv2.destroyAllWindows()
+import av
 
 
 # read config

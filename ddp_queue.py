@@ -3,7 +3,6 @@ import logging.config
 import traceback
 import struct
 import socket
-from utils import LogElementHandler
 import numpy as np
 from queue import Queue
 import threading
