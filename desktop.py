@@ -36,12 +36,10 @@ from threading import current_thread
 import asyncio
 import concurrent.futures
 
-
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, ImageUtils
 
 import av
-
 
 # read config
 logging.config.fileConfig('config/logging.ini')
@@ -111,14 +109,13 @@ class CASTDesktop:
             self.viformat: str = 'x11grab'
             self.preview = False
         elif sys.platform == 'darwin':
-            self.viinput = 'darwin'
+            self.viinput = '"<screen device index>:<audio device index>"'
             self.viformat: str = 'avfoundation'
             self.preview = False
         else:
             self.viinput = ''
             self.viformat = ''
             self.preview = False
-
 
     def t_desktop_cast(self, shared_buffer=None):
         """
@@ -602,7 +599,7 @@ class CASTDesktop:
         # Displaying the image on the preview Window
         window_name = f"{server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
         if grid:
-            frame = ImageUtils.grid_on_image(frame, self.cast_x,  self.cast_y)
+            frame = ImageUtils.grid_on_image(frame, self.cast_x, self.cast_y)
         cv2.imshow(window_name, frame)
         cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
         cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, self.preview_top)
