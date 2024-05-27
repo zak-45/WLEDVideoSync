@@ -43,7 +43,7 @@ import cfg_load as cfg
 
 import desktop
 import media
-from utils import CASTUtils as Utils, LogElementHandler
+from utils import CASTUtils as Utils
 from utils import HTTPDiscovery as Net
 from utils import ImageUtils
 from utils import NetGraph
