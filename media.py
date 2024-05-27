@@ -63,8 +63,7 @@ class CASTMedia:
     def __init__(self):
         self.rate: int = 25
         self.stopcast: bool = True
-        self.preview: bool = True
-        self.preview_top: int = 0
+        self.preview_top: int = 1
         self.preview_w: int = 640
         self.preview_h: int = 480
         self.scale_width: int = 128
@@ -100,6 +99,15 @@ class CASTMedia:
         self.ddp_multi_names = []
         self.force_mjpeg = False
 
+        if sys.platform == 'win32':
+            self.preview = True
+        elif sys.platform == 'linux':
+            self.preview = False
+        elif sys.platform == 'darwin':
+            self.preview = False
+        else:
+            self.preview = False
+
     """
     Cast Thread
     """
@@ -129,7 +137,7 @@ class CASTMedia:
         delay = 1.0 / self.rate  # Calculate the time interval between frames
 
         t_todo_stop = False
-        
+
         """
         Cast devices
         """
@@ -537,6 +545,7 @@ class CASTMedia:
     """
     preview window
     """
+
     def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, grid=False):
 
         frame = cv2.resize(frame, (self.preview_w, self.preview_h))
