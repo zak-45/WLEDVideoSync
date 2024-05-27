@@ -22,6 +22,8 @@
 # ddp data are sent by using queue feature to avoid any network problem which cause latency
 #
 #
+import sys
+
 import cv2
 import logging
 import logging.config
@@ -83,10 +85,7 @@ class CASTDesktop:
         self.port: int = 4048
         self.protocol: str = 'ddp'  # put 'other' to use vooutput
         self.retry_number: int = 0  # number of time to resend ddp packet
-        self.viformat: str = 'gdigrab'  # 'gdigrab' for win
-        self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>'
-        self.preview = True
-        self.preview_top: int = 0
+        self.preview_top: int = 1
         self.preview_w: int = 640
         self.preview_h: int = 480
         self.text = False
@@ -102,6 +101,24 @@ class CASTDesktop:
         self.cast_devices: list = []
         self.cast_frame_buffer = []
         self.ddp_multi_names = []
+
+        if sys.platform == 'win32':
+            self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>'
+            self.viformat: str = 'gdigrab'  # 'gdigrab' for win
+            self.preview = True
+        elif sys.platform == 'linux':
+            self.viinput = 'linux'
+            self.viformat: str = 'x11grab'
+            self.preview = False
+        elif sys.platform == 'darwin':
+            self.viinput = 'darwin'
+            self.viformat: str = 'avfoundation'
+            self.preview = False
+        else:
+            self.viinput = ''
+            self.viformat = ''
+            self.preview = False
+
 
     def t_desktop_cast(self, shared_buffer=None):
         """
@@ -254,6 +271,7 @@ class CASTDesktop:
         viinput can be:
                     desktop : to stream full screen
                     title=<window name> : to stream only window content
+                    or str
         """
         t_viinput = self.viinput
 

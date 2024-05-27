@@ -213,7 +213,7 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
             logger.info("viinput act as string only")
 
     # append title if needed
-    if class_name == 'Desktop' and param == 'viinput' and 'desktop' not in value:
+    if class_name == 'Desktop' and param == 'viinput' and 'desktop' not in value and sys.platform == 'win32':
         value = 'title=' + value
 
     # check valid IP

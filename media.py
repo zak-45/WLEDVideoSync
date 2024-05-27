@@ -263,14 +263,14 @@ class CASTMedia:
             logger.error(f"Error: Unable to open media stream {t_viinput}.")
             return False
 
-        fps = media.get(cv2.CAP_PROP_FPS)
-
         # retrieve frame count, if 1 we assume image (should be no?)
         length = int(media.get(cv2.CAP_PROP_FRAME_COUNT))
         if length == 1:
             media = cv2.imread(str(t_viinput))
             frame = media
+            fps = 1
         else:
+            fps = media.get(cv2.CAP_PROP_FPS)
             media.set(cv2.CAP_PROP_BUFFERSIZE, 1)
             if self.force_mjpeg:
                 media.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
