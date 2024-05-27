@@ -63,7 +63,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     logger = logging.getLogger('WLEDLogger.utils')
 
 # do not show graph at module load, suspend interactive mode (e.g. PyCharm)
-plt.ioff()
+# plt.ioff()
 
 
 class CASTUtils:
