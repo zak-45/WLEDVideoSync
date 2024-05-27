@@ -996,6 +996,8 @@ def main_page():
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
         ui.button('Net Info', on_click=net_util_view, color='bg-red-800')
+        if sys.platform != 'win32':
+            ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \
                 .classes('text-white')
