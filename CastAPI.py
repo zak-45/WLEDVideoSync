@@ -900,7 +900,7 @@ def main_page():
                     with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
                         with ui.row():
                             ui.checkbox('') \
-                                .bind_value(Desktop, 'preview_top', forward=lambda value: int(value)) \
+                                .bind_value(Desktop, 'preview_top', forward=lambda value: value) \
                                 .tooltip('Preview always on TOP').classes('w-10')
                             ui.knob(640, min=8, max=1920, step=1, show_value=True) \
                                 .bind_value(Desktop, 'preview_w') \
@@ -917,7 +917,7 @@ def main_page():
                                 .bind_value(Media, 'preview_h') \
                                 .tooltip('Preview size H').classes('w-10')
                             ui.checkbox('') \
-                                .bind_value(Media, 'preview_top', forward=lambda value: int(value)) \
+                                .bind_value(Media, 'preview_top', forward=lambda value: value) \
                                 .tooltip('Preview always on TOP').classes('w-10')
 
                 # presets

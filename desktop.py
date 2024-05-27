@@ -83,7 +83,7 @@ class CASTDesktop:
         self.port: int = 4048
         self.protocol: str = 'ddp'  # put 'other' to use vooutput
         self.retry_number: int = 0  # number of time to resend ddp packet
-        self.preview_top: int = 1
+        self.preview_top: bool = False
         self.preview_w: int = 640
         self.preview_h: int = 480
         self.text = False
@@ -602,7 +602,12 @@ class CASTDesktop:
             frame = ImageUtils.grid_on_image(frame, self.cast_x, self.cast_y)
         cv2.imshow(window_name, frame)
         cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
-        cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, self.preview_top)
+        top = 0
+        if self.preview_top is False:
+            top = 0
+        elif self.preview_top is True:
+            top = 1
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
         if cv2.waitKey(1) & 0xFF == ord("q"):
             cv2.destroyWindow(window_name)
             # close preview window if any
