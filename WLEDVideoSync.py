@@ -507,12 +507,6 @@ if __name__ == '__main__':
 
     else:
 
-        # start pywebview process
-        # this will start native OS window and block main thread
-        if show_window:
-            logger.info('Starting webview loop...')
-            start_webview_process()
-
         # for OS  Linux, Darwin : this will execute ui.run : nicegui main loop
         import CastAPI
 
