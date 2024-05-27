@@ -107,7 +107,7 @@ class CASTDesktop:
             self.viformat: str = 'gdigrab'  # 'gdigrab' for win
             self.preview = True
         elif sys.platform == 'linux':
-            self.viinput = 'linux'
+            self.viinput = ':0.0'
             self.viformat: str = 'x11grab'
             self.preview = False
         elif sys.platform == 'darwin':
