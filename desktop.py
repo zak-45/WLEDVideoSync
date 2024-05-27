@@ -22,6 +22,7 @@
 # ddp data are sent by using queue feature to avoid any network problem which cause latency
 #
 #
+import cv2
 import logging
 import logging.config
 import traceback
@@ -37,10 +38,6 @@ import concurrent.futures
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, ImageUtils
 
-import cv2
-import numpy as np
-cv2.imshow('ffmpeg fix', np.array([1], dtype=np.uint8))
-cv2.destroyAllWindows()
 import av
 
 
