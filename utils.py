@@ -49,10 +49,18 @@ from typing import Optional
 
 from nicegui import events, ui
 
-# read config
-logging.config.fileConfig('config/logging.ini')
-# create logger
-logger = logging.getLogger('WLEDLogger.utils')
+"""
+When this env var exist, this mean run from the one-file executable.
+Load of the config is not possible, folder config should not exist.
+This avoid FileNotFoundError.
+This env not exist when run the program under WLEDVideoSync folder.
+Expected way to work.
+"""
+if "NUITKA_ONEFILE_PARENT" not in os.environ:
+    # read config
+    logging.config.fileConfig('config/logging.ini')
+    # create logger
+    logger = logging.getLogger('WLEDLogger.utils')
 
 # do not show graph at module load, suspend interactive mode (e.g. PyCharm)
 plt.ioff()

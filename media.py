@@ -26,6 +26,7 @@ import traceback
 
 import cv2
 import time
+import os
 
 import threading
 from threading import current_thread
@@ -36,10 +37,18 @@ import concurrent.futures
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, ImageUtils
 
-# read config
-logging.config.fileConfig('config/logging.ini')
-# create logger
-logger = logging.getLogger('WLEDLogger.media')
+"""
+When this env var exist, this mean run from the one-file executable.
+Load of the config is not possible, folder config should not exist.
+This avoid FileNotFoundError.
+This env not exist when run the program under WLEDVideoSync folder.
+Expected way to work.
+"""
+if "NUITKA_ONEFILE_PARENT" not in os.environ:
+    # read config
+    logging.config.fileConfig('config/logging.ini')
+    # create logger
+    logger = logging.getLogger('WLEDLogger.media')
 
 """
 Class definition

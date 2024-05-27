@@ -87,39 +87,46 @@ action_to_test = ['stop', 'shot', 'info', 'close_preview']
 
 app.debug = False
 
-# read config
-logging.config.fileConfig('config/logging.ini')
-# create logger
-logger = logging.getLogger('WLEDLogger.api')
+"""
+When this env var exist, this mean run from the one-file executable.
+Load of the config is not possible, folder config should not exist.
+This avoid FileNotFoundError.
+This env not exist when run the program under WLEDVideoSync folder.
+Expected way to work.
+"""
+if "NUITKA_ONEFILE_PARENT" not in os.environ:
+    # read config
+    logging.config.fileConfig('config/logging.ini')
+    # create logger
+    logger = logging.getLogger('WLEDLogger.api')
 
-# load config file
-cast_config = cfg.load('config/WLEDVideoSync.ini')
+    # load config file
+    cast_config = cfg.load('config/WLEDVideoSync.ini')
 
-# config keys
-server_config = cast_config.get('server')
-app_config = cast_config.get('app')
-color_config = cast_config.get('colors')
+    # config keys
+    server_config = cast_config.get('server')
+    app_config = cast_config.get('app')
+    color_config = cast_config.get('colors')
+
+    #  validate network config
+    server_ip = server_config['server_ip']
+    if not Utils.validate_ip_address(server_ip):
+        print(f'Bad server IP: {server_ip}')
+        sys.exit(1)
+
+    server_port = server_config['server_port']
+
+    if server_port == 'auto':
+        server_port = native.find_open_port()
+    else:
+        server_port = int(server_config['server_port'])
+
+    if server_port not in range(1, 65536):
+        print(f'Bad server Port: {server_port}')
+        sys.exit(2)
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
-
-
-#  validate network config
-server_ip = server_config['server_ip']
-if not Utils.validate_ip_address(server_ip):
-    print(f'Bad server IP: {server_ip}')
-    sys.exit(1)
-
-server_port = server_config['server_port']
-
-if server_port == 'auto':
-    server_port = native.find_open_port()
-else:
-    server_port = int(server_config['server_port'])
-
-if server_port not in range(1, 65536):
-    print(f'Bad server Port: {server_port}')
-    sys.exit(2)
 
 
 class CastAPI:

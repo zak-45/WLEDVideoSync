@@ -6,11 +6,20 @@ import socket
 import numpy as np
 from queue import Queue
 import threading
+import os
 
-# read config
-logging.config.fileConfig('config/logging.ini')
-# create logger
-logger = logging.getLogger('WLEDLogger.ddp')
+"""
+When this env var exist, this mean run from the one-file executable.
+Load of the config is not possible, folder config should not exist.
+This avoid FileNotFoundError.
+This env not exist when run the program under WLEDVideoSync folder.
+Expected way to work.
+"""
+if "NUITKA_ONEFILE_PARENT" not in os.environ:
+    # read config
+    logging.config.fileConfig('config/logging.ini')
+    # create logger
+    logger = logging.getLogger('WLEDLogger.ddp')
 
 
 class DDPDevice:

@@ -23,6 +23,7 @@
 # 27/05/2024: cv2.imshow with import av  freeze
 #
 import sys
+import os
 
 import cv2
 import logging
@@ -41,10 +42,18 @@ from utils import CASTUtils as Utils, ImageUtils
 
 import av
 
-# read config
-logging.config.fileConfig('config/logging.ini')
-# create logger
-logger = logging.getLogger('WLEDLogger.desktop')
+"""
+When this env var exist, this mean run from the one-file executable.
+Load of the config is not possible, folder config should not exist.
+This avoid FileNotFoundError.
+This env not exist when run the program under WLEDVideoSync folder.
+Expected way to work.
+"""
+if "NUITKA_ONEFILE_PARENT" not in os.environ:
+    # read config
+    logging.config.fileConfig('config/logging.ini')
+    # create logger
+    logger = logging.getLogger('WLEDLogger.desktop')
 
 
 class CASTDesktop:
