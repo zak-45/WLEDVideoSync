@@ -181,7 +181,7 @@ class CASTUtils:
             i = 0
             for item in dev:
                 i += 1
-                devname = item
+                devname = str(item)
                 typedev = 'VIDEO'
                 devicenumber = i
                 CASTUtils.dev_list.append((devname, typedev, devicenumber))
