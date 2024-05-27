@@ -503,7 +503,8 @@ if __name__ == '__main__':
 
     logger.info('Stop app')
     # stop initial server
-    instance.stop()
+    if instance is not None:
+        instance.stop()
     logger.info('Server is stopped')
     # in case server has been restarted
     if new_instance is not None:
