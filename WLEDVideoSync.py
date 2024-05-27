@@ -45,17 +45,38 @@ from str2bool import str2bool
 
 import shelve
 
-# read config
-logging.config.fileConfig('config/logging.ini')
-# create logger
-logger = logging.getLogger('WLEDLogger')
+if "NUITKA_ONEFILE_PARENT" not in os.environ:
+    # read config
+    logging.config.fileConfig('config/logging.ini')
+    # create logger
+    logger = logging.getLogger('WLEDLogger')
 
-# load config file
-cast_config = cfg.load('config/WLEDVideoSync.ini')
+    # load config file
+    cast_config = cfg.load('config/WLEDVideoSync.ini')
 
-# config keys
-server_config = cast_config.get('server')
-app_config = cast_config.get('app')
+    # config keys
+    server_config = cast_config.get('server')
+    app_config = cast_config.get('app')
+
+    #  validate network config
+    server_ip = server_config['server_ip']
+    if not Utils.validate_ip_address(server_ip):
+        print(f'Bad server IP: {server_ip}')
+        sys.exit(1)
+
+    server_port = server_config['server_port']
+
+    if server_port == 'auto':
+        server_port = native.find_open_port()
+    else:
+        server_port = int(server_config['server_port'])
+
+    if server_port not in range(1, 65536):
+        print(f'Bad server Port: {server_port}')
+        sys.exit(2)
+
+    # systray
+    put_on_systray = str2bool(app_config['put_on_systray'])
 
 """
 Main test for platform
@@ -79,26 +100,6 @@ instance = None
 new_instance = None
 main_window = None
 netstat_process = None
-
-#  validate network config
-server_ip = server_config['server_ip']
-if not Utils.validate_ip_address(server_ip):
-    print(f'Bad server IP: {server_ip}')
-    sys.exit(1)
-
-server_port = server_config['server_port']
-
-if server_port == 'auto':
-    server_port = native.find_open_port()
-else:
-    server_port = int(server_config['server_port'])
-
-if server_port not in range(1, 65536):
-    print(f'Bad server Port: {server_port}')
-    sys.exit(2)
-
-# systray
-put_on_systray = str2bool(app_config['put_on_systray'])
 
 """
 Uvicorn class    
@@ -405,9 +406,9 @@ MAIN Logic
 if __name__ == '__main__':
     # packaging support (compile)
     from multiprocessing import freeze_support  # noqa
+
     freeze_support()  # noqa
 
-    # test to see if executed from compiled version
     # test to see if executed from compiled version
     if "NUITKA_ONEFILE_PARENT" in os.environ:
         print('Extracting executable to WLEDVideoSync folder')
