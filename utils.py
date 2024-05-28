@@ -82,6 +82,16 @@ class CASTUtils:
         pass
 
     @staticmethod
+    def list_formats():
+        dict_formats = []
+        j = 0
+        for item in av.formats_available:
+            dict_formats.append(item)
+            j += 1
+        dict_formats = sorted(dict_formats)
+        return dict_formats
+
+    @staticmethod
     def list_codecs():
         dict_codecs = []
         j = 0

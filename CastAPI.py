@@ -1156,13 +1156,14 @@ def main_page_desktop():
                 new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', new_viinput.value))
                 new_viformat = ui.input('Method', value=Desktop.viformat)
                 new_viformat.bind_value_to(Desktop, 'viformat')
+                ui.button('formats', on_click=display_formats)
 
             with ui.card():
                 new_vooutput = ui.input('Output', value=str(Desktop.vooutput))
                 new_vooutput.bind_value_to(Desktop, 'vooutput')
                 new_voformat = ui.input('Codec', value=Desktop.voformat)
                 new_voformat.bind_value_to(Desktop, 'voformat')
-                ui.button('Codec', on_click=display_codec)
+                ui.button('Codecs', on_click=display_codecs)
 
             with ui.card():
                 new_put_to_buffer = ui.input('Capture Frame', value=str(Desktop.put_to_buffer))
@@ -1568,7 +1569,14 @@ helpers
 """
 
 
-def display_codec():
+def display_formats():
+    with ui.dialog() as dialog:
+        dialog.open()
+        editor = ui.json_editor({'content': {'json': Utils.list_formats()}})
+        editor.run_editor_method('updateProps', {'readOnly': True})
+
+
+def display_codecs():
     with ui.dialog() as dialog:
         dialog.open()
         editor = ui.json_editor({'content': {'json': Utils.list_codecs()}})
