@@ -12,7 +12,7 @@ pystray : put on systray if requested
 
 # 27/05/2024: cv2.imshow with import av  freeze
 
-on linux, preview default to False: should work but on some test make memory dump
+on linux, preview default to False: should work but on some test do memory dump
 
 """
 

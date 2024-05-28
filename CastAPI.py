@@ -38,6 +38,7 @@ import socket
 import json
 import cv2
 import configparser
+import av
 
 import queue
 
@@ -1161,6 +1162,7 @@ def main_page_desktop():
                 new_vooutput.bind_value_to(Desktop, 'vooutput')
                 new_voformat = ui.input('Codec', value=Desktop.voformat)
                 new_voformat.bind_value_to(Desktop, 'voformat')
+                ui.button('Codec', on_click=display_codec)
 
             with ui.card():
                 new_put_to_buffer = ui.input('Capture Frame', value=str(Desktop.put_to_buffer))
@@ -1564,6 +1566,13 @@ def system_stats():
 """
 helpers
 """
+
+
+def display_codec():
+    with ui.dialog() as dialog:
+        dialog.open()
+        editor = ui.json_editor({'content': {'json': Utils.list_codecs()}})
+        editor.run_editor_method('updateProps', {'readOnly': True})
 
 
 def manage_presets(class_name):

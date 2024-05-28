@@ -19,6 +19,7 @@ import av
 
 import logging
 import logging.config
+import sys
 import traceback
 
 import re
@@ -27,6 +28,7 @@ import cv2
 import numpy as np
 import pywinctl as pwc
 from wled import WLED
+import av
 
 from PIL import Image
 import io
@@ -66,7 +68,8 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
 
 
 # do not show graph at module load, suspend interactive mode (e.g. PyCharm)
-# plt.ioff()
+if sys.platform == 'win32':
+    plt.ioff()
 
 
 class CASTUtils:
@@ -77,6 +80,16 @@ class CASTUtils:
 
     def __init__(self):
         pass
+
+    @staticmethod
+    def list_codecs():
+        dict_codecs = []
+        j = 0
+        for item in av.codec.codecs_available:
+            dict_codecs.append(item)
+            j += 1
+        dict_codecs = sorted(dict_codecs)
+        return dict_codecs
 
     @staticmethod
     def youtube(yt_url: str = None):
