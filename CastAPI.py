@@ -842,7 +842,8 @@ def main_page():
             video_url = ui.input('Enter video Url', placeholder='http://....')
             video_url.set_visibility(False)
             video_url.without_auto_validation()
-            video_url.on_value_change(lambda: player.set_source(video_url.value))
+            video_url.on('focusout', lambda: check_yt(video_url.value))
+            # video_url.on_value_change(lambda: player.set_source(video_url.value))
 
     """
     Row for Cast info / Run / Close : refreshable
@@ -2195,6 +2196,18 @@ async def player_pick_file() -> None:
     if result is not None:
         result = str(result[0]).replace('\\', '/')
         player.set_source(result)
+
+
+async def check_yt(url):
+    """retrieve youtube video"""
+    video_url = url
+
+    if 'https://youtu' in url:
+        yt = Utils.youtube(url)
+        if yt != '':
+            video_url = yt
+
+    player.set_source(video_url)
 
 
 """

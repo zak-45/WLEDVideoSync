@@ -524,8 +524,14 @@ if __name__ == '__main__':
     if os.path.isfile(tmp_file + ".dir"):
         os.remove(tmp_file + ".dir")
 
-    logger.info('Stop app')
+    # remove yt files
+    if str2bool(app_config['keep_yt']) is not True:
+        from pathlib import Path
+        for filename in Path("./tmp/").glob("yt-tmp-*.*"):
+            filename.unlink()
+
     # stop initial server
+    logger.info('Stop app')
     if instance is not None:
         instance.stop()
     logger.info('Server is stopped')

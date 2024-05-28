@@ -49,6 +49,8 @@ from typing import Optional
 
 from nicegui import events, ui
 
+from pytube import YouTube
+
 """
 When this env var exist, this mean run from the one-file executable.
 Load of the config is not possible, folder config should not exist.
@@ -62,6 +64,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # create logger
     logger = logging.getLogger('WLEDLogger.utils')
 
+
 # do not show graph at module load, suspend interactive mode (e.g. PyCharm)
 # plt.ioff()
 
@@ -70,9 +73,40 @@ class CASTUtils:
     dev_list: list = []
     matrix_x: int = 0
     matrix_y: int = 0
+    yt_file_name: str = ''
 
     def __init__(self):
         pass
+
+    @staticmethod
+    def youtube(yt_url: str = None):
+
+        def progress_func(stream_name, data, remain_bytes):
+            logger.info('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
+
+        def complete_func(stream_name, file_path):
+            CASTUtils.yt_file_name = file_path
+            logger.info('YouTube Finished : ' + file_path)
+
+        try:
+            yt = YouTube(
+                url=yt_url,
+                on_progress_callback=progress_func,
+                on_complete_callback=complete_func,
+                use_oauth=False,
+                allow_oauth_cache=True
+            )
+
+            # this usually should select the first 720p video, enough for cast
+            prog_stream = yt.streams.filter(progressive=True).order_by('resolution').desc().first()
+            # initiate download to tmp folder
+            prog_stream.download(output_path='tmp', filename_prefix='yt-tmp-', timeout=2, max_retries=2)
+
+        except Exception as error:
+            CASTUtils.yt_file_name = ''
+            logger.info('youtube info :', error)
+
+        return CASTUtils.yt_file_name
 
     @staticmethod
     def get_server_port():
