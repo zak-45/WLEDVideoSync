@@ -433,8 +433,14 @@ if __name__ == '__main__':
         print('-' * 50)
         print('Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file')
         print('Enjoy using WLEDVideoSync')
-        webbrowser.open('WLEDVideoSync/info.html', new=0, autoraise=True)
-        time.sleep(10)
+        # get the current working directory
+        current_working_directory = os.getcwd()
+
+        # print output to the console
+        print(current_working_directory)
+
+        webbrowser.open('info.html', new=0, autoraise=True)
+        time.sleep(2)
         sys.exit()
 
     """
