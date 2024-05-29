@@ -1,5 +1,5 @@
-# nuitka-project: --force-stdout-spec=log/{PROGRAM_BASE}.out.txt
-# nuitka-project: --force-stderr-spec=log/{PROGRAM_BASE}.err.txt
+# nuitka-project: --force-stdout-spec={PROGRAM_BASE}.out.txt
+# nuitka-project: --force-stderr-spec={PROGRAM_BASE}.err.txt
 """
 a: zak-45
 d : 07/04/2024
