@@ -1,3 +1,9 @@
+# Compilation mode, standalone everywhere, except on macOS there app bundle
+# nuitka-project-if: {OS} in ("Windows", "Linux", "FreeBSD"):
+#    nuitka-project: --onefile
+# nuitka-project-if: {OS} == "Darwin":
+#    nuitka-project: --standalone
+#    nuitka-project: --macos-create-app-bundle
 # nuitka-project: --force-stdout-spec={PROGRAM_BASE}.out.txt
 # nuitka-project: --force-stderr-spec={PROGRAM_BASE}.err.txt
 """
