@@ -31,6 +31,7 @@ import multiprocessing
 import platform
 from multiprocessing import active_children
 import sys
+from pathlib import Path
 import os
 import time
 import webbrowser
@@ -432,7 +433,8 @@ if __name__ == '__main__':
         print('-' * 50)
         print('Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file')
         print('Enjoy using WLEDVideoSync')
-        webbrowser.open_new('WLEDVideoSync/info.html')
+        webbrowser.open('WLEDVideoSync/info.html', new=0, autoraise=True)
+        time.sleep(10)
         sys.exit()
 
     """
@@ -532,10 +534,11 @@ if __name__ == '__main__':
         os.remove(tmp_file + ".bak")
     if os.path.isfile(tmp_file + ".dir"):
         os.remove(tmp_file + ".dir")
+    for filename in Path("./tmp/").glob("*_file.*"):
+        filename.unlink()
 
     # remove yt files
     if str2bool(app_config['keep_yt']) is not True:
-        from pathlib import Path
         for filename in Path("./tmp/").glob("yt-tmp-*.*"):
             filename.unlink()
 
