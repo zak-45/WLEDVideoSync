@@ -112,7 +112,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     #  validate network config
     server_ip = server_config['server_ip']
     if not Utils.validate_ip_address(server_ip):
-        print(f'Bad server IP: {server_ip}')
+        logger.error(f'Bad server IP: {server_ip}')
         sys.exit(1)
 
     server_port = server_config['server_port']
@@ -123,7 +123,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         server_port = int(server_config['server_port'])
 
     if server_port not in range(1, 65536):
-        print(f'Bad server Port: {server_port}')
+        logger.error(f'Bad server Port: {server_port}')
         sys.exit(2)
 
 # to share data between threads and main
@@ -1921,7 +1921,6 @@ async def root_timer_action():
     timer occur only when root page is active '/'
     :return:
     """
-    #  print('timer action')
     cast_manage.refresh()
     system_stats.refresh()
 
@@ -1931,7 +1930,6 @@ async def info_timer_action():
     timer occur only when info page is active '/info'
     :return:
     """
-    #  print('timer action')
     cast_manage.refresh()
 
 
@@ -2207,11 +2205,11 @@ def net_util_view():
 
 
 async def player_pick_file() -> None:
-    global player
     result = await LocalFilePicker('~', multiple=False)
     ui.notify(f'Selected :  {result}')
     if result is not None:
         result = str(result[0]).replace('\\', '/')
+
         player.set_source(result)
 
 
@@ -2293,6 +2291,6 @@ ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',
        host=server_ip,
        port=server_port,
-       show=False,
+       show=True,
        reconnect_timeout=int(server_config['reconnect_timeout']),
        reload=False)

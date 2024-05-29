@@ -54,10 +54,10 @@ from str2bool import str2bool
 import shelve
 
 """
-When this env var exist, this mean run from the one-file executable.
+When this env var exist, this mean run from the one-file executable (compressed file).
 Load of the config is not possible, folder config should not exist.
 This avoid FileNotFoundError.
-This env not exist when run the program under WLEDVideoSync folder.
+This env not exist when running from the decompressed program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
@@ -76,7 +76,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     #  validate network config
     server_ip = server_config['server_ip']
     if not Utils.validate_ip_address(server_ip):
-        print(f'Bad server IP: {server_ip}')
+        logger.error(f'Bad server IP: {server_ip}')
         sys.exit(1)
 
     server_port = server_config['server_port']
@@ -87,7 +87,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         server_port = int(server_config['server_port'])
 
     if server_port not in range(1, 65536):
-        print(f'Bad server Port: {server_port}')
+        logger.error(f'Bad server Port: {server_port}')
         sys.exit(2)
 
     # systray

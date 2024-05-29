@@ -545,10 +545,10 @@ class CASTMedia:
 
         media.release()
 
-        print("_" * 50)
-        print(f'Cast {t_name} end using this media: {t_viinput}')
-        print(f'Using these devices: {str(ip_addresses)}')
-        print("_" * 50)
+        logger.info("_" * 50)
+        logger.info(f'Cast {t_name} end using this media: {t_viinput}')
+        logger.info(f'Using these devices: {str(ip_addresses)}')
+        logger.info("_" * 50)
 
         logger.info("Cast closed")
         time.sleep(1)

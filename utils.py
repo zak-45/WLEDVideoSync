@@ -103,6 +103,7 @@ class CASTUtils:
 
     @staticmethod
     def youtube(yt_url: str = None):
+        """download video from youtube"""
 
         def progress_func(stream_name, data, remain_bytes):
             logger.info('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
@@ -123,11 +124,11 @@ class CASTUtils:
             # this usually should select the first 720p video, enough for cast
             prog_stream = yt.streams.filter(progressive=True).order_by('resolution').desc().first()
             # initiate download to tmp folder
-            prog_stream.download(output_path='tmp', filename_prefix='yt-tmp-', timeout=2, max_retries=2)
+            prog_stream.download(output_path='tmp', filename_prefix='yt-tmp-', timeout=3, max_retries=2)
 
         except Exception as error:
             CASTUtils.yt_file_name = ''
-            logger.info('youtube info :', error)
+            logger.info('youtube error:', error)
 
         return CASTUtils.yt_file_name
 
@@ -136,7 +137,7 @@ class CASTUtils:
         """ Retrieve server port number """
         server_port = 0
         try:
-            # server running in another process (e.g. Uvicorn)
+            # server running from another process (e.g. Uvicorn)
             p_pid = os.getppid()
             tmp_file = f"./tmp/{p_pid}_file"
             if os.path.isfile(tmp_file + ".dat"):
@@ -285,7 +286,7 @@ class CASTUtils:
                         CASTUtils.dev_list.append((devname, typedev, devicenumber))
 
                 else:
-                    print(f"unsupported platform : {platform.system()}")
+                    logger.error(f"unsupported platform : {platform.system()}")
                     return False
 
         return True
