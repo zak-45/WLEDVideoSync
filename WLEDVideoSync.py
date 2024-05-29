@@ -432,6 +432,7 @@ if __name__ == '__main__':
         print('-' * 50)
         print('Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file')
         print('Enjoy using WLEDVideoSync')
+        webbrowser.open_new('WLEDVideoSync/info.html')
         sys.exit()
 
     """
