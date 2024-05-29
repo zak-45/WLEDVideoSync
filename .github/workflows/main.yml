@@ -70,6 +70,7 @@ jobs:
           file-version: ${{github.event.inputs.mytag}}
           enable-plugins: tk-inter
           disable-console: true
+          deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
           macos-create-app-bundle: true
