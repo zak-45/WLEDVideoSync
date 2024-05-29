@@ -844,7 +844,7 @@ def main_page():
             video_url.set_visibility(False)
             video_url.without_auto_validation()
             video_url.on('focusout', lambda: check_yt(video_url.value))
-            # video_url.on_value_change(lambda: player.set_source(video_url.value))
+            video_url.tooltip('Enter Url, click outside to validate the entry')
 
     """
     Row for Cast info / Run / Close : refreshable
