@@ -4,8 +4,8 @@
 # nuitka-project-if: {OS} == "Darwin":
 #    nuitka-project: --standalone
 #    nuitka-project: --macos-create-app-bundle
-# nuitka-project: --force-stdout-spec={PROGRAM_BASE}.out.txt
-# nuitka-project: --force-stderr-spec={PROGRAM_BASE}.err.txt
+# nuitka-project: --force-stdout-spec=log/WLEDVideoSync.out.txt
+# nuitka-project: --force-stderr-spec=log/WLEDVideoSync.err.txt
 """
 a: zak-45
 d : 07/04/2024
