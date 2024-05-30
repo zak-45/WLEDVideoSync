@@ -526,19 +526,23 @@ if __name__ == '__main__':
     # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     proc_file.close()
     logger.info('Remove tmp files')
-    if os.path.isfile(tmp_file + ".dat"):
-        os.remove(tmp_file + ".dat")
-    if os.path.isfile(tmp_file + ".bak"):
-        os.remove(tmp_file + ".bak")
-    if os.path.isfile(tmp_file + ".dir"):
-        os.remove(tmp_file + ".dir")
-    for filename in Path("./tmp/").glob("*_file.*"):
-        filename.unlink()
 
-    # remove yt files
-    if str2bool(app_config['keep_yt']) is not True:
-        for filename in Path("./tmp/").glob("yt-tmp-*.*"):
+    try:
+        if os.path.isfile(tmp_file + ".dat"):
+            os.remove(tmp_file + ".dat")
+        if os.path.isfile(tmp_file + ".bak"):
+            os.remove(tmp_file + ".bak")
+        if os.path.isfile(tmp_file + ".dir"):
+            os.remove(tmp_file + ".dir")
+        for filename in Path("./tmp/").glob("*_file.*"):
             filename.unlink()
+
+        # remove yt files
+        if str2bool(app_config['keep_yt']) is not True:
+            for filename in Path("./tmp/").glob("yt-tmp-*.*"):
+                filename.unlink()
+    except Exception as error:
+        logger.error(f'Error to remove tmp files : {error}')
 
     # stop initial server
     logger.info('Stop app')
