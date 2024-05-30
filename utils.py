@@ -57,7 +57,7 @@ from pytube import YouTube
 When this env var exist, this mean run from the one-file executable.
 Load of the config is not possible, folder config should not exist.
 This avoid FileNotFoundError.
-This env not exist when run the program under WLEDVideoSync folder.
+This env not exist when run the extracted program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
@@ -102,14 +102,16 @@ class CASTUtils:
         return dict_codecs
 
     @staticmethod
-    def youtube(yt_url: str = None):
+    async def youtube(yt_url: str = None):
         """download video from youtube"""
 
         def progress_func(stream_name, data, remain_bytes):
+            ui.notify('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
             logger.info('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
 
         def complete_func(stream_name, file_path):
             CASTUtils.yt_file_name = file_path
+            ui.notify('YouTube Finished : ' + file_path)
             logger.info('YouTube Finished : ' + file_path)
 
         try:

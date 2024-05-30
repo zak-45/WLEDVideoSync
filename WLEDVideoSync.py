@@ -444,8 +444,8 @@ if __name__ == '__main__':
     # store server port info for others processes
     pid = os.getpid()
     tmp_file = f"./tmp/{pid}_file"
-    outfile = shelve.open(tmp_file)
-    outfile["server_port"] = server_port
+    proc_file = shelve.open(tmp_file)
+    proc_file["server_port"] = server_port
 
     """
     Pystray only for Windows 
@@ -524,7 +524,7 @@ if __name__ == '__main__':
     """
 
     # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
-    outfile.close()
+    proc_file.close()
     logger.info('Remove tmp files')
     if os.path.isfile(tmp_file + ".dat"):
         os.remove(tmp_file + ".dat")

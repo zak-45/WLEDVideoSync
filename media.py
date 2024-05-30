@@ -41,7 +41,7 @@ from utils import CASTUtils as Utils, ImageUtils
 When this env var exist, this mean run from the one-file executable.
 Load of the config is not possible, folder config should not exist.
 This avoid FileNotFoundError.
-This env not exist when run the program under WLEDVideoSync folder.
+This env not exist when run the extracted program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:

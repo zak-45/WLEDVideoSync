@@ -15,6 +15,7 @@ MEDIA: cast an image / video / capture device
     cast image with Websocket
     create matrix based on ddp devices... so cast to a BIG one
 
++
 API: FastAPI, for integration with third party application (e.g. Chataigne)
 
 Web GUI based on NiceGUI
@@ -92,7 +93,7 @@ app.debug = False
 When this env var exist, this mean run from the one-file executable.
 Load of the config is not possible, folder config should not exist.
 This avoid FileNotFoundError.
-This env not exist when run the program under WLEDVideoSync folder.
+This env not exist when run the extracted program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
@@ -301,6 +302,31 @@ async def buffer_image_save(class_obj: str = Path(description=f'Class name, shou
 
     try:
         await save_image(class_name, 'frame_buffer', number)
+    except Exception as error:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {error}")
+
+    return {"buffer_save": True}
+
+
+@app.get("/api/{class_obj}/buffer/{number}/asciiart/save", tags=["buffer"])
+async def buffer_image_save_ascii(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}'),
+                                  number: int = 0):
+    """
+        Retrieve image number from buffer class, save it to default folder as ascii_art
+    """
+    if class_obj not in class_to_test:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} not in {class_to_test}")
+
+    try:
+        class_name = globals()[class_obj]
+    except KeyError:
+        raise HTTPException(status_code=400, detail=f"Invalid Class name: {class_obj}")
+
+    if number > len(class_name.frame_buffer):
+        raise HTTPException(status_code=400, detail=f"Image number : {number} not exist for Class name: {class_obj} ")
+
+    try:
+        await save_image(class_name, 'frame_buffer', number, ascii_art=True)
     except Exception as error:
         raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {error}")
 
@@ -842,9 +868,8 @@ def main_page():
             video_file.set_visibility(False)
             video_url = ui.input('Enter video Url', placeholder='http://....')
             video_url.set_visibility(False)
-            video_url.without_auto_validation()
+            video_url.tooltip('Enter Url, click on outside to validate the entry')
             video_url.on('focusout', lambda: check_yt(video_url.value))
-            video_url.tooltip('Enter Url, click outside to validate the entry')
 
     """
     Row for Cast info / Run / Close : refreshable
@@ -1694,6 +1719,7 @@ async def load_preset(class_name, interactive=True, file_name=None):
 def player_cast(source):
     """ Cast from video player only for Media"""
     Media.viinput = source
+    ui.notify(f'Cast running from : {source}')
     Media.cast(shared_buffer=t_data_buffer)
 
 
@@ -1991,7 +2017,7 @@ async def cast_to_wled(class_obj, image_number):
         )
 
 
-async def save_image(class_obj, buffer, image_number, ascii_art=False):
+async def save_image(class_obj, buffer, image_number, ascii_art=False, interactive=False):
     """
     Save image from Buffer
     used on the buffer images
@@ -2011,7 +2037,7 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False):
         logger.error(f"The folder {absolute_img_folder} does not exist.")
         return
 
-    # select right buffer
+    # select buffer
     if buffer == 'frame_buffer':
         buffer = class_obj.frame_buffer
     else:
@@ -2035,6 +2061,9 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False):
             h) + "_" + date_time + ".jpg"
         img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
         cv2.imwrite(filename, img)
+
+    if interactive:
+        ui.notify(f"Image saved to {filename}")
 
     logger.info(f"Image saved to {filename}")
 
@@ -2135,10 +2164,10 @@ def light_box_image(index, image, txt1, txt2, class_obj, buffer):
                         ui.button(on_click=lambda: cast_to_wled(class_obj, index), icon='cast') \
                             .props('flat fab color=white') \
                             .tooltip('Cast to WLED')
-                        ui.button(on_click=lambda: save_image(class_obj, buffer, index), icon='save') \
+                        ui.button(on_click=lambda: save_image(class_obj, buffer, index, False, True), icon='save') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image')
-                        ui.button(on_click=lambda: save_image(class_obj, buffer, index, ascii_art=True),
+                        ui.button(on_click=lambda: save_image(class_obj, buffer, index, True, True),
                                   icon='text_format') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image as Ascii ART')
@@ -2218,7 +2247,7 @@ async def check_yt(url):
     video_url = url
 
     if 'https://youtu' in url:
-        yt = Utils.youtube(url)
+        yt = await Utils.youtube(url)
         if yt != '':
             video_url = yt
 
@@ -2294,3 +2323,17 @@ ui.run(title='WLEDVideoSync',
        show=True,
        reconnect_timeout=int(server_config['reconnect_timeout']),
        reload=False)
+
+
+"""
+END
+"""
+if sys.platform != 'win32':
+    logger.info('Remove tmp files')
+    for filename in Path("./tmp/").glob("*_file.*"):
+        filename.unlink()
+
+    # remove yt files
+    if str2bool(app_config['keep_yt']) is not True:
+        for filename in Path("./tmp/").glob("yt-tmp-*.*"):
+            filename.unlink()
