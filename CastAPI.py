@@ -39,7 +39,7 @@ import socket
 import json
 import cv2
 import configparser
-import av
+from pathlib import Path as PathLib
 
 import queue
 
@@ -2337,10 +2337,10 @@ END
 """
 if sys.platform != 'win32':
     logger.info('Remove tmp files')
-    for filename in Path("./tmp/").glob("*_file.*"):
+    for filename in PathLib("./tmp/").glob("*_file.*"):
         filename.unlink()
 
     # remove yt files
     if str2bool(app_config['keep_yt']) is not True:
-        for filename in Path("./tmp/").glob("yt-tmp-*.*"):
+        for filename in PathLib("./tmp/").glob("yt-tmp-*.*"):
             filename.unlink()

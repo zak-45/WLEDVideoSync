@@ -31,7 +31,7 @@ import logging.config
 import multiprocessing
 from multiprocessing import active_children
 import sys
-from pathlib import Path
+from pathlib import Path as PathLib
 import os
 import time
 import webbrowser
@@ -436,13 +436,13 @@ if __name__ == '__main__':
         (the same for WLEDVideoSync.out.txt and err.txt)\n\n \
         Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file\n \
         This is a portable version, nothing installed on your system and can be moved where wanted.\n\n \
-        Enjoy using WLEDVideoSync\n \
+        Enjoy using WLEDVideoSync\n\n \
         -------------------------------------------------------------------------------------------------\n \
         THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\n \
         INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n \
         FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\n \
         IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,\n \
-        DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\
+        DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n \
         OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n \
         -------------------------------------------------------------------------------------------------\n ")
         layout = [[sg.Text(info)],  # Part 2 - The Layout
@@ -555,12 +555,12 @@ if __name__ == '__main__':
             os.remove(tmp_file + ".bak")
         if os.path.isfile(tmp_file + ".dir"):
             os.remove(tmp_file + ".dir")
-        for filename in Path("./tmp/").glob("*_file.*"):
+        for filename in PathLib("./tmp/").glob("*_file.*"):
             filename.unlink()
 
         # remove yt files
         if str2bool(app_config['keep_yt']) is not True:
-            for filename in Path("./tmp/").glob("yt-tmp-*.*"):
+            for filename in PathLib("./tmp/").glob("yt-tmp-*.*"):
                 filename.unlink()
     except Exception as error:
         logger.error(f'Error to remove tmp files : {error}')
