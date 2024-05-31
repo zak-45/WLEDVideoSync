@@ -29,7 +29,6 @@ import logging
 import logging.config
 
 import multiprocessing
-import platform
 from multiprocessing import active_children
 import sys
 from pathlib import Path
@@ -432,11 +431,20 @@ if __name__ == '__main__':
         import FreeSimpleGUI as sg  # Part 1 - The import
 
         # Define the window's contents
-        info = "Extracting executable to WLEDVideoSync folder.....\n\n \
-        You can safely delete this file after extraction finished to save some space\n \
+        info = ("Extracting executable to WLEDVideoSync folder.....\n\n \
+        You can safely delete this file after extraction finished to save some space.\n \
+        (the same for WLEDVideoSync.out.txt and err.txt)\n\n \
         Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file\n \
         This is a portable version, nothing installed on your system and can be moved where wanted.\n\n \
-        Enjoy using WLEDVideoSync\n"
+        Enjoy using WLEDVideoSync\n \
+        -------------------------------------------------------------------------------------------------\n \
+        THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\n \
+        INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n \
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\n \
+        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,\n \
+        DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n \
+        -------------------------------------------------------------------------------------------------\n ")
         layout = [[sg.Text(info)],  # Part 2 - The Layout
                   [sg.Button('Ok')]]
         # Create the window

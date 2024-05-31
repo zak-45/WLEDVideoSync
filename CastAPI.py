@@ -868,7 +868,8 @@ def main_page():
             video_file.set_visibility(False)
             video_url = ui.input('Enter video Url', placeholder='http://....')
             video_url.set_visibility(False)
-            video_url.tooltip('Enter Url, click on outside to validate the entry')
+            video_url.tooltip('Enter Url, click on outside to validate the entry, '
+                              ' hide and show player should refresh data')
             video_url.on('focusout', lambda: check_yt(video_url.value))
 
     """
@@ -2234,12 +2235,17 @@ def net_util_view():
 
 
 async def player_pick_file() -> None:
-    result = await LocalFilePicker('~', multiple=False)
+    """ Select file to read for video player"""
+
+    result = await LocalFilePicker('./', multiple=False)
     ui.notify(f'Selected :  {result}')
+
     if result is not None:
-        result = str(result[0]).replace('\\', '/')
+        if sys.platform == 'win32':
+            result = str(result[0]).replace('\\', '/')
 
         player.set_source(result)
+        player.update()
 
 
 async def check_yt(url):
@@ -2252,6 +2258,7 @@ async def check_yt(url):
             video_url = yt
 
     player.set_source(video_url)
+    player.update()
 
 
 """
