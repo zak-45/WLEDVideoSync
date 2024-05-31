@@ -442,6 +442,7 @@ class CASTMedia:
                 """
 
                 # resize frame to virtual matrix size
+                frame_art = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
                 frame = Utils.resize_image(frame,
                                            self.scale_width * t_cast_x,
                                            self.scale_height * t_cast_y)
@@ -476,7 +477,7 @@ class CASTMedia:
                     break
 
                 if t_preview:
-                    t_preview = self.preview_window(frame,
+                    t_preview = self.preview_window(frame_art,
                                                     CASTMedia.server_port,
                                                     t_viinput,
                                                     t_name,
@@ -592,6 +593,7 @@ class CASTMedia:
         window_name = f"{server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
         if grid:
             frame = ImageUtils.grid_on_image(frame, self.cast_x, self.cast_y)
+
         cv2.imshow(window_name, frame)
         cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
         top = 0

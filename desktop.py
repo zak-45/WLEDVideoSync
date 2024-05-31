@@ -467,6 +467,7 @@ class CASTDesktop:
                             """
 
                             # resize frame to virtual matrix size
+                            frame_art = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
                             frame = Utils.resize_image(frame,
                                                        self.scale_width * t_cast_x,
                                                        self.scale_height * t_cast_y)
@@ -501,7 +502,7 @@ class CASTDesktop:
 
                             # preview on fixed size window
                             if t_preview:
-                                t_preview = self.preview_window(frame,
+                                t_preview = self.preview_window(frame_art,
                                                                 CASTDesktop.server_port,
                                                                 t_viinput,
                                                                 t_name,

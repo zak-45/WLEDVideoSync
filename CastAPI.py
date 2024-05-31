@@ -2133,7 +2133,7 @@ async def init_cast(class_obj):
     """
     class_obj.cast(shared_buffer=t_data_buffer)
     cast_manage.refresh()
-    logger.info(datetime.now().strftime('%X.%f')[:-5] + ' Run Cast for ' + str(class_obj))
+    logger.info(' Run Cast for ' + str(class_obj))
     # just try to avoid mad man click !!
     time.sleep(2)
 
@@ -2143,7 +2143,7 @@ async def cast_stop(class_obj):
 
     class_obj.stopcast = True
     cast_manage.refresh()
-    logger.info(datetime.now().strftime('%X.%f')[:-5] + ' Stop Cast for ' + str(class_obj))
+    logger.info(' Stop Cast for ' + str(class_obj))
 
 
 async def show_notify(event: ValueChangeEventArguments):
