@@ -4,14 +4,15 @@
 # nuitka-project-if: {OS} == "Darwin":
 #    nuitka-project: --standalone
 #    nuitka-project: --macos-create-app-bundle
+# nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
+# nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
+
 """
 a: zak-45
 d : 07/04/2024
 v : 1.0.0
 
 Main WLEDVideoSync.
-# nuitka-project: --force-stdout-spec=log/WLEDVideoSync.out.txt
-# nuitka-project: --force-stderr-spec=log/WLEDVideoSync.err.txt
 
 Dispatch all into processes
 
