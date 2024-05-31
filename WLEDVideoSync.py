@@ -4,14 +4,14 @@
 # nuitka-project-if: {OS} == "Darwin":
 #    nuitka-project: --standalone
 #    nuitka-project: --macos-create-app-bundle
-# nuitka-project: --force-stdout-spec=log/WLEDVideoSync.out.txt
-# nuitka-project: --force-stderr-spec=log/WLEDVideoSync.err.txt
 """
 a: zak-45
 d : 07/04/2024
 v : 1.0.0
 
 Main WLEDVideoSync.
+# nuitka-project: --force-stdout-spec=log/WLEDVideoSync.out.txt
+# nuitka-project: --force-stderr-spec=log/WLEDVideoSync.err.txt
 
 Dispatch all into processes
 
@@ -439,7 +439,7 @@ if __name__ == '__main__':
         layout = [[sg.Text(info)],  # Part 2 - The Layout
                   [sg.Button('Ok')]]
         # Create the window
-        window = sg.Window('WLEDVidoeSync', layout)  # Part 3 - Window Defintion
+        window = sg.Window('WLEDVideoSync', layout)  # Part 3 - Window Definition
         # Display and interact with the Window
         event, values = window.read()  # Part 4 - Event loop or Window.read call
         # Finish up by removing from the screen
