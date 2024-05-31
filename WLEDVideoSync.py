@@ -428,11 +428,23 @@ if __name__ == '__main__':
     # test to see if executed from compiled version
     # instruct user to go to WLEDVideoSync folder to execute program
     if "NUITKA_ONEFILE_PARENT" in os.environ:
-        print('Extracting executable to WLEDVideoSync folder')
-        print('You can safely delete this file after extraction finished to save some space')
-        print('-' * 50)
-        print('Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file')
-        print('Enjoy using WLEDVideoSync')
+        import FreeSimpleGUI as sg  # Part 1 - The import
+
+        # Define the window's contents
+        info = "Extracting executable to WLEDVideoSync folder.....\n\n \
+        You can safely delete this file after extraction finished to save some space\n \
+        Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file\n \
+        This is a portable version, nothing installed on your system and can be moved where wanted.\n\n \
+        Enjoy using WLEDVideoSync\n"
+        layout = [[sg.Text(info)],  # Part 2 - The Layout
+                  [sg.Button('Ok')]]
+        # Create the window
+        window = sg.Window('WLEDVidoeSync', layout)  # Part 3 - Window Defintion
+        # Display and interact with the Window
+        event, values = window.read()  # Part 4 - Event loop or Window.read call
+        # Finish up by removing from the screen
+        window.close()  # Part 5 - Close the Window
+
         sys.exit()
 
     """

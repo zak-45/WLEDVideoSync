@@ -20,3 +20,4 @@ async-timeout
 cfg-load
 linuxpy
 pytube==15.0.0
+FreeSimpleGUI==5.1.0
