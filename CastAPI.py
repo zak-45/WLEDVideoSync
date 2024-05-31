@@ -67,6 +67,8 @@ from starlette.concurrency import run_in_threadpool
 from nicegui import app, ui, native
 from nicegui.events import ValueChangeEventArguments
 
+from pytube import YouTube
+
 """
 Main test for platform
     MacOS need specific case
@@ -384,6 +386,38 @@ async def util_device_list_update():
     if Utils.dev_list_update():
         status = "Ok"
     return {"device_list": status}
+
+
+@app.get("/api/util/download_yt/{yt_url:path}", tags=["media"])
+async def util_download_yt(yt_url: str):
+    """
+       Download video from Youtube Url
+    """
+
+    if 'https://youtu' in yt_url:
+
+        yt = YouTube(
+            url=yt_url,
+            use_oauth=False,
+            allow_oauth_cache=True
+        )
+
+        try:
+
+            # this usually should select the first 720p video, enough for cast
+            prog_stream = yt.streams.filter(progressive=True).order_by('resolution').desc().first()
+            # initiate download to tmp folder
+            prog_stream.download(output_path='tmp', filename_prefix='yt-tmp-', timeout=3, max_retries=2)
+
+        except Exception as error:
+            logger.info('youtube error:', error)
+            raise HTTPException(status_code=400,
+                                detail=f"Not able to retrieve video from : {yt_url} {error}")
+    else:
+        raise HTTPException(status_code=400,
+                            detail=f"Looks like not YT url : {yt_url} ")
+
+    return {"youtube": 'ok'}
 
 
 @app.get("/api/util/device_net_scan", tags=["network"])

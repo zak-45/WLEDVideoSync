@@ -102,19 +102,19 @@ class CASTUtils:
         return dict_codecs
 
     @staticmethod
-    async def youtube(yt_url: str = None):
+    async def youtube(yt_url: str = None, interactive: bool = True):
         """download video from youtube"""
 
-        def progress_func(stream_name, data, remain_bytes):
-            ui.notify('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
-            logger.info('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
+        if interactive:
+            def progress_func(stream_name, data, remain_bytes):
+                ui.notify('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
+                logger.info('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
 
-        def complete_func(stream_name, file_path):
-            CASTUtils.yt_file_name = file_path
-            ui.notify('YouTube Finished : ' + file_path)
-            logger.info('YouTube Finished : ' + file_path)
+            def complete_func(stream_name, file_path):
+                CASTUtils.yt_file_name = file_path
+                ui.notify('YouTube Finished : ' + file_path)
+                logger.info('YouTube Finished : ' + file_path)
 
-        try:
             yt = YouTube(
                 url=yt_url,
                 on_progress_callback=progress_func,
@@ -122,6 +122,14 @@ class CASTUtils:
                 use_oauth=False,
                 allow_oauth_cache=True
             )
+        else:
+            yt = YouTube(
+                url=yt_url,
+                use_oauth=False,
+                allow_oauth_cache=True
+            )
+
+        try:
 
             # this usually should select the first 720p video, enough for cast
             prog_stream = yt.streams.filter(progressive=True).order_by('resolution').desc().first()
