@@ -453,7 +453,6 @@ if __name__ == '__main__':
         event, values = window.read()  # Part 4 - Event loop or Window.read call
         # Finish up by removing from the screen
         window.close()  # Part 5 - Close the Window
-
         sys.exit()
 
     """

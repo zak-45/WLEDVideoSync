@@ -596,6 +596,7 @@ class CASTMedia:
 
         cv2.imshow(window_name, frame)
         cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
+
         top = 0
         if self.preview_top is True:
             top = 1
