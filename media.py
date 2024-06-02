@@ -96,6 +96,8 @@ class CASTMedia:
         self.balance_r = 0
         self.balance_g = 0
         self.balance_b = 0
+        self.auto_bright = False
+        self.clip_hist_percent = 25
         self.frame_buffer = []
         self.frame_index: int = 0
         self.put_to_buffer: bool = False
@@ -330,6 +332,9 @@ class CASTMedia:
 
             # convert to RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            if self.auto_bright:
+                frame = ImageUtils.automatic_brightness_and_contrast(frame, self.clip_hist_percent)
 
             filter_params = [self.saturation,
                              self.brightness,

@@ -956,6 +956,12 @@ def main_page():
                 ui.slider(min=0, max=100, step=1, value=0) \
                     .props('label-always') \
                     .bind_value(Desktop, 'sharpen')
+                ui.checkbox('auto') \
+                    .bind_value(Desktop, 'auto_bright', forward=lambda value: value) \
+                    .tooltip('Auto bri/contrast')
+                ui.slider(min=0, max=100, step=1) \
+                    .props('label-always') \
+                    .bind_value(Desktop, 'clip_hist_percent')
 
         with ui.card().tight().classes('w-42'):
             with ui.column():
@@ -1045,6 +1051,12 @@ def main_page():
                 ui.slider(min=0, max=100, step=1, value=0) \
                     .props('label-always') \
                     .bind_value(Media, 'sharpen')
+                ui.checkbox('auto') \
+                    .bind_value(Media, 'auto_bright', forward=lambda value: value) \
+                    .tooltip('Auto bri/contrast')
+                ui.slider(min=0, max=100, step=1) \
+                    .props('label-always') \
+                    .bind_value(Media, 'clip_hist_percent')
 
     ui.separator().classes('mt-6')
 
@@ -2364,7 +2376,6 @@ ui.run(title='WLEDVideoSync',
        show=True,
        reconnect_timeout=int(server_config['reconnect_timeout']),
        reload=False)
-
 
 """
 END

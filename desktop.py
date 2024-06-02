@@ -86,6 +86,8 @@ class CASTDesktop:
         self.balance_r = 0
         self.balance_g = 0
         self.balance_b = 0
+        self.auto_bright = False
+        self.clip_hist_percent = 25
         self.wled: bool = False
         self.wled_live = False
         self.host: str = '127.0.0.1'
@@ -352,6 +354,9 @@ class CASTDesktop:
 
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
+
+                        if self.auto_bright:
+                            frame = ImageUtils.automatic_brightness_and_contrast(frame, self.clip_hist_percent)
 
                         filter_params = [self.saturation,
                                          self.brightness,
