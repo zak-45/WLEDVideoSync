@@ -781,6 +781,15 @@ class ImageUtils:
 
         return auto_image
 
+    @staticmethod
+    def gamma_correct_frame(gamma: float = 0.5):
+
+        inverse_gamma = 1 / gamma
+        gamma_table = [((i / 255) ** inverse_gamma) * 255 for i in range(256)]
+        gamma_table = np.array(gamma_table, np.uint8)
+
+        return gamma_table
+
 
 class NetGraph:
     timestamps = []

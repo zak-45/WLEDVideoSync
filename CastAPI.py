@@ -922,6 +922,11 @@ def main_page():
                 ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 0))
                 ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height',
                                                           forward=lambda value: int(value or 0))
+                with ui.row().classes('w-44').style('justify-content: flex-end'):
+                    ui.label('gamma')
+                    ui.slider(min=0.01, max=4, step=0.01) \
+                        .props('label-always') \
+                        .bind_value(Desktop, 'gamma')
                 with ui.column(wrap=True):
                     with ui.row():
                         with ui.column():
@@ -1017,6 +1022,11 @@ def main_page():
                     .classes('w-20')
                 ui.number('W').classes('w-20').bind_value(Media, 'scale_width', forward=lambda value: int(value or 0))
                 ui.number('H').classes('w-20').bind_value(Media, 'scale_height', forward=lambda value: int(value or 0))
+                with ui.row().classes('w-44').style('justify-content: flex-end'):
+                    ui.label('gamma')
+                    ui.slider(min=0.01, max=4, step=0.01) \
+                        .props('label-always') \
+                        .bind_value(Media, 'gamma')
                 with ui.column(wrap=True):
                     with ui.row():
                         with ui.column():

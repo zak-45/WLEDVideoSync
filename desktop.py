@@ -86,6 +86,7 @@ class CASTDesktop:
         self.balance_r = 0
         self.balance_g = 0
         self.balance_b = 0
+        self.gamma: float = 0.5
         self.auto_bright = False
         self.clip_hist_percent = 25
         self.wled: bool = False
@@ -355,9 +356,12 @@ class CASTDesktop:
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
 
+                        # adjust gamma
+                        frame = cv2.LUT(frame, ImageUtils.gamma_correct_frame(self.gamma))
+                        # auto brightness contrast
                         if self.auto_bright:
                             frame = ImageUtils.automatic_brightness_and_contrast(frame, self.clip_hist_percent)
-
+                        # filters
                         filter_params = [self.saturation,
                                          self.brightness,
                                          self.contrast,
