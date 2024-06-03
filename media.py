@@ -621,7 +621,7 @@ class CASTMedia:
         """
             this will run the cast into another thread
             avoid to block the main one
-            shared_buffer if used need to be a queue
+            shared_buffer: if used need to be a queue
         """
         thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does

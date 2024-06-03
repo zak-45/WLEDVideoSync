@@ -582,7 +582,7 @@ class CASTDesktop:
         logger.info("_" * 50)
 
         logger.info('Cast closed')
-        time.sleep(2)
+        time.sleep(1)
 
     def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, grid=False):
 
@@ -639,7 +639,7 @@ class CASTDesktop:
         """
             this will run the cast into another thread
             avoiding blocking the main one
-            shared_buffer if used need to be a queue
+            shared_buffer: if used need to be a queue
         """
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does

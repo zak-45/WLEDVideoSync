@@ -767,8 +767,11 @@ class ImageUtils:
 
         # Locate right cut
         maximum_gray = hist_size - 1
-        while accumulator[maximum_gray] >= (maximum - clip_hist_percent):
-            maximum_gray -= 1
+        try:
+            while accumulator[maximum_gray] >= (maximum - clip_hist_percent):
+                maximum_gray -= 1
+        except IndexError as error:
+            pass
 
         # Calculate alpha and beta values
         if maximum_gray - minimum_gray > 0:
