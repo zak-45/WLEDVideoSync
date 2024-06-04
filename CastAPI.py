@@ -654,7 +654,7 @@ async def apply_preset_api(class_name: str = Path(description=f'Class name, shou
         raise HTTPException(status_code=400,
                             detail=f"Not able to apply preset : {error}")
 
-    return {"apply_preset": True}
+    return {"apply_preset_result": True}
 
 
 """
@@ -1705,6 +1705,11 @@ async def save_preset(class_name):
             preset['FILTERS']['brightness'] = str(class_obj.brightness)
             preset['FILTERS']['contrast'] = str(class_obj.contrast)
             preset['FILTERS']['sharpen'] = str(class_obj.sharpen)
+            preset['AUTO'] = {}
+            preset['AUTO']['auto_bright'] = str(class_obj.auto_bright)
+            preset['AUTO']['clip_hist_percent'] = str(class_obj.clip_hist_percent)
+            preset['GAMMA'] = {}
+            preset['GAMMA']['gamma'] = str(class_obj.gamma)
 
             with open(f_name, 'w') as configfile:  # save
                 preset.write(configfile)
@@ -1732,18 +1737,26 @@ async def load_preset(class_name, interactive=True, file_name=None):
         return False
 
     def apply_preset():
-        class_obj = globals()[class_name]
-        class_obj.balance_r = int(preset_rgb['balance_r'])
-        class_obj.balance_g = int(preset_rgb['balance_g'])
-        class_obj.balance_b = int(preset_rgb['balance_b'])
-        class_obj.flip = str2bool(preset_flip['flip'])
-        class_obj.flip_vh = int(preset_flip['flip_vh'])
-        class_obj.scale_width = int(preset_scale['scale_width'])
-        class_obj.scale_height = int(preset_scale['scale_height'])
-        class_obj.saturation = int(preset_filters['saturation'])
-        class_obj.brightness = int(preset_filters['brightness'])
-        class_obj.contrast = int(preset_filters['contrast'])
-        class_obj.sharpen = int(preset_filters['sharpen'])
+        try:
+            class_obj = globals()[class_name]
+            class_obj.balance_r = int(preset_rgb['balance_r'])
+            class_obj.balance_g = int(preset_rgb['balance_g'])
+            class_obj.balance_b = int(preset_rgb['balance_b'])
+            class_obj.flip = str2bool(preset_flip['flip'])
+            class_obj.flip_vh = int(preset_flip['flip_vh'])
+            class_obj.scale_width = int(preset_scale['scale_width'])
+            class_obj.scale_height = int(preset_scale['scale_height'])
+            class_obj.saturation = int(preset_filters['saturation'])
+            class_obj.brightness = int(preset_filters['brightness'])
+            class_obj.contrast = int(preset_filters['contrast'])
+            class_obj.sharpen = int(preset_filters['sharpen'])
+            class_obj.auto_bright = str2bool(preset_auto['auto_bright'])
+            class_obj.clip_hist_percent = int(preset_auto['clip_hist_percent'])
+            class_obj.gamma = float(preset_gamma['gamma'])
+
+        except Exception as error:
+            logger.error(traceback.format_exc())
+            logger.error(f'Error to apply preset : {error}')
 
     if interactive:
         with ui.dialog() as dialog:
@@ -1759,6 +1772,9 @@ async def load_preset(class_name, interactive=True, file_name=None):
                     preset_flip = preset_config.get('FLIP')
                     preset_scale = preset_config.get('SCALE')
                     preset_filters = preset_config.get('FILTERS')
+                    preset_auto = preset_config.get('AUTO')
+                    preset_gamma = preset_config.get('GAMMA')
+
                     with ui.row():
                         ui.button('OK', on_click=apply_preset)
                 else:
@@ -1770,6 +1786,8 @@ async def load_preset(class_name, interactive=True, file_name=None):
         preset_flip = preset_config.get('FLIP')
         preset_scale = preset_config.get('SCALE')
         preset_filters = preset_config.get('FILTERS')
+        preset_auto = preset_config.get('AUTO')
+        preset_gamma = preset_config.get('GAMMA')
         apply_preset()
 
 

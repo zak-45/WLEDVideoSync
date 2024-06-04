@@ -492,6 +492,9 @@ class CASTMedia:
                                                     t_preview,
                                                     grid=True)
 
+                if length == 1 and fps == 1:
+                    break
+
             else:
 
                 # resize frame for sending to ddp device
@@ -552,7 +555,8 @@ class CASTMedia:
             if not win == 0:
                 cv2.destroyWindow(window_name)
 
-        media.release()
+        if frame_count > 1:
+            media.release()
 
         logger.info("_" * 50)
         logger.info(f'Cast {t_name} end using this media: {t_viinput}')
