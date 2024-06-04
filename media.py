@@ -23,6 +23,7 @@ import logging
 import logging.config
 import sys
 import traceback
+import numpy as np
 
 import cv2
 import time
@@ -555,7 +556,8 @@ class CASTMedia:
             if not win == 0:
                 cv2.destroyWindow(window_name)
 
-        if frame_count > 1:
+        if not isinstance(media, np.ndarray):
+            logger.info('Release Media')
             media.release()
 
         logger.info("_" * 50)
