@@ -49,7 +49,7 @@ import ipaddress
 from pathlib import Path
 from typing import Optional
 
-from nicegui import events, ui
+from nicegui import events, ui, run
 
 from pytube import YouTube
 
@@ -101,17 +101,18 @@ class CASTUtils:
         return dict_codecs
 
     @staticmethod
-    async def youtube(yt_url: str = None, interactive: bool = True):
+    async def youtube(yt_url: str = None, interactive: bool = True, log: object = None):
         """download video from youtube"""
 
         if interactive:
+            if log is not None:
+                logger.addHandler(LogElementHandler(log))
+
             def progress_func(stream_name, data, remain_bytes):
-                ui.notify('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
                 logger.info('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
 
             def complete_func(stream_name, file_path):
                 CASTUtils.yt_file_name = file_path
-                ui.notify('YouTube Finished : ' + file_path)
                 logger.info('YouTube Finished : ' + file_path)
 
             yt = YouTube(
@@ -127,13 +128,17 @@ class CASTUtils:
                 use_oauth=False,
                 allow_oauth_cache=True
             )
-
         try:
 
             # this usually should select the first 720p video, enough for cast
             prog_stream = yt.streams.filter(progressive=True).order_by('resolution').desc().first()
-            # initiate download to tmp folder
-            prog_stream.download(output_path='tmp', filename_prefix='yt-tmp-', timeout=3, max_retries=2)
+            # initiate download to media folder
+            result = await run.io_bound(prog_stream.download,
+                                        output_path='media',
+                                        filename_prefix='yt-tmp-',
+                                        timeout=3,
+                                        max_retries=2
+                                        )
 
         except Exception as error:
             CASTUtils.yt_file_name = ''

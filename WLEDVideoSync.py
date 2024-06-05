@@ -559,7 +559,7 @@ if __name__ == '__main__':
 
         # remove yt files
         if str2bool(app_config['keep_yt']) is not True:
-            for filename in PathLib("./tmp/").glob("yt-tmp-*.*"):
+            for filename in PathLib("./media/").glob("yt-tmp-*.*"):
                 filename.unlink()
     except Exception as error:
         logger.error(f'Error to remove tmp files : {error}')

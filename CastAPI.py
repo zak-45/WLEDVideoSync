@@ -47,7 +47,7 @@ import cfg_load as cfg
 
 import desktop
 import media
-from utils import CASTUtils as Utils
+from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
 from utils import ImageUtils
 from utils import NetGraph
@@ -820,7 +820,7 @@ NiceGUI
 
 @ui.page('/')
 def main_page():
-    global player
+    global player, log
     """
     Root page definition
     """
@@ -1073,11 +1073,10 @@ def main_page():
     """
     Log display
     """
-    """
+
     log = ui.log(max_lines=50).classes('w-full h-20')
     logger.addHandler(LogElementHandler(log))
     ui.button('Clear Log', on_click=lambda: log.clear()).tooltip('Erase the log file')
-    """
 
     """
     Footer : usefully links help
@@ -2327,10 +2326,11 @@ async def check_yt(url):
     video_url = url
 
     if 'https://youtu' in url:
-        yt = await Utils.youtube(url)
+        yt = await Utils.youtube(url, interactive=True, log=log)
         if yt != '':
             video_url = yt
 
+    logger.info(f'Video set to : {video_url}')
     player.set_source(video_url)
     player.update()
 
@@ -2391,7 +2391,7 @@ RUN
 """
 app.openapi = custom_openapi
 app.add_static_files('/assets', 'assets')
-app.add_static_files('/media', 'media')
+app.add_media_files('/media', media)
 app.add_static_files('/log', 'log')
 app.add_static_files('/config', 'config')
 app.add_static_files('/tmp', 'tmp')
