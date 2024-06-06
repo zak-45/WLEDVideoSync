@@ -21,3 +21,4 @@ cfg-load
 linuxpy
 pytube==15.0.0
 FreeSimpleGUI==5.1.0
+ping3==4.0.8

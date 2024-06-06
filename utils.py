@@ -101,7 +101,7 @@ class CASTUtils:
         return dict_codecs
 
     @staticmethod
-    async def youtube(yt_url: str = None, interactive: bool = True, log: object = None):
+    async def youtube(yt_url: str = None, interactive: bool = True, log: classmethod = None):
         """download video from youtube"""
 
         if interactive:
@@ -187,6 +187,33 @@ class CASTUtils:
             await wled.close()
 
         return matrix["w"], matrix["h"]
+
+    @staticmethod
+    async def get_wled_info(host, timeout: int = 2):
+        """
+        Take matrix information from WLED device
+        :param host:
+        :param timeout:
+        :return:
+        """
+        wled = WLED(host)
+        response = {}
+        try:
+            wled.request_timeout = timeout
+            await wled.connect()
+            if wled.connected:
+                # Get WLED info's
+                response = await wled.request("/json/info")
+            await wled.close()
+        except Exception as error:
+            if error.args[0] != 404:
+                logger.error(traceback.format_exc())
+                logger.error('An exception occurred: {}'.format(error))
+            else:
+                logger.warning(f'Json info not found, maybe {host} is not a WLED device')
+            await wled.close()
+
+        return response
 
     @staticmethod
     async def put_wled_live(host, on: bool = True, live: bool = True, timeout: int = 2):
