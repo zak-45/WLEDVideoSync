@@ -29,7 +29,6 @@ class DevCharts:
         self.notify = ui.switch('Notification')
         self.notify.value = True
 
-        print(self.ips)
         self.create_charts()
 
         self.ping_data_timer.append(ui.timer(self.pingIntervalS, lambda: self.ping_datas()))
