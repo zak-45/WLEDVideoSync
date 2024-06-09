@@ -27,7 +27,7 @@ import platform
 import cv2
 import numpy as np
 import pywinctl as pwc
-from wled import WLED
+from wled import WLED, exceptions as wledexp
 import av
 
 from PIL import Image
@@ -163,7 +163,7 @@ class CASTUtils:
         return server_port
 
     @staticmethod
-    async def get_wled_matrix_dimensions(host, timeout: int = 2):
+    async def get_wled_matrix_dimensions(host, timeout: int = 1):
         """
         Take matrix information from WLED device
         :param host:
@@ -189,7 +189,7 @@ class CASTUtils:
         return matrix["w"], matrix["h"]
 
     @staticmethod
-    async def get_wled_info(host, timeout: int = 2):
+    async def get_wled_info(host, timeout: int = 1):
         """
         Take matrix information from WLED device
         :param host:
@@ -205,6 +205,9 @@ class CASTUtils:
                 # Get WLED info's
                 response = await wled.request("/json/info")
             await wled.close()
+
+        except wledexp.WLEDConnectionTimeoutError:
+            logger.warning(f'timeout to connect to  {host} ')
         except Exception as error:
             if error.args[0] != 404:
                 logger.error(traceback.format_exc())

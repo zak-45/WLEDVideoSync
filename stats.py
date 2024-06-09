@@ -178,7 +178,8 @@ def create_charts():
 
 
 def pause_chart():
-    ui.notify('Refresh has been paused for 5s ')
+    if notify.value:
+        ui.notify('Refresh has been paused for 5s ')
     log.push('Pause for 5 seconds')
     time.sleep(5)
 
@@ -207,7 +208,8 @@ async def ping_datas():
         response_time = ping(cast_ip, timeout=maxPingResponseTimeS, unit='ms')
         if response_time is None:
             log.push(datetime.now().strftime('%H:%M:%S') + " no ping reply from " + cast_ip)
-            ui.notify(datetime.now().strftime('%H:%M:%S') + " no ping reply from " + cast_ip, type='negative')
+            if notify.value:
+                ui.notify(datetime.now().strftime('%H:%M:%S') + " no ping reply from " + cast_ip, type='negative')
 
             j = 0
             for item in multi_ping.options['series']:
@@ -247,7 +249,8 @@ async def wled_datas(i):
 
     if wled_data == {}:
         log.push(datetime.now().strftime('%H:%M:%S') + " no data from " + cast_ip)
-        ui.notify(datetime.now().strftime('%H:%M:%S') + " no data from " + cast_ip, type='negative')
+        if notify.value:
+            ui.notify(datetime.now().strftime('%H:%M:%S') + " no data from " + cast_ip, type='negative')
 
         wled_chart_fps[i].options['series'][0]['data'].append(0)
         wled_chart_rsi[i].options['series'][0]['data'].append(0)
@@ -286,6 +289,9 @@ def update_wled_charts():
 
     multi_signal.update()
 
+
+notify = ui.switch('Notification')
+notify.value = True
 
 # Create all charts
 create_charts()
