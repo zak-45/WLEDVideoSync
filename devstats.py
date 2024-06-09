@@ -8,11 +8,10 @@ from ping3 import ping
 
 
 class DevCharts:
-    def __init__(self, my_ips=None):
-        if my_ips is None:
-            my_ips = []
-        my_ips = my_ips.split(',')
-        self.ips = my_ips.copy()
+    def __init__(self, dev_ips=None):
+        if dev_ips is None:
+            dev_ips = []
+        self.ips = dev_ips.split(',')
         self.maxTimeSec = 600
         self.pingAlertLimitMs = 100
         self.maxPingResponseTimeS = 0.3
