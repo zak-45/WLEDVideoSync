@@ -8,6 +8,12 @@ from ping3 import ping
 
 
 class DevCharts:
+    """
+    Create charts from IPs list
+    Detect if WLED device or not
+    param: IPs list e.g. '192.168.1.1,192.168.1.5, ...'
+    """
+
     def __init__(self, dev_ips=None):
         if dev_ips is None:
             dev_ips = []
@@ -15,7 +21,7 @@ class DevCharts:
         self.maxTimeSec = 600
         self.pingAlertLimitMs = 100
         self.maxPingResponseTimeS = 0.3
-        self.chartRefreshS = 2
+        self.chart_refresh_s = 2
         self.ip_chart = []
         self.wled_chart_fps = []
         self.wled_chart_rsi = []
@@ -26,8 +32,13 @@ class DevCharts:
         self.pingIntervalS = 2
         self.multi_ping = None
         self.multi_signal = None
-        self.notify = ui.switch('Notification')
-        self.notify.value = True
+
+        """ ui design """
+        with ui.row().classes('no-wrap'):
+            self.notify = ui.switch('Notification')
+            self.notify.value = True
+            self.dark = ui.switch('Dark Mode')
+            self.dark_mode = ui.dark_mode()
 
         self.create_charts()
 
@@ -39,14 +50,14 @@ class DevCharts:
                 ui.timer(self.wled_interval, lambda chart_number=i: self.wled_datas(chart_number)))
             i += 1
 
-        self.chart_ping_timer = ui.timer(self.chartRefreshS, lambda: self.multi_ping.update())
-        self.chart_wled_timer = ui.timer(self.chartRefreshS, lambda: self.update_wled_charts())
+        self.chart_ping_timer = ui.timer(self.chart_refresh_s, lambda: self.multi_ping.update())
+        self.chart_wled_timer = ui.timer(self.chart_refresh_s, lambda: self.update_wled_charts())
 
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
         with ui.row():
             ui.button('Clear all', on_click=self.clear)
             ui.button('Pause 5s', on_click=self.pause_chart)
-        self.log.push("Auto refresh time: " + str(self.chartRefreshS) + "sec")
+        self.log.push("Auto refresh time: " + str(self.chart_refresh_s) + "sec")
 
     def create_charts(self):
         self.multi_ping = ui.echart(
@@ -73,7 +84,7 @@ class DevCharts:
                 'series': []
             }).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
 
-        with ui.row():
+        with ui.row().classes('w-full no-wrap'):
             for cast_ip in self.ips:
                 wled_data = asyncio.run(Utils.get_wled_info(cast_ip))
                 ip_exp = ui.expansion(cast_ip, icon='cast') \
@@ -89,52 +100,54 @@ class DevCharts:
                 self.multi_signal.options['series'].append(series_data)
 
                 with ip_exp:
-                    with ui.row():
+                    with ui.row().classes('w-full no-wrap'):
                         if wled_data == {}:
                             ui.label('Not WLED device').style('background: red')
                         else:
                             self.wled_ips.append(cast_ip)
+
                             wled_card = ui.card()
-                            wled_card.set_visibility(False)
-                            with wled_card:
-                                editor = ui.json_editor({'content': {'json': wled_data}})
-                                editor.run_editor_method('updateProps', {'readOnly': True})
+                            wled_card.set_visibility(True)
 
                             add_icon = ui.icon('add', size='md').style('cursor: pointer')
                             add_icon.on('click', lambda wled_card=wled_card: wled_card.set_visibility(True))
                             remove_icon = ui.icon('remove', size='md').style('cursor: pointer')
                             remove_icon.on('click', lambda wled_card=wled_card: wled_card.set_visibility(False))
 
-                            self.wled_chart_fps.append(
-                                ui.echart({
-                                    'tooltip': {'formatter': '{a} <br/>{b} : {c}'},
-                                    'series': [
-                                        {'name': 'FramePerSecond',
-                                         'type': 'gauge',
-                                         'progress': {'show': 'true'},
-                                         'detail': {
-                                             'valueAnimation': 'true',
-                                             'formatter': '{value}'
-                                         },
-                                         'data': [{'value': 0, 'name': 'FPS'}]
-                                         }
-                                    ]
-                                }).on('dblclick', lambda: self.pause_chart())
-                            )
+                            with wled_card:
+                                editor = ui.json_editor({'content': {'json': wled_data}})
+                                editor.run_editor_method('updateProps', {'readOnly': True})
 
-                            self.wled_chart_rsi.append(
-                                ui.echart({
-                                    'tooltip': {'trigger': 'axis'},
-                                    'xAxis': {'type': 'category', 'data': []},
-                                    'yAxis': {'type': 'value',
-                                              'axisLabel': {':formatter': 'value =>  value + " dBm " '}},
-                                    'legend': {'formatter': 'RSSI', 'textStyle': {'color': 'red'}},
-                                    'series': [
-                                        {'type': 'line', 'name': cast_ip,
-                                         'areaStyle': {'color': '#535894', 'opacity': 0.5}, 'data': []}
-                                    ]
-                                }).on('dblclick', lambda: self.pause_chart())
-                            )
+                        self.wled_chart_fps.append(
+                            ui.echart({
+                                'tooltip': {'formatter': '{a} <br/>{b} : {c}'},
+                                'series': [
+                                    {'name': 'FramePerSecond',
+                                     'type': 'gauge',
+                                     'progress': {'show': 'true'},
+                                     'detail': {
+                                         'valueAnimation': 'true',
+                                         'formatter': '{value}'
+                                     },
+                                     'data': [{'value': 0, 'name': 'FPS'}]
+                                     }
+                                ]
+                            }).on('dblclick', lambda: self.pause_chart())
+                        )
+
+                    self.wled_chart_rsi.append(
+                        ui.echart({
+                            'tooltip': {'trigger': 'axis'},
+                            'xAxis': {'type': 'category', 'data': []},
+                            'yAxis': {'type': 'value',
+                                      'axisLabel': {':formatter': 'value =>  value + " dBm " '}},
+                            'legend': {'formatter': 'RSSI', 'textStyle': {'color': 'red'}},
+                            'series': [
+                                {'type': 'line', 'name': cast_ip,
+                                 'areaStyle': {'color': '#535894', 'opacity': 0.5}, 'data': []}
+                            ]
+                        }).on('dblclick', lambda: self.pause_chart())
+                    )
 
     def pause_chart(self):
         if self.notify.value:
@@ -153,7 +166,7 @@ class DevCharts:
         self.multi_signal.options['xAxis']['data'] = []
 
         self.log.clear()
-        self.log.push("Auto refresh time: " + str(self.chartRefreshS) + "sec")
+        self.log.push("Auto refresh time: " + str(self.chart_refresh_s) + "sec")
 
     async def ping_datas(self):
         now = datetime.now()
@@ -184,6 +197,11 @@ class DevCharts:
                             response_time) + " ms")
 
         self.multi_ping.options['xAxis']['data'].append(date_time_str)
+
+        if self.dark.value is True:
+            self.dark_mode.enable()
+        else:
+            self.dark_mode.disable()
 
     async def wled_datas(self, i):
         cast_ip = self.wled_ips[i]
@@ -229,3 +247,4 @@ class DevCharts:
             i += 1
 
         self.multi_signal.update()
+
