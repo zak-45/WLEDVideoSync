@@ -27,6 +27,7 @@ import logging
 import logging.config
 import traceback
 import multiprocessing
+import asyncio
 
 import psutil
 
@@ -47,11 +48,15 @@ import cfg_load as cfg
 
 import desktop
 import media
+
 from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
 from utils import ImageUtils
-from utils import NetGraph
 from utils import LocalFilePicker
+
+from devstats import DevCharts
+from netstats import NetCharts
+from sysstats import SysCharts
 
 import ast
 
@@ -64,7 +69,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
-from nicegui import app, ui, native
+from nicegui import app, ui, native, context
 from nicegui.events import ValueChangeEventArguments
 
 from pytube import YouTube
@@ -136,6 +141,9 @@ t_data_buffer = queue.Queue()  # create a thread safe queue
 class CastAPI:
     dark_mode = False
     netstat_process = None
+    charts_row = None
+    player = None
+    progress_bar = None
 
 
 """
@@ -820,7 +828,7 @@ NiceGUI
 
 @ui.page('/')
 def main_page():
-    global player, log
+    global log
     """
     Root page definition
     """
@@ -859,28 +867,28 @@ def main_page():
     ui.image("./assets/intro.gif").classes('self-center').tailwind.border_width('8').width('1/6')
 
     """
-    Video Player
+    Video player
     """
     center_card = ui.card().classes('self-center w-1/3 bg-slate-300')
     with center_card:
-        player = ui.video(app_config["video_file"]).classes('self-center')
-        player.on('ended', lambda _: ui.notify('Video playback completed'))
-        player.set_visibility(False)
+        CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
+        CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed'))
+        CastAPI.player.set_visibility(False)
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
                 .on('click',
                     lambda visible=True:
-                    (player.set_visibility(visible),
+                    (CastAPI.player.set_visibility(visible),
                      video_file.set_visibility(visible),
                      cast_player.set_visibility(visible),
                      video_url.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
-                .tooltip("Show Video Player")
+                .tooltip("Show Video player")
 
             cast_player = ui.icon('cast') \
                 .style("cursor: pointer") \
-                .on('click', lambda: player_cast(player.source)) \
+                .on('click', lambda: player_cast(CastAPI.player.source)) \
                 .tooltip('Cast Video')
             cast_player.set_visibility(False)
 
@@ -888,12 +896,12 @@ def main_page():
                 .style("cursor: pointer") \
                 .on('click',
                     lambda visible=False:
-                    (player.set_visibility(visible),
+                    (CastAPI.player.set_visibility(visible),
                      video_file.set_visibility(visible),
                      video_url.set_visibility(visible),
                      cast_player.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
-                .tooltip("Hide Video Player")
+                .tooltip("Hide Video player")
             hide_player.set_visibility(False)
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
@@ -905,6 +913,7 @@ def main_page():
             video_url.tooltip('Enter Url, click on outside to validate the entry, '
                               ' hide and show player should refresh data')
             video_url.on('focusout', lambda: check_yt(video_url.value))
+            CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
 
     """
     Row for Cast info / Run / Close : refreshable
@@ -1081,13 +1090,13 @@ def main_page():
     """
     Footer : usefully links help
     """
-    with (ui.footer(value=False).classes('items-center bg-red-900') as footer):
-        ui.switch("White/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip('Change Layout Mode')
+    with ui.footer(value=False).classes('items-center bg-red-900') as footer:
+        ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip('Change Layout Mode')
 
         net_view_page()  # refreshable
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
-        ui.button('Net Info', on_click=net_util_view, color='bg-red-800')
+        ui.button('Stats', on_click=charts_page, color='bg-red-800')
         if sys.platform != 'win32':
             ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
@@ -1508,6 +1517,30 @@ def splash_page():
         .classes('self-center')
 
 
+@ui.page('/Stats')
+async def charts_page():
+    """
+    Page to select charts
+    :return:
+    """
+
+    await context.client.connected()
+    location = await ui.run_javascript('window.location.href')
+
+    if CastAPI.charts_row is None or location.endswith('Stats'):
+        CastAPI.charts_row = ui.row().classes('w-full no-wrap')
+        with CastAPI.charts_row:
+            with ui.card().classes('w-1/3'):
+                ui.link('Devices', target='/DevStats', new_tab=True)
+            with ui.card().classes('w-1/3'):
+                ui.link('NetWork', target='/NetStats', new_tab=True)
+            with ui.card().classes('w-1/3'):
+                ui.link('System', target='/SysStats', new_tab=True)
+    else:
+        CastAPI.charts_row.clear()
+        CastAPI.charts_row = None
+
+
 @ui.page('/ws/docs')
 def ws_page():
     """
@@ -1543,6 +1576,37 @@ def info_page():
 def manage_info_page():
     """ Manage cast page from systray """
     tabs_info_page()
+
+
+@ui.page('/DevStats')
+def dev_stats_info_page():
+    """ devices charts """
+    ips_list = '127.0.0.1'
+    if Desktop.host != '127.0.0.1':
+        ips_list = Desktop.host
+    if Media.host != '127.0.0.1':
+        ips_list = ips_list + ',' + Media.host
+
+    for i in range(len(Desktop.cast_devices)):
+        cast_ip = Desktop.cast_devices[i][1]
+        ips_list = ips_list + ',' + cast_ip
+    for i in range(len(Media.cast_devices)):
+        cast_ip = Media.cast_devices[i][1]
+        ips_list = ips_list + ',' + cast_ip
+
+    DevCharts(ips_list, CastAPI.dark_mode)
+
+
+@ui.page('/NetStats')
+def net_stats_info_page():
+    """ network charts """
+    NetCharts(CastAPI.dark_mode)
+
+
+@ui.page('/SysStats')
+def sys_stats_info_page():
+    """ system charts """
+    SysCharts(CastAPI.dark_mode)
 
 
 @ui.refreshable
@@ -1791,7 +1855,7 @@ async def load_preset(class_name, interactive=True, file_name=None):
 
 
 def player_cast(source):
-    """ Cast from video player only for Media"""
+    """ Cast from video CastAPI.player only for Media"""
     Media.viinput = source
     ui.notify(f'Cast running from : {source}')
     Media.cast(shared_buffer=t_data_buffer)
@@ -2297,18 +2361,18 @@ def cast_devices_view(class_name):
     ui.button('DEVICE', icon='preview', on_click=dialog.open).tooltip('View Cast devices')
 
 
+"""
 def net_util_view():
-    """
-        View network utilization
-    """
+   
     # Create another process to run in non-blocking mode
     CastAPI.netstat_process = Process(target=NetGraph.run)
     CastAPI.netstat_process.daemon = True
     CastAPI.netstat_process.start()
+"""
 
 
 async def player_pick_file() -> None:
-    """ Select file to read for video player"""
+    """ Select file to read for video CastAPI.player"""
 
     result = await LocalFilePicker('./', multiple=False)
     ui.notify(f'Selected :  {result}')
@@ -2317,13 +2381,27 @@ async def player_pick_file() -> None:
         if sys.platform == 'win32':
             result = str(result[0]).replace('\\', '/')
 
-        player.set_source(result)
-        player.update()
+        CastAPI.player.set_source(result)
+        CastAPI.player.update()
 
 
 async def check_yt(url):
     """retrieve youtube video"""
     video_url = url
+    CastAPI.progress_bar.value = 0
+    CastAPI.progress_bar.update()
+
+    async def get_size():
+        while True:
+            if Utils.yt_file_size_remain_bytes == 0:
+                break
+
+            else:
+                CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
+                CastAPI.progress_bar.update()
+                await asyncio.sleep(1)
+
+    asyncio.create_task(get_size())
 
     if 'https://youtu' in url:
         yt = await Utils.youtube(url, interactive=True, log=log)
@@ -2331,8 +2409,10 @@ async def check_yt(url):
             video_url = yt
 
     logger.info(f'Video set to : {video_url}')
-    player.set_source(video_url)
-    player.update()
+    CastAPI.progress_bar.value = 1
+    CastAPI.progress_bar.update()
+    CastAPI.player.set_source(video_url)
+    CastAPI.player.update()
 
 
 """

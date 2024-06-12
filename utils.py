@@ -19,7 +19,6 @@ import av
 
 import logging
 import logging.config
-import sys
 import traceback
 
 import re
@@ -38,13 +37,10 @@ import time
 import shelve
 import os
 
-import psutil
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-
 from zeroconf import ServiceBrowser, Zeroconf
 import socket
 import ipaddress
+import requests
 
 from pathlib import Path
 from typing import Optional
@@ -66,16 +62,14 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # create logger
     logger = logging.getLogger('WLEDLogger.utils')
 
-# do not show graph at module load, suspend interactive mode (e.g. PyCharm)
-if sys.platform == 'win32':
-    plt.ioff()
-
 
 class CASTUtils:
     dev_list: list = []
     matrix_x: int = 0
     matrix_y: int = 0
     yt_file_name: str = ''
+    yt_file_size_bytes = 0
+    yt_file_size_remain_bytes = 0
 
     def __init__(self):
         pass
@@ -109,10 +103,12 @@ class CASTUtils:
                 logger.addHandler(LogElementHandler(log))
 
             def progress_func(stream_name, data, remain_bytes):
+                CASTUtils.yt_file_size_remain_bytes = remain_bytes
                 logger.info('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
 
             def complete_func(stream_name, file_path):
                 CASTUtils.yt_file_name = file_path
+                CASTUtils.yt_file_size_remain_bytes = 0
                 logger.info('YouTube Finished : ' + file_path)
 
             yt = YouTube(
@@ -122,6 +118,7 @@ class CASTUtils:
                 use_oauth=False,
                 allow_oauth_cache=True
             )
+
         else:
             yt = YouTube(
                 url=yt_url,
@@ -132,6 +129,8 @@ class CASTUtils:
 
             # this usually should select the first 720p video, enough for cast
             prog_stream = yt.streams.filter(progressive=True).order_by('resolution').desc().first()
+            CASTUtils.yt_file_size_bytes = prog_stream.filesize
+            CASTUtils.yt_file_size_remain_bytes = prog_stream.filesize
             # initiate download to media folder
             result = await run.io_bound(prog_stream.download,
                                         output_path='media',
@@ -142,7 +141,7 @@ class CASTUtils:
 
         except Exception as error:
             CASTUtils.yt_file_name = ''
-            logger.info('youtube error:', error)
+            logger.info(f'Youtube error : {error}')
 
         return CASTUtils.yt_file_name
 
@@ -189,34 +188,22 @@ class CASTUtils:
         return matrix["w"], matrix["h"]
 
     @staticmethod
-    async def get_wled_info(host, timeout: int = 1):
+    def get_wled_info(host, timeout: int = 1):
         """
         Take matrix information from WLED device
         :param host:
         :param timeout:
         :return:
         """
-        wled = WLED(host)
-        response = {}
         try:
-            wled.request_timeout = timeout
-            await wled.connect()
-            if wled.connected:
-                # Get WLED info's
-                response = await wled.request("/json/info")
-            await wled.close()
-
-        except wledexp.WLEDConnectionTimeoutError:
-            logger.warning(f'timeout to connect to  {host} ')
+            url = f'http://{host}/json/info'
+            result = requests.get(url, timeout=timeout)
+            result = result.json()
         except Exception as error:
-            if error.args[0] != 404:
-                logger.error(traceback.format_exc())
-                logger.error('An exception occurred: {}'.format(error))
-            else:
-                logger.warning(f'Json info not found, maybe {host} is not a WLED device')
-            await wled.close()
+            logger.error(f'Not able to get WLED info : {error}')
+            result = {}
 
-        return response
+        return result
 
     @staticmethod
     async def put_wled_live(host, on: bool = True, live: bool = True, timeout: int = 2):
@@ -613,12 +600,12 @@ class LogElementHandler(logging.Handler):
         self.element = element
         super().__init__(level)
 
-    def emit(self, log_row: logging.LogRecord) -> None:
+    def emit(self, record: logging.LogRecord) -> None:
         try:
-            msg = self.format(log_row)
+            msg = self.format(record)
             self.element.push(msg)
         except Exception:
-            self.handleError(log_row)
+            self.handleError(record)
 
 
 class ImageUtils:
@@ -827,60 +814,6 @@ class ImageUtils:
         gamma_table = np.array(gamma_table, np.uint8)
 
         return gamma_table
-
-
-class NetGraph:
-    timestamps = []
-    mb_rec = []
-    mb_sent = []
-    last_rec = psutil.net_io_counters().bytes_recv
-    last_sent = psutil.net_io_counters().bytes_sent
-
-    @staticmethod
-    def update_data(data):
-        """
-        Will update data from psutil
-        # plt.xlabel('Time')
-        # plt.ylabel('MB')
-        # plt.title("Real-Time Bandwidth utilization")
-
-        """
-        # global last_rec, last_sent
-        bytes_rec = psutil.net_io_counters().bytes_recv
-        bytes_sent = psutil.net_io_counters().bytes_sent
-
-        new_rec = (bytes_rec - NetGraph.last_rec) / 1024 / 1024
-        new_sent = (bytes_sent - NetGraph.last_sent) / 1024 / 1024
-
-        NetGraph.timestamps.append(time.time())
-        NetGraph.mb_rec.append(new_rec)
-        NetGraph.mb_sent.append(new_sent)
-
-        if len(NetGraph.timestamps) > 600:
-            NetGraph.timestamps.pop(0)
-            NetGraph.mb_rec.pop(0)
-            NetGraph.mb_sent.pop(0)
-
-        NetGraph.ax.clear()
-        NetGraph.ax.plot(NetGraph.timestamps, NetGraph.mb_rec, label='MB Received')
-        NetGraph.ax.plot(NetGraph.timestamps, NetGraph.mb_sent, label='MB Sent')
-
-        NetGraph.ax.legend()
-
-        NetGraph.last_rec = bytes_rec
-        NetGraph.last_sent = bytes_sent
-
-    # Initialize the plot
-    fig, ax = plt.subplots()
-    fig.set_size_inches(5, 2)
-    fig.suptitle('Network Utilization')
-    anim = FuncAnimation(fig, update_data, interval=1000, cache_frame_data=False)
-    # this one to avoid  UserWarning: Animation was deleted without rendering anything.
-    anim._draw_was_started = True
-
-    @staticmethod
-    def run():
-        plt.show()
 
 
 class LocalFilePicker(ui.dialog):

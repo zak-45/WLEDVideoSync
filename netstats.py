@@ -11,7 +11,7 @@ class NetCharts:
     Bytes in / out
     """
 
-    def __init__(self):
+    def __init__(self, dark: bool = False):
         self.multi_net = None
         self.chart_refresh_s = 2
 
@@ -25,8 +25,10 @@ class NetCharts:
         with ui.row().classes('no-wrap'):
             self.notify = ui.switch('Notification')
             self.notify.value = True
-            self.dark = ui.switch('Dark Mode')
+            self.dark_switch = ui.switch('Dark Mode')
             self.dark_mode = ui.dark_mode()
+            if dark is True:
+                self.dark_switch.value = True
 
         self.create_charts()
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
@@ -90,8 +92,7 @@ class NetCharts:
         self.last_rec = psutil.net_io_counters().bytes_recv
         self.last_sent = psutil.net_io_counters().bytes_sent
 
-        if self.dark.value is True:
+        if self.dark_switch.value is True:
             self.dark_mode.enable()
         else:
             self.dark_mode.disable()
-

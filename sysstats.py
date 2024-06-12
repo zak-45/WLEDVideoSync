@@ -11,7 +11,7 @@ class SysCharts:
     CPU, RAM, ...
     """
 
-    def __init__(self):
+    def __init__(self, dark: bool = False):
         self.cpu_chart = None
         self.load_chart = None
         self.memory_chart = None
@@ -63,8 +63,10 @@ class SysCharts:
         with ui.row().classes('no-wrap'):
             self.notify = ui.switch('Notification')
             self.notify.value = True
-            self.dark = ui.switch('Dark Mode')
+            self.dark_switch = ui.switch('Dark Mode')
             self.dark_mode = ui.dark_mode()
+            if dark is True:
+                self.dark_switch.value = True
 
         self.create_charts()
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
@@ -239,7 +241,7 @@ class SysCharts:
         self.disk_chart.update()
         self.load_chart.update()
 
-        if self.dark.value is True:
+        if self.dark_switch.value is True:
             self.dark_mode.enable()
         else:
             self.dark_mode.disable()
