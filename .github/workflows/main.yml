@@ -87,7 +87,7 @@ jobs:
             zeroconf._handlers.answers
             pygments.formatters.html
             dbm.dumb
-            qtpy
+
           include-data-dir: |
             tmp=tmp
             log=log
