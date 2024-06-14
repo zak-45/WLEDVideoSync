@@ -2,7 +2,7 @@
 import time
 from datetime import datetime
 import psutil
-from nicegui import ui
+from nicegui import app, ui
 
 
 class NetCharts:
@@ -40,6 +40,12 @@ class NetCharts:
         """ timers """
         self.net_data_timer.append(ui.timer(self.net_interval, lambda: self.net_datas()))
         self.chart_net_timer = ui.timer(self.chart_refresh_s, lambda: self.multi_net.update())
+
+        app.native.window_args['resizable'] = True
+        app.native.start_args['debug'] = False
+        app.native.settings['ALLOW_DOWNLOADS'] = True
+
+        ui.run(native=True, window_size=(800, 600), fullscreen=False, reload=False)
 
     def create_charts(self):
         self.multi_net = ui.echart(
@@ -96,3 +102,7 @@ class NetCharts:
             self.dark_mode.enable()
         else:
             self.dark_mode.disable()
+
+
+if __name__ == "__main__":
+    NetCharts()

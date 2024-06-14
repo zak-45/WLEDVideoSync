@@ -28,6 +28,8 @@ import logging.config
 import traceback
 import multiprocessing
 import asyncio
+import threading
+import subprocess
 
 import psutil
 
@@ -1096,7 +1098,7 @@ def main_page():
         net_view_page()  # refreshable
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
-        ui.button('Stats', on_click=charts_page, color='bg-red-800')
+        ui.button('Stats', on_click=charts_select, color='bg-red-800')
         if sys.platform != 'win32':
             ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
@@ -1517,30 +1519,6 @@ def splash_page():
         .classes('self-center')
 
 
-@ui.page('/Stats')
-async def charts_page():
-    """
-    Page to select charts
-    :return:
-    """
-
-    await context.client.connected()
-    location = await ui.run_javascript('window.location.href')
-
-    if CastAPI.charts_row is None or location.endswith('Stats'):
-        CastAPI.charts_row = ui.row().classes('w-full no-wrap')
-        with CastAPI.charts_row:
-            with ui.card().classes('w-1/3'):
-                ui.link('Devices', target='/DevStats', new_tab=True)
-            with ui.card().classes('w-1/3'):
-                ui.link('NetWork', target='/NetStats', new_tab=True)
-            with ui.card().classes('w-1/3'):
-                ui.link('System', target='/SysStats', new_tab=True)
-    else:
-        CastAPI.charts_row.clear()
-        CastAPI.charts_row = None
-
-
 @ui.page('/ws/docs')
 def ws_page():
     """
@@ -1576,37 +1554,6 @@ def info_page():
 def manage_info_page():
     """ Manage cast page from systray """
     tabs_info_page()
-
-
-@ui.page('/DevStats')
-def dev_stats_info_page():
-    """ devices charts """
-    ips_list = '127.0.0.1'
-    if Desktop.host != '127.0.0.1':
-        ips_list = Desktop.host
-    if Media.host != '127.0.0.1':
-        ips_list = ips_list + ',' + Media.host
-
-    for i in range(len(Desktop.cast_devices)):
-        cast_ip = Desktop.cast_devices[i][1]
-        ips_list = ips_list + ',' + cast_ip
-    for i in range(len(Media.cast_devices)):
-        cast_ip = Media.cast_devices[i][1]
-        ips_list = ips_list + ',' + cast_ip
-
-    DevCharts(ips_list, CastAPI.dark_mode)
-
-
-@ui.page('/NetStats')
-def net_stats_info_page():
-    """ network charts """
-    NetCharts(CastAPI.dark_mode)
-
-
-@ui.page('/SysStats')
-def sys_stats_info_page():
-    """ system charts """
-    SysCharts(CastAPI.dark_mode)
 
 
 @ui.refreshable
@@ -1700,8 +1647,7 @@ def media_dev_view_page():
 
 @ui.refreshable
 def system_stats():
-    cpu = psutil.cpu_percent()
-    ram_dict = dict(psutil.virtual_memory()._asdict())
+    cpu = psutil.cpu_percent(interval=1, percpu=False)
     ram = psutil.virtual_memory().percent
 
     ui.label(f'Total frames: {Desktop.total_frame + Media.total_frame}').classes('self-center')
@@ -1712,6 +1658,86 @@ def system_stats():
 """
 helpers
 """
+
+
+def charts_select():
+    """
+    select charts
+    :return:
+    """
+
+    if CastAPI.charts_row is None:
+        CastAPI.charts_row = ui.row().classes('w-full no-wrap')
+        with CastAPI.charts_row:
+            with ui.card().classes('w-1/3'):
+                ui.button('Device', on_click=dev_stats_info_page)
+
+            with ui.card().classes('w-1/3'):
+                ui.button('Network', on_click=net_stats_info_page)
+
+            with ui.card().classes('w-1/3'):
+                ui.button('System', on_click=sys_stats_info_page)
+    else:
+        CastAPI.charts_row.clear()
+        CastAPI.charts_row = None
+
+
+def dev_stats_info_page():
+    """ devices charts """
+    ips_list = '127.0.0.1'
+    if Desktop.host != '127.0.0.1':
+        ips_list = Desktop.host
+    if Media.host != '127.0.0.1':
+        ips_list = ips_list + ',' + Media.host
+
+    for i in range(len(Desktop.cast_devices)):
+        cast_ip = Desktop.cast_devices[i][1]
+        ips_list = ips_list + ',' + cast_ip
+    for i in range(len(Media.cast_devices)):
+        cast_ip = Media.cast_devices[i][1]
+        ips_list = ips_list + ',' + cast_ip
+
+    # run chart on its own process
+    subprocess.Popen(["devstats", str(ips_list), str(CastAPI.dark_mode)],
+                     executable=select_exe(),
+                     stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE,
+                     text=True)
+
+    # DevCharts(ips_list, CastAPI.dark_mode)
+
+
+def net_stats_info_page():
+    """ network charts """
+    subprocess.Popen(["netstats", str(CastAPI.dark_mode)],
+                     executable=select_exe(),
+                     stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE,
+                     text=True)
+
+    # NetCharts(CastAPI.dark_mode)
+
+
+def sys_stats_info_page():
+    """ system charts """
+    subprocess.Popen(["sysstats", str(CastAPI.dark_mode)],
+                     executable=select_exe(),
+                     stdout=subprocess.PIPE,
+                     stderr=subprocess.PIPE,
+                     text=True)
+
+    # SysCharts(CastAPI.dark_mode)
+
+
+def select_exe():
+    if sys.platform == 'linux':
+        return './WLEDVideoSync.bin'
+
+    elif sys.platform == 'darwin':
+        return './WLEDVideoSync.app'
+
+    else:
+        return './WLEDVideoSync.exe'
 
 
 def display_formats():
@@ -2495,5 +2521,5 @@ if sys.platform != 'win32':
 
     # remove yt files
     if str2bool(app_config['keep_yt']) is not True:
-        for filename in PathLib("./tmp/").glob("yt-tmp-*.*"):
+        for filename in PathLib("./media/").glob("yt-tmp-*.*"):
             filename.unlink()

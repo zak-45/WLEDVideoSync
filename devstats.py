@@ -1,9 +1,34 @@
-#!/usr/bin/env python3
+"""
+Compiling via
+python -m nuitka --main=test1.py --main=test2.py --standalone produces a single binary: ./test1.dist/test1.bin
+
+Executing test1.bin runs the test1.py entry point:
+
+hi
+
+Execute the other entry point (test2.py) by renaming the executable to match name of the other entry point
+(rename test1.bin -> test2.bin):
+
+hello
+
+You can also use Python to run a particular entry point.
+
+# Output is 'hi'
+subprocess.run("test1", executable="./test1.dist/test1.bin")
+
+# Output is 'hello'
+subprocess.run("test2", executable="./test1.dist/test1.bin")
+
+More generally, Nuitka picks the entry point depending on the value of sys.argv[0].
+
+proc = subprocess.Popen(cmd, shell=False,  executable="/bin/tcsh", stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+return_code = proc.wait()
+
+"""
 import time
 from datetime import datetime
-from nicegui import ui
+from nicegui import app, ui
 from utils import CASTUtils as Utils
-import asyncio
 from ping3 import ping
 
 
@@ -14,7 +39,7 @@ class DevCharts:
     param: IPs list e.g. '192.168.1.1,192.168.1.5, ...'
     """
 
-    def __init__(self,dev_ips=None, dark: bool = False):
+    def __init__(self, dev_ips=None, dark: bool = False):
         if dev_ips is None:
             dev_ips = []
         self.ips = dev_ips.split(',')
@@ -35,6 +60,7 @@ class DevCharts:
         self.multi_signal = None
 
         """ ui design """
+
         with ui.row().classes('no-wrap'):
             self.notify = ui.switch('Notification')
             self.notify.value = True
@@ -62,6 +88,12 @@ class DevCharts:
             ui.button('Pause 5s', on_click=self.pause_chart)
         self.log.push("Auto refresh time: " + str(self.chart_refresh_s) + "sec")
         self.log.push("Auto wled refresh time: " + str(self.wled_chart_refresh_s) + "sec")
+
+        app.native.window_args['resizable'] = True
+        app.native.start_args['debug'] = False
+        app.native.settings['ALLOW_DOWNLOADS'] = True
+
+        ui.run(native=True, window_size=(800, 600), fullscreen=False, reload=False)
 
     def create_charts(self):
         self.multi_ping = ui.echart(
@@ -252,3 +284,6 @@ class DevCharts:
 
         self.multi_signal.update()
 
+
+if __name__ == "__main__":
+    DevCharts('127.0.0.1')

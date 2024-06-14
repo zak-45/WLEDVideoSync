@@ -2,7 +2,7 @@
 import time
 from datetime import datetime
 import psutil
-from nicegui import ui
+from nicegui import app, ui
 
 
 class SysCharts:
@@ -79,6 +79,12 @@ class SysCharts:
         self.cpu_data_timer.append(ui.timer(self.cpu_interval, lambda: self.cpu_datas()))
         self.sys_data_timer.append(ui.timer(self.sys_interval, lambda: self.sys_datas()))
         self.chart_sys_timer = ui.timer(self.chart_refresh_s, lambda: self.update_charts())
+
+        app.native.window_args['resizable'] = True
+        app.native.start_args['debug'] = False
+        app.native.settings['ALLOW_DOWNLOADS'] = True
+
+        ui.run(native=True, window_size=(800, 600), fullscreen=False, reload=False)
 
     def create_charts(self):
         self.cpu_chart = ui.echart({
@@ -300,3 +306,7 @@ class SysCharts:
     def get_disk():
         disk = psutil.disk_usage('/')
         return disk[3]
+
+
+if __name__ == "__main__":
+    SysCharts()
