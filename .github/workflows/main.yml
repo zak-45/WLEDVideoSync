@@ -65,11 +65,17 @@ jobs:
         uses: Nuitka/Nuitka-Action@v1.1
         with:
           nuitka-version: 2.2.3
-          script-name: WLEDVideoSync.py
+          script-name: |
+            WLEDVideoSync.py
+            devstats.py
+            netstats.py
+            sysstats.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
-          enable-plugins: tk-inter
-          disable-console: True
+          enable-plugins:
+            tk-inter
+            PySide6
+          windows-console-mode: False
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
@@ -83,6 +89,7 @@ jobs:
             zeroconf._handlers.answers
             pygments.formatters.html
             dbm.dumb
+            qtpy
           include-data-dir: |
             tmp=tmp
             log=log
@@ -93,6 +100,7 @@ jobs:
             xtra=xtra
           include-data-files: |
             favicon.ico=favicon.ico
+            
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
