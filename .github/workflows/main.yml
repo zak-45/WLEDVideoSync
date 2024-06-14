@@ -72,7 +72,7 @@ jobs:
             sysstats.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
-          enable-plugins: tk-inter, PySide6
+          enable-plugins: tk-inter, pyside6
           windows-console-mode: False
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
