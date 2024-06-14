@@ -70,6 +70,7 @@ jobs:
             devstats.py
             netstats.py
             sysstats.py
+
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
           enable-plugins:
