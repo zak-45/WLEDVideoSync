@@ -1731,13 +1731,13 @@ def sys_stats_info_page():
 
 def select_exe():
     if sys.platform == 'linux':
-        return './WLEDVideoSync.bin'
+        return './WLEDVideoSync-Linux.bin'
 
     elif sys.platform == 'darwin':
-        return './WLEDVideoSync.app'
+        return './WLEDVideoSync-MacOS.app'
 
     else:
-        return './WLEDVideoSync.exe'
+        return './WLEDVideoSync-Windows.exe'
 
 
 def display_formats():
