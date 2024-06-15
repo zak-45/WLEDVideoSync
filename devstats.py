@@ -41,7 +41,7 @@ class DevCharts:
 
     def __init__(self, dev_ips=None, dark: bool = False):
         if dev_ips is None:
-            dev_ips = []
+            dev_ips = '127.0.0.1'
         self.ips = dev_ips.split(',')
         self.maxTimeSec = 600
         self.pingAlertLimitMs = 100
@@ -286,4 +286,4 @@ class DevCharts:
 
 
 if __name__ == "__main__":
-    DevCharts('127.0.0.1')
+    DevCharts()
