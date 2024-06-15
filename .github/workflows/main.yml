@@ -78,6 +78,8 @@ jobs:
           macos-app-icon: assets/favicon.ico
           macos-create-app-bundle: true
           disable-console: True
+          force-stdout-spec: WLEDVideoSyncCharts.out.txt
+          force-stderr-spec: WLEDVideoSyncCharts.err.txt
           onefile: true
           onefile-tempdir-spec: ./WLEDVideoSyncCharts
           output-file: runcharts
@@ -89,7 +91,7 @@ jobs:
         with:
           name: ${{runner.os}} Charts Build
           if-no-files-found: warn
-          path: 'build/WLEDVideoSync-Charts-${{runner.os}}**'
+          path: 'build/runcharts.**'
 
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -97,7 +99,7 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-Charts-${{runner.os}}**'
+          artifacts: 'build/runcharts.**'
 
 
       - name: Build Executable for ${{runner.os}}
