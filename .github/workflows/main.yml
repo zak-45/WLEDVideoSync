@@ -78,7 +78,6 @@ jobs:
           macos-app-icon: assets/favicon.ico
           macos-create-app-bundle: true
           onefile: true
-          onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDVideoSync-Charts-${{runner.os}}
           include-data-files: |
             favicon.ico=favicon.ico
