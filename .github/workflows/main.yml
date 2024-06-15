@@ -60,7 +60,30 @@ jobs:
       - name: Install Dependencies for All
         run: |
           pip install -r requirements.txt
-          
+
+      - name: Build Charts Executable for ${{runner.os}}
+        uses: Nuitka/Nuitka-Action@v1.1
+        with:
+          nuitka-version: 2.2.3
+          script-name: |
+            devstats.py
+            netstats.py
+            sysstats.py
+          company-name: zak-45
+          file-version: ${{github.event.inputs.mytag}}
+          enable-plugins: tk-inter
+          disable-console: True
+          deployment: true
+          windows-icon-from-ico: assets/favicon.ico
+          macos-app-icon: assets/favicon.ico
+          macos-create-app-bundle: true
+          onefile: true
+          onefile-tempdir-spec: ./WLEDVideoSync
+          output-file: WLEDVideoSync-Charts-${{runner.os}}
+          include-data-files: |
+            favicon.ico=favicon.ico
+            
+
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.1
         with:
@@ -94,7 +117,6 @@ jobs:
             xtra=xtra
           include-data-files: |
             favicon.ico=favicon.ico
-            
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
