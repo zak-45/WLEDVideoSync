@@ -122,7 +122,9 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDVideoSync-${{runner.os}}**'
+          path: | 
+            'build/WLEDVideoSync-${{runner.os}}**'
+            'build/WLEDVideoSync-Charts-${{runner.os}}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -130,5 +132,7 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-${{runner.os}}**'
+          artifacts: | 
+            'build/WLEDVideoSync-${{runner.os}}**'
+            'build/WLEDVideoSync-Charts-${{runner.os}}**'
           
