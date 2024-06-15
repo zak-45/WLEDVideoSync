@@ -11,7 +11,7 @@ class ScreenAreaSelection:
         # Set the geometry to match the selected monitor
         self.root.geometry(f"{monitor.width}x{monitor.height}+{monitor.x}+{monitor.y}")
         self.root.overrideredirect(True)  # Remove window decorations
-        self.root.attributes('-alpha', 0.3)  # Set window transparency
+        self.root.attributes('-alpha', 0.5)  # Set window transparency
         self.root.configure(bg='black')
 
         self.canvas = tk.Canvas(root, cursor="cross", bg='black', highlightthickness=0)
@@ -31,7 +31,7 @@ class ScreenAreaSelection:
         self.start_y = event.y
         # Create rectangle if not yet exist
         if not self.rect:
-            self.rect = self.canvas.create_rectangle(self.start_x, self.start_y, 1, 1, outline='red', width=2)
+            self.rect = self.canvas.create_rectangle(self.start_x, self.start_y, 1, 1, outline='blue', width=4)
 
     def on_mouse_drag(self, event):
         curX, curY = (event.x, event.y)

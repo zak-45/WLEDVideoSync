@@ -81,7 +81,22 @@ jobs:
           output-file: WLEDVideoSync-Charts-${{runner.os}}
           include-data-files: |
             favicon.ico=favicon.ico
-            
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{runner.os}} Build
+          if-no-files-found: warn
+          path: 'build/WLEDVideoSync-Charts-${{runner.os}}**'
+
+      - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          commit: main
+          tag: ${{github.event.inputs.mytag}}
+          artifacts: 'build/WLEDVideoSync-Charts-${{runner.os}}**'
+
 
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.1
@@ -122,9 +137,7 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: | 
-            'build/WLEDVideoSync-${{runner.os}}**'
-            'build/WLEDVideoSync-Charts-${{runner.os}}**'
+          path: 'build/WLEDVideoSync-${{runner.os}}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -132,7 +145,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: | 
-            'build/WLEDVideoSync-${{runner.os}}**'
-            'build/WLEDVideoSync-Charts-${{runner.os}}**'
-          
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}**'
