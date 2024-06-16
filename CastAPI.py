@@ -1680,60 +1680,67 @@ def charts_select():
 
 def dev_stats_info_page():
     """ devices charts """
-    ips_list = '127.0.0.1'
+    dev_ip = ['--dev_list']
+    ips_list = ['127.0.0.1']
     if Desktop.host != '127.0.0.1':
-        ips_list = Desktop.host
+        ips_list.append(Desktop.host)
     if Media.host != '127.0.0.1':
-        ips_list = ips_list + ',' + Media.host
+        ips_list.append(Media.host)
 
     for i in range(len(Desktop.cast_devices)):
         cast_ip = Desktop.cast_devices[i][1]
-        ips_list = ips_list + ',' + cast_ip
+        ips_list.append(cast_ip)
     for i in range(len(Media.cast_devices)):
         cast_ip = Media.cast_devices[i][1]
-        ips_list = ips_list + ',' + cast_ip
+        ips_list.append(cast_ip)
+
+    dark = []
+    if CastAPI.dark_mode is True:
+        dark = ['--dark']
 
     # run chart on its own process
-    subprocess.Popen(["devstats", str(ips_list), str(CastAPI.dark_mode)],
-                     executable=select_exe(),
+    subprocess.Popen(["devstats"] + dev_ip + ips_list + dark,
+                     executable=select_chart_exe(),
                      stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE,
                      text=True)
-
-    # DevCharts(ips_list, CastAPI.dark_mode)
 
 
 def net_stats_info_page():
     """ network charts """
-    subprocess.Popen(["netstats", str(CastAPI.dark_mode)],
-                     executable=select_exe(),
+    dark = []
+    if CastAPI.dark_mode is True:
+        dark = ['--dark']
+
+    subprocess.Popen(["netstats"] + dark,
+                     executable=select_chart_exe(),
                      stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE,
                      text=True)
-
-    # NetCharts(CastAPI.dark_mode)
 
 
 def sys_stats_info_page():
     """ system charts """
-    subprocess.Popen(["sysstats", str(CastAPI.dark_mode)],
-                     executable=select_exe(),
+    dark = []
+    if CastAPI.dark_mode is True:
+        dark = ['--dark']
+
+    subprocess.Popen(["sysstats"] + dark,
+                     executable=select_chart_exe(),
                      stdout=subprocess.PIPE,
                      stderr=subprocess.PIPE,
                      text=True)
 
-    # SysCharts(CastAPI.dark_mode)
 
-
-def select_exe():
+def select_chart_exe():
     if sys.platform == 'linux':
-        return './WLEDVideoSync-Linux.bin'
+        return './runcharts.bin'
 
     elif sys.platform == 'darwin':
-        return './WLEDVideoSync-MacOS.app'
+        return './runcharts.app'
 
     else:
-        return './WLEDVideoSync-Windows.exe'
+        return './runcharts.exe'
 
 
 def display_formats():
