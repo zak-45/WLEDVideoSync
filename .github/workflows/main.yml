@@ -61,47 +61,6 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Build Charts Executable for ${{runner.os}}
-        uses: Nuitka/Nuitka-Action@v1.1
-        with:
-          nuitka-version: 2.2.3
-          script-name: |
-            runcharts.py
-            devstats.py
-            netstats.py
-            sysstats.py
-          company-name: zak-45
-          file-version: ${{github.event.inputs.mytag}}
-          enable-plugins: tk-inter
-          deployment: true
-          windows-icon-from-ico: assets/favicon.ico
-          macos-app-icon: assets/favicon.ico
-          macos-create-app-bundle: true
-          disable-console: True
-          force-stdout-spec: WLEDVideoSyncCharts.out.txt
-          force-stderr-spec: WLEDVideoSyncCharts.err.txt
-          onefile: true
-          onefile-tempdir-spec: ./WLEDVideoSyncCharts
-          output-file: runcharts-${{runner.os}}
-          include-data-files: |
-            favicon.ico=favicon.ico
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{runner.os}} Charts Build
-          if-no-files-found: warn
-          path: 'build/runcharts-${{runner.os}}.**'
-
-      - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          commit: main
-          tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/runcharts-${{runner.os}}.**'
-
-
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.1
         with:
