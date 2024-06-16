@@ -56,10 +56,6 @@ from utils import HTTPDiscovery as Net
 from utils import ImageUtils
 from utils import LocalFilePicker
 
-from devstats import DevCharts
-from netstats import NetCharts
-from sysstats import SysCharts
-
 import ast
 
 from datetime import datetime
