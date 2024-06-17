@@ -1701,10 +1701,7 @@ def dev_stats_info_page():
 
     # run chart on its own process
     subprocess.Popen(["devstats"] + dev_ip + ips_list + dark,
-                     executable=select_chart_exe(),
-                     stdout=subprocess.PIPE,
-                     stderr=subprocess.PIPE,
-                     text=True)
+                     executable=select_chart_exe())
 
 
 def net_stats_info_page():
@@ -1717,10 +1714,7 @@ def net_stats_info_page():
         dark = ['--dark']
 
     subprocess.Popen(["netstats"] + dark,
-                     executable=select_chart_exe(),
-                     stdout=subprocess.PIPE,
-                     stderr=subprocess.PIPE,
-                     text=True)
+                     executable=select_chart_exe())
 
 
 def sys_stats_info_page():
@@ -1733,10 +1727,8 @@ def sys_stats_info_page():
         dark = ['--dark']
 
     subprocess.Popen(["sysstats"] + dark,
-                     executable=select_chart_exe(),
-                     stdout=subprocess.PIPE,
-                     stderr=subprocess.PIPE,
-                     text=True)
+                     executable=select_chart_exe())
+
 
 
 def select_chart_exe():
