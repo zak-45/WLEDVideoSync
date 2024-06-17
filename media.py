@@ -149,7 +149,7 @@ class CASTMedia:
         t_cast_frame_buffer = []
 
         frame_count = 0
-        delay = 1.0 / self.rate  # Calculate the time interval between frames
+        delay: float = 1.0 / self.rate  # Calculate the time interval between frames
 
         t_todo_stop = False
 
@@ -298,6 +298,9 @@ class CASTMedia:
             if self.force_mjpeg:
                 media.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
+        # Calculate the interval between frames in seconds
+        interval: float = 1.0 / self.rate
+
         logger.info(f"Playing media {t_viinput} of length {length} at {fps} FPS")
         logger.info(f"Stopcast value : {self.stopcast}")
 
@@ -313,7 +316,6 @@ class CASTMedia:
         """
             Media Loop
         """
-
         # Main thread loop to read media frame, stop from global call or local
         while not (self.stopcast or t_todo_stop):
             """
@@ -322,15 +324,15 @@ class CASTMedia:
             if CASTMedia.t_exit_event.is_set():
                 break
 
+            # Calculate the expected time for the current frame
+            expected_time = start_time + frame_count * interval
+
             #  read media
             if length != 1:
                 success, frame = media.read()
                 if not success:
                     logger.warning('Error to read media or reached END')
                     break
-
-            frame_count += 1
-            CASTMedia.total_frame += 1
 
             # convert to RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -533,12 +535,17 @@ class CASTMedia:
             if CASTMedia.t_todo_event.is_set():
                 pass
             else:
-                elapsed_time = time.time() - last_frame_time
-                # sleep depend of the interval (FPS)
-                if elapsed_time < delay:
-                    time.sleep(delay - elapsed_time)
+                # Calculate the current time
+                current_time = time.time()
 
-            last_frame_time = time.time()
+                # Calculate the time to sleep to maintain the desired FPS
+                sleep_time = expected_time - current_time
+
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+
+            frame_count += 1
+            CASTMedia.total_frame += 1
 
         """
             Final : End Media Loop

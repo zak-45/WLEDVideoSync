@@ -1667,33 +1667,43 @@ helpers
 """
 
 
-def charts_select():
+async def charts_select():
     """
     select charts
     :return:
     """
-
-    CastAPI.charts_row.set_visibility(True)
+    if os.path.isfile(select_chart_exe()):
+        CastAPI.charts_row.set_visibility(True)
+    else:
+        ui.notify('No charts executable', type='warning')
 
 
 def dev_stats_info_page():
     """ devices charts """
 
     CastAPI.charts_row.set_visibility(False)
+    logger.info('Run Device(s) Charts')
 
-    dev_ip = ['--dev_list']
-    ips_list = ['127.0.0.1']
+    dev_ip = ['--dev_ip']
+    ips_list = []
+    ips_txt = ''
     if Desktop.host != '127.0.0.1':
-        ips_list.append(Desktop.host)
+        ips_txt = Desktop.host
     if Media.host != '127.0.0.1':
-        ips_list.append(Media.host)
+        ips_txt = ips_txt + ',' + Media.host
 
     for i in range(len(Desktop.cast_devices)):
         cast_ip = Desktop.cast_devices[i][1]
-        ips_list.append(cast_ip)
+        ips_txt = ips_txt + ',' + cast_ip
+
     for i in range(len(Media.cast_devices)):
         cast_ip = Media.cast_devices[i][1]
-        ips_list.append(cast_ip)
+        ips_txt = ips_txt + ',' + cast_ip
+
+    if ips_txt == '':
+        ips_txt = '127.0.0.1'
+
+    ips_list.append(ips_txt)
 
     dark = []
     if CastAPI.dark_mode is True:
@@ -1708,6 +1718,7 @@ def net_stats_info_page():
     """ network charts """
 
     CastAPI.charts_row.set_visibility(False)
+    logger.info('Run Network Chart')
 
     dark = []
     if CastAPI.dark_mode is True:
@@ -1721,6 +1732,7 @@ def sys_stats_info_page():
     """ system charts """
 
     CastAPI.charts_row.set_visibility(False)
+    logger.info('Run System Charts')
 
     dark = []
     if CastAPI.dark_mode is True:
@@ -1730,8 +1742,8 @@ def sys_stats_info_page():
                      executable=select_chart_exe())
 
 
-
 def select_chart_exe():
+    logger.info(f"Execute : {app_config['charts_exe']}")
     return app_config['charts_exe']
 
 
@@ -1875,11 +1887,12 @@ async def load_preset(class_name, interactive=True, file_name=None):
         apply_preset()
 
 
-def player_cast(source):
+async def player_cast(source):
     """ Cast from video CastAPI.player only for Media"""
     Media.viinput = source
     ui.notify(f'Cast running from : {source}')
     Media.cast(shared_buffer=t_data_buffer)
+    CastAPI.player.play()
 
 
 def cast_device_manage(class_name):
