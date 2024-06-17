@@ -1095,6 +1095,17 @@ def main_page():
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
         ui.button('Stats', on_click=charts_select, color='bg-red-800')
+        CastAPI.charts_row = ui.row().classes('w-full no-wrap')
+        with CastAPI.charts_row:
+            with ui.card().classes('w-1/3'):
+                ui.button('Device', on_click=dev_stats_info_page)
+
+            with ui.card().classes('w-1/3'):
+                ui.button('Network', on_click=net_stats_info_page)
+
+            with ui.card().classes('w-1/3'):
+                ui.button('System', on_click=sys_stats_info_page)
+        CastAPI.charts_row.set_visibility(False)
         if sys.platform != 'win32':
             ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
@@ -1662,24 +1673,14 @@ def charts_select():
     :return:
     """
 
-    if CastAPI.charts_row is None:
-        CastAPI.charts_row = ui.row().classes('w-full no-wrap')
-        with CastAPI.charts_row:
-            with ui.card().classes('w-1/3'):
-                ui.button('Device', on_click=dev_stats_info_page)
-
-            with ui.card().classes('w-1/3'):
-                ui.button('Network', on_click=net_stats_info_page)
-
-            with ui.card().classes('w-1/3'):
-                ui.button('System', on_click=sys_stats_info_page)
-    else:
-        CastAPI.charts_row.clear()
-        CastAPI.charts_row = None
+    CastAPI.charts_row.set_visibility(True)
 
 
 def dev_stats_info_page():
     """ devices charts """
+
+    CastAPI.charts_row.set_visibility(False)
+
     dev_ip = ['--dev_list']
     ips_list = ['127.0.0.1']
     if Desktop.host != '127.0.0.1':
@@ -1708,6 +1709,9 @@ def dev_stats_info_page():
 
 def net_stats_info_page():
     """ network charts """
+
+    CastAPI.charts_row.set_visibility(False)
+
     dark = []
     if CastAPI.dark_mode is True:
         dark = ['--dark']
@@ -1721,6 +1725,9 @@ def net_stats_info_page():
 
 def sys_stats_info_page():
     """ system charts """
+
+    CastAPI.charts_row.set_visibility(False)
+
     dark = []
     if CastAPI.dark_mode is True:
         dark = ['--dark']
@@ -1733,14 +1740,7 @@ def sys_stats_info_page():
 
 
 def select_chart_exe():
-    if sys.platform == 'linux':
-        return './runcharts.bin'
-
-    elif sys.platform == 'darwin':
-        return './runcharts.app'
-
-    else:
-        return './runcharts.exe'
+    return app_config['charts_exe']
 
 
 def display_formats():
