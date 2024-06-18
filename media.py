@@ -113,6 +113,10 @@ class CASTMedia:
         self.cast_frame_buffer = []
         self.ddp_multi_names = []
         self.force_mjpeg = False
+        self.cast_adjust: int = 0
+        self.cast_skip_frames: int = 0
+        self.player_time: float = 0
+        self.player_sync = False
 
         if sys.platform == 'win32':
             self.preview = True
@@ -310,7 +314,6 @@ class CASTMedia:
             media.set(1, self.frame_index - 1)
 
         CASTMedia.cast_names.append(t_name)
-        last_frame_time = time.time()
         CASTMedia.count += 1
 
         """
@@ -326,9 +329,21 @@ class CASTMedia:
 
             # Calculate the expected time for the current frame
             expected_time = start_time + frame_count * interval
+            #  add some delay + or -
+            expected_time += self.cast_adjust
 
             #  read media
             if length != 1:
+                if self.cast_skip_frames != 0:
+                    frame_number = frame_count + self.cast_skip_frames
+                    media.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
+                    #  frame_count = frame_number
+                    self.cast_skip_frames = 0
+                if self.player_sync:
+                    media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
+                    self.player_sync = False
+                    logger.info('Sync Cast to time :{}'.format(self.player_time))
+
                 success, frame = media.read()
                 if not success:
                     logger.warning('Error to read media or reached END')

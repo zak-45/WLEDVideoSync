@@ -28,12 +28,10 @@ import logging.config
 import traceback
 import multiprocessing
 import asyncio
-import threading
 import subprocess
 
 import psutil
 
-import utils
 from ddp_queue import DDPDevice
 
 import time
@@ -68,7 +66,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
-from nicegui import app, ui, native, context
+from nicegui import app, ui, native
 from nicegui.events import ValueChangeEventArguments
 
 from pytube import YouTube
@@ -872,6 +870,7 @@ def main_page():
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed'))
+        CastAPI.player.on('timeupdate', lambda: player_time())
         CastAPI.player.set_visibility(False)
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
@@ -904,6 +903,12 @@ def main_page():
                 .on('click', lambda: player_cast(CastAPI.player.source)) \
                 .tooltip('Cast Video')
             cast_player.set_visibility(False)
+
+            ui.knob(0, min=-1, max=1, step=.1, show_value=True).classes('bg-red') \
+                .bind_value(Media, 'player_adjust')
+            ui.knob(0, min=-100, max=100, step=1, show_value=True).classes('bg-red') \
+                .bind_value(Media, 'cast_skip_frames')
+            ui.button('Sync', on_click=lambda: player_sync())
 
             media_info = ui.icon('info', size='sd') \
                 .style("cursor: pointer") \
@@ -1677,6 +1682,17 @@ helpers
 """
 
 
+async def player_sync():
+    Media.player_sync = True
+
+
+async def player_time():
+    """ Return current play time from the Player"""
+    current_time = await ui.run_javascript("document.querySelector('video').currentTime")
+    Media.player_time = current_time * 1000
+    # print(Media.player_time)
+
+
 async def charts_select():
     """
     select charts
@@ -1708,6 +1724,9 @@ def dev_stats_info_page():
     for i in range(len(Media.cast_devices)):
         cast_ip = Media.cast_devices[i][1]
         ips_list.append(cast_ip)
+
+    if len(ips_list) == 0:
+        ips_list.append('127.0.0.1')
 
     ips_list = [','.join(ips_list)]
 
