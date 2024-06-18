@@ -33,6 +33,7 @@ import subprocess
 
 import psutil
 
+import utils
 from ddp_queue import DDPDevice
 
 import time
@@ -881,14 +882,9 @@ def main_page():
                      video_file.set_visibility(visible),
                      cast_player.set_visibility(visible),
                      video_url.set_visibility(visible),
+                     media_info.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
                 .tooltip("Show Video player")
-
-            cast_player = ui.icon('cast') \
-                .style("cursor: pointer") \
-                .on('click', lambda: player_cast(CastAPI.player.source)) \
-                .tooltip('Cast Video')
-            cast_player.set_visibility(False)
 
             hide_player = ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
@@ -898,9 +894,23 @@ def main_page():
                      video_file.set_visibility(visible),
                      video_url.set_visibility(visible),
                      cast_player.set_visibility(visible),
+                     media_info.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
                 .tooltip("Hide Video player")
             hide_player.set_visibility(False)
+
+            cast_player = ui.icon('cast', size='md') \
+                .style("cursor: pointer") \
+                .on('click', lambda: player_cast(CastAPI.player.source)) \
+                .tooltip('Cast Video')
+            cast_player.set_visibility(False)
+
+            media_info = ui.icon('info', size='sd') \
+                .style("cursor: pointer") \
+                .on('click', lambda: player_media_info(CastAPI.player.source)) \
+                .tooltip('Info')
+            media_info.set_visibility(False)
+
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
                 .on('click', player_pick_file) \
@@ -1686,24 +1696,20 @@ def dev_stats_info_page():
 
     dev_ip = ['--dev_ip']
     ips_list = []
-    ips_txt = ''
     if Desktop.host != '127.0.0.1':
-        ips_txt = Desktop.host
+        ips_list.append(Desktop.host)
     if Media.host != '127.0.0.1':
-        ips_txt = ips_txt + ',' + Media.host
+        ips_list.append(Media.host)
 
     for i in range(len(Desktop.cast_devices)):
         cast_ip = Desktop.cast_devices[i][1]
-        ips_txt = ips_txt + ',' + cast_ip
+        ips_list.append(cast_ip)
 
     for i in range(len(Media.cast_devices)):
         cast_ip = Media.cast_devices[i][1]
-        ips_txt = ips_txt + ',' + cast_ip
+        ips_list.append(cast_ip)
 
-    if ips_txt == '':
-        ips_txt = '127.0.0.1'
-
-    ips_list.append(ips_txt)
+    ips_list = [','.join(ips_list)]
 
     dark = []
     if CastAPI.dark_mode is True:
@@ -1745,6 +1751,13 @@ def sys_stats_info_page():
 def select_chart_exe():
     logger.info(f"Execute : {app_config['charts_exe']}")
     return app_config['charts_exe']
+
+
+def player_media_info(player_media):
+    with ui.dialog() as dialog:
+        dialog.open()
+        editor = ui.json_editor({'content': {'json': Utils.list_media_info(player_media)}})
+        editor.run_editor_method('updateProps', {'readOnly': True, 'mode': 'table'})
 
 
 def display_formats():
