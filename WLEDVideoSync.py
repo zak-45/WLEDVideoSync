@@ -1,3 +1,12 @@
+# Compilation mode, standalone everywhere, except on macOS there app bundle
+# nuitka-project-if: {OS} in ("Windows", "Linux", "FreeBSD"):
+#    nuitka-project: --onefile
+# nuitka-project-if: {OS} == "Darwin":
+#    nuitka-project: --standalone
+#    nuitka-project: --macos-create-app-bundle
+# nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
+# nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
+
 """
 a: zak-45
 d : 07/04/2024
@@ -14,15 +23,6 @@ pystray : put on systray if requested
 
 on linux, preview default to False: should work but on some test do memory dump
 
-
-# Compilation mode, standalone everywhere, except on macOS there app bundle
-# nuitka-project-if: {OS} in ("Windows", "Linux", "FreeBSD"):
-#    nuitka-project: --onefile
-# nuitka-project-if: {OS} == "Darwin":
-#    nuitka-project: --standalone
-#    nuitka-project: --macos-create-app-bundle
-# nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
-# nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 
 
 """

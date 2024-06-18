@@ -70,8 +70,6 @@ jobs:
           file-version: ${{github.event.inputs.mytag}}
           enable-plugins: tk-inter
           disable-console: True
-          force-stdout-spec: WLEDVideoSync.out.txt
-          force-stderr-spec: WLEDVideoSync.err.txt
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
