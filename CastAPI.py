@@ -25,6 +25,7 @@ Web GUI based on NiceGUI
 """
 import logging
 import logging.config
+import threading
 import traceback
 import multiprocessing
 import asyncio
@@ -54,6 +55,7 @@ from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
 from utils import ImageUtils
 from utils import LocalFilePicker
+from utils import ScreenAreaSelection as sas
 
 import ast
 
@@ -231,8 +233,9 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
             logger.info("viinput act as string only")
 
     # append title if needed
-    if class_name == 'Desktop' and param == 'viinput' and 'desktop' not in value and sys.platform == 'win32':
-        value = 'title=' + value
+    if class_name == 'Desktop' and param == 'viinput' and sys.platform == 'win32':
+        if 'desktop' and 'area' not in value:
+            value = 'title=' + value
 
     # check valid IP
     if param == 'host':
@@ -918,7 +921,7 @@ def main_page():
                 .tooltip('Sync Cast with Video Player')
             media_sync.set_visibility(False)
             media_auto_sync = ui.checkbox('Auto Sync') \
-                .bind_value(Media,'auto_sync') \
+                .bind_value(Media, 'auto_sync') \
                 .tooltip('Auto Sync Cast with Video Player every 30 sec')
             media_auto_sync.set_visibility(False)
 
@@ -1283,6 +1286,12 @@ def main_page_desktop():
                 new_viformat = ui.input('Method', value=Desktop.viformat)
                 new_viformat.bind_value_to(Desktop, 'viformat')
                 ui.button('formats', on_click=display_formats)
+                with ui.row():
+                    ui.number('', value=Desktop.monitor_number, min=0, max=1).classes('w-10') \
+                        .bind_value(Desktop, 'monitor_number') \
+                        .tooltip('Enter monitor number')
+                    ui.button('ScreenArea', on_click=select_sc_area) \
+                        .tooltip('Select area from monitor')
 
             with ui.card():
                 new_vooutput = ui.input('Output', value=str(Desktop.vooutput))
@@ -1692,6 +1701,20 @@ def system_stats():
 """
 helpers
 """
+
+
+def select_sc_area():
+    monitor = int(Desktop.monitor_number)
+    thread = threading.Thread(target=sas.run, args=(monitor,))
+    thread.daemon = True
+    thread.start()
+    thread.join()
+    # For Calculate crop parameters
+    Desktop.screen_coordinates = sas.screen_coordinates
+    #
+    logger.info(f'Monitor infos: {sas.monitors}')
+    logger.info(f'Area Coordinates: {sas.coordinates} from monitor {monitor}')
+    logger.info(f'Area screen Coordinates: {sas.screen_coordinates} from monitor {monitor}')
 
 
 def player_sync():

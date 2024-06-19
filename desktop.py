@@ -111,9 +111,11 @@ class CASTDesktop:
         self.cast_devices: list = []
         self.cast_frame_buffer = []
         self.ddp_multi_names = []
+        self.monitor_number: int = 0  # monitor to use for area selection
+        self.screen_coordinates = []
 
         if sys.platform == 'win32':
-            self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>'
+            self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>' or 'area' for portion of screen
             self.viformat: str = 'gdigrab'  # 'gdigrab' for win
             self.preview = True
         elif sys.platform == 'linux':
@@ -274,15 +276,34 @@ class CASTDesktop:
         # Open video device (desktop / window)
         input_options = {'c:v': 'libx264rgb', 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
                          'framerate': str(frame_interval), 'probesize': '100M'}
+
+        if self.viinput == 'area':
+            # specific area
+            # Calculate crop parameters : ; 19/06/2024 coordinates for 2 monitor need to be reviewed
+            width = int(self.screen_coordinates[2] - self.screen_coordinates[0])
+            height = int(self.screen_coordinates[3] - self.screen_coordinates[1])
+            x = int(self.screen_coordinates[0])
+            y = int(self.screen_coordinates[1])
+
+            area_options = {'offset_x': str(x), 'offset_y': str(y),
+                            'video_size': f'{width}x{height}',
+                            'show_region': '1'}
+
+            input_options |= area_options
+
         input_format = self.viformat
 
         """
         viinput can be:
-                    desktop : to stream full screen
-                    title=<window name> : to stream only window content
+                    desktop : to stream full screen or a part of the screen
+                    title=<window name> : to stream only window content                    
                     or str
         """
-        t_viinput = self.viinput
+
+        if self.viinput in ['desktop', 'area']:
+            t_viinput = 'desktop'
+        else:
+            t_viinput = self.viinput
 
         # Open av input container in read mode
         try:

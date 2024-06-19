@@ -49,11 +49,14 @@ from nicegui import events, ui, run
 
 from pytube import YouTube
 
+import tkinter as tk
+from screeninfo import get_monitors
+
 """
 When this env var exist, this mean run from the one-file executable.
 Load of the config is not possible, folder config should not exist.
 This avoid FileNotFoundError.
-This env not exist when run the extracted program.
+This env not exist when run from the extracted program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
@@ -915,3 +918,88 @@ class LocalFilePicker(ui.dialog):
     async def _handle_ok(self):
         rows = await ui.run_javascript(f'getElement({self.grid.id}).gridOptions.api.getSelectedRows()')
         self.submit([r['path'] for r in rows])
+
+
+class ScreenAreaSelection:
+    """ Retrieve coordinates from selected monitor region """
+
+    coordinates = []
+    screen_coordinates = []
+    monitors = []
+
+    def __init__(self, tk_root, dk_monitor):
+        self.root = tk_root
+        self.monitor = dk_monitor
+
+        # Set the geometry to match the selected monitor
+        self.root.geometry(f"{self.monitor.width}x{self.monitor.height}+{self.monitor.x}+{self.monitor.y}")
+        self.root.overrideredirect(True)  # Remove window decorations
+        self.root.attributes('-alpha', 0.5)  # Set window transparency
+        self.root.configure(bg='black')
+
+        self.canvas = tk.Canvas(self.root, cursor="cross", bg='black', highlightthickness=0)
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+
+        self.rect = None
+        self.start_x = None
+        self.start_y = None
+
+        self.canvas.bind("<Button-1>", self.on_button_press)
+        self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
+        self.canvas.bind("<ButtonRelease-1>", self.on_button_release)
+
+    def on_button_press(self, event):
+        # Save mouse drag start position
+        self.start_x = event.x
+        self.start_y = event.y
+        # Create rectangle if not yet exist
+        if not self.rect:
+            self.rect = self.canvas.create_rectangle(self.start_x, self.start_y, 1, 1, outline='blue', width=4)
+
+    def on_mouse_drag(self, event):
+        cur_x, cur_y = (event.x, event.y)
+        # Expand rectangle as you drag the mouse
+        self.canvas.coords(self.rect, self.start_x, self.start_y, cur_x, cur_y)
+
+    def on_button_release(self, event):
+        # Get the coordinates of the rectangle
+        coordinates = self.canvas.coords(self.rect)
+        ScreenAreaSelection.coordinates = coordinates
+
+        # Adjust coordinates to be relative to the screen
+        screen_coordinates = [
+            coordinates[0] + self.monitor.x,
+            coordinates[1] + self.monitor.y,
+            coordinates[2] + self.monitor.x,
+            coordinates[3] + self.monitor.y,
+        ]
+
+        ScreenAreaSelection.screen_coordinates = screen_coordinates
+
+        self.root.destroy()
+
+    @staticmethod
+    def run(monitor_number: int = 0):
+        """
+        Initiate tk-inter
+        param : monitor number
+        """
+        # get all monitors info
+        monitors = get_monitors()
+        ScreenAreaSelection.monitors = monitors
+        """
+        for i, m in enumerate(monitors):
+            print(f"Monitor {i}: {m}")
+        """
+        # Change the monitor index as needed
+        monitor_index = monitor_number  # Change this to the desired monitor index (0 for first , 1 for second, etc.)
+        if monitor_index >= len(monitors):
+            logger.info(f"Monitor index {monitor_index} is out of range. Using the first monitor instead.")
+            monitor_index = 0
+        # monitor obj
+        monitor = monitors[monitor_index]
+        #
+        root = tk.Tk()
+        root.title("Area Selection on Monitor")
+        ScreenAreaSelection(root, monitor)
+        root.mainloop()
