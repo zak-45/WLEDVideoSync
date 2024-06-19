@@ -66,7 +66,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
-from nicegui import app, ui, native
+from nicegui import app, ui, native, context
 from nicegui.events import ValueChangeEventArguments
 
 from pytube import YouTube
@@ -881,7 +881,10 @@ def main_page():
                      video_file.set_visibility(visible),
                      cast_player.set_visibility(visible),
                      video_url.set_visibility(visible),
+                     media_frame.set_visibility(visible),
+                     media_sync.set_visibility(visible),
                      media_info.set_visibility(visible),
+                     media_auto_sync.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
                 .tooltip("Show Video player")
 
@@ -894,6 +897,9 @@ def main_page():
                      video_url.set_visibility(visible),
                      cast_player.set_visibility(visible),
                      media_info.set_visibility(visible),
+                     media_frame.set_visibility(visible),
+                     media_sync.set_visibility(visible),
+                     media_auto_sync.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
                 .tooltip("Hide Video player")
             hide_player.set_visibility(False)
@@ -904,11 +910,17 @@ def main_page():
                 .tooltip('Cast Video')
             cast_player.set_visibility(False)
 
-            ui.knob(0, min=-1, max=1, step=.1, show_value=True).classes('bg-red') \
-                .bind_value(Media, 'player_adjust')
-            ui.knob(0, min=-100, max=100, step=1, show_value=True).classes('bg-red') \
-                .bind_value(Media, 'cast_skip_frames')
-            ui.button('Sync', on_click=lambda: player_sync())
+            media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
+                .bind_value(Media, 'cast_skip_frames') \
+                .tooltip('+ / - frames to CAST')
+            media_frame.set_visibility(False)
+            media_sync = ui.button('Sync', on_click=lambda: player_sync()) \
+                .tooltip('Sync Cast with Video Player')
+            media_sync.set_visibility(False)
+            media_auto_sync = ui.checkbox('Auto Sync') \
+                .bind_value(Media,'auto_sync') \
+                .tooltip('Auto Sync Cast with Video Player every 30 sec')
+            media_auto_sync.set_visibility(False)
 
             media_info = ui.icon('info', size='sd') \
                 .style("cursor: pointer") \
@@ -1682,18 +1694,18 @@ helpers
 """
 
 
-async def player_sync():
+def player_sync():
     Media.player_sync = True
 
 
 async def player_time():
     """ Return current play time from the Player"""
     current_time = await ui.run_javascript("document.querySelector('video').currentTime")
-    Media.player_time = current_time * 1000
-    # print(Media.player_time)
+    if current_time > 0:
+        Media.player_time = current_time * 1000
 
 
-async def charts_select():
+def charts_select():
     """
     select charts
     :return:
@@ -1775,7 +1787,7 @@ def select_chart_exe():
 def player_media_info(player_media):
     with ui.dialog() as dialog:
         dialog.open()
-        editor = ui.json_editor({'content': {'json': Utils.list_media_info(player_media)}})
+        editor = ui.json_editor({'content': {'json': Utils.get_media_info(player_media)}})
         editor.run_editor_method('updateProps', {'readOnly': True, 'mode': 'table'})
 
 
@@ -1921,7 +1933,10 @@ async def load_preset(class_name, interactive=True, file_name=None):
 
 async def player_cast(source):
     """ Cast from video CastAPI.player only for Media"""
+    await context.client.connected()
+    media_info = Utils.get_media_info(source)
     Media.viinput = source
+    Media.rate = int(round(float(media_info[3].split(':')[1].replace(' ', '').replace('"', ''))))
     ui.notify(f'Cast running from : {source}')
     Media.cast(shared_buffer=t_data_buffer)
     CastAPI.player.play()

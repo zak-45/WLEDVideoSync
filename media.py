@@ -27,6 +27,7 @@ import numpy as np
 
 import cv2
 import time
+from datetime import datetime
 import os
 
 import threading
@@ -113,10 +114,10 @@ class CASTMedia:
         self.cast_frame_buffer = []
         self.ddp_multi_names = []
         self.force_mjpeg = False
-        self.cast_adjust: int = 0
         self.cast_skip_frames: int = 0
         self.player_time: float = 0
         self.player_sync = False
+        self.auto_sync = False
 
         if sys.platform == 'win32':
             self.preview = True
@@ -329,20 +330,27 @@ class CASTMedia:
 
             # Calculate the expected time for the current frame
             expected_time = start_time + frame_count * interval
-            #  add some delay + or -
-            expected_time += self.cast_adjust
 
             #  read media
             if length != 1:
                 if self.cast_skip_frames != 0:
                     frame_number = frame_count + self.cast_skip_frames
                     media.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
-                    #  frame_count = frame_number
                     self.cast_skip_frames = 0
                 if self.player_sync:
                     media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
                     self.player_sync = False
                     logger.info('Sync Cast to time :{}'.format(self.player_time))
+                if self.auto_sync:
+                    # sync every 30 seconds, 5, 10 & 15 sec first time
+                    if ((frame_count % (self.rate * 30) == 0 or
+                        frame_count == (self.rate * 5) or
+                        frame_count == (self.rate * 10) or
+                        frame_count == (self.rate * 15)) and
+                            self.player_time != 0 and
+                            frame_count > 0):
+                        media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
+                        logger.info('Auto Sync Cast to time :{}'.format(self.player_time))
 
                 success, frame = media.read()
                 if not success:

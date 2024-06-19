@@ -75,7 +75,7 @@ class CASTUtils:
         pass
 
     @staticmethod
-    def list_media_info(media: str = None):
+    def get_media_info(media: str = None):
         dict_media = ['"File_Name":"{}"'.format(media)]
         capture = cv2.VideoCapture(media)
 
