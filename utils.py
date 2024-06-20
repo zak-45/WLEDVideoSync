@@ -130,12 +130,12 @@ class CASTUtils:
 
             def progress_func(stream_name, data, remain_bytes):
                 CASTUtils.yt_file_size_remain_bytes = remain_bytes
-                logger.info('In progress from YouTube ... remaining : ' + CASTUtils.bytes2human(remain_bytes))
+                logger.info(f'In progress from YouTube ... remaining :{CASTUtils.bytes2human(remain_bytes)} ')
 
             def complete_func(stream_name, file_path):
                 CASTUtils.yt_file_name = file_path
                 CASTUtils.yt_file_size_remain_bytes = 0
-                logger.info('YouTube Finished : ' + file_path)
+                logger.info(f'YouTube Finished : {file_path}')
 
             yt = YouTube(
                 url=yt_url,
@@ -204,11 +204,11 @@ class CASTUtils:
                 # Get WLED info's
                 response = await wled.request("/json/info")
                 matrix = response["leds"]["matrix"]
-                logger.info('WLED matrix : ' + str(matrix["w"]) + 'x' + str(matrix["h"]))
+                logger.info(f'WLED matrix : {str(matrix["w"])} x {str(matrix["h"])}')
             await wled.close()
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error('An exception occurred: {}'.format(error))
+            logger.error(f'An exception occurred: {error}')
             await wled.close()
 
         return matrix["w"], matrix["h"]
@@ -292,7 +292,7 @@ class CASTUtils:
 
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error('An exception occurred: {}'.format(error))
+            logger.error(f'An exception occurred: {error}')
 
         devicenumber: int = 0
         typedev: str = ''

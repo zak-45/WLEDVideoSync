@@ -341,7 +341,7 @@ class CASTMedia:
                 if self.player_sync:
                     media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
                     self.player_sync = False
-                    logger.info('Sync Cast to time :{}'.format(self.player_time))
+                    logger.info(f'Sync Cast to time :{self.player_time}')
                 if self.auto_sync:
                     # sync every x seconds, 10  sec first time
                     if ((frame_count % (self.rate * self.auto_sync_delay) == 0 or
@@ -350,7 +350,7 @@ class CASTMedia:
                             frame_count > 0):
                         time_to_set = round(self.player_time, 2)
                         media.set(cv2.CAP_PROP_POS_MSEC, time_to_set)
-                        logger.info('Auto Sync Cast to time :{}'.format(time_to_set))
+                        logger.info(f'Auto Sync Cast to time :{time_to_set}')
 
                 success, frame = media.read()
                 if not success:
@@ -507,7 +507,7 @@ class CASTMedia:
 
                 except Exception as error:
                     logger.error(traceback.format_exc())
-                    logger.error('An exception occurred: {}'.format(error))
+                    logger.error(f'An exception occurred: {error}')
                     break
 
                 if t_preview:

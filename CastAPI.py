@@ -418,7 +418,7 @@ async def util_download_yt(yt_url: str):
             prog_stream.download(output_path='tmp', filename_prefix='yt-tmp-', timeout=3, max_retries=2)
 
         except Exception as error:
-            logger.info('youtube error:', error)
+            logger.info(f'youtube error: {error}')
             raise HTTPException(status_code=400,
                                 detail=f"Not able to retrieve video from : {yt_url} {error}")
     else:
@@ -1362,7 +1362,7 @@ def main_page_desktop():
                             light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
                     except Exception as error:
                         logger.error(traceback.format_exc())
-                        logger.error('An exception occurred: {}'.format(error))
+                        logger.error(f'An exception occurred: {error}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -1534,7 +1534,7 @@ def main_page_media():
                             light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
                     except Exception as error:
                         logger.error(traceback.format_exc())
-                        logger.error('An exception occurred: {}'.format(error))
+                        logger.error(f'An exception occurred: {error}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -2344,7 +2344,7 @@ async def init_cast(class_obj):
     """
     class_obj.cast(shared_buffer=t_data_buffer)
     cast_manage.refresh()
-    logger.info(' Run Cast for ' + str(class_obj))
+    logger.info(f' Run Cast for {str(class_obj)}')
     # just try to avoid mad man click !!
     time.sleep(2)
 
@@ -2354,7 +2354,7 @@ async def cast_stop(class_obj):
 
     class_obj.stopcast = True
     cast_manage.refresh()
-    logger.info(' Stop Cast for ' + str(class_obj))
+    logger.info(f' Stop Cast for {str(class_obj)}')
 
 
 async def show_notify(event: ValueChangeEventArguments):
@@ -2424,7 +2424,7 @@ def light_box_image(index, image, txt1, txt2, class_obj, buffer):
 
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error('An exception occurred: {}'.format(error))
+            logger.error(f'An exception occurred: {error}')
 
 
 def multi_preview(class_name):

@@ -242,8 +242,8 @@ class CASTDesktop:
                 logger.error("Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
                 return False
             else:
-                logger.info('Virtual Matrix size is :' +
-                            str(self.scale_width * t_cast_x) + 'x' + str(self.scale_height * t_cast_y))
+                logger.info(f'Virtual Matrix size is : \
+                            {str(self.scale_width * t_cast_x)}x{str(self.scale_height * t_cast_y)}')
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
@@ -312,7 +312,7 @@ class CASTDesktop:
 
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error('An exception occurred: {}'.format(error))
+            logger.error(f'An exception occurred: {error}')
             return False
 
         # Define Output via av only if protocol is other
@@ -330,7 +330,7 @@ class CASTDesktop:
 
             except Exception as error:
                 logger.error(traceback.format_exc())
-                logger.error('An exception occurred: {}'.format(error))
+                logger.error(f'An exception occurred: {error}')
                 return False
 
         CASTDesktop.cast_names.append(t_name)
@@ -527,7 +527,7 @@ class CASTDesktop:
 
                             except Exception as error:
                                 logger.error(traceback.format_exc())
-                                logger.error('An exception occurred: {}'.format(error))
+                                logger.error(f'An exception occurred: {error}')
                                 break
 
                             # preview on fixed size window
@@ -565,7 +565,7 @@ class CASTDesktop:
 
             except Exception as error:
                 logger.error(traceback.format_exc())
-                logger.error('An exception occurred: {}'.format(error))
+                logger.error(f'An exception occurred: {error}')
 
             finally:
                 """
