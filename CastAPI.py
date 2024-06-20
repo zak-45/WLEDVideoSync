@@ -1128,7 +1128,7 @@ def main_page():
         net_view_page()  # refreshable
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
-        ui.button('Stats', on_click=charts_select, color='bg-red-800')
+        ui.button('SysStats', on_click=charts_select, color='bg-red-800')
         CastAPI.charts_row = ui.row().classes('w-full no-wrap')
         with CastAPI.charts_row:
             with ui.card().classes('w-1/3'):

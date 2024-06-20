@@ -128,11 +128,11 @@ class CASTUtils:
             if log is not None:
                 logger.addHandler(LogElementHandler(log))
 
-            def progress_func(stream_name, data, remain_bytes):
+            def progress_func(prog_stream, data, remain_bytes):
                 CASTUtils.yt_file_size_remain_bytes = remain_bytes
                 logger.info(f'In progress from YouTube ... remaining :{CASTUtils.bytes2human(remain_bytes)} ')
 
-            def complete_func(stream_name, file_path):
+            def complete_func(prog_stream, file_path):
                 CASTUtils.yt_file_name = file_path
                 CASTUtils.yt_file_size_remain_bytes = 0
                 logger.info(f'YouTube Finished : {file_path}')
