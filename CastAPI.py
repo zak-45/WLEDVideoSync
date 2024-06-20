@@ -234,7 +234,7 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
 
     # append title if needed
     if class_name == 'Desktop' and param == 'viinput' and sys.platform == 'win32':
-        if 'desktop' and 'area' not in value:
+        if value not in ['desktop', 'area']:
             value = 'title=' + value
 
     # check valid IP
