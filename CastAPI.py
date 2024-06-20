@@ -888,6 +888,7 @@ def main_page():
                      media_sync.set_visibility(visible),
                      media_info.set_visibility(visible),
                      media_auto_sync.set_visibility(visible),
+                     media_sync_delay.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
                 .tooltip("Show Video player")
 
@@ -903,6 +904,7 @@ def main_page():
                      media_frame.set_visibility(visible),
                      media_sync.set_visibility(visible),
                      media_auto_sync.set_visibility(visible),
+                     media_sync_delay.set_visibility(visible),
                      hide_player.set_visibility(visible))) \
                 .tooltip("Hide Video player")
             hide_player.set_visibility(False)
@@ -912,7 +914,11 @@ def main_page():
                 .on('click', lambda: player_cast(CastAPI.player.source)) \
                 .tooltip('Cast Video')
             cast_player.set_visibility(False)
-
+            media_info = ui.icon('info', size='sd') \
+                .style("cursor: pointer") \
+                .on('click', lambda: player_media_info(CastAPI.player.source)) \
+                .tooltip('Info')
+            media_info.set_visibility(False)
             media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'cast_skip_frames') \
                 .tooltip('+ / - frames to CAST')
@@ -922,14 +928,12 @@ def main_page():
             media_sync.set_visibility(False)
             media_auto_sync = ui.checkbox('Auto Sync') \
                 .bind_value(Media, 'auto_sync') \
-                .tooltip('Auto Sync Cast with Video Player every 30 sec')
+                .tooltip('Auto Sync Cast with Video Player every x sec (based on delay set)')
             media_auto_sync.set_visibility(False)
-
-            media_info = ui.icon('info', size='sd') \
-                .style("cursor: pointer") \
-                .on('click', lambda: player_media_info(CastAPI.player.source)) \
-                .tooltip('Info')
-            media_info.set_visibility(False)
+            media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
+                .bind_value(Media, 'auto_sync_delay') \
+                .tooltip('Delay in sec to sync')
+            media_sync_delay.set_visibility(False)
 
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \

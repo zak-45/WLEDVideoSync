@@ -118,6 +118,7 @@ class CASTMedia:
         self.player_time: float = 0
         self.player_sync = False
         self.auto_sync = False
+        self.auto_sync_delay: int = 30
 
         if sys.platform == 'win32':
             self.preview = True
@@ -342,15 +343,14 @@ class CASTMedia:
                     self.player_sync = False
                     logger.info('Sync Cast to time :{}'.format(self.player_time))
                 if self.auto_sync:
-                    # sync every 30 seconds, 5, 10 & 15 sec first time
-                    if ((frame_count % (self.rate * 30) == 0 or
-                        frame_count == (self.rate * 5) or
-                        frame_count == (self.rate * 10) or
-                        frame_count == (self.rate * 15)) and
+                    # sync every x seconds, 10  sec first time
+                    if ((frame_count % (self.rate * self.auto_sync_delay) == 0 or
+                        frame_count == (self.rate * 10)) and
                             self.player_time != 0 and
                             frame_count > 0):
-                        media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
-                        logger.info('Auto Sync Cast to time :{}'.format(self.player_time))
+                        time_to_set = round(self.player_time, 2)
+                        media.set(cv2.CAP_PROP_POS_MSEC, time_to_set)
+                        logger.info('Auto Sync Cast to time :{}'.format(time_to_set))
 
                 success, frame = media.read()
                 if not success:
