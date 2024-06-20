@@ -38,7 +38,7 @@ import os
 import time
 import webbrowser
 
-from utils import CASTUtils as Utils, LogElementHandler
+from utils import CASTUtils as Utils
 
 import webview
 import webview.menu as wm

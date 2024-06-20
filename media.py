@@ -27,7 +27,6 @@ import numpy as np
 
 import cv2
 import time
-from datetime import datetime
 import os
 
 import threading
@@ -229,6 +228,7 @@ class CASTMedia:
         First, check devices 
         """
 
+        ddp_host = None
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
@@ -281,7 +281,7 @@ class CASTMedia:
         """
         Second, capture media
         """
-
+        frame = None
         self.frame_buffer = []
         self.cast_frame_buffer = []
 
@@ -338,19 +338,21 @@ class CASTMedia:
                     frame_number = frame_count + self.cast_skip_frames
                     media.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
                     self.cast_skip_frames = 0
-                if self.player_sync:
-                    media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
-                    self.player_sync = False
-                    logger.info(f'Sync Cast to time :{self.player_time}')
-                if self.auto_sync:
-                    # sync every x seconds, 10  sec first time
-                    if ((frame_count % (self.rate * self.auto_sync_delay) == 0 or
-                        frame_count == (self.rate * 10)) and
-                            self.player_time != 0 and
-                            frame_count > 0):
-                        time_to_set = round(self.player_time, 2)
-                        media.set(cv2.CAP_PROP_POS_MSEC, time_to_set)
-                        logger.info(f'Auto Sync Cast to time :{time_to_set}')
+                else:
+                    if self.player_sync:
+                        media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
+                        self.player_sync = False
+                        logger.info(f'Sync Cast to time :{self.player_time}')
+                    else:
+                        if self.auto_sync:
+                            # sync every x seconds, 5  sec first time
+                            if ((frame_count % (self.rate * self.auto_sync_delay) == 0 or
+                                 (frame_count == (self.rate * 5)) and
+                                    self.player_time != 0 and
+                                    frame_count > 0)):
+                                time_to_set = self.player_time
+                                media.set(cv2.CAP_PROP_POS_MSEC, time_to_set)
+                                logger.info(f'Auto Sync Cast to time :{time_to_set}')
 
                 success, frame = media.read()
                 if not success:

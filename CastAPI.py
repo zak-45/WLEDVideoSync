@@ -96,10 +96,10 @@ action_to_test = ['stop', 'shot', 'info', 'close_preview']
 app.debug = False
 
 """
-When this env var exist, this mean run from the one-file executable.
+When this env var exist, this mean run from the one-file compressed executable.
 Load of the config is not possible, folder config should not exist.
 This avoid FileNotFoundError.
-This env not exist when run the extracted program.
+This env not exist when run from the extracted program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
@@ -2469,16 +2469,6 @@ def cast_devices_view(class_name):
     ui.button('DEVICE', icon='preview', on_click=dialog.open).tooltip('View Cast devices')
 
 
-"""
-def net_util_view():
-   
-    # Create another process to run in non-blocking mode
-    CastAPI.netstat_process = Process(target=NetGraph.run)
-    CastAPI.netstat_process.daemon = True
-    CastAPI.netstat_process.start()
-"""
-
-
 async def player_pick_file() -> None:
     """ Select file to read for video CastAPI.player"""
 
@@ -2494,7 +2484,7 @@ async def player_pick_file() -> None:
 
 
 async def check_yt(url):
-    """retrieve youtube video"""
+    """Check Download youtube video"""
     video_url = url
     CastAPI.progress_bar.value = 0
     CastAPI.progress_bar.update()

@@ -26,7 +26,7 @@ import platform
 import cv2
 import numpy as np
 import pywinctl as pwc
-from wled import WLED, exceptions as wledexp
+from wled import WLED
 import av
 
 from PIL import Image
@@ -95,7 +95,7 @@ class CASTUtils:
         dict_media.append('"CAP_PROP_GAIN" : "{}"'.format(capture.get(cv2.CAP_PROP_GAIN)))
         dict_media.append('"CAP_PROP_CONVERT_RGB" : "{}"'.format(capture.get(cv2.CAP_PROP_CONVERT_RGB)))
 
-        # release window
+        # release
         capture.release()
 
         return dict_media
@@ -128,13 +128,14 @@ class CASTUtils:
             if log is not None:
                 logger.addHandler(LogElementHandler(log))
 
-            def progress_func(prog_stream, data, remain_bytes):
+            def progress_func(yt_stream, data, remain_bytes):
                 CASTUtils.yt_file_size_remain_bytes = remain_bytes
                 logger.info(f'In progress from YouTube ... remaining :{CASTUtils.bytes2human(remain_bytes)} ')
 
-            def complete_func(prog_stream, file_path):
+            def complete_func(yt_stream, file_path):
                 CASTUtils.yt_file_name = file_path
                 CASTUtils.yt_file_size_remain_bytes = 0
+                logger.info(f'YouTube STREAM : {yt_stream}')
                 logger.info(f'YouTube Finished : {file_path}')
 
             yt = YouTube(
