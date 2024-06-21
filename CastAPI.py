@@ -94,6 +94,7 @@ class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close_preview']
 
 app.debug = False
+log = None
 
 """
 When this env var exist, this mean run from the one-file compressed executable.
@@ -870,7 +871,7 @@ def main_page():
     """
     Video player
     """
-    center_card = ui.card().classes('self-center w-1/3 bg-slate-300')
+    center_card = ui.card().classes('self-center w-2/3 bg-slate-300')
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed. Sync time set to END'))
@@ -924,7 +925,7 @@ def main_page():
                 .tooltip('Select audio / video file') \
                 .bind_visibility_from(CastAPI.player)
 
-            video_url = ui.input('Enter video Url', placeholder='http://....') \
+            video_url = ui.input('Enter video Url / Path', placeholder='http://....') \
                 .bind_visibility_from(CastAPI.player)
             video_url.tooltip('Enter Url, click on outside to validate the entry, '
                               ' hide and show player should refresh data')
@@ -1034,7 +1035,7 @@ def main_page():
                     manage_presets('Media')
 
                 # refreshable
-                with ui.expansion('Stats', icon='query_stats').classes('self-center w-full'):
+                with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
                     system_stats()
                     create_cpu_chart()
 
@@ -1696,8 +1697,10 @@ def system_stats():
 
         CastAPI.cpu_chart.update()
 
-        if cpu >= 60:
-            ui.notify('High CPU utilization', type='negative')
+        if cpu >= 65:
+            ui.notify('High CPU utilization', type='negative', close_button=True)
+        if ram >= 95:
+            ui.notify('High Memory utilization', type='negative', close_button=True)
 
 
 """
@@ -1707,6 +1710,7 @@ helpers
 
 def create_cpu_chart():
     CastAPI.cpu_chart = ui.echart({
+        'darkMode': 'auto',
         'legend': {
             'show': 'true',
             'data': []
@@ -1751,7 +1755,9 @@ def select_sc_area():
     logger.info(f'Area screen Coordinates: {sas.screen_coordinates} from monitor {monitor}')
 
 
-def player_sync():
+async def player_sync():
+    current_time = await ui.run_javascript("document.querySelector('video').currentTime")
+    ui.notify(f'Player Time : {current_time}')
     Media.player_sync = True
 
 
@@ -1837,7 +1843,6 @@ def sys_stats_info_page():
 
 
 def select_chart_exe():
-    logger.info(f"Execute : {app_config['charts_exe']}")
     return app_config['charts_exe']
 
 
@@ -1992,10 +1997,13 @@ async def player_cast(source):
     """ Cast from video CastAPI.player only for Media"""
     await context.client.connected()
     media_info = Utils.get_media_info(source)
-    Media.viinput = source
-    Media.rate = int(round(float(media_info[3].split(':')[1].replace(' ', '').replace('"', ''))))
-    ui.notify(f'Cast running from : {source}')
-    Media.cast(shared_buffer=t_data_buffer)
+    if Media.stopcast:
+        ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
+    else:
+        Media.viinput = source
+        Media.rate = int(round(float(media_info[3].split(':')[1].replace(' ', '').replace('"', ''))))
+        ui.notify(f'Cast running from : {source}')
+        Media.cast(shared_buffer=t_data_buffer)
     CastAPI.player.play()
 
 
@@ -2055,7 +2063,7 @@ def cast_device_manage(class_name):
             ui.button('Add Net', on_click=add_net)
             ui.button('Select all', on_click=lambda: aggrid.run_grid_method('selectAll'))
             ui.button('Validate', on_click=lambda: update_cast_devices())
-            ui.button('Close', on_click=lambda: dialog.close())
+            ui.button('Close', color='red', on_click=lambda: dialog.close())
 
 
 def reset_rgb(class_name):

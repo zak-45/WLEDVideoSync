@@ -154,7 +154,10 @@ class CASTMedia:
         t_cast_frame_buffer = []
 
         frame_count = 0
-        delay: float = 1.0 / self.rate  # Calculate the time interval between frames
+
+        delay: float = 0
+        if self.rate != 0:
+            delay: float = 1.0 / self.rate  # Calculate the time interval between frames
 
         t_todo_stop = False
 
@@ -175,6 +178,10 @@ class CASTMedia:
             Please refer to the documentation of source stream to know the right URL.
 
         """
+
+        if str(self.viinput) == "":
+            logger.error('Filename could not be empty')
+            return False
 
         t_viinput = self.viinput
 
@@ -318,6 +325,8 @@ class CASTMedia:
         CASTMedia.cast_names.append(t_name)
         CASTMedia.count += 1
 
+        logger.info('Cast running ...')
+
         """
             Media Loop
         """
@@ -356,7 +365,10 @@ class CASTMedia:
 
                 success, frame = media.read()
                 if not success:
-                    logger.warning('Error to read media or reached END')
+                    if frame_count != length:
+                        logger.warning('Not all frames have been read')
+                    else:
+                        logger.info('Media reached END')
                     break
 
             # convert to RGB
@@ -664,4 +676,4 @@ class CASTMedia:
         thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
-        logger.info('Child Media cast running')
+        logger.info('Child Media cast initiated')
