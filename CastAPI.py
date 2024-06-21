@@ -872,7 +872,7 @@ def main_page():
     center_card = ui.card().classes('self-center w-1/3 bg-slate-300')
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
-        CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed'))
+        CastAPI.player.on('ended', lambda _:  player_end())
         CastAPI.player.on('timeupdate', lambda: player_time())
         CastAPI.player.set_visibility(False)
         with ui.row().classes('self-center'):
@@ -1730,6 +1730,11 @@ async def player_time():
     current_time = await ui.run_javascript("document.querySelector('video').currentTime")
     if current_time > 0:
         Media.player_time = current_time * 1000
+
+
+async def player_end():
+    ui.notify('Video playback completed')
+    Media.player_time = 0
 
 
 def charts_select():
