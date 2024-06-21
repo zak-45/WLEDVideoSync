@@ -872,7 +872,7 @@ def main_page():
     center_card = ui.card().classes('self-center w-1/3 bg-slate-300')
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
-        CastAPI.player.on('ended', lambda _:  player_end())
+        CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed. Sync time set to END'))
         CastAPI.player.on('timeupdate', lambda: player_time())
         CastAPI.player.set_visibility(False)
         with ui.row().classes('self-center'):
@@ -924,11 +924,11 @@ def main_page():
                 .tooltip('+ / - frames to CAST')
             media_frame.set_visibility(False)
             media_sync = ui.button('Sync', on_click=lambda: player_sync()) \
-                .tooltip('Sync Cast with Video Player')
+                .tooltip('Sync Cast with Video Player Time')
             media_sync.set_visibility(False)
             media_auto_sync = ui.checkbox('Auto Sync') \
                 .bind_value(Media, 'auto_sync') \
-                .tooltip('Auto Sync Cast with Video Player every x sec (based on delay set)')
+                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)')
             media_auto_sync.set_visibility(False)
             media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'auto_sync_delay') \
@@ -1730,11 +1730,6 @@ async def player_time():
     current_time = await ui.run_javascript("document.querySelector('video').currentTime")
     if current_time > 0:
         Media.player_time = current_time * 1000
-
-
-async def player_end():
-    ui.notify('Video playback completed')
-    Media.player_time = 0
 
 
 def charts_select():
