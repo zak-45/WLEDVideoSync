@@ -143,6 +143,7 @@ class CastAPI:
     charts_row = None
     player = None
     progress_bar = None
+    cpu_chart = None
 
 
 """
@@ -878,73 +879,57 @@ def main_page():
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
-                .on('click',
-                    lambda visible=True:
-                    (CastAPI.player.set_visibility(visible),
-                     video_file.set_visibility(visible),
-                     cast_player.set_visibility(visible),
-                     video_url.set_visibility(visible),
-                     media_frame.set_visibility(visible),
-                     media_sync.set_visibility(visible),
-                     media_info.set_visibility(visible),
-                     media_auto_sync.set_visibility(visible),
-                     media_sync_delay.set_visibility(visible),
-                     hide_player.set_visibility(visible))) \
+                .on('click', lambda visible=True: CastAPI.player.set_visibility(visible)) \
                 .tooltip("Show Video player")
 
             hide_player = ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
-                .on('click',
-                    lambda visible=False:
-                    (CastAPI.player.set_visibility(visible),
-                     video_file.set_visibility(visible),
-                     video_url.set_visibility(visible),
-                     cast_player.set_visibility(visible),
-                     media_info.set_visibility(visible),
-                     media_frame.set_visibility(visible),
-                     media_sync.set_visibility(visible),
-                     media_auto_sync.set_visibility(visible),
-                     media_sync_delay.set_visibility(visible),
-                     hide_player.set_visibility(visible))) \
+                .on('click', lambda visible=False: CastAPI.player.set_visibility(visible)) \
                 .tooltip("Hide Video player")
-            hide_player.set_visibility(False)
 
             cast_player = ui.icon('cast', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda: player_cast(CastAPI.player.source)) \
-                .tooltip('Cast Video')
-            cast_player.set_visibility(False)
+                .tooltip('Cast Video') \
+                .bind_visibility_from(CastAPI.player)
+
             media_info = ui.icon('info', size='sd') \
                 .style("cursor: pointer") \
                 .on('click', lambda: player_media_info(CastAPI.player.source)) \
-                .tooltip('Info')
-            media_info.set_visibility(False)
+                .tooltip('Info') \
+                .bind_visibility_from(CastAPI.player)
+
             media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'cast_skip_frames') \
-                .tooltip('+ / - frames to CAST')
-            media_frame.set_visibility(False)
+                .tooltip('+ / - frames to CAST')\
+                .bind_visibility_from(CastAPI.player)
+
             media_sync = ui.button('Sync', on_click=lambda: player_sync()) \
-                .tooltip('Sync Cast with Video Player Time')
-            media_sync.set_visibility(False)
+                .tooltip('Sync Cast with Video Player Time') \
+                .bind_visibility_from(CastAPI.player)
+
             media_auto_sync = ui.checkbox('Auto Sync') \
                 .bind_value(Media, 'auto_sync') \
-                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)')
-            media_auto_sync.set_visibility(False)
+                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)') \
+                .bind_visibility_from(CastAPI.player)
+
             media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'auto_sync_delay') \
-                .tooltip('Delay in sec to sync')
-            media_sync_delay.set_visibility(False)
+                .tooltip('Delay in sec to sync') \
+                .bind_visibility_from(CastAPI.player)
 
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
                 .on('click', player_pick_file) \
-                .tooltip('Select audio / video file')
-            video_file.set_visibility(False)
-            video_url = ui.input('Enter video Url', placeholder='http://....')
-            video_url.set_visibility(False)
+                .tooltip('Select audio / video file') \
+                .bind_visibility_from(CastAPI.player)
+
+            video_url = ui.input('Enter video Url', placeholder='http://....') \
+                .bind_visibility_from(CastAPI.player)
             video_url.tooltip('Enter Url, click on outside to validate the entry, '
                               ' hide and show player should refresh data')
             video_url.on('focusout', lambda: check_yt(video_url.value))
+
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
 
     """
@@ -1051,6 +1036,7 @@ def main_page():
                 # refreshable
                 with ui.expansion('Stats', icon='query_stats').classes('self-center w-full'):
                     system_stats()
+                    create_cpu_chart()
 
         with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
             ui.label('Filters/Effects Media')
@@ -1701,10 +1687,54 @@ def system_stats():
     ui.separator()
     ui.label(f'CPU:  {cpu}% ==== RAM:  {ram}%').classes('self-center')
 
+    if CastAPI.cpu_chart is not None:
+        now = datetime.now()
+        date_time_str = now.strftime("%H:%M:%S")
+
+        CastAPI.cpu_chart.options['series'][0]['data'].append(cpu)
+        CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
+
+        CastAPI.cpu_chart.update()
+
+        if cpu >= 60:
+            ui.notify('High CPU utilization', type='negative')
+
 
 """
 helpers
 """
+
+
+def create_cpu_chart():
+    CastAPI.cpu_chart = ui.echart({
+        'legend': {
+            'show': 'true',
+            'data': []
+        },
+        'textStyle': {
+            'fontSize': 1,
+            'color': '#d2a'
+        },
+        'grid': {
+            'top': 60
+        },
+        'tooltip': {
+            'trigger': 'axis'
+        },
+        'xAxis': {
+            'type': 'category',
+            'data': []
+        },
+        'yAxis': {
+            'type': 'value'
+        },
+        'series': [{
+            'data': [],
+            'name': 'CPU %',
+            'areaStyle': {'color': '#535894', 'opacity': 0.5},
+            'type': 'line'
+        }]
+    }).style('height:80px ')
 
 
 def select_sc_area():
