@@ -983,7 +983,7 @@ class ScreenAreaSelection:
     def run(monitor_number: int = 0):
         """
         Initiate tk-inter
-        param : monitor number
+        param : monitor number to draw selection
         """
         # get all monitors info
         monitors = get_monitors()

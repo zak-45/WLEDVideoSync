@@ -2607,7 +2607,7 @@ RUN
 """
 app.openapi = custom_openapi
 app.add_static_files('/assets', 'assets')
-app.add_media_files('/media', media)
+app.add_media_files('/media', 'media')
 app.add_static_files('/log', 'log')
 app.add_static_files('/config', 'config')
 app.add_static_files('/tmp', 'tmp')
