@@ -1777,6 +1777,7 @@ async def slider_sync():
     """ Set Sync Cast to True """
     current_time = CastAPI.video_slider.value
     ui.notify(f'Slider Time : {current_time}')
+    Media.player_time = current_time
     Media.player_sync = True
     CastAPI.type_sync = 'slider'
     CastAPI.last_type_sync = 'slider'
@@ -1795,6 +1796,7 @@ async def player_sync():
     """ Set Sync cast to True """
     current_time = await ui.run_javascript("document.querySelector('video').currentTime")
     ui.notify(f'Player Time : {current_time}')
+    Media.player_time = current_time
     Media.player_sync = True
     CastAPI.type_sync = 'player'
     CastAPI.last_type_sync = 'player'
