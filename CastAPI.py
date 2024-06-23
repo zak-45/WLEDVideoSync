@@ -149,6 +149,7 @@ class CastAPI:
     media_button_sync = None
     slider_button_sync = None
     type_sync = 'none'
+    last_type_sync = ''
 
 
 """
@@ -1778,6 +1779,7 @@ async def slider_sync():
     ui.notify(f'Slider Time : {current_time}')
     Media.player_sync = True
     CastAPI.type_sync = 'slider'
+    CastAPI.last_type_sync = 'slider'
     CastAPI.slider_button_sync.props(add="color=red")
     CastAPI.slider_button_sync.classes('animate-pulse')
     CastAPI.media_button_sync.props(remove="color=red")
@@ -1795,6 +1797,7 @@ async def player_sync():
     ui.notify(f'Player Time : {current_time}')
     Media.player_sync = True
     CastAPI.type_sync = 'player'
+    CastAPI.last_type_sync = 'player'
     CastAPI.media_button_sync.props(add="color=red")
     CastAPI.media_button_sync.classes('animate-pulse')
     CastAPI.slider_button_sync.props(remove="color=red")
@@ -1805,7 +1808,7 @@ async def player_time():
     Retrieve current play time from the Player
     Set player time for Cast to Sync
     """
-    if CastAPI.type_sync == 'player':
+    if CastAPI.type_sync == 'player' or CastAPI.last_type_sync == 'player':
         current_time = await ui.run_javascript("document.querySelector('video').currentTime")
         if current_time > 0:
             Media.player_time = current_time * 1000
