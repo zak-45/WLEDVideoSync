@@ -115,6 +115,7 @@ class CASTMedia:
         self.force_mjpeg = False
         self.cast_skip_frames: int = 0
         self.player_time: float = 0
+        self.player_duration: float = 0
         self.player_sync = False
         self.auto_sync = False
         self.auto_sync_delay: int = 30

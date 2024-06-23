@@ -145,6 +145,10 @@ class CastAPI:
     player = None
     progress_bar = None
     cpu_chart = None
+    video_slider = None
+    media_button_sync = None
+    slider_button_sync = None
+    type_sync = 'none'
 
 
 """
@@ -876,7 +880,12 @@ def main_page():
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed. Sync time set to END'))
         CastAPI.player.on('timeupdate', lambda: player_time())
+        CastAPI.player.on('durationchange', lambda: player_duration())
         CastAPI.player.set_visibility(False)
+        CastAPI.video_slider = ui.slider(min=0, max=7200, step=1, value=0,
+                                         on_change=lambda var: slider_time(var.value)).props('label-always') \
+            .bind_visibility_from(CastAPI.player)
+
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
@@ -902,12 +911,20 @@ def main_page():
 
             media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'cast_skip_frames') \
-                .tooltip('+ / - frames to CAST')\
+                .tooltip('+ / - frames to CAST') \
                 .bind_visibility_from(CastAPI.player)
 
-            media_sync = ui.button('Sync', on_click=lambda: player_sync()) \
+            CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync) \
                 .tooltip('Sync Cast with Video Player Time') \
                 .bind_visibility_from(CastAPI.player)
+            if Media.player_sync is True:
+                CastAPI.media_button_sync.classes('animate-pulse')
+
+            CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync) \
+                .tooltip('Sync Cast with Slider Time') \
+                .bind_visibility_from(CastAPI.player)
+            if Media.player_sync is True:
+                CastAPI.slider_button_sync.classes('animate-pulse')
 
             media_auto_sync = ui.checkbox('Auto Sync') \
                 .bind_value(Media, 'auto_sync') \
@@ -1755,17 +1772,55 @@ def select_sc_area():
     logger.info(f'Area screen Coordinates: {sas.screen_coordinates} from monitor {monitor}')
 
 
+async def slider_sync():
+    """ Set Sync Cast to True """
+    current_time = CastAPI.video_slider.value
+    ui.notify(f'Slider Time : {current_time}')
+    Media.player_sync = True
+    CastAPI.type_sync = 'slider'
+    CastAPI.slider_button_sync.props(add="color=red")
+    CastAPI.slider_button_sync.classes('animate-pulse')
+    CastAPI.media_button_sync.props(remove="color=red")
+
+
+def slider_time(current_time):
+    """ Set player time for Cast """
+    if current_time > 0:
+        Media.player_time = current_time * 1000
+
+
 async def player_sync():
+    """ Set Sync cast to True """
     current_time = await ui.run_javascript("document.querySelector('video').currentTime")
     ui.notify(f'Player Time : {current_time}')
     Media.player_sync = True
+    CastAPI.type_sync = 'player'
+    CastAPI.media_button_sync.props(add="color=red")
+    CastAPI.media_button_sync.classes('animate-pulse')
+    CastAPI.slider_button_sync.props(remove="color=red")
 
 
 async def player_time():
-    """ Return current play time from the Player"""
-    current_time = await ui.run_javascript("document.querySelector('video').currentTime")
-    if current_time > 0:
-        Media.player_time = current_time * 1000
+    """
+    Retrieve current play time from the Player
+    Set player time for Cast to Sync
+    """
+    if CastAPI.type_sync == 'player':
+        current_time = await ui.run_javascript("document.querySelector('video').currentTime")
+        if current_time > 0:
+            Media.player_time = current_time * 1000
+
+
+async def player_duration():
+    """
+    Return current duration time from the Player
+    Set slider max value to video duration
+    """
+    current_duration = await ui.run_javascript("document.querySelector('video').duration")
+    ui.notify(f'Video duration:{current_duration}')
+    Media.player_duration = current_duration
+    CastAPI.video_slider._props["max"] = current_duration
+    CastAPI.video_slider.update()
 
 
 def charts_select():
@@ -2231,6 +2286,15 @@ async def root_timer_action():
     timer occur only when root page is active '/'
     :return:
     """
+    if Media.player_sync is False and CastAPI.type_sync != 'none':
+        CastAPI.media_button_sync.props(add="color=green")
+        CastAPI.media_button_sync.classes(remove="animate-pulse")
+        CastAPI.media_button_sync.update()
+        CastAPI.slider_button_sync.props(add="color=green")
+        CastAPI.slider_button_sync.classes(remove="animate-pulse")
+        CastAPI.slider_button_sync.update()
+        CastAPI.type_sync = 'none'
+
     cast_manage.refresh()
     system_stats.refresh()
 
@@ -2383,8 +2447,7 @@ async def init_cast(class_obj):
     class_obj.cast(shared_buffer=t_data_buffer)
     cast_manage.refresh()
     logger.info(f' Run Cast for {str(class_obj)}')
-    # just try to avoid mad man click !!
-    time.sleep(2)
+    ui.notify(f'Cast initiated for :{str(class_obj)} ')
 
 
 async def cast_stop(class_obj):
