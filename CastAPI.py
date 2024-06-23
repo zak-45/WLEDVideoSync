@@ -883,6 +883,10 @@ def main_page():
         CastAPI.player.on('timeupdate', lambda: player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
         CastAPI.player.set_visibility(False)
+        ui.label() \
+            .bind_text_from(Media, 'player_time') \
+            .classes('self-center bg-slate-400') \
+            .bind_visibility_from(CastAPI.player)
         CastAPI.video_slider = ui.slider(min=0, max=7200, step=1, value=0,
                                          on_change=lambda var: slider_time(var.value)).props('label-always') \
             .bind_visibility_from(CastAPI.player)
@@ -927,14 +931,14 @@ def main_page():
             if Media.player_sync is True:
                 CastAPI.slider_button_sync.classes('animate-pulse')
 
-            media_auto_sync = ui.checkbox('Auto Sync') \
-                .bind_value(Media, 'auto_sync') \
-                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)') \
-                .bind_visibility_from(CastAPI.player)
-
             media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'auto_sync_delay') \
                 .tooltip('Delay in sec to sync') \
+                .bind_visibility_from(CastAPI.player)
+
+            media_auto_sync = ui.checkbox('Auto Sync') \
+                .bind_value(Media, 'auto_sync') \
+                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)') \
                 .bind_visibility_from(CastAPI.player)
 
             video_file = ui.icon('folder', color='orange', size='md') \
