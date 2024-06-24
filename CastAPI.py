@@ -91,7 +91,7 @@ Media = media.CASTMedia()
 Netdevice = Net()
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
-action_to_test = ['stop', 'shot', 'info', 'close_preview']
+action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview']
 
 app.debug = False
 log = None

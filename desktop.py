@@ -473,6 +473,9 @@ class CASTDesktop:
                                                 cv2.destroyWindow(window_name)
                                             t_preview = False
 
+                                        elif "open_preview" in action:
+                                            t_preview = True
+
                                     except Exception as error:
                                         logger.error(traceback.format_exc())
                                         logger.error(f'Action {action} in ERROR from {t_name}: {error}')
