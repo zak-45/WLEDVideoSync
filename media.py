@@ -66,8 +66,8 @@ class CASTMedia:
     cast_name_todo = []  # list of cast names with action that need to execute from 'to do'
 
     t_exit_event = threading.Event()  # thread listen event fo exit
-
     t_todo_event = threading.Event()  # thread listen event for task to do
+
     t_media_lock = threading.Lock()  # define lock for to do
 
     server_port = Utils.get_server_port()

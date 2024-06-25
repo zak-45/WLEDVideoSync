@@ -879,7 +879,7 @@ def main_page():
     center_card = ui.card().classes('self-center w-2/3 bg-slate-300')
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
-        CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed. Sync time set to END'))
+        CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
         CastAPI.player.on('timeupdate', lambda: player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
         CastAPI.player.set_visibility(False)
@@ -925,6 +925,11 @@ def main_page():
             if Media.player_sync is True:
                 CastAPI.media_button_sync.classes('animate-pulse')
 
+            media_reset_icon = ui.icon('restore')
+            media_reset_icon.style("cursor: pointer")
+            media_reset_icon.on('click', lambda: reset_sync())
+            media_reset_icon.bind_visibility_from(CastAPI.player)
+
             CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync) \
                 .tooltip('Sync Cast with Slider Time') \
                 .bind_visibility_from(CastAPI.player)
@@ -952,6 +957,9 @@ def main_page():
             video_url.tooltip('Enter Url, click on outside to validate the entry, '
                               ' hide and show player should refresh data')
             video_url.on('focusout', lambda: check_yt(video_url.value))
+            video_url_icon = ui.icon('published_with_changes')
+            video_url_icon.style("cursor: pointer")
+            video_url_icon.bind_visibility_from(CastAPI.player)
 
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
 
@@ -1798,6 +1806,11 @@ def slider_time(current_time):
         Media.player_time = current_time * 1000
 
 
+async def reset_sync():
+    Media.player_sync = False
+    ui.notify('Reset Sync')
+
+
 async def player_sync():
     """ Set Sync cast to True """
     current_time = await ui.run_javascript("document.querySelector('video').currentTime")
@@ -2622,6 +2635,7 @@ async def check_yt(url):
         if yt != '':
             video_url = yt
 
+    ui.notify(f'Video set to : {video_url}')
     logger.info(f'Video set to : {video_url}')
     CastAPI.progress_bar.value = 1
     CastAPI.progress_bar.update()
