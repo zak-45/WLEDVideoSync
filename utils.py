@@ -286,9 +286,9 @@ class CASTUtils:
 
             with av.logging.Capture(True) as logs:  # this will capture av output
                 # av command depend on running OS
-                if platform.system() == 'Windows':
+                if platform.system().lower() == 'windows':
                     av.open('dummy', 'r', format='dshow', options={'list_devices': 'True'})
-                elif platform.system() == 'Darwin':
+                elif platform.system().lower() == 'darwin':
                     av.open('', 'r', format='avfoundation', options={'list_devices': 'True'})
 
         except Exception as error:
@@ -299,7 +299,7 @@ class CASTUtils:
         typedev: str = ''
 
         # linux
-        if platform.system() == 'Linux':
+        if platform.system().lower() == 'linux':
             from linuxpy.video import device as linux_dev
 
             dev = linux_dev.iter_devices()
@@ -314,14 +314,14 @@ class CASTUtils:
         else:
             # Win / darwin / others
             for i, name in enumerate(logs):
-                if platform.system() == 'Windows':
+                if platform.system().lower() == 'windows':
                     if '"' in name[2] and 'Alternative' not in name[2]:
                         devname = name[2]
                         typedev = logs[i + 1][2].replace(" (", "")
                         CASTUtils.dev_list.append((devname, typedev, devicenumber))
                         devicenumber += 1
 
-                elif platform.system() == 'Darwin':
+                elif platform.system().lower() == 'darwin':
                     if 'AVFoundation video device' in name:
                         typedev = 'video'
                     elif 'AVFoundation audio device' in name:
@@ -878,7 +878,7 @@ class LocalFilePicker(ui.dialog):
         self.update_grid()
 
     def add_drives_toggle(self):
-        if platform.system() == 'Windows':
+        if platform.system().lower() == 'windows':
             import win32api
             drives = win32api.GetLogicalDriveStrings().split('\000')[:-1]
             self.drives_toggle = ui.toggle(drives, value=drives[0], on_change=self.update_drive)

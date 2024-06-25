@@ -114,15 +114,15 @@ class CASTDesktop:
         self.monitor_number: int = 0  # monitor to use for area selection
         self.screen_coordinates = []
 
-        if sys.platform == 'win32':
+        if sys.platform.lower() == 'win32':
             self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>' or 'area' for portion of screen
             self.viformat: str = 'gdigrab'  # 'gdigrab' for win
             self.preview = True
-        elif sys.platform == 'linux':
+        elif sys.platform.lower() == 'linux':
             self.viinput = ':0.0'
             self.viformat: str = 'x11grab'
             self.preview = False
-        elif sys.platform == 'darwin':
+        elif sys.platform.lower() == 'darwin':
             self.viinput = '"<screen device index>:<audio device index>"'
             self.viformat: str = 'avfoundation'
             self.preview = False

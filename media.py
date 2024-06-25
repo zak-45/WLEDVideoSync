@@ -120,11 +120,11 @@ class CASTMedia:
         self.auto_sync = False
         self.auto_sync_delay: int = 30
 
-        if sys.platform == 'win32':
+        if sys.platform.lower() == 'win32':
             self.preview = True
-        elif sys.platform == 'linux':
+        elif sys.platform.lower() == 'linux':
             self.preview = False
-        elif sys.platform == 'darwin':
+        elif sys.platform.lower() == 'darwin':
             self.preview = False
         else:
             self.preview = False
