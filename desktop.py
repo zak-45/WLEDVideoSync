@@ -90,6 +90,8 @@ class CASTDesktop:
 
     server_port = Utils.get_server_port()
 
+    total_packet = 0  # net packets number
+
     def __init__(self):
         self.rate: int = 25
         self.stopcast: bool = True
@@ -157,6 +159,7 @@ class CASTDesktop:
         t_name = current_thread().name
         if CASTDesktop.count == 0:
             CASTDesktop.total_frame = 0
+            CASTDesktop.total_packet = 0
 
         logger.info(f'Child thread: {t_name}')
 
@@ -201,6 +204,7 @@ class CASTDesktop:
                 for device in self.ddp_multi_names:
                     if ip == device.name:
                         device.send_to_queue(image, self.retry_number)
+                        CASTDesktop.total_packet += device.frame_count
                         break
             else:
                 logger.warning('Multicast frame dropped')
@@ -572,6 +576,7 @@ class CASTDesktop:
                             # send to ddp device
                             if self.protocol == 'ddp' and ip_addresses[0] != '127.0.0.1':
                                 ddp_host.send_to_queue(frame_to_send, self.retry_number)
+                                CASTDesktop.total_packet += ddp_host.frame_count
 
                             # save frame to np buffer if requested (so can be used after by the main)
                             if self.put_to_buffer and frame_count <= self.frame_max:

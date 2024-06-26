@@ -91,6 +91,8 @@ class CASTMedia:
 
     server_port = Utils.get_server_port()
 
+    total_packet = 0  # net packets number
+
     def __init__(self):
         self.rate: int = 25
         self.stopcast: bool = True
@@ -161,6 +163,7 @@ class CASTMedia:
         t_name = current_thread().name
         if CASTMedia.count == 0:
             CASTMedia.total_frame = 0
+            CASTMedia.total_packet = 0
 
         logger.info(f'Child thread: {t_name}')
 
@@ -222,6 +225,7 @@ class CASTMedia:
                 for device in self.ddp_multi_names:
                     if ip == device.name:
                         device.send_to_queue(image, self.retry_number)
+                        CASTMedia.total_packet += device.frame_count
                         break
             else:
                 logger.warning('Multicast frame dropped')
@@ -570,6 +574,7 @@ class CASTMedia:
                 if self.protocol == "ddp" and ip_addresses[0] != '127.0.0.1':
                     # send data to queue
                     ddp_host.send_to_queue(frame_to_send, self.retry_number)
+                    CASTMedia.total_packet += ddp_host.frame_count
 
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:

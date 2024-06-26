@@ -1713,8 +1713,9 @@ def media_dev_view_page():
 def system_stats():
     cpu = psutil.cpu_percent(interval=1, percpu=False)
     ram = psutil.virtual_memory().percent
-
-    ui.label(f'Total frames: {Desktop.total_frame + Media.total_frame}').classes('self-center')
+    with ui.row().classes('self-center'):
+        ui.label(f'Total frames: {Desktop.total_frame + Media.total_frame}').classes('self-center')
+        ui.label(f'Total packets: {Desktop.total_packet + Media.total_packet}').classes('self-center')
     ui.separator()
     ui.label(f'CPU:  {cpu}% ==== RAM:  {ram}%').classes('self-center')
 
