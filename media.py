@@ -336,7 +336,11 @@ class CASTMedia:
                 media.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
         # Calculate the interval between frames in seconds
-        interval: float = 1.0 / self.rate
+        if self.rate != 0:
+            interval: float = 1.0 / self.rate
+        else:
+            logger.error('Rate could not be zero')
+            return False
 
         logger.info(f"Playing media {t_viinput} of length {length} at {fps} FPS")
         logger.info(f"Stopcast value : {self.stopcast}")
