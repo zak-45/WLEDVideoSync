@@ -140,6 +140,7 @@ class CASTMedia:
         self.player_sync = False
         self.auto_sync = False
         self.auto_sync_delay: int = 30
+        self.reset_total = False
 
         if sys.platform.lower() == 'win32':
             self.preview = True
@@ -161,7 +162,7 @@ class CASTMedia:
         """
 
         t_name = current_thread().name
-        if CASTMedia.count == 0:
+        if CASTMedia.count == 0 or self.reset_total is True:
             CASTMedia.total_frame = 0
             CASTMedia.total_packet = 0
 
@@ -495,6 +496,11 @@ class CASTMedia:
 
                             elif 'open_preview' in action:
                                 t_preview = True
+
+                            elif "reset" in action:
+                                CASTMedia.total_frame = 0
+                                CASTMedia.total_packet = 0
+                                self.reset_total = False
 
                         except Exception as error:
                             logger.error(traceback.format_exc())

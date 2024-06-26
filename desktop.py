@@ -133,6 +133,7 @@ class CASTDesktop:
         self.ddp_multi_names = []
         self.monitor_number: int = 0  # monitor to use for area selection
         self.screen_coordinates = []
+        self.reset_total = False
 
         if sys.platform.lower() == 'win32':
             self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>' or 'area' for portion of screen
@@ -157,7 +158,7 @@ class CASTDesktop:
         """
 
         t_name = current_thread().name
-        if CASTDesktop.count == 0:
+        if CASTDesktop.count == 0 or self.reset_total is True:
             CASTDesktop.total_frame = 0
             CASTDesktop.total_packet = 0
 
@@ -471,15 +472,16 @@ class CASTDesktop:
                                                 self.cast_frame_buffer = Utils.split_image_to_matrix(add_frame,
                                                                                                      t_cast_x, t_cast_y)
                                         elif 'info' in action:
-                                            t_info = {t_name: {"type": "info", "data": {"start": start_time,
-                                                                                        "tid": current_thread().native_id,
-                                                                                        "viinput": str(t_viinput),
-                                                                                        "preview": t_preview,
-                                                                                        "multicast": t_multicast,
-                                                                                        "devices": ip_addresses,
-                                                                                        "fps": frame_interval,
-                                                                                        "frames": frame_count
-                                                                                        }
+                                            t_info = {t_name: {"type": "info",
+                                                               "data": {"start": start_time,
+                                                                        "tid": current_thread().native_id,
+                                                                        "viinput": str(t_viinput),
+                                                                        "preview": t_preview,
+                                                                        "multicast": t_multicast,
+                                                                        "devices": ip_addresses,
+                                                                        "fps": frame_interval,
+                                                                        "frames": frame_count
+                                                                        }
                                                                }
                                                       }
                                             # this wait until queue access is free
@@ -497,6 +499,11 @@ class CASTDesktop:
 
                                         elif "open_preview" in action:
                                             t_preview = True
+
+                                        elif "reset" in action:
+                                            CASTDesktop.total_frame = 0
+                                            CASTDesktop.total_packet = 0
+                                            self.reset_total = False
 
                                     except Exception as error:
                                         logger.error(traceback.format_exc())

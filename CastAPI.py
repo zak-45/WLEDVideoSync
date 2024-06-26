@@ -91,7 +91,7 @@ Media = media.CASTMedia()
 Netdevice = Net()
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
-action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview']
+action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview', 'reset']
 
 app.debug = False
 log = None
@@ -1713,9 +1713,17 @@ def media_dev_view_page():
 def system_stats():
     cpu = psutil.cpu_percent(interval=1, percpu=False)
     ram = psutil.virtual_memory().percent
+    total_packet = Desktop.total_packet + Media.total_packet
+    total_frame = Desktop.total_frame + Media.total_frame
+
     with ui.row().classes('self-center'):
-        ui.label(f'Total frames: {Desktop.total_frame + Media.total_frame}').classes('self-center')
-        ui.label(f'Total packets: {Desktop.total_packet + Media.total_packet}').classes('self-center')
+        ui.label(f'Total frames: {total_frame}').classes('self-center')
+
+        total_reset_icon = ui.icon('restore')
+        total_reset_icon.style("cursor: pointer")
+        total_reset_icon.on('click', lambda: reset_total())
+
+        ui.label(f'Total packets: {total_packet}').classes('self-center')
     ui.separator()
     ui.label(f'CPU:  {cpu}% ==== RAM:  {ram}%').classes('self-center')
 
@@ -1737,6 +1745,32 @@ def system_stats():
 """
 helpers
 """
+
+
+async def reset_total():
+    """ reset frames / packets total values for Media and Desktop """
+    Media.reset_total = True
+    Desktop.reset_total = True
+    # say first cast to reset values
+    if len(Media.cast_names) != 0:
+        result = await action_to_thread(class_name='Media',
+                                        cast_name=Media.cast_names[0],
+                                        action='reset',
+                                        clear=False,
+                                        execute=True
+                                        )
+        ui.notify(result)
+
+    if len(Desktop.cast_names) != 0:
+        result = await action_to_thread(class_name='Desktop',
+                                        cast_name=Desktop.cast_names[0],
+                                        action='reset',
+                                        clear=False,
+                                        execute=True
+                                        )
+        ui.notify(result)
+
+    ui.notify('Reset Total')
 
 
 def create_cpu_chart():
