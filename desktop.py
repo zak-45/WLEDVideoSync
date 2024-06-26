@@ -615,7 +615,6 @@ class CASTDesktop:
                     output_container.close()
                 if CASTDesktop.count <= 2 and t_preview is True:  # try to avoid block if  casts thread and preview True
                     logger.info('Stop window preview if any')
-                    time.sleep(1)
                     # close preview window if any
                     window_name = f"{CASTDesktop.server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
                     win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
@@ -640,7 +639,6 @@ class CASTDesktop:
         logger.info("_" * 50)
 
         logger.info('Cast closed')
-        time.sleep(1)
 
     def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, frame_count, fps, grid=False):
 

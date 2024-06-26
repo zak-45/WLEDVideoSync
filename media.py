@@ -640,7 +640,6 @@ class CASTMedia:
 
         if CASTMedia.count <= 2 and t_preview is True:  # try to avoid blocking when click as a bad man !!!
             logger.info('Stop window preview if any')
-            time.sleep(1)
             window_name = f"{CASTMedia.server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
             win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
             if not win == 0:
@@ -656,7 +655,6 @@ class CASTMedia:
         logger.info("_" * 50)
 
         logger.info("Cast closed")
-        time.sleep(1)
 
     """
     preview window
