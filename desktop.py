@@ -32,6 +32,9 @@ import traceback
 
 import time
 
+import cfg_load as cfg
+from str2bool import str2bool
+
 import threading
 from threading import current_thread
 import asyncio
@@ -54,6 +57,21 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     logging.config.fileConfig('config/logging.ini')
     # create logger
     logger = logging.getLogger('WLEDLogger.desktop')
+
+    """
+    Retrieve  config keys
+    """
+
+    cfg_text = False
+    if os.path.isfile('config/WLEDVideoSync.ini'):
+        # load config file
+        cast_config = cfg.load('config/WLEDVideoSync.ini')
+
+        # config keys
+        app_config = cast_config.get('app')
+        config_text = app_config['text']
+        if str2bool(config_text) is True:
+            cfg_text = True
 
 
 class CASTDesktop:
@@ -98,7 +116,7 @@ class CASTDesktop:
         self.preview_top: bool = False
         self.preview_w: int = 640
         self.preview_h: int = 480
-        self.text = False
+        self.text = cfg_text
         self.custom_text: str = ""
         self.voformat: str = 'h264'
         self.vooutput: str = 'udp://127.0.0.1:12345?pkt_size=1316'
@@ -540,6 +558,8 @@ class CASTDesktop:
                                                                 t_viinput,
                                                                 t_name,
                                                                 t_preview,
+                                                                frame_count,
+                                                                frame_interval,
                                                                 grid=True)
 
                         else:
@@ -564,6 +584,8 @@ class CASTDesktop:
                                                                 t_viinput,
                                                                 t_name,
                                                                 t_preview,
+                                                                frame_count,
+                                                                frame_interval,
                                                                 grid=False)
 
             except Exception as error:
@@ -608,7 +630,7 @@ class CASTDesktop:
         logger.info('Cast closed')
         time.sleep(1)
 
-    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, grid=False):
+    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, frame_count, fps, grid=False):
 
         frame = cv2.resize(frame, (self.preview_w, self.preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -616,19 +638,24 @@ class CASTDesktop:
         # put text on the image
         if self.text:
             if self.custom_text == "":
-                text_to_show = "WLEDVideoSync"
+                text_to_show = f"WLEDVideoSync: {server_port} - "
+                text_to_show += "FPS: " + str(fps) + " - "
+                text_to_show += "FRAME: " + str(frame_count) + " - "
+                text_to_show += "TOTAL: " + str(CASTDesktop.total_frame)
             else:
                 text_to_show = self.custom_text
             # font
             font = cv2.FONT_HERSHEY_SIMPLEX
             # org
             org = (50, 50)
+            x, y, w, h = 40, 15, 560, 40
+            # Draw black background rectangle
+            cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
             # fontScale
-            fontscale = .5
+            fontscale = .4
             # Blue color in BGR
-            color = (255, 0, 0)
-            # Line thickness of 2 px
-            thickness = 2
+            color = (255, 255, 255)
+            thickness = 1
             # Using cv2.putText() method
             frame = cv2.putText(frame,
                                 text_to_show,

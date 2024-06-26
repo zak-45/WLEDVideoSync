@@ -29,6 +29,9 @@ import cv2
 import time
 import os
 
+import cfg_load as cfg
+from  str2bool import str2bool
+
 import threading
 from threading import current_thread
 
@@ -38,6 +41,7 @@ import concurrent.futures
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, ImageUtils
 
+
 """
 When this env var exist, this mean run from the one-file executable.
 Load of the config is not possible, folder config should not exist.
@@ -46,10 +50,25 @@ This env not exist when run the extracted program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read config
+    # read log config
     logging.config.fileConfig('config/logging.ini')
     # create logger
     logger = logging.getLogger('WLEDLogger.media')
+
+    """
+    Retrieve  config keys
+    """
+    cfg_text = False
+    if os.path.isfile('config/WLEDVideoSync.ini'):
+        # load config file
+        cast_config = cfg.load('config/WLEDVideoSync.ini')
+
+        # config keys
+        app_config = cast_config.get('app')
+        config_text = app_config['text']
+        if str2bool(config_text) is True:
+            cfg_text = True
+
 
 """
 Class definition
@@ -104,7 +123,7 @@ class CASTMedia:
         self.frame_index: int = 0
         self.put_to_buffer: bool = False
         self.frame_max: int = 8
-        self.text: bool = False
+        self.text: bool = cfg_text
         self.custom_text: str = ""
         self.multicast: bool = False
         self.cast_x: int = 1
@@ -533,6 +552,8 @@ class CASTMedia:
                                                     t_viinput,
                                                     t_name,
                                                     t_preview,
+                                                    frame_count,
+                                                    interval,
                                                     grid=True)
 
                 if length == 1 and fps == 1:
@@ -558,7 +579,14 @@ class CASTMedia:
 
                 # preview on fixed size window
                 if t_preview:
-                    t_preview = self.preview_window(frame, CASTMedia.server_port, t_viinput, t_name, t_preview)
+                    t_preview = self.preview_window(frame,
+                                                    CASTMedia.server_port,
+                                                    t_viinput,
+                                                    t_name,
+                                                    t_preview,
+                                                    frame_count,
+                                                    interval
+                                                    )
 
                 """
                     stop for non-live video (length not -1)
@@ -619,7 +647,7 @@ class CASTMedia:
     preview window
     """
 
-    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, grid=False):
+    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, frame_count, fps, grid=False):
 
         frame = cv2.resize(frame, (self.preview_w, self.preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -627,19 +655,25 @@ class CASTMedia:
         # put text on the image
         if self.text:
             if self.custom_text == "":
-                text_to_show = "WLEDVideoSync"
+                text_to_show = f"WLEDVideoSync: {server_port} - "
+                text_to_show += "FPS: " + str(1/fps) + " - "
+                text_to_show += "FRAME: " + str(frame_count) + " - "
+                text_to_show += "TOTAL: " + str(CASTMedia.total_frame)
             else:
                 text_to_show = self.custom_text
             # font
             font = cv2.FONT_HERSHEY_SIMPLEX
             # org
             org = (50, 50)
+            x, y, w, h = 40, 15, 560, 40
+            # Draw black background rectangle
+            cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
             # fontScale
-            fontscale = .5
+            fontscale = .4
             # Blue color in BGR
-            color = (255, 0, 0)
+            color = (255, 255, 255)
             # Line thickness of 2 px
-            thickness = 2
+            thickness = 1
             # Using cv2.putText() method
             frame = cv2.putText(frame,
                                 text_to_show,
