@@ -876,92 +876,8 @@ def main_page():
     """
     Video player
     """
-    center_card = ui.card().classes('self-center w-2/3 bg-slate-300')
-    with center_card:
-        CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
-        CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
-        CastAPI.player.on('timeupdate', lambda: player_time())
-        CastAPI.player.on('durationchange', lambda: player_duration())
-        CastAPI.player.set_visibility(False)
-        ui.label() \
-            .bind_text_from(Media, 'player_time') \
-            .classes('self-center bg-slate-400') \
-            .bind_visibility_from(CastAPI.player)
-        CastAPI.video_slider = ui.slider(min=0, max=7200, step=1, value=0,
-                                         on_change=lambda var: slider_time(var.value)).props('label-always') \
-            .bind_visibility_from(CastAPI.player)
 
-        with ui.row().classes('self-center'):
-            ui.icon('switch_video', color='blue', size='md') \
-                .style("cursor: pointer") \
-                .on('click', lambda visible=True: CastAPI.player.set_visibility(visible)) \
-                .tooltip("Show Video player")
-
-            hide_player = ui.icon('cancel_presentation', color='red', size='md') \
-                .style("cursor: pointer") \
-                .on('click', lambda visible=False: CastAPI.player.set_visibility(visible)) \
-                .tooltip("Hide Video player")
-
-            cast_player = ui.icon('cast', size='md') \
-                .style("cursor: pointer") \
-                .on('click', lambda: player_cast(CastAPI.player.source)) \
-                .tooltip('Cast Video') \
-                .bind_visibility_from(CastAPI.player)
-
-            media_info = ui.icon('info', size='sd') \
-                .style("cursor: pointer") \
-                .on('click', lambda: player_media_info(CastAPI.player.source)) \
-                .tooltip('Info') \
-                .bind_visibility_from(CastAPI.player)
-
-            media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
-                .bind_value(Media, 'cast_skip_frames') \
-                .tooltip('+ / - frames to CAST') \
-                .bind_visibility_from(CastAPI.player)
-
-            CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync) \
-                .tooltip('Sync Cast with Video Player Time') \
-                .bind_visibility_from(CastAPI.player)
-            if Media.player_sync is True:
-                CastAPI.media_button_sync.classes('animate-pulse')
-
-            media_reset_icon = ui.icon('restore')
-            media_reset_icon.style("cursor: pointer")
-            media_reset_icon.on('click', lambda: reset_sync())
-            media_reset_icon.bind_visibility_from(CastAPI.player)
-
-            CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync) \
-                .tooltip('Sync Cast with Slider Time') \
-                .bind_visibility_from(CastAPI.player)
-            if Media.player_sync is True:
-                CastAPI.slider_button_sync.classes('animate-pulse')
-
-            media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
-                .bind_value(Media, 'auto_sync_delay') \
-                .tooltip('Delay in sec to sync') \
-                .bind_visibility_from(CastAPI.player)
-
-            media_auto_sync = ui.checkbox('Auto Sync') \
-                .bind_value(Media, 'auto_sync') \
-                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)') \
-                .bind_visibility_from(CastAPI.player)
-
-            video_file = ui.icon('folder', color='orange', size='md') \
-                .style("cursor: pointer") \
-                .on('click', player_pick_file) \
-                .tooltip('Select audio / video file') \
-                .bind_visibility_from(CastAPI.player)
-
-            video_url = ui.input('Enter video Url / Path', placeholder='http://....') \
-                .bind_visibility_from(CastAPI.player)
-            video_url.tooltip('Enter Url, click on outside to validate the entry, '
-                              ' hide and show player should refresh data')
-            video_url.on('focusout', lambda: check_yt(video_url.value))
-            video_url_icon = ui.icon('published_with_changes')
-            video_url_icon.style("cursor: pointer")
-            video_url_icon.bind_visibility_from(CastAPI.player)
-
-            CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
+    video_player_page()
 
     """
     Row for Cast info / Run / Close : refreshable
@@ -1203,6 +1119,99 @@ def main_page_cast_manage():
         net_view_page()
 
         media_dev_view_page()
+
+
+@ui.page('/player')
+def video_player_page():
+    """
+    Video player
+    """
+    center_card = ui.card().classes('self-center w-2/3 bg-slate-300')
+    with center_card:
+        CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
+        CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
+        CastAPI.player.on('timeupdate', lambda: player_time())
+        CastAPI.player.on('durationchange', lambda: player_duration())
+        CastAPI.player.set_visibility(False)
+        ui.label() \
+            .bind_text_from(Media, 'player_time') \
+            .classes('self-center bg-slate-400') \
+            .bind_visibility_from(CastAPI.player)
+        CastAPI.video_slider = ui.slider(min=0, max=7200, step=1, value=0,
+                                         on_change=lambda var: slider_time(var.value)).props('label-always') \
+            .bind_visibility_from(CastAPI.player)
+
+        with ui.row().classes('self-center'):
+            ui.icon('switch_video', color='blue', size='md') \
+                .style("cursor: pointer") \
+                .on('click', lambda visible=True: CastAPI.player.set_visibility(visible)) \
+                .tooltip("Show Video player")
+
+            hide_player = ui.icon('cancel_presentation', color='red', size='md') \
+                .style("cursor: pointer") \
+                .on('click', lambda visible=False: CastAPI.player.set_visibility(visible)) \
+                .tooltip("Hide Video player")
+
+            cast_player = ui.icon('cast', size='md') \
+                .style("cursor: pointer") \
+                .on('click', lambda: player_cast(CastAPI.player.source)) \
+                .tooltip('Cast Video') \
+                .bind_visibility_from(CastAPI.player)
+
+            media_info = ui.icon('info', size='sd') \
+                .style("cursor: pointer") \
+                .on('click', lambda: player_media_info(CastAPI.player.source)) \
+                .tooltip('Info') \
+                .bind_visibility_from(CastAPI.player)
+
+            media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
+                .bind_value(Media, 'cast_skip_frames') \
+                .tooltip('+ / - frames to CAST') \
+                .bind_visibility_from(CastAPI.player)
+
+            CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync) \
+                .tooltip('Sync Cast with Video Player Time') \
+                .bind_visibility_from(CastAPI.player)
+            if Media.player_sync is True:
+                CastAPI.media_button_sync.classes('animate-pulse')
+
+            media_reset_icon = ui.icon('restore')
+            media_reset_icon.style("cursor: pointer")
+            media_reset_icon.on('click', lambda: reset_sync())
+            media_reset_icon.bind_visibility_from(CastAPI.player)
+
+            CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync) \
+                .tooltip('Sync Cast with Slider Time') \
+                .bind_visibility_from(CastAPI.player)
+            if Media.player_sync is True:
+                CastAPI.slider_button_sync.classes('animate-pulse')
+
+            media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
+                .bind_value(Media, 'auto_sync_delay') \
+                .tooltip('Delay in sec to sync') \
+                .bind_visibility_from(CastAPI.player)
+
+            media_auto_sync = ui.checkbox('Auto Sync') \
+                .bind_value(Media, 'auto_sync') \
+                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)') \
+                .bind_visibility_from(CastAPI.player)
+
+            video_file = ui.icon('folder', color='orange', size='md') \
+                .style("cursor: pointer") \
+                .on('click', player_pick_file) \
+                .tooltip('Select audio / video file') \
+                .bind_visibility_from(CastAPI.player)
+
+            video_url = ui.input('Enter video Url / Path', placeholder='http://....') \
+                .bind_visibility_from(CastAPI.player)
+            video_url.tooltip('Enter Url, click on outside to validate the entry, '
+                              ' hide and show player should refresh data')
+            video_url.on('focusout', lambda: check_yt(video_url.value))
+            video_url_icon = ui.icon('published_with_changes')
+            video_url_icon.style("cursor: pointer")
+            video_url_icon.bind_visibility_from(CastAPI.player)
+
+            CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
 
 
 @ui.page('/Desktop')
@@ -1751,7 +1760,7 @@ async def reset_total():
     """ reset frames / packets total values for Media and Desktop """
     Media.reset_total = True
     Desktop.reset_total = True
-    # say first cast to reset values
+    #  first cast to reset values
     if len(Media.cast_names) != 0:
         result = await action_to_thread(class_name='Media',
                                         cast_name=Media.cast_names[0],
@@ -1807,6 +1816,7 @@ def create_cpu_chart():
 
 
 def select_sc_area():
+    """ Draw rectangle to monitor x """
     monitor = int(Desktop.monitor_number)
     thread = threading.Thread(target=sas.run, args=(monitor,))
     thread.daemon = True
