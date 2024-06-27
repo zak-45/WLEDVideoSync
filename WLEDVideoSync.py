@@ -6,6 +6,8 @@
 #    nuitka-project: --macos-create-app-bundle
 # nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
 # nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
+# nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
+#
 
 """
 a: zak-45

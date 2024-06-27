@@ -878,6 +878,7 @@ def main_page():
     """
 
     video_player_page()
+    CastAPI.player.set_visibility(False)
 
     """
     Row for Cast info / Run / Close : refreshable
@@ -1126,13 +1127,14 @@ def video_player_page():
     """
     Video player
     """
+
     center_card = ui.card().classes('self-center w-2/3 bg-slate-300')
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
         CastAPI.player.on('timeupdate', lambda: player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
-        CastAPI.player.set_visibility(False)
+        CastAPI.player.set_visibility(True)
         ui.label() \
             .bind_text_from(Media, 'player_time') \
             .classes('self-center bg-slate-400') \
@@ -1183,6 +1185,7 @@ def video_player_page():
             CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync) \
                 .tooltip('Sync Cast with Slider Time') \
                 .bind_visibility_from(CastAPI.player)
+
             if Media.player_sync is True:
                 CastAPI.slider_button_sync.classes('animate-pulse')
 
@@ -1760,7 +1763,7 @@ async def reset_total():
     """ reset frames / packets total values for Media and Desktop """
     Media.reset_total = True
     Desktop.reset_total = True
-    #  first cast to reset values
+    #  instruct first cast to reset values
     if len(Media.cast_names) != 0:
         result = await action_to_thread(class_name='Media',
                                         cast_name=Media.cast_names[0],

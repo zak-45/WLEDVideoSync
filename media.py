@@ -30,7 +30,7 @@ import time
 import os
 
 import cfg_load as cfg
-from  str2bool import str2bool
+from str2bool import str2bool
 
 import threading
 from threading import current_thread
