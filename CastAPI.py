@@ -29,7 +29,7 @@ import threading
 import traceback
 import multiprocessing
 import asyncio
-import subprocess
+from subprocess import run as subrun, Popen
 
 import psutil
 
@@ -149,7 +149,7 @@ class CastAPI:
     media_button_sync = None
     slider_button_sync = None
     type_sync = 'none'
-    last_type_sync = ''
+    last_type_sync = ''  # none, slider , player
 
 
 """
@@ -162,6 +162,7 @@ async def read_api_root():
     """
         Status: see if WLEDVideoSync is running
     """
+
     return {"Status": "WLEDVideoSync is Running ..."}
 
 
@@ -846,7 +847,7 @@ def main_page():
     """
     timer created on main page run to refresh datas
     """
-    ui.timer(int(app_config['timer']), callback=root_timer_action)
+    main_timer = ui.timer(int(app_config['timer']), callback=root_timer_action)
 
     """
     Header with button menu
@@ -1127,6 +1128,10 @@ def video_player_page():
     """
     Video player
     """
+    """
+    timer created on video creation to refresh datas
+    """
+    player_timer = ui.timer(int(app_config['timer']), callback=player_timer_action)
 
     center_card = ui.card().classes('self-center w-2/3 bg-slate-300')
     with center_card:
@@ -1171,23 +1176,11 @@ def video_player_page():
                 .tooltip('+ / - frames to CAST') \
                 .bind_visibility_from(CastAPI.player)
 
-            CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync) \
-                .tooltip('Sync Cast with Video Player Time') \
-                .bind_visibility_from(CastAPI.player)
-            if Media.player_sync is True:
-                CastAPI.media_button_sync.classes('animate-pulse')
+            """ Refreshable part """
 
-            media_reset_icon = ui.icon('restore')
-            media_reset_icon.style("cursor: pointer")
-            media_reset_icon.on('click', lambda: reset_sync())
-            media_reset_icon.bind_visibility_from(CastAPI.player)
+            sync_button()
 
-            CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync) \
-                .tooltip('Sync Cast with Slider Time') \
-                .bind_visibility_from(CastAPI.player)
-
-            if Media.player_sync is True:
-                CastAPI.slider_button_sync.classes('animate-pulse')
+            """ End Refreshable part """
 
             media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'auto_sync_delay') \
@@ -1230,6 +1223,7 @@ def main_page_desktop():
         ui.label('Desktop').classes('text-lg font-medium')
         ui.icon('computer')
         ui.button('MAIN', on_click=lambda: ui.navigate.to('/'), icon='home')
+        ui.button('Manage', on_click=lambda: ui.navigate.to('/CastManage'), icon='video_settings')
 
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
@@ -1424,6 +1418,7 @@ def main_page_media():
         ui.link('MEDIA', target='/Media').classes('text-white text-lg font-medium')
         ui.icon('image')
         ui.button('Main', on_click=lambda: ui.navigate.to('/'), icon='home')
+        ui.button('Manage', on_click=lambda: ui.navigate.to('/CastManage'), icon='video_settings')
 
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
@@ -1630,6 +1625,51 @@ def info_page():
 def manage_info_page():
     """ Manage cast page from systray """
     tabs_info_page()
+
+
+@ui.page('/RunCharts')
+def manage_charts_page():
+    """ Select chart """
+    with ui.row(wrap=False).classes('w-full'):
+        with ui.card().classes('w-1/3'):
+            ui.button('Device', on_click=dev_stats_info_page)
+
+        with ui.card().classes('w-1/3'):
+            ui.button('Network', on_click=net_stats_info_page)
+
+        with ui.card().classes('w-1/3'):
+            ui.button('System', on_click=sys_stats_info_page)
+
+
+@ui.refreshable
+def sync_button():
+    """ Sync Buttons , refreshable"""
+    CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync, color='green') \
+        .tooltip('Sync Cast with Video Player Time') \
+        .bind_visibility_from(CastAPI.player)
+
+    if Media.player_sync is True:
+        CastAPI.media_button_sync.classes('animate-pulse')
+        CastAPI.media_button_sync.props(add="color='gray'")
+        if CastAPI.last_type_sync == 'player':
+            CastAPI.media_button_sync.props(add="color='red'")
+            CastAPI.media_button_sync.text = Media.player_time
+
+    media_reset_icon = ui.icon('restore')
+    media_reset_icon.style("cursor: pointer")
+    media_reset_icon.on('click', lambda: reset_sync())
+    media_reset_icon.bind_visibility_from(CastAPI.player)
+
+    CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync, color='green') \
+        .tooltip('Sync Cast with Slider Time') \
+        .bind_visibility_from(CastAPI.player)
+
+    if Media.player_sync is True:
+        CastAPI.slider_button_sync.classes('animate-pulse')
+        CastAPI.slider_button_sync.props(add="color='gray'")
+        if CastAPI.last_type_sync == 'slider':
+            CastAPI.slider_button_sync.props(add="color='red'")
+            CastAPI.slider_button_sync.text = Media.player_time
 
 
 @ui.refreshable
@@ -1911,9 +1951,6 @@ def charts_select():
 def dev_stats_info_page():
     """ devices charts """
 
-    CastAPI.charts_row.set_visibility(False)
-    logger.info('Run Device(s) Charts')
-
     dev_ip = ['--dev_ip']
     ips_list = []
     if Desktop.host != '127.0.0.1':
@@ -1939,36 +1976,39 @@ def dev_stats_info_page():
         dark = ['--dark']
 
     # run chart on its own process
-    subprocess.Popen(["devstats"] + dev_ip + ips_list + dark,
-                     executable=select_chart_exe())
+    Popen(["devstats"] + dev_ip + ips_list + dark,
+          executable=select_chart_exe())
+
+    logger.info('Run Device(s) Charts')
+    CastAPI.charts_row.set_visibility(False)
 
 
 def net_stats_info_page():
     """ network charts """
 
-    CastAPI.charts_row.set_visibility(False)
-    logger.info('Run Network Chart')
-
     dark = []
     if CastAPI.dark_mode is True:
         dark = ['--dark']
 
-    subprocess.Popen(["netstats"] + dark,
-                     executable=select_chart_exe())
+    Popen(["netstats"] + dark,
+          executable=select_chart_exe())
+
+    CastAPI.charts_row.set_visibility(False)
+    logger.info('Run Network Chart')
 
 
 def sys_stats_info_page():
     """ system charts """
 
-    CastAPI.charts_row.set_visibility(False)
-    logger.info('Run System Charts')
-
     dark = []
     if CastAPI.dark_mode is True:
         dark = ['--dark']
 
-    subprocess.Popen(["sysstats"] + dark,
-                     executable=select_chart_exe())
+    Popen(["sysstats"] + dark,
+          executable=select_chart_exe())
+
+    CastAPI.charts_row.set_visibility(False)
+    logger.info('Run System Charts')
 
 
 def select_chart_exe():
@@ -2381,6 +2421,14 @@ async def info_timer_action():
     :return:
     """
     cast_manage.refresh()
+
+
+async def player_timer_action():
+    """
+    timer occur when player is displayed
+    :return:
+    """
+    sync_button.refresh()
 
 
 def generate_carousel(class_obj):

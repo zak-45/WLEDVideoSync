@@ -160,22 +160,13 @@ def start_webview_process(window_name='Main'):
     start a pywebview process and call a window
     :return:
     """
-    global webview_process
+    global webview_process, main_window
     """
     webview_process = Process(target=run_webview, args=(window_name,))
     webview_process.daemon = True
     webview_process.start()
     """
     # start in blocking mode
-    run_webview(window_name)
-
-
-def run_webview(window_name):
-    """
-    Create webview process and window
-    :return:
-    """
-    global main_window
 
     # destroy if exist
     if main_window is not None:
@@ -236,6 +227,17 @@ def run_webview(window_name):
             url=f"http://{server_ip}:{server_port}/DetailsInfo",
             width=640,
             height=480
+        )
+
+    elif window_name == 'Charts':
+        # Page to select charts
+        if main_window is not None:
+            main_window.destroy()
+        main_window = webview.create_window(
+            title=f'Run Charts {server_port}',
+            url=f"http://{server_ip}:{server_port}/RunCharts",
+            width=450,
+            height=180
         )
 
     # start webview
@@ -375,12 +377,10 @@ def on_net():
     Menu Net  option : show Network bandwidth utilization
     :return:
     """
-    global netstat_process
-    if netstat_process is None:
-        start_net_stat()
-    else:
-        if not netstat_process.is_alive():
-            start_net_stat()
+    global webview_process
+    if webview_process is not None:
+        webview_process.terminate()
+    start_webview_process('Charts')
 
 
 def on_details():
@@ -437,7 +437,7 @@ if __name__ == '__main__':
         import FreeSimpleGUI as sg  # Part 1 - The import
 
         # Define the window's contents
-        info = ("Extracting executable to WLEDVideoSync folder.....\n\n \
+        info = ("Extracted executable to WLEDVideoSync folder.....\n\n \
         You can safely delete this file after extraction finished to save some space.\n \
         (the same for WLEDVideoSync.out.txt and err.txt)\n\n \
         Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file\n \
@@ -491,7 +491,7 @@ if __name__ == '__main__':
             Menu.SEPARATOR,
             MenuItem('Cast details', on_details),
             MenuItem('Info', on_info),
-            MenuItem('Net Info', on_net),
+            MenuItem('Charts', on_net),
             Menu.SEPARATOR,
             MenuItem(f'Exit - server :  {server_port}', on_exit)
         )
