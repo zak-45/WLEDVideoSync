@@ -842,7 +842,7 @@ def main_page():
     """
     dark = ui.dark_mode(CastAPI.dark_mode).bind_value_to(CastAPI, 'dark_mode')
 
-    apply_colors()
+    apply_custom()
 
     """
     timer created on main page run to refresh datas
@@ -1093,7 +1093,7 @@ def main_page_cast_manage():
 
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_colors()
+    apply_custom()
 
     """
     Header with button menu
@@ -1217,7 +1217,7 @@ def main_page_desktop():
     """
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_colors()
+    apply_custom()
 
     with ui.header():
         ui.label('Desktop').classes('text-lg font-medium')
@@ -1412,7 +1412,7 @@ def main_page_media():
     """
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_colors()
+    apply_custom()
 
     with ui.header():
         ui.link('MEDIA', target='/Media').classes('text-white text-lg font-medium')
@@ -2768,7 +2768,7 @@ def custom_openapi():
     return app.openapi_schema
 
 
-def apply_colors():
+def apply_custom():
     """
     Layout Colors come from config file
     bg image can be customized
