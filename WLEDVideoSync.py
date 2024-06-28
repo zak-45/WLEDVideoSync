@@ -229,6 +229,17 @@ def start_webview_process(window_name='Main'):
             height=480
         )
 
+    elif window_name == 'Player':
+        # Run video player
+        if main_window is not None:
+            main_window.destroy()
+        main_window = webview.create_window(
+            title=f'Video Player {server_port}',
+            url=f"http://{server_ip}:{server_port}/Player",
+            width=800,
+            height=600
+        )
+
     elif window_name == 'Charts':
         # Page to select charts
         if main_window is not None:
@@ -361,6 +372,17 @@ def on_blackout():
     start_webview_process('BlackOut')
 
 
+def on_player():
+    """
+    Open video Player
+    :return:
+    """
+    global webview_process
+    if webview_process is not None:
+        webview_process.terminate()
+    start_webview_process('Player')
+
+
 def on_info():
     """
     Menu Info option : show cast information in native OS Window
@@ -488,6 +510,8 @@ if __name__ == '__main__':
             MenuItem('ReStart server', on_restart_srv),
             Menu.SEPARATOR,
             MenuItem('BLACKOUT', on_blackout),
+            Menu.SEPARATOR,
+            MenuItem('Player', on_player),
             Menu.SEPARATOR,
             MenuItem('Cast details', on_details),
             MenuItem('Info', on_info),

@@ -1123,7 +1123,7 @@ def main_page_cast_manage():
         media_dev_view_page()
 
 
-@ui.page('/player')
+@ui.page('/Player')
 def video_player_page():
     """
     Video player
