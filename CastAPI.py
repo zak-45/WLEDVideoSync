@@ -148,8 +148,8 @@ class CastAPI:
     video_slider = None
     media_button_sync = None
     slider_button_sync = None
-    type_sync = 'none'
-    last_type_sync = ''  # none, slider , player
+    type_sync = 'none'  # none, slider , player
+    last_type_sync = ''  # slider , player
 
 
 """

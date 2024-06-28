@@ -430,20 +430,6 @@ def on_exit():
 
 
 """
-Net Stats Process
-"""
-
-
-def start_net_stat():
-    global netstat_process
-
-    from utils import NetGraph
-    netstat_process = Process(target=NetGraph.run)
-    netstat_process.daemon = True
-    netstat_process.start()
-
-
-"""
 MAIN Logic 
 """
 
