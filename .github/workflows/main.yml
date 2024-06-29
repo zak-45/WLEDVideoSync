@@ -77,20 +77,19 @@ jobs:
           onefile: true
           onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDVideoSync-${{runner.os}}
+          include-package-data: nicegui
           include-module: |
             CastAPI
             zeroconf._utils.ipaddress
             zeroconf._handlers.answers
             pygments.formatters.html
             dbm.dumb
-
           include-data-dir: |
             tmp=tmp
             log=log
             assets=assets
             config=config
             media=media
-            nicegui=nicegui
             xtra=xtra
           include-data-files: |
             favicon.ico=favicon.ico
