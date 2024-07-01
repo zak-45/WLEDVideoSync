@@ -98,7 +98,7 @@ class CASTMedia:
         self.stopcast: bool = True
         self.preview_top: bool = False
         self.preview_w: int = 640
-        self.preview_h: int = 480
+        self.preview_h: int = 360
         self.scale_width: int = 128
         self.scale_height: int = 128
         self.wled: bool = False

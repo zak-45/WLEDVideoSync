@@ -117,7 +117,7 @@ class CASTDesktop:
         self.retry_number: int = 0  # number of time to resend ddp packet
         self.preview_top: bool = False
         self.preview_w: int = 640
-        self.preview_h: int = 480
+        self.preview_h: int = 360
         self.text = cfg_text
         self.custom_text: str = ""
         self.voformat: str = 'h264'

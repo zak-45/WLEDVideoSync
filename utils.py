@@ -48,6 +48,7 @@ from typing import Optional
 from nicegui import events, ui, run
 
 from pytube import YouTube
+from pytube import Search as PySearch
 
 import tkinter as tk
 from screeninfo import get_monitors
@@ -531,8 +532,11 @@ class CASTUtils:
         """ check if valid IP format """
 
         try:
-            ipaddress.ip_address(ip_string)
-            return True
+            if ip_string != 'localhost':
+                ipaddress.ip_address(ip_string)
+                return True
+            else:
+                return True
         except ValueError:
             return False
 
@@ -1004,3 +1008,71 @@ class ScreenAreaSelection:
         root.title("Area Selection on Monitor")
         ScreenAreaSelection(root, monitor)
         root.mainloop()
+
+
+class YtSearch:
+
+    def __init__(self):
+        self.search_txt: str = ''
+        self.yt_search = None
+        ui.separator()
+        with ui.row():
+            my_search = ui.input('YT search')
+            my_search.on('focusout', lambda: self.search_youtube(my_search.value))
+            ui.icon('restore_page', color='blue', size='sm') \
+                .style('cursor: pointer').tooltip('Click to Validate/Refresh')
+            self.next_button = ui.button('More', on_click=lambda: self.next_search(self.yt_search))
+            self.next_button.set_visibility(False)
+            self.number_found = ui.label(f'Result : ')
+
+        self.search_result = ui.card()
+        with self.search_result:
+            ui.label('Search could take some time ....').classes('animate-pulse')
+
+        self.yt_player = ui.page_sticky()
+
+    async def youtube_player(self, yt_id):
+        self.yt_player.clear()
+        with self.yt_player:
+            player = ui.card()
+            youtube_url = f"https://www.youtube.com/embed/{yt_id}"
+            with player:
+                ui.html('<iframe width="350" height="230" '
+                        f'src="{youtube_url}" '
+                        'title="YouTube video player" frameborder="0" allow="'
+                        'accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share"'
+                        ' referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>'
+                        '</iframe>')
+
+    async def search_youtube(self, data):
+        self.yt_player.clear()
+        self.search_result.clear()
+        self.yt_search = await run.io_bound(PySearch, data)
+        number = await run.io_bound(len, self.yt_search.results)
+        self.number_found.text = f'Number found: {number}'
+        if number > 0:
+            self.next_button.set_visibility(True)
+            await self.create_yt_page(self.yt_search)
+
+    async def next_search(self, search_obj):
+        await run.io_bound(search_obj.get_next_results)
+        self.number_found.text = f'Number found: {len(search_obj.results)}'
+        await self.create_yt_page(search_obj)
+
+    async def create_yt_page(self, data):
+        self.search_result.clear()
+        with (self.search_result.classes('w-full self-center')):
+            for self.yt_stream in data.results:
+                ui.separator()
+                ui.label(self.yt_stream.title)
+                with ui.row(wrap=False).classes('w-1/2'):
+                    yt_image = ui.image(self.yt_stream.thumbnail_url) \
+                        .classes('self-center w-1/2')
+                    yt_image.on('mouseenter', lambda yt_stream=self.yt_stream: self.youtube_player(yt_stream.video_id))
+                    with ui.column():
+                        ui.label(f'Length: {self.yt_stream.length}')
+                        yt_url = ui.label(self.yt_stream.watch_url)
+                        yt_url.tooltip('Click to copy')
+                        yt_url.style('text-decoration: underline; cursor: pointer;')
+                        yt_url.on('click', lambda my_yt=yt_url: (ui.clipboard.write(my_yt.text), ui.notify('copied')))
+

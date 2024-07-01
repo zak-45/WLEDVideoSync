@@ -29,7 +29,7 @@ import threading
 import traceback
 import multiprocessing
 import asyncio
-from subprocess import run as subrun, Popen
+from subprocess import Popen
 
 import psutil
 
@@ -56,6 +56,7 @@ from utils import HTTPDiscovery as Net
 from utils import ImageUtils
 from utils import LocalFilePicker
 from utils import ScreenAreaSelection as sas
+from utils import YtSearch
 
 import ast
 
@@ -872,7 +873,7 @@ def main_page():
         ui.label('MEDIA: Cast Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
 
     ui.separator().classes('mt-6')
-    ui.image("./assets/intro.gif").classes('self-center').tailwind.border_width('8').width('1/6')
+    ui.image("./media/intro.gif").classes('self-center').tailwind.border_width('8').width('1/6')
 
     """
     Video player
@@ -962,7 +963,7 @@ def main_page():
                             ui.knob(640, min=8, max=1920, step=1, show_value=True) \
                                 .bind_value(Desktop, 'preview_w') \
                                 .tooltip('Preview size W').classes('w-10')
-                            ui.knob(480, min=8, max=1080, step=1, show_value=True) \
+                            ui.knob(360, min=8, max=1080, step=1, show_value=True) \
                                 .bind_value(Desktop, 'preview_h') \
                                 .tooltip('Preview size H').classes('w-10')
                     with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
@@ -970,7 +971,7 @@ def main_page():
                             ui.knob(640, min=8, max=1920, step=1, show_value=True) \
                                 .bind_value(Media, 'preview_w') \
                                 .tooltip('Preview size W').classes('w-10')
-                            ui.knob(480, min=8, max=1080, step=1, show_value=True) \
+                            ui.knob(360, min=8, max=1080, step=1, show_value=True) \
                                 .bind_value(Media, 'preview_h') \
                                 .tooltip('Preview size H').classes('w-10')
                             ui.checkbox('') \
@@ -1206,6 +1207,11 @@ def video_player_page():
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
             video_url_icon.bind_visibility_from(CastAPI.player)
+            yt_icon = ui.chip('YT Search',
+                              icon='youtube_searched_for',
+                              color='indigo-3',
+                              on_click=lambda: youtube_search())
+            yt_icon.bind_visibility_from(CastAPI.player)
 
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
 
@@ -1358,7 +1364,7 @@ def main_page_desktop():
                 with media_grid:
                     for i in range(len(Desktop.frame_buffer)):
                         # put fixed size for preview
-                        img = Utils.resize_image(Desktop.frame_buffer[i], 640, 480)
+                        img = Utils.resize_image(Desktop.frame_buffer[i], 640, 360)
                         img = Image.fromarray(img)
                         light_box_image(i, img, '', '', Desktop, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
@@ -1380,7 +1386,7 @@ def main_page_desktop():
                     try:
                         for i in range(Desktop.cast_x * Desktop.cast_y):
                             # put fixed size for preview
-                            img = Utils.resize_image(Desktop.cast_frame_buffer[i], 640, 480)
+                            img = Utils.resize_image(Desktop.cast_frame_buffer[i], 640, 360)
                             img = Image.fromarray(img)
                             light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
                     except Exception as error:
@@ -1531,7 +1537,7 @@ def main_page_media():
                 with media_grid:
                     for i in range(len(Media.frame_buffer)):
                         # put fixed size for preview
-                        img = Utils.resize_image(Media.frame_buffer[i], 640, 480)
+                        img = Utils.resize_image(Media.frame_buffer[i], 640, 360)
                         img = Image.fromarray(img)
                         light_box_image(i, img, '', '', Media, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
@@ -1553,7 +1559,7 @@ def main_page_media():
                     try:
                         for i in range(Media.cast_x * Media.cast_y):
                             # put fixed size for preview
-                            img = Utils.resize_image(Media.cast_frame_buffer[i], 640, 480)
+                            img = Utils.resize_image(Media.cast_frame_buffer[i], 640, 360)
                             img = Image.fromarray(img)
                             light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
                     except Exception as error:
@@ -1583,7 +1589,7 @@ def splash_page():
     :return:
     """
     ui.dark_mode(True)
-    ui.image('assets/intro.gif').classes('self-center').style('width: 50%')
+    ui.image('media/intro.gif').classes('self-center').style('width: 50%')
     ui.button('MAIN INTERFACE', on_click=lambda: ui.navigate.to(f'/')) \
         .classes('self-center')
     ui.button('API', on_click=lambda: ui.navigate.to(f'/docs')) \
@@ -1797,6 +1803,19 @@ def system_stats():
 """
 helpers
 """
+
+
+async def youtube_search():
+    """
+    with ui.dialog() as dialog, ui.card():
+        dialog.open()
+        YtSearch()
+        ui.button('Close', on_click=dialog.close, color='red')
+    """
+    yt_area = ui.scroll_area().bind_visibility_from(CastAPI.player)
+    yt_area.classes('w-full border')
+    with yt_area:
+        YtSearch()
 
 
 async def reset_total():
@@ -2438,7 +2457,7 @@ def generate_carousel(class_obj):
         with ui.carousel_slide().classes('-p0'):
             carousel_image = Image.fromarray(class_obj.frame_buffer[i])
             h, w = class_obj.frame_buffer[i].shape[:2]
-            img = ui.interactive_image(carousel_image.resize(size=(640, 480))).classes('w-[640]')
+            img = ui.interactive_image(carousel_image.resize(size=(640, 360))).classes('w-[640]')
             with img:
                 ui.button(text=str(i) + ':size:' + str(w) + 'x' + str(h), icon='tag') \
                     .props('flat fab color=white') \
