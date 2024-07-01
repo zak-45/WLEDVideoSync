@@ -1011,6 +1011,11 @@ class ScreenAreaSelection:
 
 
 class YtSearch:
+    """
+    Search YT Video from input
+    Display thumb and YT Plyer
+    On click, copy to clipboard YT Url
+    """
 
     def __init__(self):
         self.search_txt: str = ''
@@ -1032,6 +1037,7 @@ class YtSearch:
         self.yt_player = ui.page_sticky()
 
     async def youtube_player(self, yt_id):
+        """ YT Player in iframe """
         self.yt_player.clear()
         with self.yt_player:
             player = ui.card()
@@ -1045,29 +1051,43 @@ class YtSearch:
                         '</iframe>')
 
     async def search_youtube(self, data):
+        """ Search for YT on input """
+
+        # clear as we recreate
         self.yt_player.clear()
         self.search_result.clear()
+        # Search
         self.yt_search = await run.io_bound(PySearch, data)
-        number = await run.io_bound(len, self.yt_search.results)
+        # number found
+        number = len(self.yt_search.results)
         self.number_found.text = f'Number found: {number}'
+        # activate 'more' button
         if number > 0:
             self.next_button.set_visibility(True)
+            # re create  result page
             await self.create_yt_page(self.yt_search)
 
     async def next_search(self, search_obj):
+        """ Next if you want more """
+
+        # search additional data
         await run.io_bound(search_obj.get_next_results)
+        # update number
         self.number_found.text = f'Number found: {len(search_obj.results)}'
+        # re create  result page
         await self.create_yt_page(search_obj)
 
     async def create_yt_page(self, data):
+        """ Create YT search result """
+        # clear first
         self.search_result.clear()
-        with (self.search_result.classes('w-full self-center')):
+        # create
+        with self.search_result.classes('w-full self-center'):
             for self.yt_stream in data.results:
                 ui.separator()
                 ui.label(self.yt_stream.title)
                 with ui.row(wrap=False).classes('w-1/2'):
-                    yt_image = ui.image(self.yt_stream.thumbnail_url) \
-                        .classes('self-center w-1/2')
+                    yt_image = ui.image(self.yt_stream.thumbnail_url).classes('self-center w-1/2')
                     yt_image.on('mouseenter', lambda yt_stream=self.yt_stream: self.youtube_player(yt_stream.video_id))
                     with ui.column():
                         ui.label(f'Length: {self.yt_stream.length}')
