@@ -568,6 +568,7 @@ class CASTMedia:
                                                     t_preview,
                                                     frame_count,
                                                     interval,
+                                                    ip_addresses,
                                                     grid=True)
 
                 if length == 1 and fps == 1:
@@ -600,7 +601,8 @@ class CASTMedia:
                                                     t_name,
                                                     t_preview,
                                                     frame_count,
-                                                    interval
+                                                    interval,
+                                                    ip_addresses
                                                     )
 
                 """
@@ -660,7 +662,16 @@ class CASTMedia:
     preview window
     """
 
-    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, frame_count, fps, grid=False):
+    def preview_window(self,
+                       frame,
+                       server_port,
+                       t_viinput,
+                       t_name,
+                       t_preview,
+                       frame_count,
+                       fps,
+                       ip_addresses,
+                       grid=False):
 
         frame = cv2.resize(frame, (self.preview_w, self.preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -680,14 +691,15 @@ class CASTMedia:
             if self.custom_text == "":
                 # bottom
                 # org
-                org = (50, 315)
+                org = (50, 310)
                 x, y, w, h = 40, 300, 560, 15
                 # Draw black background rectangle
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
-                text_to_show = f"Device: {server_port} - "
+                text_to_show_bottom = "Device(s) : "
+                text_to_show_bottom += str(ip_addresses)
                 # Using cv2.putText() method
                 frame = cv2.putText(frame,
-                                    text_to_show,
+                                    text_to_show_bottom,
                                     org,
                                     font,
                                     fontscale,
@@ -700,8 +712,6 @@ class CASTMedia:
                 text_to_show += "FPS: " + str(1/fps) + " - "
                 text_to_show += "FRAME: " + str(frame_count) + " - "
                 text_to_show += "TOTAL: " + str(CASTMedia.total_frame)
-                text_to_show_bottom = "Device : "
-                text_to_show_bottom += "Device : "
             else:
                 text_to_show = self.custom_text
 

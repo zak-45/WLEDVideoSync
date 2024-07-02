@@ -571,6 +571,7 @@ class CASTDesktop:
                                                                 t_preview,
                                                                 frame_count,
                                                                 frame_interval,
+                                                                ip_addresses,
                                                                 grid=True)
 
                         else:
@@ -598,6 +599,7 @@ class CASTDesktop:
                                                                 t_preview,
                                                                 frame_count,
                                                                 frame_interval,
+                                                                ip_addresses,
                                                                 grid=False)
 
             except Exception as error:
@@ -640,32 +642,69 @@ class CASTDesktop:
 
         logger.info('Cast closed')
 
-    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, frame_count, fps, grid=False):
+    """
+    preview window
+    """
+
+    def preview_window(self,
+                       frame,
+                       server_port,
+                       t_viinput,
+                       t_name,
+                       t_preview,
+                       frame_count,
+                       fps,
+                       ip_addresses,
+                       grid=False):
 
         frame = cv2.resize(frame, (self.preview_w, self.preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
         # put text on the image
         if self.text:
+            # common param
+            # font
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            # fontScale
+            fontscale = .4
+            # Blue color in BGR
+            color = (255, 255, 255)
+            # Line thickness of 2 px
+            thickness = 1
+
             if self.custom_text == "":
+                # bottom
+                # org
+                org = (50, 310)
+                x, y, w, h = 40, 300, 560, 15
+                # Draw black background rectangle
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
+                text_to_show_bottom = "Device(s) : "
+                text_to_show_bottom += str(ip_addresses)
+                # Using cv2.putText() method
+                frame = cv2.putText(frame,
+                                    text_to_show_bottom,
+                                    org,
+                                    font,
+                                    fontscale,
+                                    color,
+                                    thickness,
+                                    cv2.LINE_AA)
+
+                # Top
                 text_to_show = f"WLEDVideoSync: {server_port} - "
                 text_to_show += "FPS: " + str(fps) + " - "
                 text_to_show += "FRAME: " + str(frame_count) + " - "
                 text_to_show += "TOTAL: " + str(CASTDesktop.total_frame)
             else:
                 text_to_show = self.custom_text
-            # font
-            font = cv2.FONT_HERSHEY_SIMPLEX
+
+            # Top
             # org
             org = (50, 50)
             x, y, w, h = 40, 15, 560, 40
             # Draw black background rectangle
             cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
-            # fontScale
-            fontscale = .4
-            # Blue color in BGR
-            color = (255, 255, 255)
-            thickness = 1
             # Using cv2.putText() method
             frame = cv2.putText(frame,
                                 text_to_show,
@@ -676,19 +715,19 @@ class CASTDesktop:
                                 thickness,
                                 cv2.LINE_AA)
 
-        # Displaying the image on the preview Window
+        # Displaying the image
         window_name = f"{server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
         if grid:
             frame = ImageUtils.grid_on_image(frame, self.cast_x, self.cast_y)
+
         cv2.imshow(window_name, frame)
         cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
+
         top = 0
         if self.preview_top is True:
             top = 1
         cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
         if cv2.waitKey(1) & 0xFF == ord("q"):
-            cv2.destroyWindow(window_name)
-            # close preview window if any
             win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
             if not win == 0:
                 cv2.destroyWindow(window_name)
