@@ -883,7 +883,7 @@ async def main_page():
     Video player
     """
 
-    video_player_page()
+    await video_player_page()
     CastAPI.player.set_visibility(False)
 
     """
@@ -1131,7 +1131,7 @@ async def main_page_cast_manage():
 
 
 @ui.page('/Player')
-def video_player_page():
+async def video_player_page():
     """
     Video player
     """
@@ -1185,7 +1185,7 @@ def video_player_page():
 
             """ Refreshable part """
 
-            sync_button()
+            await sync_button()
 
             """ End Refreshable part """
 
@@ -1375,7 +1375,7 @@ async def main_page_desktop():
                         img = Image.fromarray(img)
                         light_box_image(i, img, '', '', Desktop, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
-                    generate_carousel(Desktop)
+                    await generate_carousel(Desktop)
 
         else:
             with ui.card():
@@ -1408,7 +1408,7 @@ async def main_page_desktop():
 
     with ui.footer():
 
-        net_view_page()
+        await net_view_page()
 
         with ui.dialog() as dialog, ui.card():
             win_title = Utils.windows_titles()
@@ -1548,7 +1548,7 @@ async def main_page_media():
                         img = Image.fromarray(img)
                         light_box_image(i, img, '', '', Media, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
-                    generate_carousel(Media)
+                    await generate_carousel(Media)
 
         else:
             with ui.card():
@@ -1655,7 +1655,7 @@ async def manage_charts_page():
 
 
 @ui.refreshable
-def sync_button():
+async def sync_button():
     """ Sync Buttons , refreshable"""
     CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync, color='green') \
         .tooltip('Sync Cast with Video Player Time') \
