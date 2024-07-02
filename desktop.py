@@ -200,7 +200,7 @@ class CASTDesktop:
             :return:
             """
             # timeout provided to not have thread waiting infinitely
-            if t_send_frame.wait(timeout=.2):
+            if t_send_frame.wait(timeout=.5):
                 # send ddp data, we select DDPDevice based on the IP
                 for device in self.ddp_multi_names:
                     if ip == device.name:

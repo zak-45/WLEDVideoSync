@@ -117,6 +117,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     server_config = cast_config.get('server')
     app_config = cast_config.get('app')
     color_config = cast_config.get('colors')
+    custom_config = cast_config.get('custom')
 
     #  validate network config
     server_ip = server_config['server_ip']
@@ -2803,7 +2804,7 @@ def apply_custom():
               warning=color_config['warning']
               )
 
-    ui.query('body').style(f'background-image: url({color_config["bg-image"]}); '
+    ui.query('body').style(f'background-image: url({custom_config["bg-image"]}); '
                            'background-size: cover;'
                            'background-repeat: no-repeat;'
                            'background-position: center;')

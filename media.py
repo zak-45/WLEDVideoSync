@@ -221,7 +221,7 @@ class CASTMedia:
             :return:
             """
             # timeout provided to not have thread waiting infinitely
-            if t_send_frame.wait(timeout=.2):
+            if t_send_frame.wait(timeout=.5):
                 # send ddp data, we select DDPDevice based on the IP
                 for device in self.ddp_multi_names:
                     if ip == device.name:
@@ -274,7 +274,7 @@ class CASTMedia:
         # retrieve matrix setup from wled and set w/h
         if self.wled:
             status = asyncio.run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
-            if status:
+            if status is True:
                 self.scale_width, self.scale_height = asyncio.run(Utils.get_wled_matrix_dimensions(self.host))
             else:
                 logger.error(f"ERROR to set WLED device {self.host} on 'live' mode")
