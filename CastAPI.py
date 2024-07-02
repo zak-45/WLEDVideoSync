@@ -69,7 +69,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
-from nicegui import app, ui, native, context
+from nicegui import app, ui, native, context, run
 from nicegui.events import ValueChangeEventArguments
 
 from pytube import YouTube
@@ -707,7 +707,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # validate data format received
             if not Utils.validate_ws_json_input(json_data):
-                logger.error('WEBSOCKET: received data not compliant to expected format')
+                logger.error('WEBSOCKET: received data not compliant with expected format')
                 await websocket.send_text('{"result":"error"}')
                 raise Exception
 
@@ -753,6 +753,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     params["buffer_name"] = buffer_name
 
                 # execute action with params
+                # response = await run.io_bound(requests.get, URL, timeout=3)
+                # result = await run.io_bound(globals()[action], **params,)
                 await globals()[action](**params)
                 # send back if no problem
                 await websocket.send_text('{"result":"success"}')
@@ -791,6 +793,19 @@ async def cast_image(image_number,
     """
     images_buffer = []
     class_obj = globals()[class_name]
+    print(class_obj)
+
+    """
+    on 10/04/2024: device_number come from list entry order (0...n)
+    """
+    if device_number == -1:  # instruct to use IP from the class.host
+        ip = socket.gethostbyname(class_obj.host)
+    else:
+        ip = socket.gethostbyname(class_obj.cast_devices[device_number][1])
+
+    if ip == '127.0.0.1':
+        logger.warning('Nothing to do for localhost 127.0.0.1')
+        return
 
     if buffer_name.lower() == 'buffer':
         images_buffer = class_obj.frame_buffer
@@ -805,18 +820,6 @@ async def cast_image(image_number,
     logger.info(f"retry frame number:  {retry_number}")
     logger.info(f"class name: {class_name}")
     logger.info(f"Image from buffer: {buffer_name}")
-
-    """
-    on 10/04/2024: device_number come from list entry order (0...n)
-    """
-    if device_number == -1:  # instruct to use IP from the class.host
-        ip = socket.gethostbyname(class_obj.host)
-    else:
-        ip = socket.gethostbyname(class_obj.cast_devices[device_number][1])
-
-    if ip == '127.0.0.1':
-        logger.warning('Nothing to do for localhost 127.0.0.1')
-        return
 
     ddp = DDPDevice(ip)
 
