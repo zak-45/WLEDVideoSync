@@ -439,7 +439,7 @@ if __name__ == '__main__':
 
     freeze_support()  # noqa
 
-    # test to see if executed from compiled version
+    # test to see if executed from compressed version
     # instruct user to go to WLEDVideoSync folder to execute program
     if "NUITKA_ONEFILE_PARENT" in os.environ:
         import FreeSimpleGUI as sg  # Part 1 - The import

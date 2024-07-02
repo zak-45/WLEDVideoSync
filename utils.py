@@ -1094,5 +1094,10 @@ class YtSearch:
                         yt_url = ui.label(self.yt_stream.watch_url)
                         yt_url.tooltip('Click to copy')
                         yt_url.style('text-decoration: underline; cursor: pointer;')
-                        yt_url.on('click', lambda my_yt=yt_url: (ui.clipboard.write(my_yt.text), ui.notify('copied')))
+                        yt_url.on('click', lambda my_yt=yt_url: (ui.clipboard.write(my_yt.text),
+                                                                 ui.notify('copied')))
+                        yt_watch = ui.icon('smart_display', size='sm')
+                        yt_watch.tooltip('Play')
+                        yt_watch.style('cursor: pointer')
+                        yt_watch.on('click', lambda yt_stream=self.yt_stream: self.youtube_player(yt_stream.video_id))
 
