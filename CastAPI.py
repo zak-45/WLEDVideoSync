@@ -1056,7 +1056,9 @@ def main_page():
     """
 
     log = ui.log(max_lines=50).classes('w-full h-20')
-    logger.addHandler(LogElementHandler(log))
+    handler = LogElementHandler(log)
+    logger.addHandler(handler)
+    ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
     ui.button('Clear Log', on_click=lambda: log.clear()).tooltip('Erase the log file')
 
     """
@@ -2816,6 +2818,7 @@ def apply_custom():
 """
 RUN
 """
+
 app.openapi = custom_openapi
 app.add_static_files('/assets', 'assets')
 app.add_media_files('/media', 'media')
