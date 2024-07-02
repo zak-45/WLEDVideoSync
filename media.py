@@ -667,26 +667,50 @@ class CASTMedia:
 
         # put text on the image
         if self.text:
-            if self.custom_text == "":
-                text_to_show = f"WLEDVideoSync: {server_port} - "
-                text_to_show += "FPS: " + str(1/fps) + " - "
-                text_to_show += "FRAME: " + str(frame_count) + " - "
-                text_to_show += "TOTAL: " + str(CASTMedia.total_frame)
-            else:
-                text_to_show = self.custom_text
+            # common param
             # font
             font = cv2.FONT_HERSHEY_SIMPLEX
-            # org
-            org = (50, 50)
-            x, y, w, h = 40, 15, 560, 40
-            # Draw black background rectangle
-            cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
             # fontScale
             fontscale = .4
             # Blue color in BGR
             color = (255, 255, 255)
             # Line thickness of 2 px
             thickness = 1
+
+            if self.custom_text == "":
+                # bottom
+                # org
+                org = (50, 315)
+                x, y, w, h = 40, 300, 560, 15
+                # Draw black background rectangle
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
+                text_to_show = f"Device: {server_port} - "
+                # Using cv2.putText() method
+                frame = cv2.putText(frame,
+                                    text_to_show,
+                                    org,
+                                    font,
+                                    fontscale,
+                                    color,
+                                    thickness,
+                                    cv2.LINE_AA)
+
+                # Top
+                text_to_show = f"WLEDVideoSync: {server_port} - "
+                text_to_show += "FPS: " + str(1/fps) + " - "
+                text_to_show += "FRAME: " + str(frame_count) + " - "
+                text_to_show += "TOTAL: " + str(CASTMedia.total_frame)
+                text_to_show_bottom = "Device : "
+                text_to_show_bottom += "Device : "
+            else:
+                text_to_show = self.custom_text
+
+            # Top
+            # org
+            org = (50, 50)
+            x, y, w, h = 40, 15, 560, 40
+            # Draw black background rectangle
+            cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
             # Using cv2.putText() method
             frame = cv2.putText(frame,
                                 text_to_show,

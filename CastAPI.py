@@ -877,7 +877,7 @@ def main_page():
         ui.label('MEDIA: Cast Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
 
     ui.separator().classes('mt-6')
-    ui.image("./media/intro.gif").classes('self-center').tailwind.border_width('8').width('1/6')
+    ui.image("./assets/Source-intro.png").classes('self-center').tailwind.border_width('8').width('1/6')
 
     """
     Video player
@@ -1055,11 +1055,11 @@ def main_page():
     Log display
     """
 
-    log = ui.log(max_lines=50).classes('w-full h-20')
-    handler = LogElementHandler(log)
-    logger.addHandler(handler)
-    ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
-    ui.button('Clear Log', on_click=lambda: log.clear()).tooltip('Erase the log file')
+    # log = ui.log(max_lines=50).classes('w-full h-20')
+    # handler = LogElementHandler(log)
+    # logger.addHandler(handler)
+    # ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
+    # ui.button('Clear Log', on_click=lambda: log.clear()).tooltip('Erase the log file')
 
     """
     Footer : usefully links help
@@ -1213,12 +1213,13 @@ def video_player_page():
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
             video_url_icon.bind_visibility_from(CastAPI.player)
+            # YT search
             yt_icon = ui.chip('YT Search',
                               icon='youtube_searched_for',
                               color='indigo-3',
                               on_click=lambda: youtube_search())
             yt_icon.bind_visibility_from(CastAPI.player)
-
+            # Progress bar
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
 
 
