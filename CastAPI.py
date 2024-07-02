@@ -840,7 +840,7 @@ NiceGUI
 
 
 @ui.page('/')
-def main_page():
+async def main_page():
     global log
     """
     Root page definition
@@ -951,7 +951,7 @@ def main_page():
         with ui.card().tight().classes('w-42'):
             with ui.column():
                 # refreshable
-                cast_manage()
+                await cast_manage()
                 # no refreshable
                 ui.icon('info') \
                     .tooltip('Show details') \
@@ -989,7 +989,7 @@ def main_page():
 
                 # refreshable
                 with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
-                    system_stats()
+                    await system_stats()
                     create_cpu_chart()
 
         with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
@@ -1067,7 +1067,7 @@ def main_page():
     with ui.footer(value=False).classes('items-center bg-red-900') as footer:
         ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip('Change Layout Mode')
 
-        net_view_page()  # refreshable
+        await net_view_page()  # refreshable
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
         ui.button('SysStats', on_click=charts_select, color='bg-red-800')
@@ -1095,7 +1095,7 @@ def main_page():
 
 
 @ui.page('/CastManage')
-def main_page_cast_manage():
+async def main_page_cast_manage():
     """ Cast manage with full details page """
 
     ui.dark_mode(CastAPI.dark_mode)
@@ -1125,9 +1125,9 @@ def main_page_cast_manage():
     with ui.footer():
         ui.button('Refresh Page', on_click=lambda: ui.navigate.to('/CastManage'))
 
-        net_view_page()
+        await net_view_page()
 
-        media_dev_view_page()
+        await media_dev_view_page()
 
 
 @ui.page('/Player')
@@ -1224,7 +1224,7 @@ def video_player_page():
 
 
 @ui.page('/Desktop')
-def main_page_desktop():
+async def main_page_desktop():
     """
     Desktop param page
     """
@@ -1280,7 +1280,7 @@ def main_page_desktop():
     exp_param = ui.expansion('Parameters', icon='settings', value=True)
     with exp_param.classes('w-full bg-sky-800'):
 
-        cast_icon(Desktop)
+        await cast_icon(Desktop)
 
         with ui.row():
             ui.table(columns=columns_a, rows=rows_a).classes('w-60')
@@ -1419,7 +1419,7 @@ def main_page_desktop():
 
 
 @ui.page('/Media')
-def main_page_media():
+async def main_page_media():
     """
     Media param page
     """
@@ -1466,7 +1466,7 @@ def main_page_media():
     media_exp_param = ui.expansion('Parameters', icon='settings', value=True)
     with media_exp_param.classes('w-full bg-sky-800'):
 
-        cast_icon(Media)
+        await cast_icon(Media)
 
         with ui.row():
             ui.table(columns=columns_a, rows=rows_a).classes('w-60')
@@ -1583,14 +1583,14 @@ def main_page_media():
 
     with ui.footer():
 
-        net_view_page()
+        await net_view_page()
 
-        media_dev_view_page()
+        await media_dev_view_page()
         ui.button('Run discovery', on_click=discovery_media_notify, color='bg-red-800')
 
 
 @ui.page('/WLEDVideoSync')
-def splash_page():
+async def splash_page():
     """
     Page displayed on the webview window
     :return:
@@ -1604,7 +1604,7 @@ def splash_page():
 
 
 @ui.page('/ws/docs')
-def ws_page():
+async def ws_page():
     """
     websocket docs page
     :return:
@@ -1628,20 +1628,20 @@ def ws_page():
 
 
 @ui.page('/info')
-def info_page():
+async def info_page():
     """ simple cast info page from systray """
     ui.timer(int(app_config['timer']), callback=info_timer_action)
-    cast_manage()
+    await cast_manage()
 
 
 @ui.page('/DetailsInfo')
-def manage_info_page():
+async def manage_info_page():
     """ Manage cast page from systray """
     tabs_info_page()
 
 
 @ui.page('/RunCharts')
-def manage_charts_page():
+async def manage_charts_page():
     """ Select chart """
     with ui.row(wrap=False).classes('w-full'):
         with ui.card().classes('w-1/3'):
@@ -1686,7 +1686,7 @@ def sync_button():
 
 
 @ui.refreshable
-def cast_manage():
+async def cast_manage():
     """
     refreshable cast parameters  on the root page '/'
     :return:
@@ -1735,7 +1735,7 @@ def cast_manage():
 
 
 @ui.refreshable
-def cast_icon(class_obj):
+async def cast_icon(class_obj):
     """
     refreshable Icon color on '/Desktop' and '/Media' pages
     :param class_obj:
@@ -1749,7 +1749,7 @@ def cast_icon(class_obj):
 
 
 @ui.refreshable
-def net_view_page():
+async def net_view_page():
     """
     Display network devices into the Json Editor
     :return:
@@ -1762,7 +1762,7 @@ def net_view_page():
 
 
 @ui.refreshable
-def media_dev_view_page():
+async def media_dev_view_page():
     """
     Display network devices into the Json Editor
     :return:
@@ -1775,7 +1775,7 @@ def media_dev_view_page():
 
 
 @ui.refreshable
-def system_stats():
+async def system_stats():
     cpu = psutil.cpu_percent(interval=1, percpu=False)
     ram = psutil.virtual_memory().percent
     total_packet = Desktop.total_packet + Media.total_packet
@@ -2457,7 +2457,7 @@ async def player_timer_action():
     sync_button.refresh()
 
 
-def generate_carousel(class_obj):
+async def generate_carousel(class_obj):
     """ Images carousel for Desktop and Media """
 
     for i in range(len(class_obj.frame_buffer)):
