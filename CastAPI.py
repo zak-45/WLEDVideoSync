@@ -1140,7 +1140,7 @@ async def video_player_page():
     """
     player_timer = ui.timer(int(app_config['timer']), callback=player_timer_action)
 
-    center_card = ui.card().classes('self-center w-2/3 bg-slate-300')
+    center_card = ui.card().classes('self-center w-2/3 bg-gray-500')
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
