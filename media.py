@@ -683,16 +683,20 @@ class CASTMedia:
             font = cv2.FONT_HERSHEY_SIMPLEX
             # fontScale
             fontscale = .4
+            original_width = 640
             # Blue color in BGR
             color = (255, 255, 255)
             # Line thickness of 2 px
             thickness = 1
 
+            # Calculate new font scale
+            new_font_scale = fontscale * (self.preview_w / original_width)
+
             if self.custom_text == "":
                 # bottom
                 # org
-                org = (50, 310)
-                x, y, w, h = 40, 300, 560, 15
+                org = (50, self.preview_h - 50)
+                x, y, w, h = 40, self.preview_h - 60, self.preview_w - 80, 15
                 # Draw black background rectangle
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
                 text_to_show_bottom = "Device(s) : "
@@ -702,7 +706,7 @@ class CASTMedia:
                                     text_to_show_bottom,
                                     org,
                                     font,
-                                    fontscale,
+                                    new_font_scale,
                                     color,
                                     thickness,
                                     cv2.LINE_AA)
@@ -718,7 +722,7 @@ class CASTMedia:
             # Top
             # org
             org = (50, 50)
-            x, y, w, h = 40, 15, 560, 40
+            x, y, w, h = 40, 15, self.preview_w - 80, 40
             # Draw black background rectangle
             cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
             # Using cv2.putText() method
@@ -726,7 +730,7 @@ class CASTMedia:
                                 text_to_show,
                                 org,
                                 font,
-                                fontscale,
+                                new_font_scale,
                                 color,
                                 thickness,
                                 cv2.LINE_AA)
