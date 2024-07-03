@@ -95,7 +95,7 @@ class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview', 'reset']
 
 app.debug = False
-log = None
+# log = None
 
 """
 When this env var exist, this mean run from the one-file compressed executable.
@@ -152,6 +152,11 @@ class CastAPI:
     slider_button_sync = None
     type_sync = 'none'  # none, slider , player
     last_type_sync = ''  # slider , player
+    search_areas = []  # contains YT search
+    media_cast = None
+    media_cast_run = None
+    desktop_cast = None
+    desktop_cast_run = None
 
 
 """
@@ -841,8 +846,8 @@ NiceGUI
 
 @ui.page('/')
 async def main_page():
-    global log
     """
+    global log
     Root page definition
     """
     dark = ui.dark_mode(CastAPI.dark_mode).bind_value_to(CastAPI, 'dark_mode')
@@ -861,7 +866,7 @@ async def main_page():
         ui.link('MAIN', target='/').classes('text-white text-lg font-medium')
         ui.icon('home')
         # Create buttons
-        ui.button('Manage', on_click=lambda: ui.navigate.to('/CastManage'), icon='video_settings')
+        ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
         ui.button('Desktop Params', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
         ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
         ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
@@ -887,72 +892,18 @@ async def main_page():
     CastAPI.player.set_visibility(False)
 
     """
-    Row for Cast info / Run / Close : refreshable
+    Row for Cast /Filters / info / Run / Close 
     """
+    # filters for Desktop
     with (ui.row().classes('self-center')):
-        with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-            ui.label('Filters/Effects Desktop')
-            with ui.row().classes('w-44'):
-                ui.checkbox('Flip') \
-                    .bind_value(Desktop, 'flip') \
-                    .classes('w-20')
-                ui.number('type', min=0, max=1) \
-                    .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0)) \
-                    .classes('w-20')
-                ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 0))
-                ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height',
-                                                          forward=lambda value: int(value or 0))
-                with ui.row().classes('w-44').style('justify-content: flex-end'):
-                    ui.label('gamma')
-                    ui.slider(min=0.01, max=4, step=0.01) \
-                        .props('label-always') \
-                        .bind_value(Desktop, 'gamma')
-                with ui.column(wrap=True):
-                    with ui.row():
-                        with ui.column():
-                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
-                                .bind_value(Desktop, 'balance_r')
-                            ui.label('R').classes('self-center')
-                        with ui.column():
-                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
-                                .bind_value(Desktop, 'balance_g')
-                            ui.label('G').classes('self-center')
-                        with ui.column():
-                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
-                                .bind_value(Desktop, 'balance_b')
-                            ui.label('B').classes('self-center')
-                    ui.button('reset', on_click=lambda: reset_rgb('Desktop')).classes('self-center')
-
-        with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-            with ui.row().classes('w-20').style('justify-content: flex-end'):
-                ui.label('saturation')
-                ui.slider(min=0, max=100, step=1, value=0) \
-                    .props('label-always') \
-                    .bind_value(Desktop, 'saturation')
-                ui.label('brightness')
-                ui.slider(min=0, max=100, step=1, value=0) \
-                    .props('label-always') \
-                    .bind_value(Desktop, 'brightness')
-                ui.label('contrast')
-                ui.slider(min=0, max=100, step=1, value=0) \
-                    .props('label-always') \
-                    .bind_value(Desktop, 'contrast')
-                ui.label('sharpen')
-                ui.slider(min=0, max=100, step=1, value=0) \
-                    .props('label-always') \
-                    .bind_value(Desktop, 'sharpen')
-                ui.checkbox('auto') \
-                    .bind_value(Desktop, 'auto_bright', forward=lambda value: value) \
-                    .tooltip('Auto bri/contrast')
-                ui.slider(min=0, max=100, step=1) \
-                    .props('label-always') \
-                    .bind_value(Desktop, 'clip_hist_percent')
+        await desktop_filters()
 
         with ui.card().tight().classes('w-42'):
             with ui.column():
                 # refreshable
-                await cast_manage()
-                # no refreshable
+                await cast_manage_page()
+                # end refreshable
+
                 ui.icon('info') \
                     .tooltip('Show details') \
                     .on('click', lambda: show_thread_info()) \
@@ -992,62 +943,7 @@ async def main_page():
                     await system_stats()
                     create_cpu_chart()
 
-        with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-            ui.label('Filters/Effects Media')
-            with ui.row().classes('w-44'):
-                ui.checkbox('Flip') \
-                    .bind_value(Media, 'flip') \
-                    .classes('w-20')
-                ui.number('type', min=0, max=1) \
-                    .bind_value(Media, 'flip_vh', forward=lambda value: int(value or 0)) \
-                    .classes('w-20')
-                ui.number('W').classes('w-20').bind_value(Media, 'scale_width', forward=lambda value: int(value or 0))
-                ui.number('H').classes('w-20').bind_value(Media, 'scale_height', forward=lambda value: int(value or 0))
-                with ui.row().classes('w-44').style('justify-content: flex-end'):
-                    ui.label('gamma')
-                    ui.slider(min=0.01, max=4, step=0.01) \
-                        .props('label-always') \
-                        .bind_value(Media, 'gamma')
-                with ui.column(wrap=True):
-                    with ui.row():
-                        with ui.column():
-                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
-                                .bind_value(Media, 'balance_r')
-                            ui.label('R').classes('self-center')
-                        with ui.column():
-                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
-                                .bind_value(Media, 'balance_g')
-                            ui.label('G').classes('self-center')
-                        with ui.column():
-                            ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
-                                .bind_value(Media, 'balance_b')
-                            ui.label('B').classes('self-center')
-                    ui.button('reset', on_click=lambda: reset_rgb('Media')).classes('self-center')
-
-        with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-            with ui.row().classes('w-20').style('justify-content: flex-end'):
-                ui.label('saturation')
-                ui.slider(min=0, max=100, step=1, value=0) \
-                    .props('label-always') \
-                    .bind_value(Media, 'saturation')
-                ui.label('brightness').classes('text-right')
-                ui.slider(min=0, max=100, step=1, value=0) \
-                    .props('label-always') \
-                    .bind_value(Media, 'brightness')
-                ui.label('contrast')
-                ui.slider(min=0, max=100, step=1, value=0) \
-                    .props('label-always') \
-                    .bind_value(Media, 'contrast')
-                ui.label('sharpen')
-                ui.slider(min=0, max=100, step=1, value=0) \
-                    .props('label-always') \
-                    .bind_value(Media, 'sharpen')
-                ui.checkbox('auto') \
-                    .bind_value(Media, 'auto_bright', forward=lambda value: value) \
-                    .tooltip('Auto bri/contrast')
-                ui.slider(min=0, max=100, step=1) \
-                    .props('label-always') \
-                    .bind_value(Media, 'clip_hist_percent')
+        await media_filters()
 
     ui.separator().classes('mt-6')
 
@@ -1067,7 +963,7 @@ async def main_page():
     with ui.footer(value=False).classes('items-center bg-red-900') as footer:
         ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip('Change Layout Mode')
 
-        await net_view_page()  # refreshable
+        await net_view_page()
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
         ui.button('SysStats', on_click=charts_select, color='bg-red-800')
@@ -1094,7 +990,7 @@ async def main_page():
         ui.button(on_click=footer.toggle).props('fab icon=contact_support')
 
 
-@ui.page('/CastManage')
+@ui.page('/Manage')
 async def main_page_cast_manage():
     """ Cast manage with full details page """
 
@@ -1123,7 +1019,7 @@ async def main_page_cast_manage():
     Footer
     """
     with ui.footer():
-        ui.button('Refresh Page', on_click=lambda: ui.navigate.to('/CastManage'))
+        ui.button('Refresh Page', on_click=lambda: ui.navigate.to('/Manage'))
 
         await net_view_page()
 
@@ -1156,6 +1052,40 @@ async def video_player_page():
             .bind_visibility_from(CastAPI.player)
 
         with ui.row().classes('self-center'):
+            media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
+                .bind_value(Media, 'cast_skip_frames') \
+                .tooltip('+ / - frames to CAST') \
+                .bind_visibility_from(CastAPI.player)
+
+            CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync, color='green') \
+                .tooltip('Sync Cast with Video Player Time') \
+                .bind_visibility_from(CastAPI.player)
+
+            media_reset_icon = ui.icon('restore')
+            media_reset_icon.tooltip('sync Reset')
+            media_reset_icon.style("cursor: pointer")
+            media_reset_icon.on('click', lambda: reset_sync())
+            media_reset_icon.bind_visibility_from(CastAPI.player)
+
+            """ Refreshable """
+            await sync_button()
+            """ End Refresh """
+
+            CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync, color='green') \
+                .tooltip('Sync Cast with Slider Time') \
+                .bind_visibility_from(CastAPI.player)
+
+            media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
+                .bind_value(Media, 'auto_sync_delay') \
+                .tooltip('Delay in sec to sync') \
+                .bind_visibility_from(CastAPI.player)
+
+            media_auto_sync = ui.checkbox('Auto Sync') \
+                .bind_value(Media, 'auto_sync') \
+                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)') \
+                .bind_visibility_from(CastAPI.player)
+
+        with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda visible=True: CastAPI.player.set_visibility(visible)) \
@@ -1178,27 +1108,6 @@ async def video_player_page():
                 .tooltip('Info') \
                 .bind_visibility_from(CastAPI.player)
 
-            media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
-                .bind_value(Media, 'cast_skip_frames') \
-                .tooltip('+ / - frames to CAST') \
-                .bind_visibility_from(CastAPI.player)
-
-            """ Refreshable part """
-
-            await sync_button()
-
-            """ End Refreshable part """
-
-            media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
-                .bind_value(Media, 'auto_sync_delay') \
-                .tooltip('Delay in sec to sync') \
-                .bind_visibility_from(CastAPI.player)
-
-            media_auto_sync = ui.checkbox('Auto Sync') \
-                .bind_value(Media, 'auto_sync') \
-                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)') \
-                .bind_visibility_from(CastAPI.player)
-
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
                 .on('click', player_pick_file) \
@@ -1213,14 +1122,21 @@ async def video_player_page():
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
             video_url_icon.bind_visibility_from(CastAPI.player)
+            # Progress bar
+            CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
+
+        with ui.row(wrap=True).classes('w-full'):
             # YT search
             yt_icon = ui.chip('YT Search',
                               icon='youtube_searched_for',
                               color='indigo-3',
                               on_click=lambda: youtube_search())
             yt_icon.bind_visibility_from(CastAPI.player)
-            # Progress bar
-            CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
+            yt_icon = ui.chip('Clear YT Search',
+                              icon='clear',
+                              color='indigo-3',
+                              on_click=lambda: youtube_clear_search())
+            yt_icon.bind_visibility_from(CastAPI.player)
 
 
 @ui.page('/Desktop')
@@ -1236,7 +1152,7 @@ async def main_page_desktop():
         ui.label('Desktop').classes('text-lg font-medium')
         ui.icon('computer')
         ui.button('MAIN', on_click=lambda: ui.navigate.to('/'), icon='home')
-        ui.button('Manage', on_click=lambda: ui.navigate.to('/CastManage'), icon='video_settings')
+        ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
 
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
@@ -1431,7 +1347,7 @@ async def main_page_media():
         ui.link('MEDIA', target='/Media').classes('text-white text-lg font-medium')
         ui.icon('image')
         ui.button('Main', on_click=lambda: ui.navigate.to('/'), icon='home')
-        ui.button('Manage', on_click=lambda: ui.navigate.to('/CastManage'), icon='video_settings')
+        ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
 
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
@@ -1630,8 +1546,8 @@ async def ws_page():
 @ui.page('/info')
 async def info_page():
     """ simple cast info page from systray """
-    ui.timer(int(app_config['timer']), callback=info_timer_action)
-    await cast_manage()
+    info_timer = ui.timer(int(app_config['timer']), callback=info_timer_action)
+    await cast_manage_page()
 
 
 @ui.page('/DetailsInfo')
@@ -1652,126 +1568,6 @@ async def manage_charts_page():
 
         with ui.card().classes('w-1/3'):
             ui.button('System', on_click=sys_stats_info_page)
-
-
-@ui.refreshable
-async def sync_button():
-    """ Sync Buttons , refreshable"""
-    CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync, color='green') \
-        .tooltip('Sync Cast with Video Player Time') \
-        .bind_visibility_from(CastAPI.player)
-
-    if Media.player_sync is True:
-        CastAPI.media_button_sync.classes('animate-pulse')
-        CastAPI.media_button_sync.props(add="color='gray'")
-        if CastAPI.last_type_sync == 'player':
-            CastAPI.media_button_sync.props(add="color='red'")
-            CastAPI.media_button_sync.text = Media.player_time
-
-    media_reset_icon = ui.icon('restore')
-    media_reset_icon.style("cursor: pointer")
-    media_reset_icon.on('click', lambda: reset_sync())
-    media_reset_icon.bind_visibility_from(CastAPI.player)
-
-    CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync, color='green') \
-        .tooltip('Sync Cast with Slider Time') \
-        .bind_visibility_from(CastAPI.player)
-
-    if Media.player_sync is True:
-        CastAPI.slider_button_sync.classes('animate-pulse')
-        CastAPI.slider_button_sync.props(add="color='gray'")
-        if CastAPI.last_type_sync == 'slider':
-            CastAPI.slider_button_sync.props(add="color='red'")
-            CastAPI.slider_button_sync.text = Media.player_time
-
-
-@ui.refreshable
-async def cast_manage():
-    """
-    refreshable cast parameters  on the root page '/'
-    :return:
-    """
-    with ui.card().tight().classes('self-center'):
-        with ui.row():
-            with ui.column(wrap=True):
-                if Desktop.count > 0:
-                    my_col = 'red'
-                elif Desktop.stopcast:
-                    my_col = 'yellow'
-                else:
-                    my_col = 'green'
-                ui.icon('cast', size='xl', color=my_col)
-                if not Desktop.stopcast:
-                    ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop)) \
-                        .classes('shadow-lg') \
-                        .tooltip('Initiate Desktop Cast')
-
-            ui.icon('stop_screen_share', size='xs', color='red') \
-                .style('cursor: pointer') \
-                .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
-
-            with ui.card().classes('bg-red-900'):
-                ui.label(' Running Cast(s) ').classes('self-center').style("color: yellow; background: purple")
-                with ui.row():
-                    ui.label('Desktop: ' + str(Desktop.count)).style('color: yellow')
-                    ui.label('Media: ' + str(Media.count)).style('color: yellow')
-
-            ui.icon('stop_screen_share', size='xs', color='red') \
-                .style('cursor: pointer') \
-                .on('click', lambda: cast_stop(Media)).tooltip('Stop Cast')
-
-            with ui.column(wrap=True):
-                if Media.count > 0:
-                    my_col = 'red'
-                elif Media.stopcast:
-                    my_col = 'yellow'
-                else:
-                    my_col = 'green'
-                ui.icon('cast', size='xl', color=my_col)
-                if not Media.stopcast:
-                    ui.button(icon='touch_app', on_click=lambda: init_cast(Media)) \
-                        .classes('shadow-lg') \
-                        .tooltip('Initiate Media Cast')
-
-
-@ui.refreshable
-async def cast_icon(class_obj):
-    """
-    refreshable Icon color on '/Desktop' and '/Media' pages
-    :param class_obj:
-    :return:
-    """
-    cast_col = 'green' if class_obj.stopcast is False else 'yellow'
-    ui.icon('cast_connected', size='sm', color=cast_col) \
-        .style('cursor: pointer') \
-        .on('click', lambda: cast_icon_color(class_obj)) \
-        .tooltip('Click to authorize')
-
-
-@ui.refreshable
-async def net_view_page():
-    """
-    Display network devices into the Json Editor
-    :return:
-    """
-    with ui.dialog() as dialog, ui.card():
-        editor = ui.json_editor({'content': {'json': Netdevice.http_devices}})
-        editor.run_editor_method('updateProps', {'readOnly': True})
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('Net devices', on_click=dialog.open, color='bg-red-800').tooltip('View network devices')
-
-
-@ui.refreshable
-async def media_dev_view_page():
-    """
-    Display network devices into the Json Editor
-    :return:
-    """
-    with ui.dialog() as dialog, ui.card():
-        editor = ui.json_editor({'content': {'json': Utils.dev_list}})
-        editor.run_editor_method('updateProps', {'readOnly': True})
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('Media devices', on_click=dialog.open, color='bg-red-800').tooltip('View Media devices')
 
 
 @ui.refreshable
@@ -1807,22 +1603,243 @@ async def system_stats():
             ui.notify('High Memory utilization', type='negative', close_button=True)
 
 
+@ui.refreshable
+async def net_view_page():
+    """
+    Display network devices into the Json Editor
+    :return:
+    """
+    with ui.dialog() as dialog, ui.card():
+        editor = ui.json_editor({'content': {'json': Netdevice.http_devices}})
+        editor.run_editor_method('updateProps', {'readOnly': True})
+        ui.button('Close', on_click=dialog.close, color='red')
+    ui.button('Net devices', on_click=dialog.open, color='bg-red-800').tooltip('View network devices')
+
+
+@ui.refreshable
+async def media_dev_view_page():
+    """
+    Display network devices into the Json Editor
+    :return:
+    """
+    with ui.dialog() as dialog, ui.card():
+        editor = ui.json_editor({'content': {'json': Utils.dev_list}})
+        editor.run_editor_method('updateProps', {'readOnly': True})
+        ui.button('Close', on_click=dialog.close, color='red')
+    ui.button('Media devices', on_click=dialog.open, color='bg-red-800').tooltip('View Media devices')
+
+
 """
 helpers
 """
 
 
+async def sync_button():
+    """ Sync Buttons """
+
+    if Media.player_sync is True:
+        # VSYNC
+        CastAPI.media_button_sync.classes('animate-pulse')
+        CastAPI.media_button_sync.props(add="color='gray'")
+        if CastAPI.last_type_sync == 'player':
+            CastAPI.media_button_sync.props(add="color='red'")
+            CastAPI.media_button_sync.text = Media.player_time
+        # TSYNC
+        CastAPI.slider_button_sync.classes('animate-pulse')
+        CastAPI.slider_button_sync.props(add="color='gray'")
+        if CastAPI.last_type_sync == 'slider':
+            CastAPI.slider_button_sync.props(add="color='red'")
+            CastAPI.slider_button_sync.text = Media.player_time
+
+
+async def cast_manage():
+    """
+    refresh cast parameters  on the root page '/'
+    :return:
+    """
+
+    if Desktop.count > 0:
+        CastAPI.desktop_cast.props(add="color=red")
+    elif Desktop.stopcast is True:
+        CastAPI.desktop_cast.props(add="color=yellow")
+        CastAPI.desktop_cast_run.set_visibility(False)
+    else:
+        CastAPI.desktop_cast.props(add="color=green")
+    if Desktop.stopcast is False:
+        CastAPI.desktop_cast_run.set_visibility(True)
+
+    if Media.count > 0:
+        CastAPI.media_cast.props(add="color=red")
+    elif Media.stopcast is True:
+        CastAPI.media_cast.props(add="color=yellow")
+        CastAPI.media_cast_run.set_visibility(False)
+    else:
+        CastAPI.media_cast.props(add="color=green")
+    if Media.stopcast is False:
+        CastAPI.media_cast_run.set_visibility(True)
+
+
+async def cast_icon(class_obj):
+    """
+    refresh Icon color on '/Desktop' and '/Media' pages
+    :param class_obj:
+    :return:
+    """
+
+    def upd_value():
+        class_obj.stopcast = False
+
+    cast_col = 'green' if class_obj.stopcast is False else 'yellow'
+    my_icon = ui.icon('cast_connected', size='sm', color=cast_col) \
+        .style('cursor: pointer') \
+        .tooltip('Click to authorize') \
+        .on('click', lambda: (my_icon.props(add='color=green'), upd_value()))
+
+
+async def media_filters():
+    #  Filters for Media
+    with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
+        ui.label('Filters/Effects Media')
+        with ui.row().classes('w-44'):
+            ui.checkbox('Flip') \
+                .bind_value(Media, 'flip') \
+                .classes('w-20')
+            ui.number('type', min=0, max=1) \
+                .bind_value(Media, 'flip_vh', forward=lambda value: int(value or 0)) \
+                .classes('w-20')
+            ui.number('W').classes('w-20').bind_value(Media, 'scale_width', forward=lambda value: int(value or 0))
+            ui.number('H').classes('w-20').bind_value(Media, 'scale_height', forward=lambda value: int(value or 0))
+            with ui.row().classes('w-44').style('justify-content: flex-end'):
+                ui.label('gamma')
+                ui.slider(min=0.01, max=4, step=0.01) \
+                    .props('label-always') \
+                    .bind_value(Media, 'gamma')
+            with ui.column(wrap=True):
+                with ui.row():
+                    with ui.column():
+                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
+                            .bind_value(Media, 'balance_r')
+                        ui.label('R').classes('self-center')
+                    with ui.column():
+                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
+                            .bind_value(Media, 'balance_g')
+                        ui.label('G').classes('self-center')
+                    with ui.column():
+                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
+                            .bind_value(Media, 'balance_b')
+                        ui.label('B').classes('self-center')
+                ui.button('reset', on_click=lambda: reset_rgb('Media')).classes('self-center')
+
+    with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+        with ui.row().classes('w-20').style('justify-content: flex-end'):
+            ui.label('saturation')
+            ui.slider(min=0, max=100, step=1, value=0) \
+                .props('label-always') \
+                .bind_value(Media, 'saturation')
+            ui.label('brightness').classes('text-right')
+            ui.slider(min=0, max=100, step=1, value=0) \
+                .props('label-always') \
+                .bind_value(Media, 'brightness')
+            ui.label('contrast')
+            ui.slider(min=0, max=100, step=1, value=0) \
+                .props('label-always') \
+                .bind_value(Media, 'contrast')
+            ui.label('sharpen')
+            ui.slider(min=0, max=100, step=1, value=0) \
+                .props('label-always') \
+                .bind_value(Media, 'sharpen')
+            ui.checkbox('auto') \
+                .bind_value(Media, 'auto_bright', forward=lambda value: value) \
+                .tooltip('Auto bri/contrast')
+            ui.slider(min=0, max=100, step=1) \
+                .props('label-always') \
+                .bind_value(Media, 'clip_hist_percent')
+
+
+async def desktop_filters():
+    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
+        ui.label('Filters/Effects Desktop')
+        with ui.row().classes('w-44'):
+            ui.checkbox('Flip') \
+                .bind_value(Desktop, 'flip') \
+                .classes('w-20')
+            ui.number('type', min=0, max=1) \
+                .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0)) \
+                .classes('w-20')
+            ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 0))
+            ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height',
+                                                      forward=lambda value: int(value or 0))
+            with ui.row().classes('w-44').style('justify-content: flex-end'):
+                ui.label('gamma')
+                ui.slider(min=0.01, max=4, step=0.01) \
+                    .props('label-always') \
+                    .bind_value(Desktop, 'gamma')
+            with ui.column(wrap=True):
+                with ui.row():
+                    with ui.column():
+                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
+                            .bind_value(Desktop, 'balance_r')
+                        ui.label('R').classes('self-center')
+                    with ui.column():
+                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
+                            .bind_value(Desktop, 'balance_g')
+                        ui.label('G').classes('self-center')
+                    with ui.column():
+                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
+                            .bind_value(Desktop, 'balance_b')
+                        ui.label('B').classes('self-center')
+                ui.button('reset', on_click=lambda: reset_rgb('Desktop')).classes('self-center')
+
+    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+        with ui.row().classes('w-20').style('justify-content: flex-end'):
+            ui.label('saturation')
+            ui.slider(min=0, max=100, step=1, value=0) \
+                .props('label-always') \
+                .bind_value(Desktop, 'saturation')
+            ui.label('brightness')
+            ui.slider(min=0, max=100, step=1, value=0) \
+                .props('label-always') \
+                .bind_value(Desktop, 'brightness')
+            ui.label('contrast')
+            ui.slider(min=0, max=100, step=1, value=0) \
+                .props('label-always') \
+                .bind_value(Desktop, 'contrast')
+            ui.label('sharpen')
+            ui.slider(min=0, max=100, step=1, value=0) \
+                .props('label-always') \
+                .bind_value(Desktop, 'sharpen')
+            ui.checkbox('auto') \
+                .bind_value(Desktop, 'auto_bright', forward=lambda value: value) \
+                .tooltip('Auto bri/contrast')
+            ui.slider(min=0, max=100, step=1) \
+                .props('label-always') \
+                .bind_value(Desktop, 'clip_hist_percent')
+
+
 async def youtube_search():
     """
-    with ui.dialog() as dialog, ui.card():
-        dialog.open()
-        YtSearch()
-        ui.button('Close', on_click=dialog.close, color='red')
+    display search result from pytube
     """
     yt_area = ui.scroll_area().bind_visibility_from(CastAPI.player)
     yt_area.classes('w-full border')
+    CastAPI.search_areas.append(yt_area)
     with yt_area:
         YtSearch()
+
+
+async def youtube_clear_search():
+    """
+    Clear search results
+    """
+
+    for area in CastAPI.search_areas:
+        try:
+            area.delete()
+        except Exception as error:
+            logger.error(traceback.format_exc())
+            logger.error(f'Search area does not exist: {error}')
+
+    CastAPI.search_areas = []
 
 
 async def reset_total():
@@ -2190,7 +2207,7 @@ async def load_preset(class_name, interactive=True, file_name=None):
 
 async def player_cast(source):
     """ Cast from video CastAPI.player only for Media"""
-    await context.client.connected()
+    # await context.client.connected()
     media_info = Utils.get_media_info(source)
     if Media.stopcast:
         ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
@@ -2268,6 +2285,60 @@ def reset_rgb(class_name):
     class_obj.balance_r = 0
     class_obj.balance_g = 0
     class_obj.balance_b = 0
+
+
+async def cast_manage_page():
+    """
+    refreshable cast parameters  on the root page '/'
+    :return:
+    """
+    with ui.card().tight().classes('self-center'):
+        with ui.row():
+            with ui.column(wrap=True):
+                if Desktop.count > 0:
+                    my_col = 'red'
+                elif Desktop.stopcast:
+                    my_col = 'yellow'
+                else:
+                    my_col = 'green'
+                CastAPI.desktop_cast = ui.icon('cast', size='xl', color=my_col)
+                CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop)) \
+                    .classes('shadow-lg') \
+                    .tooltip('Initiate Desktop Cast')
+                if Desktop.stopcast is True:
+                    CastAPI.desktop_cast_run.set_visibility(False)
+
+            ui.icon('stop_screen_share', size='xs', color='red') \
+                .style('cursor: pointer') \
+                .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
+
+            with ui.card().classes('bg-red-900'):
+                ui.label(' Running Cast(s) ').classes('self-center').style("color: yellow; background: purple")
+                with ui.row():
+                    desktop_count = ui.number(prefix='Desktop:').bind_value_from(Desktop, 'count')
+                    desktop_count.classes("w-20")
+                    desktop_count.props(remove='type=number')
+                    media_count = ui.number(prefix='Media: ').bind_value_from(Media, 'count')
+                    media_count.classes("w-20")
+                    media_count.props(remove='type=number')
+
+            ui.icon('stop_screen_share', size='xs', color='red') \
+                .style('cursor: pointer') \
+                .on('click', lambda: cast_stop(Media)).tooltip('Stop Cast')
+
+            with ui.column(wrap=True):
+                if Media.count > 0:
+                    my_col = 'red'
+                elif Media.stopcast:
+                    my_col = 'yellow'
+                else:
+                    my_col = 'green'
+                CastAPI.media_cast = ui.icon('cast', size='xl', color=my_col)
+                CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media)) \
+                    .classes('shadow-lg') \
+                    .tooltip('Initiate Media Cast')
+                if Media.stopcast is True:
+                    CastAPI.media_cast_run.set_visibility(False)
 
 
 def tabs_info_page():
@@ -2406,19 +2477,13 @@ async def action_to_casts(class_name, cast_name, action, clear, execute, exp_ite
         ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=1)
 
 
-def show_thread_info():
+async def show_thread_info():
     with ui.dialog() as dialog, ui.card():
         cast_info = util_casts_info()
         editor = ui.json_editor({'content': {'json': cast_info}})
         editor.run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
         dialog.open()
-
-
-async def cast_icon_color(class_obj):
-    """ icon color """
-    class_obj.stopcast = False
-    cast_icon.refresh()
 
 
 async def root_timer_action():
@@ -2437,7 +2502,7 @@ async def root_timer_action():
         CastAPI.slider_button_sync.update()
         CastAPI.type_sync = 'none'
 
-    cast_manage.refresh()
+    await cast_manage()
     system_stats.refresh()
 
 
@@ -2446,7 +2511,8 @@ async def info_timer_action():
     timer occur only when info page is active '/info'
     :return:
     """
-    cast_manage.refresh()
+
+    await cast_manage()
 
 
 async def player_timer_action():
@@ -2454,7 +2520,7 @@ async def player_timer_action():
     timer occur when player is displayed
     :return:
     """
-    sync_button.refresh()
+    # sync_button.refresh()
 
 
 async def generate_carousel(class_obj):
@@ -2595,7 +2661,7 @@ async def init_cast(class_obj):
     :return:
     """
     class_obj.cast(shared_buffer=t_data_buffer)
-    cast_manage.refresh()
+    await cast_manage()
     logger.info(f' Run Cast for {str(class_obj)}')
     ui.notify(f'Cast initiated for :{str(class_obj)} ')
 
@@ -2604,7 +2670,7 @@ async def cast_stop(class_obj):
     """ Stop cast """
 
     class_obj.stopcast = True
-    cast_manage.refresh()
+    await cast_manage()
     logger.info(f' Stop Cast for {str(class_obj)}')
 
 
@@ -2753,7 +2819,7 @@ async def check_yt(url):
     asyncio.create_task(get_size())
 
     if 'https://youtu' in url:
-        yt = await Utils.youtube(url, interactive=True, log=log)
+        yt = await Utils.youtube(url, interactive=True)
         if yt != '':
             video_url = yt
 

@@ -203,8 +203,8 @@ def start_webview_process(window_name='Main'):
         main_window = webview.create_window(
             title=f'Cast Info {server_port}',
             url=f"http://{server_ip}:{server_port}/info",
-            width=450,
-            height=200
+            width=540,
+            height=230
         )
 
     elif window_name == 'BlackOut':
