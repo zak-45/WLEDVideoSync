@@ -1623,7 +1623,6 @@ async def system_stats():
     """
     if str2bool(custom_config['cpu-chart']):
         if CastAPI.cpu_chart is not None:
-            ui.context.client.on_disconnect(lambda: CastAPI.cpu_chart.update())
             now = datetime.now()
             date_time_str = now.strftime("%H:%M:%S")
 
@@ -2537,6 +2536,7 @@ async def root_timer_action():
         CastAPI.type_sync = 'none'
 
     await cast_manage()
+
     if str2bool(custom_config['system-stats']):
         await system_stats()
 
