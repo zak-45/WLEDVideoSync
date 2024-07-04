@@ -53,6 +53,8 @@ from pytube import Search as PySearch
 import tkinter as tk
 from screeninfo import get_monitors
 
+import cfg_load as cfg
+
 
 class CASTUtils:
     dev_list: list = []
@@ -592,6 +594,18 @@ class CASTUtils:
             logger.warning(f"Logging config file {config_path} not found. Using basic configuration.")
 
         return logger
+
+    @staticmethod
+    def read_config():
+        # load config file
+        cast_config = cfg.load('config/WLEDVideoSync.ini')
+        # config keys
+        server_config = cast_config.get('server')
+        app_config = cast_config.get('app')
+        colors_config = cast_config.get('colors')
+        custom_config = cast_config.get('custom')
+
+        return server_config, app_config, colors_config, custom_config
 
 
 class HTTPDiscovery:

@@ -110,13 +110,13 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.api')
 
     # load config file
-    cast_config = cfg.load('config/WLEDVideoSync.ini')
+    cast_config = Utils.read_config()
 
     # config keys
-    server_config = cast_config.get('server')
-    app_config = cast_config.get('app')
-    color_config = cast_config.get('colors')
-    custom_config = cast_config.get('custom')
+    server_config = cast_config[0]  # server key
+    app_config = cast_config[1]  # app key
+    color_config = cast_config[2]  # colors key
+    custom_config = cast_config[3]  # custom key
 
     #  validate network config
     server_ip = server_config['server_ip']
