@@ -117,6 +117,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # load optional modules
     if str2bool(custom_config['player']) or str2bool(custom_config['system-stats']):
         import psutil
+
         if str2bool(custom_config['player']):
             from pytube import YouTube
 
@@ -942,6 +943,7 @@ async def main_page():
 
                 # presets
                 with ui.row().classes('self-center'):
+
                     manage_presets('Desktop')
                     manage_presets('Media')
 
@@ -949,26 +951,28 @@ async def main_page():
                 with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
                     if str2bool(custom_config['system-stats']):
                         with ui.row().classes('self-center'):
-                            frame_count = ui.number(prefix='Total frames:').bind_value_from(CastAPI, 'total_frames')
+                            frame_count = ui.number(prefix='F.').bind_value_from(CastAPI, 'total_frame')
                             frame_count.classes("w-20")
-                            frame_count.props(remove='type=number')
+                            frame_count.props(remove='type=number', add='borderless')
 
                             total_reset_icon = ui.icon('restore')
                             total_reset_icon.style("cursor: pointer")
                             total_reset_icon.on('click', lambda: reset_total())
 
-                            packet_count = ui.number(prefix='Total packets:').bind_value_from(CastAPI, 'total_packets')
+                            packet_count = ui.number(prefix='P.').bind_value_from(CastAPI, 'total_packet')
                             packet_count.classes("w-20")
-                            packet_count.props(remove='type=number')
+                            packet_count.props(remove='type=number', add='borderless')
+
+                        ui.separator()
 
                         with ui.row().classes('self-center'):
-                            cpu_count = ui.number(prefix='CPU:').bind_value_from(CastAPI, 'cpu')
+                            cpu_count = ui.number(prefix='CPU%: ').bind_value_from(CastAPI, 'cpu')
                             cpu_count.classes("w-20")
-                            cpu_count.props(remove='type=number')
+                            cpu_count.props(remove='type=number', add='borderless')
 
-                            ram_count = ui.number(prefix='RAM:').bind_value_from(CastAPI, 'ram')
+                            ram_count = ui.number(prefix='RAM%: ').bind_value_from(CastAPI, 'ram')
                             ram_count.classes("w-20")
-                            ram_count.props(remove='type=number')
+                            ram_count.props(remove='type=number', add='borderless')
 
                     if str2bool(custom_config['cpu-chart']):
                         await create_cpu_chart()
@@ -990,8 +994,17 @@ async def main_page():
             handler = LogElementHandler(log_ui)
             ui.context.client.on_connect(lambda: logger.addHandler(handler))
             ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
-            # clear
-            ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log file')
+            # clear / load log file
+            with ui.row().classes('w-1/2'):
+                ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log')
+                with ui.dialog().classes('w-full') as dialog, ui.card().classes('w-full'):
+                    log_filename = 'log/WLEDVideoSync.log'
+                    with open(log_filename) as file:
+                        log_data = file.read()
+                    file.close()
+                    ui.textarea(value=log_data).classes('w-full')
+                    ui.button('Close', on_click=dialog.close, color='red')
+                ui.button('See Log file', on_click=dialog.open).tooltip('Load log data from file')
 
     """
     Footer : usefully links help
@@ -1608,25 +1621,11 @@ async def manage_charts_page():
 
 
 async def system_stats():
-
     CastAPI.cpu = psutil.cpu_percent(interval=1, percpu=False)
     CastAPI.ram = psutil.virtual_memory().percent
     CastAPI.total_packet = Desktop.total_packet + Media.total_packet
     CastAPI.total_frame = Desktop.total_frame + Media.total_frame
 
-    """
-    with ui.row().classes('self-center'):
-        ui.label(f'Total frames: {total_frame}').classes('self-center')
-
-        total_reset_icon = ui.icon('restore')
-        total_reset_icon.style("cursor: pointer")
-        total_reset_icon.on('click', lambda: reset_total())
-
-        ui.label(f'Total packets: {total_packet}').classes('self-center')
-    ui.separator()
-    ui.label(f'CPU:  {cpu}% ==== RAM:  {ram}%').classes('self-center')
-
-    """
     if str2bool(custom_config['cpu-chart']):
         if CastAPI.cpu_chart is not None:
             now = datetime.now()
@@ -2357,10 +2356,10 @@ async def cast_manage_page():
                 with ui.row():
                     desktop_count = ui.number(prefix='Desktop:').bind_value_from(Desktop, 'count')
                     desktop_count.classes("w-20")
-                    desktop_count.props(remove='type=number')
+                    desktop_count.props(remove='type=number', add='borderless')
                     media_count = ui.number(prefix='Media: ').bind_value_from(Media, 'count')
                     media_count.classes("w-20")
-                    media_count.props(remove='type=number')
+                    media_count.props(remove='type=number', add='borderless')
 
             ui.icon('stop_screen_share', size='xs', color='red') \
                 .style('cursor: pointer') \
