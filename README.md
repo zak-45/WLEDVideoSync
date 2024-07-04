@@ -23,7 +23,7 @@ WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with 
 5. Start the synchronization
 
 **Configuration Options:**
-- LED strip layout
+- LED strip layout, 2D Matrix
 - Color mapping
 - Effect intensity
 - Synchronization delay
