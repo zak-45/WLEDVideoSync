@@ -984,9 +984,13 @@ async def main_page():
     if str2bool(app_config['log_to_main']):
         with ui.expansion('Show log', icon='feed').classes('w-full'):
             log_ui = ui.log(max_lines=250).classes('w-full h-30')
+            # logging Level
+            logger.setLevel(app_config['log_level'].upper())
+            # handler
             handler = LogElementHandler(log_ui)
             ui.context.client.on_connect(lambda: logger.addHandler(handler))
             ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
+            # clear
             ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log file')
 
     """

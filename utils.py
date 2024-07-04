@@ -642,8 +642,12 @@ class LogElementHandler(logging.Handler):
     """ A logging handler that emits messages to a log element."""
 
     def __init__(self, element: ui.log, level: int = logging.NOTSET) -> None:
-        self.element = element
         super().__init__(level)
+        self.element = element
+        # define format for the LogRecord
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        # set format
+        self.setFormatter(formatter)
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
