@@ -3,7 +3,7 @@ Cast video / image / desktop / window to ddp device e.g WLED
 
 ## WLEDVideoSync
 
-WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with video content[1]. This project enables users to create immersive lighting experiences that complement their video playback.
+WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with video content. This project enables users to create immersive lighting experiences that complement their video playback.
 
 **Key Features:**
 - Video synchronization with WLED-controlled LED strips
@@ -37,12 +37,8 @@ WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with 
 Contributions to the project are welcome. Please follow the standard GitHub fork and pull request workflow.
 
 **License:**
-(Include license information if available in the repository)
+MIT
 
-For more detailed information and updates, refer to the project's GitHub repository[1].
-
-Citations:
-[1] https://github.com/zak-45/WLEDVideoSync
 
 ![image](https://github.com/zak-45/WLEDVideoSync/assets/121941293/9ec42abd-657e-447e-9ef0-075c425bdd47)
 
