@@ -122,14 +122,15 @@ class CASTUtils:
         return dict_codecs
 
     @staticmethod
-    async def youtube(yt_url: str = None, interactive: bool = True, log: classmethod = None):
+    async def youtube(yt_url: str = None, interactive: bool = True, log_ui: classmethod = None):
         """download video from youtube"""
 
         if interactive:
             """
-            if log is not None:
-                logger.addHandler(LogElementHandler(log))
+            if log_ui is not None:
+                logger.addHandler(LogElementHandler(log_ui))
             """
+
             def progress_func(yt_stream, data, remain_bytes):
                 CASTUtils.yt_file_size_remain_bytes = remain_bytes
                 logger.info(f'In progress from YouTube ... remaining :{CASTUtils.bytes2human(remain_bytes)} ')
@@ -1046,16 +1047,16 @@ class YtSearch:
             with player:
                 ui.html('<iframe width="350" height="230" '
                         f'src="{youtube_url}" '
-                        'title="YouTube video player" frameborder="0" allow="'
-                        'accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share"'
-                        ' referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>'
+                        'title="YouTube video player" '
+                        'frameborder="0" '
+                        'allow="autoplay;clipboard-write;encrypted-media;picture-in-picture" '
+                        'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>'
                         '</iframe>')
 
     async def search_youtube(self, data):
         """ Search for YT on input """
 
         # clear as we recreate
-        self.yt_player.clear()
         self.search_result.clear()
         # Search
         self.yt_search = await run.io_bound(PySearch, data)
@@ -1067,6 +1068,8 @@ class YtSearch:
             self.next_button.set_visibility(True)
             # re create  result page
             await self.create_yt_page(self.yt_search)
+        else:
+            ui.label('Nothing Found')
 
     async def next_search(self, search_obj):
         """ Next if you want more """

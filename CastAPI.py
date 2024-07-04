@@ -95,7 +95,7 @@ class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview', 'reset']
 
 app.debug = False
-# log = None
+log_ui = None
 
 """
 When this env var exist, this mean run from the one-file compressed executable.
@@ -846,8 +846,8 @@ NiceGUI
 
 @ui.page('/')
 async def main_page():
+    global log_ui
     """
-    global log
     Root page definition
     """
     dark = ui.dark_mode(CastAPI.dark_mode).bind_value_to(CastAPI, 'dark_mode')
@@ -951,11 +951,12 @@ async def main_page():
     Log display
     """
 
-    # log = ui.log(max_lines=50).classes('w-full h-20')
-    # handler = LogElementHandler(log)
+    # log_ui = ui.log(max_lines=50).classes('w-full h-20')
+    # handler = LogElementHandler(log_ui)
     # logger.addHandler(handler)
+    # ui.context.client.on_connect(lambda: logger.addHandler(handler))
     # ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
-    # ui.button('Clear Log', on_click=lambda: log.clear()).tooltip('Erase the log file')
+    # ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log file')
 
     """
     Footer : usefully links help
@@ -2289,7 +2290,7 @@ def reset_rgb(class_name):
 
 async def cast_manage_page():
     """
-    refreshable cast parameters  on the root page '/'
+    Cast parameters on the root page '/'
     :return:
     """
     with ui.card().tight().classes('self-center'):
@@ -2346,7 +2347,6 @@ def tabs_info_page():
     info_data = util_casts_info()
     # take only info data key
     info_data = info_data['t_info']
-
     # split desktop / media by using content of thread name
     desktop_threads = []
     media_threads = []
