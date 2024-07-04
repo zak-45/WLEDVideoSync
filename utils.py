@@ -53,19 +53,6 @@ from pytube import Search as PySearch
 import tkinter as tk
 from screeninfo import get_monitors
 
-"""
-When this env var exist, this mean run from the one-file compressed executable.
-Load of the config is not possible, folder config should not exist.
-This avoid FileNotFoundError.
-This env not exist when run from the extracted program.
-Expected way to work.
-"""
-if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read config
-    logging.config.fileConfig('config/logging.ini')
-    # create logger
-    logger = logging.getLogger('WLEDLogger.utils')
-
 
 class CASTUtils:
     dev_list: list = []
@@ -593,6 +580,19 @@ class CASTUtils:
         logger.warning(f'Something wrong happened. To Do list has been cleared for {class_name}')
         class_name.cast_name.todo = []
 
+    @staticmethod
+    def setup_logging(config_path='logging_config.ini', handler_name: str = None):
+        if os.path.exists(config_path):
+            logging.config.fileConfig(config_path, disable_existing_loggers=False)
+            logger = logging.getLogger('WLEDVideoSync')
+            logger.info(f"Logging configured using {config_path} for {handler_name}")
+        else:
+            logging.basicConfig(level=logging.INFO)
+            logger = logging.getLogger(handler_name)
+            logger.warning(f"Logging config file {config_path} not found. Using basic configuration.")
+
+        return logger
+
 
 class HTTPDiscovery:
     """
@@ -1105,3 +1105,15 @@ class YtSearch:
                         yt_watch.style('cursor: pointer')
                         yt_watch.on('click', lambda yt_stream=self.yt_stream: self.youtube_player(yt_stream.video_id))
 
+
+"""
+When this env var exist, this mean run from the one-file compressed executable.
+Load of the config is not possible, folder config should not exist.
+This avoid FileNotFoundError.
+This env not exist when run from the extracted program.
+Expected way to work.
+"""
+if "NUITKA_ONEFILE_PARENT" not in os.environ:
+    # read config
+    # create logger
+    logger = CASTUtils.setup_logging('config/logging.ini', 'WLEDLogger.utils')

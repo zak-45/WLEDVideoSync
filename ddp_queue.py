@@ -7,6 +7,7 @@ import numpy as np
 from queue import Queue
 import threading
 import os
+from utils import CASTUtils as Utils
 
 """
 When this env var exist, this mean run from the one-file executable.
@@ -17,9 +18,8 @@ Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
-    logging.config.fileConfig('config/logging.ini')
     # create logger
-    logger = logging.getLogger('WLEDLogger.ddp')
+    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.ddp')
 
 
 class DDPDevice:

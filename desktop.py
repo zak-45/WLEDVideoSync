@@ -54,9 +54,8 @@ Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
-    logging.config.fileConfig('config/logging.ini')
     # create logger
-    logger = logging.getLogger('WLEDLogger.desktop')
+    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.desktop')
 
     """
     Retrieve  config keys

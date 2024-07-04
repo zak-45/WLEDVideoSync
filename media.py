@@ -50,10 +50,9 @@ This env not exist when run the extracted program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read log config
-    logging.config.fileConfig('config/logging.ini')
+    # read config
     # create logger
-    logger = logging.getLogger('WLEDLogger.media')
+    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.media')
 
     """
     Retrieve  config keys

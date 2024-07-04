@@ -106,9 +106,8 @@ Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
-    logging.config.fileConfig('config/logging.ini')
     # create logger
-    logger = logging.getLogger('WLEDLogger.api')
+    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.api')
 
     # load config file
     cast_config = cfg.load('config/WLEDVideoSync.ini')

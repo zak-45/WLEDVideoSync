@@ -1,0 +1,760 @@
+2024-07-04 13:00:17 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini
+2024-07-04 13:02:39 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini
+2024-07-04 13:02:39 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini
+2024-07-04 13:02:39 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing BlpImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing BmpImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing BufrStubImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing CurImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing DcxImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing DdsImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing EpsImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing FitsImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing FliImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing FpxImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import FpxImagePlugin: No module named 'olefile'
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing FtexImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing GbrImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing GifImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing GribStubImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing Hdf5StubImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcnsImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcoImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImtImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing IptcImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing JpegImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing Jpeg2KImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing McIdasImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing MicImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import MicImagePlugin: No module named 'olefile'
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpegImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpoImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing MspImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing PalmImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcdImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcxImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing PdfImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing PixarImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing PngImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing PpmImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing PsdImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing QoiImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing SgiImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing SpiderImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing SunImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing TgaImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing TiffImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing WebPImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing WmfImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing XbmImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing XpmImagePlugin
+2024-07-04 13:02:39 - PIL.Image - DEBUG - Image.py:376 - init - Importing XVThumbImagePlugin
+2024-07-04 13:02:39 - WLEDVideoSync - INFO - WLEDVideoSync.py:538 - <module> - WLEDVideoSync Started...Server run in separate process
+2024-07-04 13:02:39 - WLEDVideoSync - INFO - WLEDVideoSync.py:543 - <module> - Starting webview loop...
+2024-07-04 13:02:41 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini
+2024-07-04 13:02:41 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini
+2024-07-04 13:02:41 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:02:41 - asyncio - DEBUG - proactor_events.py:633 - __init__ - Using proactor: IocpProactor
+2024-07-04 13:02:41 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini
+2024-07-04 13:02:41 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini
+2024-07-04 13:02:41 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini
+2024-07-04 13:02:41 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini
+2024-07-04 13:02:41 - uvicorn.error - INFO - server.py:82 - _serve - Started server process [1704]
+2024-07-04 13:02:41 - uvicorn.error - INFO - on.py:48 - startup - Waiting for application startup.
+2024-07-04 13:02:41 - uvicorn.error - INFO - on.py:62 - startup - Application startup complete.
+2024-07-04 13:02:41 - uvicorn.error - INFO - server.py:214 - _log_started_message - Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57020 - "GET /WLEDVideoSync HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57020 - "GET /_nicegui/1.4.28/static/nicegui.css HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57022 - "GET /_nicegui/1.4.28/static/quasar.prod.css HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57021 - "GET /_nicegui/1.4.28/static/fonts.css HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57024 - "GET /_nicegui/1.4.28/static/socket.io.min.js HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57023 - "GET /_nicegui/1.4.28/static/es-module-shims.js HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57020 - "GET /_nicegui/1.4.28/static/tailwindcss.min.js HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57021 - "GET /_nicegui/1.4.28/static/vue.global.prod.js HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57024 - "GET /_nicegui/1.4.28/static/quasar.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57023 - "GET /_nicegui/1.4.28/static/nicegui.js HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57022 - "GET /_nicegui/1.4.28/static/lang/en-US.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57024 - "GET /_nicegui/1.4.28/static/fonts/01d40c9fd448face.woff2 HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57020 - "GET /_nicegui/1.4.28/static/fonts/62873223be6b39e0.woff2 HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57022 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/dark_mode.js HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57021 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/image.js HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57026) - "WebSocket /socket.io/?client_id=ffcdaa0d-cfdb-4c78-9fec-eb6c21d7dbf1&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:02:41 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57021 - "GET /_nicegui/1.4.28/static/fonts/e62204447c1ed92a.woff2 HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57021 - "GET /_nicegui/auto/static/0743467cf76cb1ac687c66648da682f3/intro.gif HTTP/1.1" 200
+2024-07-04 13:02:41 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57022 - "GET /favicon.ico HTTP/1.1" 200
+2024-07-04 13:03:01 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:03:01 - WLEDVideoSync - INFO - WLEDVideoSync.py:549 - <module> - Starting systray loop...
+2024-07-04 13:03:05 - WLEDVideoSync - INFO - WLEDVideoSync.py:563 - <module> - Remove tmp files
+2024-07-04 13:03:05 - WLEDVideoSync - INFO - WLEDVideoSync.py:583 - <module> - Stop app
+2024-07-04 13:03:05 - WLEDVideoSync - INFO - WLEDVideoSync.py:586 - <module> - Server is stopped
+2024-07-04 13:03:05 - WLEDVideoSync - INFO - WLEDVideoSync.py:600 - <module> - Application Terminated
+2024-07-04 13:03:59 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-04 13:03:59 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-04 13:03:59 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing BlpImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing BmpImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing BufrStubImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing CurImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing DcxImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing DdsImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing EpsImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing FitsImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing FliImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing FpxImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import FpxImagePlugin: No module named 'olefile'
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing FtexImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing GbrImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing GifImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing GribStubImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing Hdf5StubImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcnsImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcoImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImtImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing IptcImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing JpegImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing Jpeg2KImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing McIdasImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing MicImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import MicImagePlugin: No module named 'olefile'
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpegImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpoImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing MspImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing PalmImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcdImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcxImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing PdfImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing PixarImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing PngImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing PpmImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing PsdImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing QoiImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing SgiImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing SpiderImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing SunImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing TgaImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing TiffImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing WebPImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing WmfImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing XbmImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing XpmImagePlugin
+2024-07-04 13:03:59 - PIL.Image - DEBUG - Image.py:376 - init - Importing XVThumbImagePlugin
+2024-07-04 13:03:59 - WLEDVideoSync - INFO - WLEDVideoSync.py:538 - <module> - WLEDVideoSync Started...Server run in separate process
+2024-07-04 13:03:59 - WLEDVideoSync - INFO - WLEDVideoSync.py:543 - <module> - Starting webview loop...
+2024-07-04 13:04:01 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-04 13:04:01 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-04 13:04:01 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:04:01 - asyncio - DEBUG - proactor_events.py:633 - __init__ - Using proactor: IocpProactor
+2024-07-04 13:04:01 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-07-04 13:04:01 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-07-04 13:04:01 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-07-04 13:04:01 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-07-04 13:04:01 - uvicorn.error - INFO - server.py:82 - _serve - Started server process [2084]
+2024-07-04 13:04:01 - uvicorn.error - INFO - on.py:48 - startup - Waiting for application startup.
+2024-07-04 13:04:01 - uvicorn.error - INFO - on.py:62 - startup - Application startup complete.
+2024-07-04 13:04:01 - uvicorn.error - INFO - server.py:214 - _log_started_message - Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57038 - "GET /WLEDVideoSync HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57041 - "GET /_nicegui/1.4.28/static/fonts.css HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57038 - "GET /_nicegui/1.4.28/static/nicegui.css HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57044 - "GET /_nicegui/1.4.28/static/quasar.prod.css HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57045 - "GET /_nicegui/1.4.28/static/es-module-shims.js HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57046 - "GET /_nicegui/1.4.28/static/socket.io.min.js HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57047 - "GET /_nicegui/1.4.28/static/tailwindcss.min.js HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57041 - "GET /_nicegui/1.4.28/static/vue.global.prod.js HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57038 - "GET /_nicegui/1.4.28/static/quasar.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57045 - "GET /_nicegui/1.4.28/static/nicegui.js HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57046 - "GET /_nicegui/1.4.28/static/lang/en-US.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57047 - "GET /_nicegui/1.4.28/static/fonts/62873223be6b39e0.woff2 HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57041 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/dark_mode.js HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57038 - "GET /_nicegui/1.4.28/static/fonts/01d40c9fd448face.woff2 HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57046 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/image.js HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57048) - "WebSocket /socket.io/?client_id=318bbb0b-1618-4575-90ab-8994f476f554&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:04:01 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57046 - "GET /_nicegui/1.4.28/static/fonts/e62204447c1ed92a.woff2 HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57046 - "GET /_nicegui/auto/static/0743467cf76cb1ac687c66648da682f3/intro.gif HTTP/1.1" 200
+2024-07-04 13:04:01 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57038 - "GET /favicon.ico HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57064 - "GET / HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57064 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/colors.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57066 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/query.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57068 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/link.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57067 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/timer.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57069 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/video.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57070 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/input.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57064 - "GET /_nicegui/1.4.28/components/ef7d009c7e812da10f8aa235954c0e12/refreshable.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57067 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/json_editor.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57066 - "GET /_nicegui/1.4.28/libraries/c3db162d662122eb0e7be8cd04794fac/echarts.min.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57068 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/echart.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57067 - "GET /_nicegui/1.4.28/libraries/26e9f3a0290f18f1ab866f8d6faa7480/index.js HTTP/1.1" 200
+2024-07-04 13:05:12 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57068 - "GET /_nicegui/1.4.28/static/utils/dynamic_properties.js HTTP/1.1" 200
+2024-07-04 13:05:13 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57071) - "WebSocket /socket.io/?client_id=4cf1bd95-2a09-48f6-bc9a-5a46a70e0cd7&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:05:13 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:05:13 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57067 - "GET /_nicegui/1.4.28/static/fonts/0c19a63c7528cc1a.woff2 HTTP/1.1" 200
+2024-07-04 13:05:13 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57064 - "GET /_nicegui/auto/media/0723d1213f22f66dd3bfa209f5a96cae/Big_Buck_Bunny_360_10s_1MB.mp4 HTTP/1.1" 206
+2024-07-04 13:05:13 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57066 - "GET /assets/favicon.ico HTTP/1.1" 200
+2024-07-04 13:05:13 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57068 - "GET /_nicegui/auto/static/97e67a593d8134ce8fdd2f5c89d79cfc/Source-intro.png HTTP/1.1" 200
+2024-07-04 13:05:15 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57064 - "GET /Media HTTP/1.1" 200
+2024-07-04 13:05:15 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:05:15 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57064 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/table.js HTTP/1.1" 200
+2024-07-04 13:05:15 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57073) - "WebSocket /socket.io/?client_id=a257ac1a-9a0b-4d86-a909-719ec519a09a&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:05:15 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:05:21 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57064 - "GET / HTTP/1.1" 200
+2024-07-04 13:05:21 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:05:21 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57077) - "WebSocket /socket.io/?client_id=1ba39c53-c53a-4ec3-bf7b-84764562bd47&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:05:21 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:05:24 - WLEDVideoSync - INFO - media.py:168 - t_media_cast - Child thread: Thread-1 (t_media_cast)
+2024-07-04 13:05:24 - WLEDVideoSync - INFO - media.py:766 - cast - Child Media cast initiated
+2024-07-04 13:05:24 - WLEDVideoSync - INFO - CastAPI.py:2664 - init_cast -  Run Cast for <media.CASTMedia object at 0x000001BC73FBDE90>
+2024-07-04 13:05:31 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57064 - "GET /Desktop HTTP/1.1" 200
+2024-07-04 13:05:31 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:05:31 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57084) - "WebSocket /socket.io/?client_id=ede2ecf2-69f6-4297-9d8a-e3c2cdc5855f&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:05:31 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:05:34 - WLEDVideoSync - INFO - media.py:345 - t_media_cast - Playing media 0 of length -1 at 30.0 FPS
+2024-07-04 13:05:34 - WLEDVideoSync - INFO - media.py:346 - t_media_cast - Stopcast value : False
+2024-07-04 13:05:34 - WLEDVideoSync - INFO - media.py:356 - t_media_cast - Cast running ...
+2024-07-04 13:05:35 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57064 - "GET / HTTP/1.1" 200
+2024-07-04 13:05:35 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:05:36 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57085) - "WebSocket /socket.io/?client_id=b569d4a0-63b5-47cd-bc48-278586cad057&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:05:36 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:05:38 - WLEDVideoSync - INFO - desktop.py:164 - t_desktop_cast - Child thread: Thread-2 (t_desktop_cast)
+2024-07-04 13:05:38 - WLEDVideoSync - INFO - desktop.py:750 - cast - Child Desktop cast initiated
+2024-07-04 13:05:38 - WLEDVideoSync - INFO - CastAPI.py:2664 - init_cast -  Run Cast for <desktop.CASTDesktop object at 0x000001BC73FBECD0>
+2024-07-04 13:05:38 - WLEDVideoSync - INFO - desktop.py:370 - t_desktop_cast - Capture from desktop
+2024-07-04 13:05:38 - WLEDVideoSync - INFO - desktop.py:371 - t_desktop_cast - Stopcast value : False
+2024-07-04 13:05:41 - WLEDVideoSync - INFO - CastAPI.py:2673 - cast_stop -  Stop Cast for <desktop.CASTDesktop object at 0x000001BC73FBECD0>
+2024-07-04 13:05:41 - WLEDVideoSync - INFO - desktop.py:618 - t_desktop_cast - Stop window preview if any
+2024-07-04 13:05:41 - WLEDVideoSync - INFO - desktop.py:637 - t_desktop_cast - __________________________________________________
+2024-07-04 13:05:41 - WLEDVideoSync - INFO - desktop.py:638 - t_desktop_cast - Cast Thread-2 (t_desktop_cast) end using this input: desktop
+2024-07-04 13:05:41 - WLEDVideoSync - INFO - desktop.py:639 - t_desktop_cast - Using these devices: ['127.0.0.1']
+2024-07-04 13:05:41 - WLEDVideoSync - INFO - desktop.py:640 - t_desktop_cast - __________________________________________________
+2024-07-04 13:05:41 - WLEDVideoSync - INFO - desktop.py:642 - t_desktop_cast - Cast closed
+2024-07-04 13:05:44 - WLEDVideoSync - INFO - CastAPI.py:2673 - cast_stop -  Stop Cast for <media.CASTMedia object at 0x000001BC73FBDE90>
+2024-07-04 13:05:44 - WLEDVideoSync - INFO - media.py:643 - t_media_cast - Stop window preview if any
+2024-07-04 13:05:44 - WLEDVideoSync - INFO - media.py:650 - t_media_cast - Release Media
+2024-07-04 13:05:45 - WLEDVideoSync - INFO - media.py:653 - t_media_cast - __________________________________________________
+2024-07-04 13:05:45 - WLEDVideoSync - INFO - media.py:654 - t_media_cast - Cast Thread-1 (t_media_cast) end using this media: 0
+2024-07-04 13:05:45 - WLEDVideoSync - INFO - media.py:655 - t_media_cast - Using these devices: ['127.0.0.1']
+2024-07-04 13:05:45 - WLEDVideoSync - INFO - media.py:656 - t_media_cast - __________________________________________________
+2024-07-04 13:05:45 - WLEDVideoSync - INFO - media.py:658 - t_media_cast - Cast closed
+2024-07-04 13:05:49 - WLEDVideoSync - DEBUG - CastAPI.py:485 - util_casts_info - Request Cast(s) info
+2024-07-04 13:05:49 - WLEDVideoSync - DEBUG - CastAPI.py:504 - util_casts_info - Need to receive info from : []
+2024-07-04 13:05:49 - WLEDVideoSync - DEBUG - CastAPI.py:522 - util_casts_info - End request info
+2024-07-04 13:05:50 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57090 - "GET /Manage HTTP/1.1" 200
+2024-07-04 13:05:50 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:05:50 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57091) - "WebSocket /socket.io/?client_id=09f5541c-f098-45c2-a870-66201c54b154&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:05:50 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:05:50 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57090 - "GET /_nicegui/1.4.28/static/fonts/ea7496e801e7e453.woff2 HTTP/1.1" 200
+2024-07-04 13:05:52 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57090 - "GET /WLEDVideoSync HTTP/1.1" 200
+2024-07-04 13:05:52 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:05:52 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57092) - "WebSocket /socket.io/?client_id=5a5d02bb-e0e1-4677-81ec-0d602548dce7&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:05:52 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:05:52 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57090 - "GET /_nicegui/auto/static/0743467cf76cb1ac687c66648da682f3/intro.gif HTTP/1.1" 200
+2024-07-04 13:05:53 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:05:53 - WLEDVideoSync - INFO - WLEDVideoSync.py:549 - <module> - Starting systray loop...
+2024-07-04 13:05:58 - WLEDVideoSync - INFO - WLEDVideoSync.py:563 - <module> - Remove tmp files
+2024-07-04 13:05:58 - WLEDVideoSync - INFO - WLEDVideoSync.py:583 - <module> - Stop app
+2024-07-04 13:05:58 - WLEDVideoSync - INFO - WLEDVideoSync.py:586 - <module> - Server is stopped
+2024-07-04 13:05:58 - WLEDVideoSync - INFO - WLEDVideoSync.py:600 - <module> - Application Terminated
+2024-07-04 13:08:07 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-04 13:08:07 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-04 13:08:07 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing BlpImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing BmpImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing BufrStubImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing CurImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing DcxImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing DdsImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing EpsImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing FitsImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing FliImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing FpxImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import FpxImagePlugin: No module named 'olefile'
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing FtexImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing GbrImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing GifImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing GribStubImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing Hdf5StubImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcnsImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcoImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImtImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing IptcImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing JpegImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing Jpeg2KImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing McIdasImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing MicImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import MicImagePlugin: No module named 'olefile'
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpegImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpoImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing MspImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing PalmImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcdImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcxImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing PdfImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing PixarImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing PngImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing PpmImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing PsdImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing QoiImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing SgiImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing SpiderImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing SunImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing TgaImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing TiffImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing WebPImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing WmfImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing XbmImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing XpmImagePlugin
+2024-07-04 13:08:07 - PIL.Image - DEBUG - Image.py:376 - init - Importing XVThumbImagePlugin
+2024-07-04 13:08:07 - WLEDVideoSync - INFO - WLEDVideoSync.py:538 - <module> - WLEDVideoSync Started...Server run in separate process
+2024-07-04 13:08:07 - WLEDVideoSync - INFO - WLEDVideoSync.py:543 - <module> - Starting webview loop...
+2024-07-04 13:08:09 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-04 13:08:09 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-04 13:08:09 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:08:09 - asyncio - DEBUG - proactor_events.py:633 - __init__ - Using proactor: IocpProactor
+2024-07-04 13:08:09 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-07-04 13:08:09 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-07-04 13:08:09 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-07-04 13:08:09 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-07-04 13:08:09 - uvicorn.error - INFO - server.py:82 - _serve - Started server process [16140]
+2024-07-04 13:08:09 - uvicorn.error - INFO - on.py:48 - startup - Waiting for application startup.
+2024-07-04 13:08:09 - uvicorn.error - INFO - on.py:62 - startup - Application startup complete.
+2024-07-04 13:08:09 - uvicorn.error - INFO - server.py:214 - _log_started_message - Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57102 - "GET /WLEDVideoSync HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57102 - "GET /_nicegui/1.4.28/static/nicegui.css HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57109 - "GET /_nicegui/1.4.28/static/es-module-shims.js HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57110 - "GET /_nicegui/1.4.28/static/socket.io.min.js HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57105 - "GET /_nicegui/1.4.28/static/fonts.css HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57108 - "GET /_nicegui/1.4.28/static/quasar.prod.css HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57111 - "GET /_nicegui/1.4.28/static/tailwindcss.min.js HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57102 - "GET /_nicegui/1.4.28/static/vue.global.prod.js HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57109 - "GET /_nicegui/1.4.28/static/quasar.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57105 - "GET /_nicegui/1.4.28/static/lang/en-US.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57110 - "GET /_nicegui/1.4.28/static/nicegui.js HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57109 - "GET /_nicegui/1.4.28/static/fonts/01d40c9fd448face.woff2 HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57111 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/dark_mode.js HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57102 - "GET /_nicegui/1.4.28/static/fonts/62873223be6b39e0.woff2 HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57110 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/image.js HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57112) - "WebSocket /socket.io/?client_id=56dbab1d-3ded-42a5-927b-dadbabd75aa9&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:08:09 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57110 - "GET /_nicegui/1.4.28/static/fonts/e62204447c1ed92a.woff2 HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57110 - "GET /_nicegui/auto/static/0743467cf76cb1ac687c66648da682f3/intro.gif HTTP/1.1" 200
+2024-07-04 13:08:09 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57102 - "GET /favicon.ico HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57114 - "GET / HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57114 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/colors.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57115 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/query.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57118 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/video.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57116 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/timer.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57117 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/link.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57119 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/input.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57114 - "GET /_nicegui/1.4.28/components/ef7d009c7e812da10f8aa235954c0e12/refreshable.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57116 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/json_editor.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57115 - "GET /_nicegui/1.4.28/libraries/c3db162d662122eb0e7be8cd04794fac/echarts.min.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57118 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/echart.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57116 - "GET /_nicegui/1.4.28/static/utils/dynamic_properties.js HTTP/1.1" 200
+2024-07-04 13:08:27 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57118 - "GET /_nicegui/1.4.28/libraries/26e9f3a0290f18f1ab866f8d6faa7480/index.js HTTP/1.1" 200
+2024-07-04 13:08:28 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57120) - "WebSocket /socket.io/?client_id=d5dd0a47-3c0e-4bb6-9c4f-e3be6d1b0386&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:08:28 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:08:28 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57118 - "GET /_nicegui/1.4.28/static/fonts/0c19a63c7528cc1a.woff2 HTTP/1.1" 200
+2024-07-04 13:08:28 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57115 - "GET /_nicegui/auto/static/97e67a593d8134ce8fdd2f5c89d79cfc/Source-intro.png HTTP/1.1" 200
+2024-07-04 13:08:28 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57118 - "GET /assets/favicon.ico HTTP/1.1" 200
+2024-07-04 13:08:28 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57118 - "GET /_nicegui/auto/media/0723d1213f22f66dd3bfa209f5a96cae/Big_Buck_Bunny_360_10s_1MB.mp4 HTTP/1.1" 206
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['reelShelfRenderer'])
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: acdc
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['adSlotRenderer'])
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: acdc
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['reelShelfRenderer'])
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: acdc
+2024-07-04 13:08:40 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:08:40 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['reelShelfRenderer'])
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: status quo
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['adSlotRenderer'])
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: status quo
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['reelShelfRenderer'])
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: status quo
+2024-07-04 13:08:54 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:08:54 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:09:06 - WLEDVideoSync - INFO - WLEDVideoSync.py:549 - <module> - Starting systray loop...
+2024-07-04 13:09:06 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:09:10 - WLEDVideoSync - INFO - WLEDVideoSync.py:563 - <module> - Remove tmp files
+2024-07-04 13:09:10 - WLEDVideoSync - INFO - WLEDVideoSync.py:583 - <module> - Stop app
+2024-07-04 13:09:10 - WLEDVideoSync - INFO - WLEDVideoSync.py:586 - <module> - Server is stopped
+2024-07-04 13:09:10 - WLEDVideoSync - INFO - WLEDVideoSync.py:600 - <module> - Application Terminated
+2024-07-04 13:11:30 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-04 13:11:30 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-04 13:11:30 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing BlpImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing BmpImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing BufrStubImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing CurImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing DcxImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing DdsImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing EpsImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing FitsImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing FliImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing FpxImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import FpxImagePlugin: No module named 'olefile'
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing FtexImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing GbrImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing GifImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing GribStubImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing Hdf5StubImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcnsImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcoImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImtImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing IptcImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing JpegImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing Jpeg2KImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing McIdasImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing MicImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import MicImagePlugin: No module named 'olefile'
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpegImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpoImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing MspImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing PalmImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcdImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcxImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing PdfImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing PixarImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing PngImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing PpmImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing PsdImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing QoiImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing SgiImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing SpiderImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing SunImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing TgaImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing TiffImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing WebPImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing WmfImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing XbmImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing XpmImagePlugin
+2024-07-04 13:11:30 - PIL.Image - DEBUG - Image.py:376 - init - Importing XVThumbImagePlugin
+2024-07-04 13:11:30 - WLEDVideoSync - INFO - WLEDVideoSync.py:538 - <module> - WLEDVideoSync Started...Server run in separate process
+2024-07-04 13:11:30 - WLEDVideoSync - INFO - WLEDVideoSync.py:543 - <module> - Starting webview loop...
+2024-07-04 13:11:32 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-04 13:11:32 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-04 13:11:32 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:11:32 - asyncio - DEBUG - proactor_events.py:633 - __init__ - Using proactor: IocpProactor
+2024-07-04 13:11:32 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-07-04 13:11:32 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-07-04 13:11:32 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-07-04 13:11:32 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-07-04 13:11:32 - uvicorn.error - INFO - server.py:82 - _serve - Started server process [21976]
+2024-07-04 13:11:32 - uvicorn.error - INFO - on.py:48 - startup - Waiting for application startup.
+2024-07-04 13:11:32 - uvicorn.error - INFO - on.py:62 - startup - Application startup complete.
+2024-07-04 13:11:32 - uvicorn.error - INFO - server.py:214 - _log_started_message - Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57187 - "GET /WLEDVideoSync HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57193 - "GET /_nicegui/1.4.28/static/fonts.css HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57192 - "GET /_nicegui/1.4.28/static/quasar.prod.css HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57187 - "GET /_nicegui/1.4.28/static/nicegui.css HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57190 - "GET /_nicegui/1.4.28/static/socket.io.min.js HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57191 - "GET /_nicegui/1.4.28/static/es-module-shims.js HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57193 - "GET /_nicegui/1.4.28/static/tailwindcss.min.js HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57187 - "GET /_nicegui/1.4.28/static/vue.global.prod.js HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57191 - "GET /_nicegui/1.4.28/static/nicegui.js HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57190 - "GET /_nicegui/1.4.28/static/quasar.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57192 - "GET /_nicegui/1.4.28/static/lang/en-US.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57187 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/image.js HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57190 - "GET /_nicegui/1.4.28/static/fonts/01d40c9fd448face.woff2 HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57192 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/dark_mode.js HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57193 - "GET /_nicegui/1.4.28/static/fonts/62873223be6b39e0.woff2 HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57194) - "WebSocket /socket.io/?client_id=3a0c8333-287b-405a-932c-572cfd9e0d0c&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:11:32 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57193 - "GET /_nicegui/1.4.28/static/fonts/e62204447c1ed92a.woff2 HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57193 - "GET /_nicegui/auto/static/0743467cf76cb1ac687c66648da682f3/intro.gif HTTP/1.1" 200
+2024-07-04 13:11:32 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57192 - "GET /favicon.ico HTTP/1.1" 200
+2024-07-04 13:13:37 - uvicorn.error - INFO - server.py:258 - shutdown - Shutting down
+2024-07-04 13:13:37 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:13:37 - uvicorn.error - INFO - on.py:67 - shutdown - Waiting for application shutdown.
+2024-07-04 13:13:37 - uvicorn.error - INFO - on.py:76 - shutdown - Application shutdown complete.
+2024-07-04 13:13:37 - uvicorn.error - INFO - server.py:92 - _serve - Finished server process [21976]
+2024-07-04 13:13:40 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-04 13:13:40 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-04 13:13:40 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing BlpImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing BmpImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing BufrStubImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing CurImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing DcxImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing DdsImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing EpsImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing FitsImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing FliImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing FpxImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import FpxImagePlugin: No module named 'olefile'
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing FtexImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing GbrImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing GifImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing GribStubImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing Hdf5StubImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcnsImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing IcoImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing ImtImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing IptcImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing JpegImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing Jpeg2KImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing McIdasImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing MicImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:379 - init - Image: failed to import MicImagePlugin: No module named 'olefile'
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpegImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing MpoImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing MspImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing PalmImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcdImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing PcxImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing PdfImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing PixarImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing PngImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing PpmImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing PsdImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing QoiImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing SgiImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing SpiderImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing SunImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing TgaImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing TiffImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing WebPImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing WmfImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing XbmImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing XpmImagePlugin
+2024-07-04 13:13:40 - PIL.Image - DEBUG - Image.py:376 - init - Importing XVThumbImagePlugin
+2024-07-04 13:13:40 - WLEDVideoSync - INFO - WLEDVideoSync.py:538 - <module> - WLEDVideoSync Started...Server run in separate process
+2024-07-04 13:13:40 - WLEDVideoSync - INFO - WLEDVideoSync.py:543 - <module> - Starting webview loop...
+2024-07-04 13:13:42 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-04 13:13:42 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-04 13:13:42 - tzlocal - DEBUG - win32.py:58 - _get_localzone_name - Looking up time zone info from registry
+2024-07-04 13:13:42 - asyncio - DEBUG - proactor_events.py:633 - __init__ - Using proactor: IocpProactor
+2024-07-04 13:13:42 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-07-04 13:13:42 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-07-04 13:13:42 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-07-04 13:13:42 - WLEDVideoSync - INFO - utils.py:588 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-07-04 13:13:42 - uvicorn.error - INFO - server.py:82 - _serve - Started server process [10816]
+2024-07-04 13:13:42 - uvicorn.error - INFO - on.py:48 - startup - Waiting for application startup.
+2024-07-04 13:13:42 - uvicorn.error - INFO - on.py:62 - startup - Application startup complete.
+2024-07-04 13:13:42 - uvicorn.error - INFO - server.py:214 - _log_started_message - Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57209 - "GET /WLEDVideoSync HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57209 - "GET /_nicegui/1.4.28/static/nicegui.css HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57214 - "GET /_nicegui/1.4.28/static/es-module-shims.js HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57213 - "GET /_nicegui/1.4.28/static/quasar.prod.css HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57212 - "GET /_nicegui/1.4.28/static/fonts.css HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57215 - "GET /_nicegui/1.4.28/static/socket.io.min.js HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57209 - "GET /_nicegui/1.4.28/static/tailwindcss.min.js HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57214 - "GET /_nicegui/1.4.28/static/vue.global.prod.js HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57215 - "GET /_nicegui/1.4.28/static/nicegui.js HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57212 - "GET /_nicegui/1.4.28/static/quasar.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57213 - "GET /_nicegui/1.4.28/static/lang/en-US.umd.prod.js HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57212 - "GET /_nicegui/1.4.28/static/fonts/01d40c9fd448face.woff2 HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57209 - "GET /_nicegui/1.4.28/static/fonts/62873223be6b39e0.woff2 HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57214 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/image.js HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57213 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/dark_mode.js HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - protocol.py:256 - __init__ - = connection is CONNECTING
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:286 - read_http_request - < GET /_nicegui_ws/socket.io/?client_id=21fa2535-06b6-43b0-a55e-0090861433da&EIO=4&transport=websocket HTTP/1.1
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < host: localhost:8000
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < connection: Upgrade
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < pragma: no-cache
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < cache-control: no-cache
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < upgrade: websocket
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < origin: http://localhost:8000
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < sec-websocket-version: 13
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < accept-encoding: gzip, deflate, br, zstd
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < accept-language: fr
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < sec-websocket-key: INk6a2Ja/OA5I41Ywi08mg==
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < sec-websocket-extensions: permessage-deflate; client_max_window_bits
+2024-07-04 13:13:42 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57216) - "WebSocket /socket.io/?client_id=21fa2535-06b6-43b0-a55e-0090861433da&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:307 - write_http_response - > HTTP/1.1 101 Switching Protocols
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > Upgrade: websocket
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > Connection: Upgrade
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > Sec-WebSocket-Accept: KniPGilkFqJ9/veHCk7+9kg/XS8=
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > Sec-WebSocket-Extensions: permessage-deflate
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > date: Thu, 04 Jul 2024 11:13:42 GMT
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > server: uvicorn
+2024-07-04 13:13:42 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - protocol.py:357 - connection_open - = connection is OPEN
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '0{"sid":"zcr8RI9E1q-jMu98AAAA","upgrades":[],"p...00,"pingInterval":4000}' [84 bytes]
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57213 - "GET /_nicegui/1.4.28/static/fonts/e62204447c1ed92a.woff2 HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '40' [2 bytes]
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '40{"sid":"es8Ru2g5RjPEEIiAAAAB"}' [32 bytes]
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '420["handshake",{"client_id":"21fa2535-06b6-43b...38-9323-2ac43db95e64"}]' [117 bytes]
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57213 - "GET /_nicegui/auto/static/0743467cf76cb1ac687c66648da682f3/intro.gif HTTP/1.1" 200
+2024-07-04 13:13:42 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '430[true]' [9 bytes]
+2024-07-04 13:13:42 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57214 - "GET /favicon.ico HTTP/1.1" 200
+2024-07-04 13:13:46 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '2' [1 byte]
+2024-07-04 13:13:46 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '3' [1 byte]
+2024-07-04 13:13:47 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":6,"client_id":"21fa2535-06b6-4...4023b87f1b","args":[]}]' [134 bytes]
+2024-07-04 13:13:47 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["open",{"path":"/","new_tab":false}]' [39 bytes]
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57213 - "GET / HTTP/1.1" 200
+2024-07-04 13:13:48 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < CLOSE 1001 (going away) [2 bytes]
+2024-07-04 13:13:48 - uvicorn.error - DEBUG - protocol.py:1227 - write_close_frame - = connection is CLOSING
+2024-07-04 13:13:48 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > CLOSE 1001 (going away) [2 bytes]
+2024-07-04 13:13:48 - uvicorn.error - DEBUG - protocol.py:1319 - close_connection - x half-closing TCP connection
+2024-07-04 13:13:48 - uvicorn.error - DEBUG - protocol.py:1497 - connection_lost - = connection is CLOSED
+2024-07-04 13:13:48 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57208 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/input.js HTTP/1.1" 200
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57212 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/link.js HTTP/1.1" 200
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57215 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/video.js HTTP/1.1" 200
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57209 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/timer.js HTTP/1.1" 200
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57214 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/query.js HTTP/1.1" 200
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57213 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/colors.js HTTP/1.1" 200
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57212 - "GET /_nicegui/1.4.28/libraries/c3db162d662122eb0e7be8cd04794fac/echarts.min.js HTTP/1.1" 200
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57209 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/json_editor.js HTTP/1.1" 200
+2024-07-04 13:13:48 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57215 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/echart.js HTTP/1.1" 200
+2024-07-04 13:13:49 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57208 - "GET /_nicegui/1.4.28/components/ef7d009c7e812da10f8aa235954c0e12/refreshable.js HTTP/1.1" 200
+2024-07-04 13:13:49 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:57208 - "GET /_nicegui/1.4.28/static/utils/dynamic_properties.js HTTP/1.1" 200
+2024-07-04 13:13:49 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57215 - "GET /_nicegui/1.4.28/libraries/26e9f3a0290f18f1ab866f8d6faa7480/index.js HTTP/1.1" 200
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - protocol.py:256 - __init__ - = connection is CONNECTING
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:286 - read_http_request - < GET /_nicegui_ws/socket.io/?client_id=6846c7f3-a120-46c7-be3e-15fb8615af00&EIO=4&transport=websocket HTTP/1.1
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < host: localhost:8000
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < connection: Upgrade
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < pragma: no-cache
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < cache-control: no-cache
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < upgrade: websocket
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < origin: http://localhost:8000
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < sec-websocket-version: 13
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < accept-encoding: gzip, deflate, br, zstd
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < accept-language: fr
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < sec-websocket-key: TiPzZxuSU1J9zH3/bBCrYg==
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:288 - read_http_request - < sec-websocket-extensions: permessage-deflate; client_max_window_bits
+2024-07-04 13:13:49 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 57217) - "WebSocket /socket.io/?client_id=6846c7f3-a120-46c7-be3e-15fb8615af00&EIO=4&transport=websocket" [accepted]
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:307 - write_http_response - > HTTP/1.1 101 Switching Protocols
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > Upgrade: websocket
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > Connection: Upgrade
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > Sec-WebSocket-Accept: OtwEQ1nIx5FBztwZltbJVW+Zb8o=
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > Sec-WebSocket-Extensions: permessage-deflate
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > date: Thu, 04 Jul 2024 11:13:47 GMT
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - server.py:309 - write_http_response - > server: uvicorn
+2024-07-04 13:13:49 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - protocol.py:357 - connection_open - = connection is OPEN
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '0{"sid":"9-5B4Cf3geU7pFK3AAAC","upgrades":[],"p...00,"pingInterval":4000}' [84 bytes]
+2024-07-04 13:13:49 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57215 - "GET /_nicegui/1.4.28/static/fonts/0c19a63c7528cc1a.woff2 HTTP/1.1" 200
+2024-07-04 13:13:49 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57212 - "GET /_nicegui/auto/static/97e67a593d8134ce8fdd2f5c89d79cfc/Source-intro.png HTTP/1.1" 200
+2024-07-04 13:13:49 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57215 - "GET /assets/favicon.ico HTTP/1.1" 200
+2024-07-04 13:13:49 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:57215 - "GET /_nicegui/auto/media/0723d1213f22f66dd3bfa209f5a96cae/Big_Buck_Bunny_360_10s_1MB.mp4 HTTP/1.1" 206
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '40' [2 bytes]
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '40{"sid":"I5P0N7c0a7_KBO0RAAAD"}' [32 bytes]
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":24,"client_id":"6846c7f3-a120-...UBBLING_PHASE\\":3}"]}]' [452 bytes]
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '420["handshake",{"client_id":"6846c7f3-a120-46c...38-9323-2ac43db95e64"}]' [117 bytes]
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '430[true]' [9 bytes]
+2024-07-04 13:13:49 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":24,"client_id":"6846c7f3-a120-...UBBLING_PHASE\\":3}"]}]' [456 bytes]
+2024-07-04 13:13:50 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["update",{"150":null,"151":null,"152":null,"...icegui-refreshable"}}}]' [235 bytes]
+2024-07-04 13:13:50 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["run_javascript",{"code":"return runMethod(6...n\\":\\"center\\"}])"}]' [203 bytes]
+2024-07-04 13:13:50 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["run_javascript",{"code":"return runMethod(1...update_chart\\", [])"}]' [75 bytes]
+2024-07-04 13:13:50 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["run_javascript",{"code":"return runMethod(2..."readOnly\\":true}])"}]' [115 bytes]
+2024-07-04 13:13:50 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["update",{"221":{"tag":"div","class":["niceg...","name":"echarts"}]}}]' [1465 bytes]
+2024-07-04 13:13:50 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["run_javascript",{"code":"return runMethod(1...update_chart\\", [])"}]' [75 bytes]
+2024-07-04 13:13:51 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":43,"client_id":"6846c7f3-a120-...UBBLING_PHASE\\":3}"]}]' [1079 bytes]
+2024-07-04 13:13:51 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["update",{"25":{"tag":"div","text":0,"class"...ag":"nicegui-video"}}}]' [6270 bytes]
+2024-07-04 13:13:53 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":58,"client_id":"6846c7f3-a120-...4a27f29f44","args":[]}]' [135 bytes]
+2024-07-04 13:13:53 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '2' [1 byte]
+2024-07-04 13:13:53 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["update",{"221":null,"222":null,"223":null,"...","name":"echarts"}]}}]' [1546 bytes]
+2024-07-04 13:13:53 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["run_javascript",{"code":"return runMethod(1...update_chart\\", [])"}]' [75 bytes]
+2024-07-04 13:13:53 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '3' [1 byte]
+2024-07-04 13:13:53 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["update",{"233":{"tag":"q-scroll-area","clas...ght","offset":[0,0]}}}]' [1736 bytes]
+2024-07-04 13:13:56 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":236,"client_id":"6846c7f3-a120...0","args":["\\"a\\""]}]' [143 bytes]
+2024-07-04 13:13:56 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":236,"client_id":"6846c7f3-a120...","args":["\\"ac\\""]}]' [144 bytes]
+2024-07-04 13:13:56 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":236,"client_id":"6846c7f3-a120...,"args":["\\"acd\\""]}]' [145 bytes]
+2024-07-04 13:13:56 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":236,"client_id":"6846c7f3-a120..."args":["\\"acdc\\""]}]' [146 bytes]
+2024-07-04 13:13:56 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["update",{"227":null,"228":null,"229":null,"...","name":"echarts"}]}}]' [1561 bytes]
+2024-07-04 13:13:56 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["run_javascript",{"code":"return runMethod(1...update_chart\\", [])"}]' [75 bytes]
+2024-07-04 13:13:57 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '42["event",{"id":236,"client_id":"6846c7f3-a120...UBBLING_PHASE\\":3}"]}]' [500 bytes]
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['adSlotRenderer'])
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: acdc
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['reelShelfRenderer'])
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: acdc
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['adSlotRenderer'])
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: acdc
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:153 - fetch_and_parse - Unexpected renderer encountered.
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:154 - fetch_and_parse - Renderer name: dict_keys(['reelShelfRenderer'])
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:155 - fetch_and_parse - Search term: acdc
+2024-07-04 13:13:57 - pytube.contrib.search - WARNING - search.py:156 - fetch_and_parse - Please open an issue at https://github.com/pytube/pytube/issues and provide this log output.
+2024-07-04 13:13:57 - pytube.helpers - DEBUG - helpers.py:131 - regex_search - matched regex search: (?:v=|\/)([0-9A-Za-z_-]{11}).*
+2024-07-04 13:14:01 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["update",{"242":null,"241":{"tag":"q-card","...oltip","text":"Play"}}]' [30374 bytes]
+2024-07-04 13:14:01 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '2' [1 byte]
+2024-07-04 13:14:01 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["update",{"244":null,"245":null,"246":null,"...","name":"echarts"}]}}]' [1576 bytes]
+2024-07-04 13:14:01 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > TEXT '42["run_javascript",{"code":"return runMethod(1...update_chart\\", [])"}]' [75 bytes]
+2024-07-04 13:14:01 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < TEXT '3' [1 byte]
+2024-07-04 13:14:03 - WLEDVideoSync - INFO - WLEDVideoSync.py:549 - <module> - Starting systray loop...
+2024-07-04 13:14:04 - uvicorn.error - DEBUG - protocol.py:1172 - read_frame - < CLOSE 1001 (going away) [2 bytes]
+2024-07-04 13:14:04 - uvicorn.error - DEBUG - protocol.py:1227 - write_close_frame - = connection is CLOSING
+2024-07-04 13:14:04 - uvicorn.error - DEBUG - protocol.py:1178 - write_frame_sync - > CLOSE 1001 (going away) [2 bytes]
+2024-07-04 13:14:04 - uvicorn.error - DEBUG - protocol.py:1319 - close_connection - x half-closing TCP connection
+2024-07-04 13:14:04 - uvicorn.error - DEBUG - protocol.py:1497 - connection_lost - = connection is CLOSED
+2024-07-04 13:14:04 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-04 13:14:07 - WLEDVideoSync - INFO - WLEDVideoSync.py:563 - <module> - Remove tmp files
+2024-07-04 13:14:07 - WLEDVideoSync - INFO - WLEDVideoSync.py:583 - <module> - Stop app
+2024-07-04 13:14:07 - WLEDVideoSync - INFO - WLEDVideoSync.py:586 - <module> - Server is stopped
+2024-07-04 13:14:07 - WLEDVideoSync - INFO - WLEDVideoSync.py:600 - <module> - Application Terminated
