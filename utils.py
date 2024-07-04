@@ -115,10 +115,8 @@ class CASTUtils:
         """download video from youtube"""
 
         if interactive:
-            """
             if log_ui is not None:
                 logger.addHandler(LogElementHandler(log_ui))
-            """
 
             def progress_func(yt_stream, data, remain_bytes):
                 CASTUtils.yt_file_size_remain_bytes = remain_bytes

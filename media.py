@@ -754,12 +754,14 @@ class CASTMedia:
 
         return t_preview
 
-    def cast(self, shared_buffer=None):
+    def cast(self, shared_buffer=None, log_ui: classmethod = None):
         """
             this will run the cast into another thread
             avoid to block the main one
             shared_buffer: if used need to be a queue
         """
+        if log_ui is not None:
+            logger.addHandler(log_ui)
         thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()

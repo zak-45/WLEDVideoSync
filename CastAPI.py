@@ -906,6 +906,7 @@ async def main_page():
 
         with ui.card().tight().classes('w-42'):
             with ui.column():
+
                 # refreshable
                 await cast_manage_page()
                 # end refreshable
@@ -980,12 +981,13 @@ async def main_page():
     Log display
     """
 
-    # log_ui = ui.log(max_lines=50).classes('w-full h-20')
-    # handler = LogElementHandler(log_ui)
-    # logger.addHandler(handler)
-    # ui.context.client.on_connect(lambda: logger.addHandler(handler))
-    # ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
-    # ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log file')
+    if str2bool(app_config['log_to_main']):
+        with ui.expansion('Show log', icon='feed').classes('w-full'):
+            log_ui = ui.log(max_lines=250).classes('w-full h-30')
+            handler = LogElementHandler(log_ui)
+            ui.context.client.on_connect(lambda: logger.addHandler(handler))
+            ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
+            ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log file')
 
     """
     Footer : usefully links help
@@ -2336,7 +2338,7 @@ async def cast_manage_page():
                 else:
                     my_col = 'green'
                 CastAPI.desktop_cast = ui.icon('cast', size='xl', color=my_col)
-                CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop)) \
+                CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop, log_ui)) \
                     .classes('shadow-lg') \
                     .tooltip('Initiate Desktop Cast')
                 if Desktop.stopcast is True:
@@ -2368,7 +2370,7 @@ async def cast_manage_page():
                 else:
                     my_col = 'green'
                 CastAPI.media_cast = ui.icon('cast', size='xl', color=my_col)
-                CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media)) \
+                CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media, log_ui)) \
                     .classes('shadow-lg') \
                     .tooltip('Initiate Media Cast')
                 if Media.stopcast is True:
@@ -2689,7 +2691,7 @@ async def discovery_media_notify():
     media_dev_view_page.refresh()
 
 
-async def init_cast(class_obj):
+async def init_cast(class_obj, log_ui=None):
     """
     Run the cast and refresh the cast view
     :param class_obj:
