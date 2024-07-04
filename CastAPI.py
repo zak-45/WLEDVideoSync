@@ -31,8 +31,6 @@ import multiprocessing
 import asyncio
 from subprocess import Popen
 
-import psutil
-
 from ddp_queue import DDPDevice
 
 import time
@@ -71,8 +69,6 @@ from starlette.concurrency import run_in_threadpool
 
 from nicegui import app, ui, native, context, run
 from nicegui.events import ValueChangeEventArguments
-
-from pytube import YouTube
 
 """
 Main test for platform
@@ -118,6 +114,12 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     color_config = cast_config[2]  # colors key
     custom_config = cast_config[3]  # custom key
 
+    # load optional modules
+    if str2bool(custom_config['player']) or str2bool(custom_config['system-stats']):
+        import psutil
+        if str2bool(custom_config['player']):
+            from pytube import YouTube
+
     #  validate network config
     server_ip = server_config['server_ip']
     if not Utils.validate_ip_address(server_ip):
@@ -156,6 +158,10 @@ class CastAPI:
     media_cast_run = None
     desktop_cast = None
     desktop_cast_run = None
+    total_frame = 0
+    total_packet = 0
+    ram = 0
+    cpu = 0
 
 
 """
@@ -886,15 +892,16 @@ async def main_page():
     """
     Video player
     """
-
-    await video_player_page()
-    CastAPI.player.set_visibility(False)
+    if str2bool(custom_config['player']):
+        await video_player_page()
+        CastAPI.player.set_visibility(False)
 
     """
     Row for Cast /Filters / info / Run / Close 
     """
-    # filters for Desktop
+    # filters for Desktop / Media
     with (ui.row().classes('self-center')):
+
         await desktop_filters()
 
         with ui.card().tight().classes('w-42'):
@@ -939,8 +946,31 @@ async def main_page():
 
                 # refreshable
                 with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
-                    await system_stats()
-                    create_cpu_chart()
+                    if str2bool(custom_config['system-stats']):
+                        with ui.row().classes('self-center'):
+                            frame_count = ui.number(prefix='Total frames:').bind_value_from(CastAPI, 'total_frames')
+                            frame_count.classes("w-20")
+                            frame_count.props(remove='type=number')
+
+                            total_reset_icon = ui.icon('restore')
+                            total_reset_icon.style("cursor: pointer")
+                            total_reset_icon.on('click', lambda: reset_total())
+
+                            packet_count = ui.number(prefix='Total packets:').bind_value_from(CastAPI, 'total_packets')
+                            packet_count.classes("w-20")
+                            packet_count.props(remove='type=number')
+
+                        with ui.row().classes('self-center'):
+                            cpu_count = ui.number(prefix='CPU:').bind_value_from(CastAPI, 'cpu')
+                            cpu_count.classes("w-20")
+                            cpu_count.props(remove='type=number')
+
+                            ram_count = ui.number(prefix='RAM:').bind_value_from(CastAPI, 'ram')
+                            ram_count.classes("w-20")
+                            ram_count.props(remove='type=number')
+
+                    if str2bool(custom_config['cpu-chart']):
+                        await create_cpu_chart()
 
         await media_filters()
 
@@ -1034,6 +1064,7 @@ async def video_player_page():
     """
     timer created on video creation to refresh datas
     """
+
     player_timer = ui.timer(int(app_config['timer']), callback=player_timer_action)
 
     center_card = ui.card().classes('self-center w-2/3 bg-gray-500')
@@ -1570,13 +1601,14 @@ async def manage_charts_page():
             ui.button('System', on_click=sys_stats_info_page)
 
 
-@ui.refreshable
 async def system_stats():
-    cpu = psutil.cpu_percent(interval=1, percpu=False)
-    ram = psutil.virtual_memory().percent
-    total_packet = Desktop.total_packet + Media.total_packet
-    total_frame = Desktop.total_frame + Media.total_frame
 
+    CastAPI.cpu = psutil.cpu_percent(interval=1, percpu=False)
+    CastAPI.ram = psutil.virtual_memory().percent
+    CastAPI.total_packet = Desktop.total_packet + Media.total_packet
+    CastAPI.total_frame = Desktop.total_frame + Media.total_frame
+
+    """
     with ui.row().classes('self-center'):
         ui.label(f'Total frames: {total_frame}').classes('self-center')
 
@@ -1588,19 +1620,22 @@ async def system_stats():
     ui.separator()
     ui.label(f'CPU:  {cpu}% ==== RAM:  {ram}%').classes('self-center')
 
-    if CastAPI.cpu_chart is not None:
-        now = datetime.now()
-        date_time_str = now.strftime("%H:%M:%S")
+    """
+    if str2bool(custom_config['cpu-chart']):
+        if CastAPI.cpu_chart is not None:
+            ui.context.client.on_disconnect(lambda: CastAPI.cpu_chart.update())
+            now = datetime.now()
+            date_time_str = now.strftime("%H:%M:%S")
 
-        CastAPI.cpu_chart.options['series'][0]['data'].append(cpu)
-        CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
+            CastAPI.cpu_chart.options['series'][0]['data'].append(CastAPI.cpu)
+            CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
 
-        CastAPI.cpu_chart.update()
+            CastAPI.cpu_chart.update()
 
-        if cpu >= 65:
-            ui.notify('High CPU utilization', type='negative', close_button=True)
-        if ram >= 95:
-            ui.notify('High Memory utilization', type='negative', close_button=True)
+    if CastAPI.cpu >= 65:
+        ui.notify('High CPU utilization', type='negative', close_button=True)
+    if CastAPI.ram >= 95:
+        ui.notify('High Memory utilization', type='negative', close_button=True)
 
 
 @ui.refreshable
@@ -1868,7 +1903,7 @@ async def reset_total():
     ui.notify('Reset Total')
 
 
-def create_cpu_chart():
+async def create_cpu_chart():
     CastAPI.cpu_chart = ui.echart({
         'darkMode': 'auto',
         'legend': {
@@ -2502,7 +2537,8 @@ async def root_timer_action():
         CastAPI.type_sync = 'none'
 
     await cast_manage()
-    system_stats.refresh()
+    if str2bool(custom_config['system-stats']):
+        await system_stats()
 
 
 async def info_timer_action():
