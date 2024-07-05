@@ -1122,6 +1122,61 @@ class YtSearch:
                         yt_watch.on('click', lambda yt_stream=self.yt_stream: self.youtube_player(yt_stream.video_id))
 
 
+class AnimatedElement:
+    """
+    Add animation to UI Element, in / out
+        In for create element
+        Out for delete element
+    Following is necessary as its based on Animate.css
+    # Add Animate.css to the HTML head
+    ui.add_head_html(""
+    <link rel="stylesheet" href="./assets/js/animate.min.css"/>
+    "")
+    Param:
+        element_type : nicegui element e.g. card, label, ...
+        animation_name : see https://animate.style/
+        duration : custom animation delay
+    """
+
+    def __init__(self, element_type, animation_name_in='fadeIn', animation_name_out='fadeOut', duration=1.5):
+        self.element_type = element_type
+        self.animation_name_in = animation_name_in
+        self.animation_name_out = animation_name_out
+        self.duration = duration
+
+    def generate_animation_classes(self, animation_name):
+        # Generate the animation and duration classes
+        animation_class = f'animate__{animation_name}'
+        duration_class = f'custom-duration-{self.duration}s'
+        return animation_class, duration_class
+
+    def add_custom_css(self):
+        # Add custom CSS for animation duration
+        custom_css = f"""
+        <style>
+        .custom-duration-{self.duration}s {{
+          animation-duration: {self.duration}s;
+        }}
+        </style>
+        """
+        ui.add_head_html(custom_css)
+
+    def create_element(self, *args, **kwargs):
+        """ Add class for in """
+        self.add_custom_css()
+        animation_class, duration_class = self.generate_animation_classes(self.animation_name_in)
+        element = self.element_type(*args, **kwargs)
+        element.classes(f'animate__animated {animation_class} {duration_class}')
+        return element
+
+    def delete_element(self, element):
+        """ Add class for out and delete """
+        animation_class, duration_class = self.generate_animation_classes(self.animation_name_out)
+        element.classes(f'animate__animated {animation_class} {duration_class}')
+        # Delay the actual deletion to allow the animation to complete
+        ui.timer(self.duration, lambda: element.delete(), once=True)
+
+
 """
 When this env var exist, this mean run from the one-file compressed executable.
 Load of the config is not possible, folder config should not exist.

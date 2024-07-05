@@ -55,6 +55,7 @@ from utils import ImageUtils
 from utils import LocalFilePicker
 from utils import ScreenAreaSelection as sas
 from utils import YtSearch
+from utils import AnimatedElement as animate
 
 import ast
 
@@ -860,6 +861,11 @@ async def main_page():
 
     apply_custom()
 
+    # Add Animate.css to the HTML head
+    ui.add_head_html("""
+    <link rel="stylesheet" href="./assets/js/animate.min.css"/>
+    """)
+
     """
     timer created on main page run to refresh datas
     """
@@ -881,7 +887,10 @@ async def main_page():
     App info
     """
 
-    with ui.row().classes('w-full no-wrap'):
+    head_row_anim = animate(ui.row, animation_name_in='backInDown', duration=1)
+    head_row = head_row_anim.create_element()
+
+    with head_row.classes('w-full no-wrap'):
         ui.label('DESKTOP: Cast Screen / Window content').classes('bg-slate-400 w-1/3')
         with ui.card().classes('bg-slate-400 w-1/3'):
             ui.image("/assets/favicon.ico").classes('self-center').tailwind.border_width('8').width('8')
@@ -1005,8 +1014,9 @@ async def main_page():
                     log_filename = 'log/WLEDVideoSync.log'
                     with open(log_filename) as file:
                         log_data = file.read()
-                    ui.textarea(value=log_data,).classes('w-full').props(add='bg-color=blue-grey-4')
                     ui.button('Close', on_click=dialog.close, color='red')
+                    log_area = ui.textarea(value=log_data).classes('w-full').props(add='bg-color=blue-grey-4')
+                    log_area.props(add="rows='25'")
                 ui.button('See Log file', on_click=dialog.open).tooltip('Load log data from file')
 
     """
@@ -1089,7 +1099,10 @@ async def video_player_page():
 
     player_timer = ui.timer(int(app_config['timer']), callback=player_timer_action)
 
-    center_card = ui.card().classes('self-center w-2/3 bg-gray-500')
+    center_card_anim = animate(ui.card, animation_name_in='flipInX', duration=1)
+    center_card = center_card_anim.create_element()
+
+    center_card.classes('self-center w-2/3 bg-gray-500')
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
@@ -1209,6 +1222,11 @@ async def main_page_desktop():
         ui.button('MAIN', on_click=lambda: ui.navigate.to('/'), icon='home')
         ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
 
+    # Add Animate.css to the HTML head
+    ui.add_head_html("""
+    <link rel="stylesheet" href="./assets/js/animate.min.css"/>
+    """)
+
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
         {'name': 'scale_width', 'label': 'W', 'field': 'scale_width'},
@@ -1270,8 +1288,15 @@ async def main_page_desktop():
                 ui.label('No of Packet:')
                 ui.label(str(Desktop.retry_number))
 
-    exp_edit_param = ui.expansion('Edit', icon='edit', on_value_change=lambda: exp_param.close())
-    with exp_edit_param.classes('w-full bg-sky-800'):
+    exp_edit_param_anim = animate(ui.expansion, animation_name_in='backInDown', duration=1)
+    exp_edit_param = exp_edit_param_anim.create_element()
+
+    exp_edit_param.text = 'Edit'
+    exp_edit_param.props(add="icon='edit'")
+    exp_edit_param.classes('w-full bg-sky-800')
+    exp_edit_param.on_value_change(lambda: exp_param.close())
+
+    with exp_edit_param:
         with ui.row():
             ui.icon('restore_page', color='blue', size='sm') \
                 .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
@@ -1404,6 +1429,11 @@ async def main_page_media():
         ui.button('Main', on_click=lambda: ui.navigate.to('/'), icon='home')
         ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
 
+    # Add Animate.css to the HTML head
+    ui.add_head_html("""
+    <link rel="stylesheet" href="./assets/js/animate.min.css"/>
+    """)
+
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
         {'name': 'scale_width', 'label': 'W', 'field': 'scale_width'},
@@ -1455,8 +1485,15 @@ async def main_page_media():
                 ui.label('No of Packet:')
                 ui.label(str(Media.retry_number))
 
-    media_exp_edit_param = ui.expansion('Edit', icon='edit', on_value_change=lambda: media_exp_param.close())
-    with media_exp_edit_param.classes('w-full bg-sky-800'):
+    media_exp_edit_param_anim = animate(ui.expansion, animation_name_in='backInDown', duration=1)
+    media_exp_edit_param = media_exp_edit_param_anim.create_element()
+
+    media_exp_edit_param.text = 'Edit'
+    media_exp_edit_param.props(add="icon='edit'")
+    media_exp_edit_param.classes('w-full bg-sky-800')
+    media_exp_edit_param.on_value_change(lambda: media_exp_param.close())
+
+    with media_exp_edit_param:
         with ui.row():
             ui.icon('restore_page', color='blue', size='sm') \
                 .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
@@ -1523,7 +1560,7 @@ async def main_page_media():
 
         else:
             with ui.card():
-                ui.label('No image to show...')
+                ui.label('No image to show...').classes('animate-pulse')
 
     with ui.expansion('MULTICAST', icon='grid_view', on_value_change=lambda: media_exp_edit_param.close()) \
             .classes('w-full'):
@@ -1548,7 +1585,9 @@ async def main_page_media():
                     ui.label('No frame captured yet...').style('background: red')
         else:
             with ui.card():
-                ui.label('Multicast not set').style('text-align:center; font-size: 150%; font-weight: 300')
+                ui.label('Multicast not set') \
+                    .style('text-align:center; font-size: 150%; font-weight: 300') \
+                    .classes('animate-pulse')
 
     ui.separator().classes('mt-6')
 
@@ -1864,7 +1903,9 @@ async def youtube_search():
     """
     display search result from pytube
     """
-    yt_area = ui.scroll_area().bind_visibility_from(CastAPI.player)
+    animated_yt_area = animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
+    yt_area = animated_yt_area.create_element()
+    yt_area.bind_visibility_from(CastAPI.player)
     yt_area.classes('w-full border')
     CastAPI.search_areas.append(yt_area)
     with yt_area:
@@ -1878,7 +1919,8 @@ async def youtube_clear_search():
 
     for area in CastAPI.search_areas:
         try:
-            area.delete()
+            animated_area = animate(area, animation_name_out="backOutUp", duration=1)
+            animated_area.delete_element(area)
         except Exception as error:
             logger.error(traceback.format_exc())
             logger.error(f'Search area does not exist: {error}')
