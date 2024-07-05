@@ -952,6 +952,7 @@ async def main_page():
                     if str2bool(custom_config['system-stats']):
                         with ui.row().classes('self-center'):
                             frame_count = ui.number(prefix='F.').bind_value_from(CastAPI, 'total_frame')
+                            frame_count.tooltip('TOTAL Frames')
                             frame_count.classes("w-20")
                             frame_count.props(remove='type=number', add='borderless')
 
@@ -960,6 +961,7 @@ async def main_page():
                             total_reset_icon.on('click', lambda: reset_total())
 
                             packet_count = ui.number(prefix='P.').bind_value_from(CastAPI, 'total_packet')
+                            packet_count.tooltip('TOTAL DDP Packets')
                             packet_count.classes("w-20")
                             packet_count.props(remove='type=number', add='borderless')
 
@@ -995,14 +997,15 @@ async def main_page():
             ui.context.client.on_connect(lambda: logger.addHandler(handler))
             ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
             # clear / load log file
-            with ui.row().classes('w-1/2'):
+            with ui.row().classes('w-full'):
                 ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log')
-                with ui.dialog().classes('w-full') as dialog, ui.card().classes('w-full'):
+                dialog = ui.dialog().classes('w-full')
+                dialog.props(add='maximized transition-show="slide-up" transition-hide="slide-down"')
+                with dialog, ui.card().classes('w-full'):
                     log_filename = 'log/WLEDVideoSync.log'
                     with open(log_filename) as file:
                         log_data = file.read()
-                    file.close()
-                    ui.textarea(value=log_data).classes('w-full')
+                    ui.textarea(value=log_data,).classes('w-full').props(add='bg-color=blue-grey-4')
                     ui.button('Close', on_click=dialog.close, color='red')
                 ui.button('See Log file', on_click=dialog.open).tooltip('Load log data from file')
 
@@ -1168,6 +1171,7 @@ async def video_player_page():
                 .bind_visibility_from(CastAPI.player)
             video_url.tooltip('Enter Url, click on outside to validate the entry, '
                               ' hide and show player should refresh data')
+            video_url.on('keydown.enter', lambda: check_yt(video_url.value))
             video_url.on('focusout', lambda: check_yt(video_url.value))
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
@@ -1181,6 +1185,7 @@ async def video_player_page():
                               icon='youtube_searched_for',
                               color='indigo-3',
                               on_click=lambda: youtube_search())
+            yt_icon.classes('fade')
             yt_icon.bind_visibility_from(CastAPI.player)
             yt_icon = ui.chip('Clear YT Search',
                               icon='clear',
@@ -1877,7 +1882,6 @@ async def youtube_clear_search():
         except Exception as error:
             logger.error(traceback.format_exc())
             logger.error(f'Search area does not exist: {error}')
-
     CastAPI.search_areas = []
 
 
@@ -2517,6 +2521,7 @@ async def action_to_casts(class_name, cast_name, action, clear, execute, exp_ite
 
 async def show_thread_info():
     with ui.dialog() as dialog, ui.card():
+        dialog.props(add='transition-show="slide-down" transition-hide="slide-up"')
         cast_info = util_casts_info()
         editor = ui.json_editor({'content': {'json': cast_info}})
         editor.run_editor_method('updateProps', {'readOnly': True})
