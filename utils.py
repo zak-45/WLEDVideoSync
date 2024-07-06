@@ -1032,7 +1032,7 @@ class YtSearch:
     """
     Search YT Video from input
     Display thumb and YT Plyer
-    On click, copy to clipboard YT Url
+    On click, copy YT Url to clipboard
     """
 
     def __init__(self):
@@ -1072,7 +1072,7 @@ class YtSearch:
     async def search_youtube(self, data):
         """ Search for YT on input """
 
-        # clear as we recreate
+        # clear as we recreate, sure, not optimal
         self.search_result.clear()
         # Search
         self.yt_search = await run.io_bound(PySearch, data)
@@ -1085,17 +1085,20 @@ class YtSearch:
             # re create  result page
             await self.create_yt_page(self.yt_search)
         else:
-            ui.label('Nothing Found')
+            self.number_found.text = 'Nothing Found'
 
     async def next_search(self, search_obj):
         """ Next if you want more """
 
-        # search additional data
-        await run.io_bound(search_obj.get_next_results)
-        # update number
-        self.number_found.text = f'Number found: {len(search_obj.results)}'
-        # re create  result page
-        await self.create_yt_page(search_obj)
+        if len(search_obj.results) > 0:
+            # search additional data
+            await run.io_bound(search_obj.get_next_results)
+            # update number
+            self.number_found.text = f'Number found: {len(search_obj.results)}'
+            # re create  result page
+            await self.create_yt_page(search_obj)
+        else:
+            ui.notify('No more to search', position='center', type='negative', close_button=True)
 
     async def create_yt_page(self, data):
         """ Create YT search result """
@@ -1130,7 +1133,7 @@ class AnimatedElement:
     Following is necessary as its based on Animate.css
     # Add Animate.css to the HTML head
     ui.add_head_html(""
-    <link rel="stylesheet" href="./assets/js/animate.min.css"/>
+    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
     "")
     Param:
         element_type : nicegui element e.g. card, label, ...

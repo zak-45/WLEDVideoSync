@@ -863,7 +863,7 @@ async def main_page():
 
     # Add Animate.css to the HTML head
     ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/js/animate.min.css"/>
+    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
     """)
 
     """
@@ -1224,7 +1224,7 @@ async def main_page_desktop():
 
     # Add Animate.css to the HTML head
     ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/js/animate.min.css"/>
+    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
     """)
 
     columns_a = [
@@ -1375,7 +1375,7 @@ async def main_page_desktop():
 
         else:
             with ui.card():
-                ui.label('No image to show...')
+                ui.label('No image to show...').classes('animate-pulse')
 
     with ui.expansion('MULTICAST', icon='grid_view', on_value_change=lambda: exp_edit_param.close()) \
             .classes('w-full'):
@@ -1400,7 +1400,9 @@ async def main_page_desktop():
                     ui.label('No frame captured yet...').style('background: red')
         else:
             with ui.card():
-                ui.label('Multicast not set').style('text-align:center; font-size: 150%; font-weight: 300')
+                ui.label('Multicast not set') \
+                    .style('text-align:center; font-size: 150%; font-weight: 300') \
+                    .classes('animate-pulse')
 
     with ui.footer():
 
@@ -1431,7 +1433,7 @@ async def main_page_media():
 
     # Add Animate.css to the HTML head
     ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/js/animate.min.css"/>
+    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
     """)
 
     columns_a = [
@@ -1743,21 +1745,27 @@ async def cast_manage():
 
     if Desktop.count > 0:
         CastAPI.desktop_cast.props(add="color=red")
+        CastAPI.desktop_cast.classes(add="animate-pulse")
     elif Desktop.stopcast is True:
         CastAPI.desktop_cast.props(add="color=yellow")
         CastAPI.desktop_cast_run.set_visibility(False)
+        CastAPI.desktop_cast.classes(remove="animate-pulse")
     else:
         CastAPI.desktop_cast.props(add="color=green")
+        CastAPI.desktop_cast.classes(remove="animate-pulse")
     if Desktop.stopcast is False:
         CastAPI.desktop_cast_run.set_visibility(True)
 
     if Media.count > 0:
         CastAPI.media_cast.props(add="color=red")
+        CastAPI.media_cast.classes(add="animate-pulse")
     elif Media.stopcast is True:
         CastAPI.media_cast.props(add="color=yellow")
+        CastAPI.media_cast.classes(remove="animate-pulse")
         CastAPI.media_cast_run.set_visibility(False)
     else:
         CastAPI.media_cast.props(add="color=green")
+        CastAPI.media_cast.classes(remove="animate-pulse")
     if Media.stopcast is False:
         CastAPI.media_cast_run.set_visibility(True)
 
@@ -1771,12 +1779,15 @@ async def cast_icon(class_obj):
 
     def upd_value():
         class_obj.stopcast = False
+        my_icon.classes(remove='animate-pulse')
+        ui.notify('Cast allowed', position='center', close_button=True, type='positive')
 
     cast_col = 'green' if class_obj.stopcast is False else 'yellow'
     my_icon = ui.icon('cast_connected', size='sm', color=cast_col) \
         .style('cursor: pointer') \
         .tooltip('Click to authorize') \
-        .on('click', lambda: (my_icon.props(add='color=green'), upd_value()))
+        .on('click', lambda: (my_icon.props(add='color=green'), upd_value())) \
+        .classes('animate-pulse')
 
 
 async def media_filters():
@@ -2444,13 +2455,23 @@ def tabs_info_page():
     Tabs
     """
 
-    with ui.tabs().classes('w-full') as tabs:
+    # Add Animate.css to the HTML head
+    ui.add_head_html("""
+    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+    """)
+
+    tabs_anim = animate(ui.tabs, animation_name_in='backInDown', duration=1)
+    tabs = tabs_anim.create_element()
+
+    tabs.classes('w-full')
+    with tabs:
         p_desktop = ui.tab('Desktop', icon='computer').classes('bg-slate-400')
         p_media = ui.tab('Media', icon='image').classes('bg-slate-400')
-    with ui.tab_panels(tabs, value=p_desktop).classes('w-full'):
+    with (ui.tab_panels(tabs, value=p_desktop).classes('w-full')):
         with ui.tab_panel(p_desktop):
             if not desktop_threads:
-                ui.label('No CAST').style('text-align:center; font-size: 150%; font-weight: 300')
+                ui.label('No CAST').classes('animate-pulse') \
+                    .style('text-align:center; font-size: 150%; font-weight: 300')
             else:
                 # create Graph
                 graph_data = ''
@@ -2500,7 +2521,8 @@ def tabs_info_page():
 
         with ui.tab_panel(p_media):
             if not media_threads:
-                ui.label('No CAST').style('text-align:center; font-size: 150%; font-weight: 300')
+                ui.label('No CAST').classes('animate-pulse') \
+                    .style('text-align:center; font-size: 150%; font-weight: 300')
             else:
                 # create Graph
                 graph_data = ''
@@ -2757,6 +2779,7 @@ async def cast_stop(class_obj):
     """ Stop cast """
 
     class_obj.stopcast = True
+    ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
     await cast_manage()
     logger.info(f' Stop Cast for {str(class_obj)}')
 
