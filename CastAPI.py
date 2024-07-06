@@ -1914,8 +1914,10 @@ async def youtube_search():
     """
     display search result from pytube
     """
+
     animated_yt_area = animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
     yt_area = animated_yt_area.create_element()
+
     yt_area.bind_visibility_from(CastAPI.player)
     yt_area.classes('w-full border')
     CastAPI.search_areas.append(yt_area)

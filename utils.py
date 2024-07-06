@@ -16,7 +16,7 @@ cv2.destroyAllWindows()
 import av
 #
 """
-
+import asyncio
 import logging
 import logging.config
 import traceback
@@ -1036,6 +1036,7 @@ class YtSearch:
     """
 
     def __init__(self):
+        self.yt_stream = None
         self.search_txt: str = ''
         self.yt_search = None
         ui.separator()
@@ -1075,7 +1076,7 @@ class YtSearch:
         # clear as we recreate, sure, not optimal
         self.search_result.clear()
         # Search
-        self.yt_search = await run.io_bound(PySearch, data)
+        self.yt_search = PySearch(data)
         # number found
         number = len(self.yt_search.results)
         self.number_found.text = f'Number found: {number}'
@@ -1086,6 +1087,8 @@ class YtSearch:
             await self.create_yt_page(self.yt_search)
         else:
             self.number_found.text = 'Nothing Found'
+
+        ui.notify('YT Search End', position='center', type='info', close_button=True)
 
     async def next_search(self, search_obj):
         """ Next if you want more """
@@ -1099,6 +1102,8 @@ class YtSearch:
             await self.create_yt_page(search_obj)
         else:
             ui.notify('No more to search', position='center', type='negative', close_button=True)
+
+        ui.notify('YT More Search End', position='center', type='info', close_button=True)
 
     async def create_yt_page(self, data):
         """ Create YT search result """
