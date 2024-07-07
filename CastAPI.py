@@ -1649,6 +1649,10 @@ async def ws_page():
 @ui.page('/info')
 async def info_page():
     """ simple cast info page from systray """
+    # Add Animate.css to the HTML head
+    ui.add_head_html("""
+    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+    """)
     info_timer = ui.timer(int(app_config['timer']), callback=info_timer_action)
     await cast_manage_page()
 
@@ -2408,6 +2412,7 @@ async def cast_manage_page():
     Cast parameters on the root page '/'
     :return:
     """
+
     with ui.card().tight().classes('self-center'):
         with ui.row():
             with ui.column(wrap=True):
@@ -2428,7 +2433,11 @@ async def cast_manage_page():
                 .style('cursor: pointer') \
                 .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
 
-            with ui.card().classes('bg-red-900'):
+            animated_card = animate(ui.card, animation_name_out="fadeInUp", duration=2)
+            card = animated_card.create_element()
+            card.classes('bg-red-900')
+
+            with card:
                 ui.label(' Running Cast(s) ').classes('self-center').style("color: yellow; background: purple")
                 with ui.row():
                     desktop_count = ui.number(prefix='Desktop:').bind_value_from(Desktop, 'count')
