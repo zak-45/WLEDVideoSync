@@ -1140,6 +1140,7 @@ class AnimatedElement:
     ui.add_head_html(""
     <link rel="stylesheet" href="./assets/css/animate.min.css"/>
     "")
+    app.add_static_files('/assets', 'assets')
     Param:
         element_type : nicegui element e.g. card, label, ...
         animation_name : see https://animate.style/

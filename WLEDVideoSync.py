@@ -27,8 +27,6 @@ pystray : put on systray if requested
 
 on linux, preview default to False: should work but on some test do memory dump
 
-
-
 """
 
 import logging
