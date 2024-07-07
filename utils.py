@@ -55,6 +55,7 @@ import tkinter as tk
 from screeninfo import get_monitors
 
 import cfg_load as cfg
+from str2bool import str2bool
 
 
 class CASTUtils:
@@ -585,11 +586,12 @@ class CASTUtils:
     def setup_logging(config_path='logging_config.ini', handler_name: str = None):
         if os.path.exists(config_path):
             logging.config.fileConfig(config_path, disable_existing_loggers=False)
-            logger = logging.getLogger('WLEDVideoSync')
-            handlers = logger.handlers[:]
-            for handler in handlers:
-                logger.removeHandler(handler)
-                handler.close()
+            # trick: use the same name for all modules, ui.log will receive message from alls
+            config_data = CASTUtils.read_config()
+            if str2bool(config_data[1]['log_to_main']):
+                logger = logging.getLogger('WLEDLogger')
+            else:
+                logger = logging.getLogger(handler_name)
             logger.info(f"Logging configured using {config_path} for {handler_name}")
         else:
             logging.basicConfig(level=logging.INFO)

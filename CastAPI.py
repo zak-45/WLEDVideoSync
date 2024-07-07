@@ -911,7 +911,7 @@ async def main_page():
     Row for Cast /Filters / info / Run / Close 
     """
     # filters for Desktop / Media
-    with (ui.row().classes('self-center')):
+    with ui.row().classes('self-center'):
 
         await desktop_filters()
 
@@ -1009,8 +1009,8 @@ async def main_page():
             # clear / load log file
             with ui.row().classes('w-full'):
                 ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log')
-                dialog = ui.dialog().classes('w-full')
-                dialog.props(add='maximized transition-show="slide-up" transition-hide="slide-down"')
+                dialog = ui.dialog().classes('w-full') \
+                    .props(add='maximized transition-show="slide-up" transition-hide="slide-down"')
                 with dialog, ui.card().classes('w-full'):
                     log_filename = 'log/WLEDVideoSync.log'
                     with open(log_filename) as file:
