@@ -1089,17 +1089,24 @@ async def main_page_cast_manage():
 
 
 @ui.page('/Player')
+async def run_video_player_page():
+    """
+    timer created on video creation to refresh datas
+    """
+    # Add Animate.css to the HTML head
+    ui.add_head_html("""
+    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+    """)
+    player_timer = ui.timer(int(app_config['timer']), callback=player_timer_action)
+    await video_player_page()
+
+
 async def video_player_page():
     """
     Video player
     """
-    """
-    timer created on video creation to refresh datas
-    """
 
-    player_timer = ui.timer(int(app_config['timer']), callback=player_timer_action)
-
-    center_card_anim = animate(ui.card, animation_name_in='flipInX', duration=1)
+    center_card_anim = animate(ui.card, animation_name_in='fadeInUp', duration=1)
     center_card = center_card_anim.create_element()
 
     center_card.classes('self-center w-2/3 bg-gray-500')
@@ -1735,6 +1742,17 @@ async def sync_button():
         if CastAPI.last_type_sync == 'slider':
             CastAPI.slider_button_sync.props(add="color='red'")
             CastAPI.slider_button_sync.text = Media.player_time
+
+    if Media.player_sync is False and CastAPI.type_sync != 'none':
+        CastAPI.media_button_sync.props(add="color=green")
+        CastAPI.media_button_sync.classes(remove="animate-pulse")
+        CastAPI.media_button_sync.text = "VSYNC"
+        CastAPI.media_button_sync.update()
+        CastAPI.slider_button_sync.props(add="color=green")
+        CastAPI.slider_button_sync.classes(remove="animate-pulse")
+        CastAPI.slider_button_sync.text = "TSYNC"
+        CastAPI.slider_button_sync.update()
+        CastAPI.type_sync = 'none'
 
 
 async def cast_manage():
@@ -2600,16 +2618,8 @@ async def root_timer_action():
     timer occur only when root page is active '/'
     :return:
     """
-    if Media.player_sync is False and CastAPI.type_sync != 'none':
-        CastAPI.media_button_sync.props(add="color=green")
-        CastAPI.media_button_sync.classes(remove="animate-pulse")
-        CastAPI.media_button_sync.text = "VSYNC"
-        CastAPI.media_button_sync.update()
-        CastAPI.slider_button_sync.props(add="color=green")
-        CastAPI.slider_button_sync.classes(remove="animate-pulse")
-        CastAPI.slider_button_sync.text = "TSYNC"
-        CastAPI.slider_button_sync.update()
-        CastAPI.type_sync = 'none'
+
+    await sync_button()
 
     await cast_manage()
 
@@ -2631,7 +2641,7 @@ async def player_timer_action():
     timer occur when player is displayed
     :return:
     """
-    # sync_button.refresh()
+    await sync_button()
 
 
 async def generate_carousel(class_obj):
