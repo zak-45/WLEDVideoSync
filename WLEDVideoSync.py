@@ -31,6 +31,7 @@ on linux, preview default to False: should work but on some test do memory dump
 
 import logging
 import logging.config
+import concurrent_log_handler
 
 import multiprocessing
 from multiprocessing import active_children
@@ -68,7 +69,7 @@ Expected way to work.
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     # create logger
-    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger')
+    logger = Utils.setup_logging('config/logging.ini', 'WLEDVideoSync')
 
     # load config file
     cast_config = Utils.read_config()

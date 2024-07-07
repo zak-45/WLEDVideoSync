@@ -25,6 +25,7 @@ Web GUI based on NiceGUI
 """
 import logging
 import logging.config
+import concurrent_log_handler
 import threading
 import traceback
 import multiprocessing

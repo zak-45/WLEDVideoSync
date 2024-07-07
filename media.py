@@ -21,6 +21,7 @@
 
 import logging
 import logging.config
+import concurrent_log_handler
 import sys
 import traceback
 import numpy as np

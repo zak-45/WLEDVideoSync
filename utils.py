@@ -19,6 +19,7 @@ import av
 import asyncio
 import logging
 import logging.config
+import concurrent_log_handler
 import traceback
 
 import re
@@ -585,6 +586,10 @@ class CASTUtils:
         if os.path.exists(config_path):
             logging.config.fileConfig(config_path, disable_existing_loggers=False)
             logger = logging.getLogger('WLEDVideoSync')
+            handlers = logger.handlers[:]
+            for handler in handlers:
+                logger.removeHandler(handler)
+                handler.close()
             logger.info(f"Logging configured using {config_path} for {handler_name}")
         else:
             logging.basicConfig(level=logging.INFO)
@@ -1196,4 +1201,5 @@ Expected way to work.
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     # create logger
-    logger = CASTUtils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
+    logger = CASTUtils.setup_logging('config/logging.ini', 'WLEDVideoSync.utils')
+

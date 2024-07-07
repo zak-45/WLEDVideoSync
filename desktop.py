@@ -28,6 +28,7 @@ import os
 import cv2
 import logging
 import logging.config
+import concurrent_log_handler
 import traceback
 
 import time
