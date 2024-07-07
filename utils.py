@@ -1201,5 +1201,5 @@ Expected way to work.
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     # create logger
-    logger = CASTUtils.setup_logging('config/logging.ini', 'WLEDVideoSync.utils')
+    logger = CASTUtils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
 

@@ -69,7 +69,7 @@ Expected way to work.
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     # create logger
-    logger = Utils.setup_logging('config/logging.ini', 'WLEDVideoSync')
+    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger')
 
     # load config file
     cast_config = Utils.read_config()
