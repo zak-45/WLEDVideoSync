@@ -115,6 +115,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     app_config = cast_config[1]  # app key
     color_config = cast_config[2]  # colors key
     custom_config = cast_config[3]  # custom key
+    preset_config = cast_config[4]  # presets key
 
     # load optional modules
     if str2bool(custom_config['player']) or str2bool(custom_config['system-stats']):
@@ -139,6 +140,30 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     if server_port not in range(1, 65536):
         logger.error(f'Bad server Port: {server_port}')
         sys.exit(2)
+
+
+    async def init_actions():
+        """ Done at start of app and before GUI available"""
+
+        # Apply presets
+        try:
+            if str2bool(preset_config['load_at_start']):
+                if preset_config['filter_media'] != '':
+                    logger.info(f"apply : {preset_config['filter_media']} to filter Media")
+                    await load_filter_preset('Media', interactive=False, file_name=preset_config['filter_media'])
+                if preset_config['filter_desktop'] != '':
+                    logger.info(f"apply : {preset_config['filter_desktop']} to filter Desktop")
+                    await load_filter_preset('Desktop', interactive=False, file_name=preset_config['filter_desktop'])
+                if preset_config['cast_media'] != '':
+                    logger.info(f"apply : {preset_config['cast_media']} to cast Media")
+                    await load_cast_preset('Media', interactive=False, file_name=preset_config['cast_media'])
+                if preset_config['cast_desktop'] != '':
+                    logger.info(f"apply : {preset_config['cast_desktop']} to cast Desktop")
+                    await load_cast_preset('Desktop', interactive=False, file_name=preset_config['cast_desktop'])
+
+        except Exception as error:
+            logger.error(f"Error on app startup {error}")
+
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
@@ -2346,7 +2371,7 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
 
 
 """
-Filter preset mgr
+END Filter preset mgr
 """
 
 """
@@ -2476,6 +2501,7 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
         preset_general = preset_config.get('GENERAL')
         preset_multicast = preset_config.get('MULTICAST')
         apply_preset()
+
 
 """
 END Cast preset mgr
@@ -3181,6 +3207,7 @@ app.add_static_files('/log', 'log')
 app.add_static_files('/config', 'config')
 app.add_static_files('/tmp', 'tmp')
 app.add_static_files('/xtra', 'xtra')
+app.on_startup(init_actions)
 
 ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',

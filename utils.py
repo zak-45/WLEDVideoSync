@@ -609,8 +609,9 @@ class CASTUtils:
         app_config = cast_config.get('app')
         colors_config = cast_config.get('colors')
         custom_config = cast_config.get('custom')
+        preset_config = cast_config.get('presets')
 
-        return server_config, app_config, colors_config, custom_config
+        return server_config, app_config, colors_config, custom_config, preset_config
 
 
 class HTTPDiscovery:
