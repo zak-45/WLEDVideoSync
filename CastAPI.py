@@ -97,7 +97,7 @@ log_ui = None
 
 """
 When this env var exist, this mean run from the one-file compressed executable.
-Load of the config is not possible, folder config should not exist.
+Load of the config is not possible, folder config should not exist yet.
 This avoid FileNotFoundError.
 This env not exist when run from the extracted program.
 Expected way to work.
@@ -1736,8 +1736,8 @@ async def net_view_page():
     :return:
     """
     with ui.dialog() as dialog, ui.card():
-        editor = ui.json_editor({'content': {'json': Netdevice.http_devices}})
-        editor.run_editor_method('updateProps', {'readOnly': True})
+        editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
+            .run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
     ui.button('Net devices', on_click=dialog.open, color='bg-red-800').tooltip('View network devices')
 
@@ -1749,8 +1749,8 @@ async def media_dev_view_page():
     :return:
     """
     with ui.dialog() as dialog, ui.card():
-        editor = ui.json_editor({'content': {'json': Utils.dev_list}})
-        editor.run_editor_method('updateProps', {'readOnly': True})
+        editor = ui.json_editor({'content': {'json': Utils.dev_list}}) \
+            .run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
     ui.button('Media devices', on_click=dialog.open, color='bg-red-800').tooltip('View Media devices')
 
@@ -2337,19 +2337,18 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
                 result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False)
                 editor_data = {}
                 if result is not None:
-                    preset_config = cfg.load(result[0])
-                    editor_data.update(preset_config)
-                    preset_rgb = preset_config.get('RGB')
+                    preset_config_r = cfg.load(result[0])
+                    preset_rgb = preset_config_r.get('RGB')
                     editor_data.update(preset_rgb)
-                    preset_flip = preset_config.get('FLIP')
+                    preset_flip = preset_config_r.get('FLIP')
                     editor_data.update(preset_flip)
-                    preset_scale = preset_config.get('SCALE')
+                    preset_scale = preset_config_r.get('SCALE')
                     editor_data.update(preset_scale)
-                    preset_filters = preset_config.get('FILTERS')
+                    preset_filters = preset_config_r.get('FILTERS')
                     editor_data.update(preset_filters)
-                    preset_auto = preset_config.get('AUTO')
+                    preset_auto = preset_config_r.get('AUTO')
                     editor_data.update(preset_auto)
-                    preset_gamma = preset_config.get('GAMMA')
+                    preset_gamma = preset_config_r.get('GAMMA')
                     editor_data.update(preset_gamma)
 
                     with ui.expansion('See values'):
@@ -2359,16 +2358,16 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
                     with ui.row():
                         ui.button('OK', on_click=apply_preset)
                 else:
-                    preset_config = 'None'
-                ui.label(f'Preset to apply: {preset_config}')
+                    preset_config_r = 'None'
+                ui.label(f'Preset to apply: {preset_config_r}')
     else:
-        preset_config = cfg.load(f'config/presets/filter/{class_name}/' + file_name)
-        preset_rgb = preset_config.get('RGB')
-        preset_flip = preset_config.get('FLIP')
-        preset_scale = preset_config.get('SCALE')
-        preset_filters = preset_config.get('FILTERS')
-        preset_auto = preset_config.get('AUTO')
-        preset_gamma = preset_config.get('GAMMA')
+        preset_config_r = cfg.load(f'config/presets/filter/{class_name}/' + file_name)
+        preset_rgb = preset_config_r.get('RGB')
+        preset_flip = preset_config_r.get('FLIP')
+        preset_scale = preset_config_r.get('SCALE')
+        preset_filters = preset_config_r.get('FILTERS')
+        preset_auto = preset_config_r.get('AUTO')
+        preset_gamma = preset_config_r.get('GAMMA')
         apply_preset()
 
 
@@ -2483,10 +2482,10 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
                 result = await LocalFilePicker(f'config/presets/cast/{class_name}', multiple=False)
                 if result is not None:
                     editor_data = {}
-                    preset_config = cfg.load(result[0])
-                    preset_general = preset_config.get('GENERAL')
+                    preset_config_r = cfg.load(result[0])
+                    preset_general = preset_config_r.get('GENERAL')
                     editor_data.update(preset_general)
-                    preset_multicast = preset_config.get('MULTICAST')
+                    preset_multicast = preset_config_r.get('MULTICAST')
                     editor_data.update(preset_multicast)
 
                     with ui.expansion('See values'):
@@ -2496,12 +2495,12 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
                     with ui.row():
                         ui.button('OK', on_click=apply_preset)
                 else:
-                    preset_config = 'None'
-                ui.label(f'Preset to apply: {preset_config}')
+                    preset_config_r = 'None'
+                ui.label(f'Preset to apply: {preset_config_r}')
     else:
-        preset_config = cfg.load(f'config/presets/cast/{class_name}/' + file_name)
-        preset_general = preset_config.get('GENERAL')
-        preset_multicast = preset_config.get('MULTICAST')
+        preset_config_r = cfg.load(f'config/presets/cast/{class_name}/' + file_name)
+        preset_general = preset_config_r.get('GENERAL')
+        preset_multicast = preset_config_r.get('MULTICAST')
         apply_preset()
 
 
@@ -2798,11 +2797,11 @@ async def action_to_casts(class_name, cast_name, action, clear, execute, exp_ite
 
 
 async def show_thread_info():
-    with ui.dialog() as dialog, ui.card():
-        dialog.props(add='transition-show="slide-down" transition-hide="slide-up"')
+    dialog = ui.dialog().props(add='transition-show="slide-down" transition-hide="slide-up"')
+    with dialog, ui.card():
         cast_info = util_casts_info()
-        editor = ui.json_editor({'content': {'json': cast_info}})
-        editor.run_editor_method('updateProps', {'readOnly': True})
+        editor = ui.json_editor({'content': {'json': cast_info}}) \
+            .run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
         dialog.open()
 
@@ -2969,10 +2968,11 @@ async def discovery_media_notify():
     media_dev_view_page.refresh()
 
 
-async def init_cast(class_obj, log_ui=None):
+async def init_cast(class_obj, clog_ui=None):
     """
     Run the cast and refresh the cast view
     :param class_obj:
+    :param clog_ui:
     :return:
     """
     class_obj.cast(shared_buffer=t_data_buffer)
