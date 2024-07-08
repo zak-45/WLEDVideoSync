@@ -677,7 +677,7 @@ async def apply_preset_api(class_name: str = Path(description=f'Class name, shou
         raise HTTPException(status_code=400,
                             detail=f"Invalid class name: {class_name}")
     try:
-        result = await load_preset(class_name=class_name, interactive=False, file_name=file_name)
+        result = await load_filter_preset(class_name=class_name, interactive=False, file_name=file_name)
         if result is False:
             raise HTTPException(status_code=400,
                                 detail=f"Apply preset return value : {result}")
@@ -954,8 +954,8 @@ async def main_page():
                 # presets
                 with ui.row().classes('self-center'):
 
-                    manage_presets('Desktop')
-                    manage_presets('Media')
+                    manage_filter_presets('Desktop')
+                    manage_filter_presets('Media')
 
                 # refreshable
                 with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
@@ -1277,7 +1277,9 @@ async def main_page_desktop():
     exp_param = ui.expansion('Parameters', icon='settings', value=True)
     with exp_param.classes('w-full bg-sky-800'):
 
-        await cast_icon(Desktop)
+        with ui.row():
+            await cast_icon(Desktop)
+            manage_cast_presets('Desktop')
 
         with ui.row():
             ui.table(columns=columns_a, rows=rows_a).classes('w-60')
@@ -1418,8 +1420,8 @@ async def main_page_desktop():
 
         with ui.dialog() as dialog, ui.card():
             win_title = Utils.windows_titles()
-            editor = ui.json_editor({'content': {'json': win_title}})
-            editor.run_editor_method('updateProps', {'readOnly': True})
+            editor = ui.json_editor({'content': {'json': win_title}}) \
+                .run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog.close, color='red')
         ui.button('Win TITLES', on_click=dialog.open, color='bg-red-800').tooltip('View windows titles')
 
@@ -1477,7 +1479,9 @@ async def main_page_media():
     media_exp_param = ui.expansion('Parameters', icon='settings', value=True)
     with media_exp_param.classes('w-full bg-sky-800'):
 
-        await cast_icon(Media)
+        with ui.row(wrap=False):
+            await cast_icon(Media)
+            manage_cast_presets('Media')
 
         with ui.row():
             ui.table(columns=columns_a, rows=rows_a).classes('w-60')
@@ -1727,7 +1731,7 @@ async def media_dev_view_page():
 
 
 """
-helpers
+helpers /Commons
 """
 
 
@@ -2200,72 +2204,73 @@ def display_codecs():
         editor.run_editor_method('updateProps', {'readOnly': True})
 
 
-def manage_presets(class_name):
+"""
+Filter preset mgr
+"""
+
+
+def manage_filter_presets(class_name):
     """ Manage presets"""
-    ui.button('save preset', on_click=lambda: save_preset(class_name)).classes('w-20')
-    ui.button('load preset', on_click=lambda: load_preset(class_name)).classes('w-20')
+    ui.button('save preset', on_click=lambda: save_filter_preset(class_name)).classes('w-20')
+    ui.button('load preset', on_click=lambda: load_filter_preset(class_name)).classes('w-20')
 
 
-async def save_preset(class_name):
+async def save_filter_preset(class_name):
     """ save preset to ini file """
 
     def save_file(f_name):
-        f_name = './config/presets/' + f_name + '.ini'
 
-        if os.path.isfile(f_name):
-
-            ui.notification(f'Preset {f_name} already exist ', type='warning')
-
-        elif f_name == ' ' or f_name is None:
-
+        if f_name == ' ' or f_name is None or f_name == '':
             ui.notification(f'Preset name could not be blank :  {f_name}', type='negative')
 
         else:
+            f_name = f'./config/presets/filter/{class_name}/' + f_name + '.ini'
+            if os.path.isfile(f_name):
+                ui.notification(f'Preset {f_name} already exist ', type='warning')
 
-            class_obj = globals()[class_name]
-            preset = configparser.ConfigParser()
+            else:
+                class_obj = globals()[class_name]
+                preset = configparser.ConfigParser()
 
-            preset['RGB'] = {}
-            preset['RGB']['balance_r'] = str(class_obj.balance_r)
-            preset['RGB']['balance_g'] = str(class_obj.balance_g)
-            preset['RGB']['balance_b'] = str(class_obj.balance_b)
-            preset['SCALE'] = {}
-            preset['SCALE']['scale_width'] = str(class_obj.scale_width)
-            preset['SCALE']['scale_height'] = str(class_obj.scale_height)
-            preset['FLIP'] = {}
-            preset['FLIP']['flip'] = str(class_obj.flip)
-            preset['FLIP']['flip_vh'] = str(class_obj.flip_vh)
-            preset['FILTERS'] = {}
-            preset['FILTERS']['saturation'] = str(class_obj.saturation)
-            preset['FILTERS']['brightness'] = str(class_obj.brightness)
-            preset['FILTERS']['contrast'] = str(class_obj.contrast)
-            preset['FILTERS']['sharpen'] = str(class_obj.sharpen)
-            preset['AUTO'] = {}
-            preset['AUTO']['auto_bright'] = str(class_obj.auto_bright)
-            preset['AUTO']['clip_hist_percent'] = str(class_obj.clip_hist_percent)
-            preset['GAMMA'] = {}
-            preset['GAMMA']['gamma'] = str(class_obj.gamma)
+                preset['RGB'] = {}
+                preset['RGB']['balance_r'] = str(class_obj.balance_r)
+                preset['RGB']['balance_g'] = str(class_obj.balance_g)
+                preset['RGB']['balance_b'] = str(class_obj.balance_b)
+                preset['SCALE'] = {}
+                preset['SCALE']['scale_width'] = str(class_obj.scale_width)
+                preset['SCALE']['scale_height'] = str(class_obj.scale_height)
+                preset['FLIP'] = {}
+                preset['FLIP']['flip'] = str(class_obj.flip)
+                preset['FLIP']['flip_vh'] = str(class_obj.flip_vh)
+                preset['FILTERS'] = {}
+                preset['FILTERS']['saturation'] = str(class_obj.saturation)
+                preset['FILTERS']['brightness'] = str(class_obj.brightness)
+                preset['FILTERS']['contrast'] = str(class_obj.contrast)
+                preset['FILTERS']['sharpen'] = str(class_obj.sharpen)
+                preset['AUTO'] = {}
+                preset['AUTO']['auto_bright'] = str(class_obj.auto_bright)
+                preset['AUTO']['clip_hist_percent'] = str(class_obj.clip_hist_percent)
+                preset['GAMMA'] = {}
+                preset['GAMMA']['gamma'] = str(class_obj.gamma)
 
-            with open(f_name, 'w') as configfile:  # save
-                preset.write(configfile)
+                with open(f_name, 'w') as configfile:  # save
+                    preset.write(configfile)
 
-            dialog.close()
-            ui.notification(f'Preset saved for {class_name} as {f_name}')
+                dialog.close()
+                ui.notification(f'Preset saved for {class_name} as {f_name}')
 
     with ui.dialog() as dialog:
         dialog.open()
         with ui.card():
             ui.label(class_name).classes('self-center')
             ui.separator()
-            file_name = ui.input('Enter name',
-                                 placeholder='preset name',
-                                 validation=lambda value: 'Too short' if len(value) < 2 else None)
+            file_name = ui.input('Enter name', placeholder='preset name')
             with ui.row():
                 ui.button('OK', on_click=lambda: save_file(file_name.value))
                 ui.button('Cancel', on_click=dialog.close)
 
 
-async def load_preset(class_name, interactive=True, file_name=None):
+async def load_filter_preset(class_name, interactive=True, file_name=None):
     """ load a preset """
 
     if class_name not in ['Desktop', 'Media']:
@@ -2288,10 +2293,12 @@ async def load_preset(class_name, interactive=True, file_name=None):
             class_obj.auto_bright = str2bool(preset_auto['auto_bright'])
             class_obj.clip_hist_percent = int(preset_auto['clip_hist_percent'])
             class_obj.gamma = float(preset_gamma['gamma'])
+            ui.notify('Preset applied', type='info')
 
         except Exception as error:
             logger.error(traceback.format_exc())
             logger.error(f'Error to apply preset : {error}')
+            ui.notify('Error to apply Preset', type='negative', position='center')
 
     if interactive:
         with ui.dialog() as dialog:
@@ -2300,23 +2307,35 @@ async def load_preset(class_name, interactive=True, file_name=None):
                 ui.label(class_name).classes('self-center')
                 ui.separator()
                 ui.button('EXIT', on_click=dialog.close)
-                result = await LocalFilePicker('config/presets', multiple=False)
+                result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False)
+                editor_data = {}
                 if result is not None:
                     preset_config = cfg.load(result[0])
+                    editor_data.update(preset_config)
                     preset_rgb = preset_config.get('RGB')
+                    editor_data.update(preset_rgb)
                     preset_flip = preset_config.get('FLIP')
+                    editor_data.update(preset_flip)
                     preset_scale = preset_config.get('SCALE')
+                    editor_data.update(preset_scale)
                     preset_filters = preset_config.get('FILTERS')
+                    editor_data.update(preset_filters)
                     preset_auto = preset_config.get('AUTO')
+                    editor_data.update(preset_auto)
                     preset_gamma = preset_config.get('GAMMA')
+                    editor_data.update(preset_gamma)
+
+                    with ui.expansion('See values'):
+                        editor = ui.json_editor({'content': {'json': editor_data}}) \
+                            .run_editor_method('updateProps', {'readOnly': True})
 
                     with ui.row():
                         ui.button('OK', on_click=apply_preset)
                 else:
                     preset_config = 'None'
-                ui.label(f'Preset to load: {preset_config}')
+                ui.label(f'Preset to apply: {preset_config}')
     else:
-        preset_config = cfg.load('config/presets/' + file_name)
+        preset_config = cfg.load(f'config/presets/filter/{class_name}/' + file_name)
         preset_rgb = preset_config.get('RGB')
         preset_flip = preset_config.get('FLIP')
         preset_scale = preset_config.get('SCALE')
@@ -2324,6 +2343,143 @@ async def load_preset(class_name, interactive=True, file_name=None):
         preset_auto = preset_config.get('AUTO')
         preset_gamma = preset_config.get('GAMMA')
         apply_preset()
+
+
+"""
+Filter preset mgr
+"""
+
+"""
+Cast preset mgr
+"""
+
+
+def manage_cast_presets(class_name):
+    """ Manage presets"""
+    ui.button('save preset', on_click=lambda: save_cast_preset(class_name)).classes('w-20')
+    ui.button('load preset', on_click=lambda: load_cast_preset(class_name)).classes('w-20')
+
+
+async def save_cast_preset(class_name):
+    """ save preset to ini file """
+
+    def save_file(f_name):
+
+        if f_name == ' ' or f_name is None or f_name == '':
+            ui.notification(f'Preset name could not be blank :  {f_name}', type='negative')
+
+        else:
+            f_name = f'./config/presets/cast/{class_name}/' + f_name + '.ini'
+            if os.path.isfile(f_name):
+                ui.notification(f'Preset {f_name} already exist ', type='warning')
+
+            else:
+
+                class_obj = globals()[class_name]
+                preset = configparser.ConfigParser()
+
+                preset['GENERAL'] = {}
+                preset['GENERAL']['rate'] = str(class_obj.rate)
+                preset['GENERAL']['stopcast'] = str(class_obj.stopcast)
+                preset['GENERAL']['scale_width'] = str(class_obj.scale_width)
+                preset['GENERAL']['scale_height'] = str(class_obj.scale_height)
+                preset['GENERAL']['wled'] = str(class_obj.wled)
+                preset['GENERAL']['wled_live'] = str(class_obj.wled_live)
+                preset['GENERAL']['host'] = str(class_obj.host)
+                preset['GENERAL']['viinput'] = str(class_obj.viinput)
+                preset['MULTICAST'] = {}
+                preset['MULTICAST']['multicast'] = str(class_obj.multicast)
+                preset['MULTICAST']['cast_x'] = str(class_obj.cast_x)
+                preset['MULTICAST']['cast_y'] = str(class_obj.cast_y)
+                preset['MULTICAST']['cast_devices'] = str(class_obj.cast_devices)
+
+                with open(f_name, 'w') as configfile:  # save
+                    preset.write(configfile)
+
+                dialog.close()
+                ui.notification(f'Preset saved for {class_name} as {f_name}')
+
+    with ui.dialog() as dialog:
+        dialog.open()
+        with ui.card():
+            ui.label(class_name).classes('self-center')
+            ui.separator()
+            file_name = ui.input('Enter name', placeholder='preset name')
+
+            with ui.row():
+                ui.button('OK', on_click=lambda: save_file(file_name.value))
+                ui.button('Cancel', on_click=dialog.close)
+
+
+async def load_cast_preset(class_name, interactive=True, file_name=None):
+    """ load a preset """
+
+    if class_name not in ['Desktop', 'Media']:
+        return False
+
+    def apply_preset():
+        try:
+            class_obj = globals()[class_name]
+            class_obj.rate = int(preset_general['rate'])
+            class_obj.stopcast = str2bool(preset_general['stopcast'])
+            class_obj.scale_width = int(preset_general['scale_width'])
+            class_obj.scale_height = int(preset_general['scale_height'])
+            class_obj.wled = str2bool(preset_general['wled'])
+            class_obj.wled_live = str2bool(preset_general['wled_live'])
+            class_obj.host = preset_general['host']
+
+            try:
+                viinput = int(preset_general['viinput'])
+            except ValueError:
+                viinput = str(preset_general['viinput'])
+
+            class_obj.viinput = viinput
+
+            class_obj.multicast = str2bool(preset_multicast['multicast'])
+            class_obj.cast_x = int(preset_multicast['cast_x'])
+            class_obj.cast_y = int(preset_multicast['cast_y'])
+            class_obj.cast_devices = eval(preset_multicast['cast_devices'])
+            ui.notify('Preset applied', type='info')
+
+        except Exception as error:
+            logger.error(traceback.format_exc())
+            logger.error(f'Error to apply preset : {error}')
+            ui.notify('Error to apply Preset', type='negative', position='center')
+
+    if interactive:
+        with ui.dialog() as dialog:
+            dialog.open()
+            with ui.card().classes('self-center'):
+                ui.label(class_name).classes('self-center')
+                ui.separator()
+                ui.button('EXIT', on_click=dialog.close)
+                result = await LocalFilePicker(f'config/presets/cast/{class_name}', multiple=False)
+                if result is not None:
+                    editor_data = {}
+                    preset_config = cfg.load(result[0])
+                    preset_general = preset_config.get('GENERAL')
+                    editor_data.update(preset_general)
+                    preset_multicast = preset_config.get('MULTICAST')
+                    editor_data.update(preset_multicast)
+
+                    with ui.expansion('See values'):
+                        editor = ui.json_editor({'content': {'json': editor_data}}) \
+                            .run_editor_method('updateProps', {'readOnly': True})
+
+                    with ui.row():
+                        ui.button('OK', on_click=apply_preset)
+                else:
+                    preset_config = 'None'
+                ui.label(f'Preset to apply: {preset_config}')
+    else:
+        preset_config = cfg.load(f'config/presets/cast/{class_name}/' + file_name)
+        preset_general = preset_config.get('GENERAL')
+        preset_multicast = preset_config.get('MULTICAST')
+        apply_preset()
+
+"""
+END Cast preset mgr
+"""
 
 
 async def player_cast(source):
