@@ -1903,6 +1903,8 @@ async def media_filters():
 
 
 async def desktop_filters():
+    """ desktop filter page creation"""
+
     with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
         ui.label('Filters/Effects Desktop')
         with ui.row().classes('w-44'):
@@ -2616,7 +2618,7 @@ async def cast_manage_page():
                 .style('cursor: pointer') \
                 .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
 
-            animated_card = animate(ui.card, animation_name_out="fadeInUp", duration=2)
+            animated_card = animate(ui.card, animation_name_in="fadeInUp", duration=2)
             card = animated_card.create_element()
             card.classes('bg-red-900')
 

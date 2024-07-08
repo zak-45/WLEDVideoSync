@@ -747,11 +747,17 @@ class CASTMedia:
         if self.preview_top is True:
             top = 1
         cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        key_pressed = cv2.waitKey(1)
+        if key_pressed == ord("q"):
             win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
             if not win == 0:
                 cv2.destroyWindow(window_name)
             t_preview = False
+        elif key_pressed == ord("t"):
+            if self.text:
+                self.text = False
+            else:
+                self.text = True
 
         return t_preview
 
