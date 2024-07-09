@@ -1414,7 +1414,7 @@ async def main_page_desktop():
                         # put fixed size for preview
                         img = Utils.resize_image(Desktop.frame_buffer[i], 640, 360)
                         img = Image.fromarray(img)
-                        light_box_image(i, img, '', '', Desktop, 'frame_buffer')
+                        await light_box_image(i, img, '', '', Desktop, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
                     await generate_carousel(Desktop)
 
@@ -1427,8 +1427,8 @@ async def main_page_desktop():
         # columns number  = cast_x, number of cards = cast_x * cast_y
         if Desktop.multicast:
             with ui.row():
-                multi_preview(Desktop)
-                cast_devices_view(Desktop)
+                await multi_preview(Desktop)
+                await cast_devices_view(Desktop)
             if len(Desktop.cast_frame_buffer) > 0:
                 with ui.grid(columns=Desktop.cast_x):
                     try:
@@ -1436,7 +1436,7 @@ async def main_page_desktop():
                             # put fixed size for preview
                             img = Utils.resize_image(Desktop.cast_frame_buffer[i], 640, 360)
                             img = Image.fromarray(img)
-                            light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
+                            await light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
                     except Exception as error:
                         logger.error(traceback.format_exc())
                         logger.error(f'An exception occurred: {error}')
@@ -1607,7 +1607,7 @@ async def main_page_media():
                         # put fixed size for preview
                         img = Utils.resize_image(Media.frame_buffer[i], 640, 360)
                         img = Image.fromarray(img)
-                        light_box_image(i, img, '', '', Media, 'frame_buffer')
+                        await light_box_image(i, img, '', '', Media, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
                     await generate_carousel(Media)
 
@@ -1620,8 +1620,8 @@ async def main_page_media():
         # columns number  = cast_x, number of cards = cast_x * cast_y
         if Media.multicast:
             with ui.row():
-                multi_preview(Media)
-                cast_devices_view(Media)
+                await multi_preview(Media)
+                await cast_devices_view(Media)
             if len(Media.cast_frame_buffer) > 0:
                 with ui.grid(columns=Media.cast_x):
                     try:
@@ -1629,7 +1629,7 @@ async def main_page_media():
                             # put fixed size for preview
                             img = Utils.resize_image(Media.cast_frame_buffer[i], 640, 360)
                             img = Image.fromarray(img)
-                            light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
+                            await light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
                     except Exception as error:
                         logger.error(traceback.format_exc())
                         logger.error(f'An exception occurred: {error}')
@@ -2231,25 +2231,25 @@ def select_chart_exe():
     return app_config['charts_exe']
 
 
-def player_media_info(player_media):
+async def player_media_info(player_media):
     with ui.dialog() as dialog:
         dialog.open()
-        editor = ui.json_editor({'content': {'json': Utils.get_media_info(player_media)}})
-        editor.run_editor_method('updateProps', {'readOnly': True, 'mode': 'table'})
+        editor = ui.json_editor({'content': {'json': Utils.get_media_info(player_media)}}) \
+            .run_editor_method('updateProps', {'readOnly': True, 'mode': 'table'})
 
 
-def display_formats():
+async def display_formats():
     with ui.dialog() as dialog:
         dialog.open()
-        editor = ui.json_editor({'content': {'json': Utils.list_formats()}})
-        editor.run_editor_method('updateProps', {'readOnly': True})
+        editor = ui.json_editor({'content': {'json': Utils.list_formats()}}) \
+            .run_editor_method('updateProps', {'readOnly': True})
 
 
-def display_codecs():
+async def display_codecs():
     with ui.dialog() as dialog:
         dialog.open()
-        editor = ui.json_editor({'content': {'json': Utils.list_codecs()}})
-        editor.run_editor_method('updateProps', {'readOnly': True})
+        editor = ui.json_editor({'content': {'json': Utils.list_codecs()}}) \
+            .run_editor_method('updateProps', {'readOnly': True})
 
 
 """
@@ -2322,6 +2322,7 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
     """ load a preset """
 
     if class_name not in ['Desktop', 'Media']:
+        logger.error(f'Unknown Class Name : {class_name}')
         return False
 
     def apply_preset():
@@ -2462,6 +2463,7 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
     """ load a preset """
 
     if class_name not in ['Desktop', 'Media']:
+        logger.error(f'Unknown Class Name : {class_name}')
         return False
 
     def apply_preset():
@@ -2544,7 +2546,7 @@ async def player_cast(source):
     CastAPI.player.play()
 
 
-def cast_device_manage(class_name):
+async def cast_device_manage(class_name):
     with ui.dialog() as dialog, ui.card().classes('w-1/2'):
         dialog.open()
         columns = [
@@ -3021,27 +3023,7 @@ async def show_notify(event: ValueChangeEventArguments):
     ui.notify(f'{name}: {event.value}')
 
 
-def table_page(columns_x, rows_y):
-    list_columns, list_rows = generate_table(columns_x, rows_y)
-    ui.table(columns=list_columns, rows=list_rows).props('separator="cell" hide-header')
-
-
-def generate_table(columns_x, rows_y):
-    # Generate columns
-    list_columns = [{'name': str(i), 'label': f'Label {i}', 'field': str(i)} for i in range(columns_x)]
-
-    # Generate rows
-    list_rows = []
-    for i in range(rows_y):
-        row = {'name': str(i)}
-        for j in range(columns_x):
-            row[str(j)] = str(i * columns_x + j)
-        list_rows.append(row)
-
-    return list_columns, list_rows
-
-
-def light_box_image(index, image, txt1, txt2, class_obj, buffer):
+async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
     """
     Provide basic 'lightbox' effect for image
     :param buffer:
@@ -3060,8 +3042,8 @@ def light_box_image(index, image, txt1, txt2, class_obj, buffer):
                     ui.label(txt2).classes('absolute-bottom text-subtitle2 text-center')
                 ui.label(str(index))
 
-            with ui.dialog() as dialog:
-                dialog.style('width: 800px')
+            dialog = ui.dialog().style('width: 800px')
+            with dialog:
                 ui.label(str(index)) \
                     .tailwind.font_weight('extrabold').text_color('red-600').background_color('orange-200')
                 with ui.interactive_image(image):
@@ -3086,13 +3068,13 @@ def light_box_image(index, image, txt1, txt2, class_obj, buffer):
             logger.error(f'An exception occurred: {error}')
 
 
-def multi_preview(class_name):
+async def multi_preview(class_name):
     """
     Generate matrix image preview for multicast
     :return:
     """
-    with ui.dialog() as dialog:
-        dialog.style('width: 200px')
+    dialog = ui.dialog().style('width: 200px')
+    with dialog:
         grid_col = ''
         for c in range(class_name.cast_x):
             grid_col += '1fr '
@@ -3104,13 +3086,13 @@ def multi_preview(class_name):
     ui.button('FULL', icon='preview', on_click=dialog.open).tooltip('View ALL images')
 
 
-def cast_devices_view(class_name):
+async def cast_devices_view(class_name):
     """
     view cast_devices list
     :return:
     """
-    with ui.dialog() as dialog:
-        dialog.style('width: 800px')
+    dialog = ui.dialog().style('width: 800px')
+    with dialog:
         with ui.card():
             with ui.grid(columns=3):
                 for i in range(len(class_name.cast_devices)):
@@ -3148,7 +3130,7 @@ async def check_yt(url):
     CastAPI.progress_bar.value = 0
     CastAPI.progress_bar.update()
 
-    async def get_size():
+    async def get_remain_bytes():
         while True:
             if Utils.yt_file_size_remain_bytes == 0:
                 break
@@ -3156,9 +3138,9 @@ async def check_yt(url):
             else:
                 CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
                 CastAPI.progress_bar.update()
-                await asyncio.sleep(1)
+                await asyncio.sleep(.5)
 
-    asyncio.create_task(get_size())
+    asyncio.create_task(get_remain_bytes())
 
     if 'https://youtu' in url:
         yt = await Utils.youtube(url, interactive=True)
@@ -3250,10 +3232,10 @@ END
 """
 if sys.platform != 'win32':
     logger.info('Remove tmp files')
-    for filename in PathLib("./tmp/").glob("*_file.*"):
-        filename.unlink()
+    for tmp_filename in PathLib("./tmp/").glob("*_file.*"):
+        tmp_filename.unlink()
 
     # remove yt files
     if str2bool(app_config['keep_yt']) is not True:
-        for filename in PathLib("./media/").glob("yt-tmp-*.*"):
-            filename.unlink()
+        for media_filename in PathLib("./media/").glob("yt-tmp-*.*"):
+            media_filename.unlink()
