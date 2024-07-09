@@ -54,9 +54,9 @@ from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
 from utils import ImageUtils
 from utils import LocalFilePicker
-from utils import ScreenAreaSelection as sas
+from utils import ScreenAreaSelection as Sa
 from utils import YtSearch
-from utils import AnimatedElement as animate
+from utils import AnimatedElement as Animate
 
 import ast
 
@@ -914,7 +914,7 @@ async def main_page():
     App info
     """
     if str2bool(custom_config['animate-ui']):
-        head_row_anim = animate(ui.row, animation_name_in='backInDown', duration=1)
+        head_row_anim = Animate(ui.row, animation_name_in='backInDown', duration=1)
         head_row = head_row_anim.create_element()
     else:
         head_row = ui.row()
@@ -1136,7 +1136,7 @@ async def video_player_page():
     Video player
     """
     if str2bool(custom_config['animate-ui']):
-        center_card_anim = animate(ui.card, animation_name_in='fadeInUp', duration=1)
+        center_card_anim = Animate(ui.card, animation_name_in='fadeInUp', duration=1)
         center_card = center_card_anim.create_element()
     else:
         center_card = ui.card()
@@ -1331,7 +1331,7 @@ async def main_page_desktop():
                 ui.label(str(Desktop.retry_number))
 
     if str2bool(custom_config['animate-ui']):
-        exp_edit_param_anim = animate(ui.expansion, animation_name_in='backInDown', duration=1)
+        exp_edit_param_anim = Animate(ui.expansion, animation_name_in='backInDown', duration=1)
         exp_edit_param = exp_edit_param_anim.create_element()
     else:
         exp_edit_param = ui.expansion()
@@ -1536,7 +1536,7 @@ async def main_page_media():
                 ui.label(str(Media.retry_number))
 
     if str2bool(custom_config['animate-ui']):
-        media_exp_edit_param_anim = animate(ui.expansion, animation_name_in='backInDown', duration=1)
+        media_exp_edit_param_anim = Animate(ui.expansion, animation_name_in='backInDown', duration=1)
         media_exp_edit_param = media_exp_edit_param_anim.create_element()
     else:
         media_exp_edit_param = ui.expansion()
@@ -1985,7 +1985,7 @@ async def youtube_search():
     """
 
     if str2bool(custom_config['animate-ui']):
-        animated_yt_area = animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
+        animated_yt_area = Animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
         yt_area = animated_yt_area.create_element()
     else:
         yt_area = ui.scroll_area()
@@ -2005,7 +2005,7 @@ async def youtube_clear_search():
     for area in CastAPI.search_areas:
         try:
             if str2bool(custom_config['animate-ui']):
-                animated_area = animate(area, animation_name_out="backOutUp", duration=1)
+                animated_area = Animate(area, animation_name_out="backOutUp", duration=1)
                 animated_area.delete_element(area)
             else:
                 area.delete()
@@ -2077,16 +2077,16 @@ async def create_cpu_chart():
 def select_sc_area():
     """ Draw rectangle to monitor x """
     monitor = int(Desktop.monitor_number)
-    thread = threading.Thread(target=sas.run, args=(monitor,))
+    thread = threading.Thread(target=Sa.run, args=(monitor,))
     thread.daemon = True
     thread.start()
     thread.join()
     # For Calculate crop parameters
-    Desktop.screen_coordinates = sas.screen_coordinates
+    Desktop.screen_coordinates = Sa.screen_coordinates
     #
-    logger.info(f'Monitor infos: {sas.monitors}')
-    logger.info(f'Area Coordinates: {sas.coordinates} from monitor {monitor}')
-    logger.info(f'Area screen Coordinates: {sas.screen_coordinates} from monitor {monitor}')
+    logger.info(f'Monitor infos: {Sa.monitors}')
+    logger.info(f'Area Coordinates: {Sa.coordinates} from monitor {monitor}')
+    logger.info(f'Area screen Coordinates: {Sa.screen_coordinates} from monitor {monitor}')
 
 
 async def slider_sync():
@@ -2639,7 +2639,7 @@ async def cast_manage_page():
                 .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
 
             if str2bool(custom_config['animate-ui']):
-                animated_card = animate(ui.card, animation_name_in="fadeInUp", duration=2)
+                animated_card = Animate(ui.card, animation_name_in="fadeInUp", duration=2)
                 card = animated_card.create_element()
             else:
                 card = ui.card()
@@ -2697,7 +2697,7 @@ async def tabs_info_page():
         ui.add_head_html("""
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
         """)
-        tabs_anim = animate(ui.tabs, animation_name_in='backInDown', duration=1)
+        tabs_anim = Animate(ui.tabs, animation_name_in='backInDown', duration=1)
         tabs = tabs_anim.create_element()
     else:
         tabs = ui.tabs()
