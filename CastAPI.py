@@ -887,10 +887,11 @@ async def main_page():
 
     apply_custom()
 
-    # Add Animate.css to the HTML head
-    ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
-    """)
+    if str2bool(custom_config['animate-ui']):
+        # Add Animate.css to the HTML head
+        ui.add_head_html("""
+        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        """)
 
     """
     timer created on main page run to refresh datas
@@ -912,9 +913,11 @@ async def main_page():
     """
     App info
     """
-
-    head_row_anim = animate(ui.row, animation_name_in='backInDown', duration=1)
-    head_row = head_row_anim.create_element()
+    if str2bool(custom_config['animate-ui']):
+        head_row_anim = animate(ui.row, animation_name_in='backInDown', duration=1)
+        head_row = head_row_anim.create_element()
+    else:
+        head_row = ui.row()
 
     with head_row.classes('w-full no-wrap'):
         ui.label('DESKTOP: Cast Screen / Window content').classes('bg-slate-400 w-1/3')
@@ -1101,7 +1104,7 @@ async def main_page_cast_manage():
     """
     Main tabs infos
     """
-    tabs_info_page()
+    await tabs_info_page()
 
     """
     Footer
@@ -1119,10 +1122,11 @@ async def run_video_player_page():
     """
     timer created on video creation to refresh datas
     """
-    # Add Animate.css to the HTML head
-    ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
-    """)
+    if str2bool(custom_config['animate-ui']):
+        # Add Animate.css to the HTML head
+        ui.add_head_html("""
+        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        """)
     player_timer = ui.timer(int(app_config['timer']), callback=player_timer_action)
     await video_player_page()
 
@@ -1131,9 +1135,11 @@ async def video_player_page():
     """
     Video player
     """
-
-    center_card_anim = animate(ui.card, animation_name_in='fadeInUp', duration=1)
-    center_card = center_card_anim.create_element()
+    if str2bool(custom_config['animate-ui']):
+        center_card_anim = animate(ui.card, animation_name_in='fadeInUp', duration=1)
+        center_card = center_card_anim.create_element()
+    else:
+        center_card = ui.card()
 
     center_card.classes('self-center w-2/3 bg-gray-500')
     with center_card:
@@ -1255,10 +1261,11 @@ async def main_page_desktop():
         ui.button('MAIN', on_click=lambda: ui.navigate.to('/'), icon='home')
         ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
 
-    # Add Animate.css to the HTML head
-    ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
-    """)
+    if str2bool(custom_config['animate-ui']):
+        # Add Animate.css to the HTML head
+        ui.add_head_html("""
+        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        """)
 
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
@@ -1323,8 +1330,11 @@ async def main_page_desktop():
                 ui.label('No of Packet:')
                 ui.label(str(Desktop.retry_number))
 
-    exp_edit_param_anim = animate(ui.expansion, animation_name_in='backInDown', duration=1)
-    exp_edit_param = exp_edit_param_anim.create_element()
+    if str2bool(custom_config['animate-ui']):
+        exp_edit_param_anim = animate(ui.expansion, animation_name_in='backInDown', duration=1)
+        exp_edit_param = exp_edit_param_anim.create_element()
+    else:
+        exp_edit_param = ui.expansion()
 
     exp_edit_param.text = 'Edit'
     exp_edit_param.props(add="icon='edit'")
@@ -1466,10 +1476,11 @@ async def main_page_media():
         ui.button('Main', on_click=lambda: ui.navigate.to('/'), icon='home')
         ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
 
-    # Add Animate.css to the HTML head
-    ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
-    """)
+    if str2bool(custom_config['animate-ui']):
+        # Add Animate.css to the HTML head
+        ui.add_head_html("""
+        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        """)
 
     columns_a = [
         {'name': 'rate', 'label': 'FPS', 'field': 'rate', 'align': 'left'},
@@ -1524,8 +1535,11 @@ async def main_page_media():
                 ui.label('No of Packet:')
                 ui.label(str(Media.retry_number))
 
-    media_exp_edit_param_anim = animate(ui.expansion, animation_name_in='backInDown', duration=1)
-    media_exp_edit_param = media_exp_edit_param_anim.create_element()
+    if str2bool(custom_config['animate-ui']):
+        media_exp_edit_param_anim = animate(ui.expansion, animation_name_in='backInDown', duration=1)
+        media_exp_edit_param = media_exp_edit_param_anim.create_element()
+    else:
+        media_exp_edit_param = ui.expansion()
 
     media_exp_edit_param.text = 'Edit'
     media_exp_edit_param.props(add="icon='edit'")
@@ -1679,10 +1693,11 @@ async def ws_page():
 @ui.page('/info')
 async def info_page():
     """ simple cast info page from systray """
-    # Add Animate.css to the HTML head
-    ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
-    """)
+    if str2bool(custom_config['animate-ui']):
+        # Add Animate.css to the HTML head
+        ui.add_head_html("""
+        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        """)
     info_timer = ui.timer(int(app_config['timer']), callback=info_timer_action)
     await cast_manage_page()
 
@@ -1690,7 +1705,7 @@ async def info_page():
 @ui.page('/DetailsInfo')
 async def manage_info_page():
     """ Manage cast page from systray """
-    tabs_info_page()
+    await tabs_info_page()
 
 
 @ui.page('/RunCharts')
@@ -1969,8 +1984,11 @@ async def youtube_search():
     display search result from pytube
     """
 
-    animated_yt_area = animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
-    yt_area = animated_yt_area.create_element()
+    if str2bool(custom_config['animate-ui']):
+        animated_yt_area = animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
+        yt_area = animated_yt_area.create_element()
+    else:
+        yt_area = ui.scroll_area()
 
     yt_area.bind_visibility_from(CastAPI.player)
     yt_area.classes('w-full border')
@@ -1986,8 +2004,11 @@ async def youtube_clear_search():
 
     for area in CastAPI.search_areas:
         try:
-            animated_area = animate(area, animation_name_out="backOutUp", duration=1)
-            animated_area.delete_element(area)
+            if str2bool(custom_config['animate-ui']):
+                animated_area = animate(area, animation_name_out="backOutUp", duration=1)
+                animated_area.delete_element(area)
+            else:
+                area.delete()
         except Exception as error:
             logger.error(traceback.format_exc())
             logger.error(f'Search area does not exist: {error}')
@@ -2617,8 +2638,11 @@ async def cast_manage_page():
                 .style('cursor: pointer') \
                 .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
 
-            animated_card = animate(ui.card, animation_name_in="fadeInUp", duration=2)
-            card = animated_card.create_element()
+            if str2bool(custom_config['animate-ui']):
+                animated_card = animate(ui.card, animation_name_in="fadeInUp", duration=2)
+                card = animated_card.create_element()
+            else:
+                card = ui.card()
             card.classes('bg-red-900')
 
             with card:
@@ -2650,7 +2674,7 @@ async def cast_manage_page():
                     CastAPI.media_cast_run.set_visibility(False)
 
 
-def tabs_info_page():
+async def tabs_info_page():
     # grab data
     info_data = util_casts_info()
     # take only info data key
@@ -2668,13 +2692,15 @@ def tabs_info_page():
     Tabs
     """
 
-    # Add Animate.css to the HTML head
-    ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
-    """)
-
-    tabs_anim = animate(ui.tabs, animation_name_in='backInDown', duration=1)
-    tabs = tabs_anim.create_element()
+    if str2bool(custom_config['animate-ui']):
+        # Add Animate.css to the HTML head
+        ui.add_head_html("""
+        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        """)
+        tabs_anim = animate(ui.tabs, animation_name_in='backInDown', duration=1)
+        tabs = tabs_anim.create_element()
+    else:
+        tabs = ui.tabs()
 
     tabs.classes('w-full')
     with tabs:
@@ -2729,8 +2755,8 @@ def tabs_info_page():
                                                                                              execute=True)
                                                   ).classes('shadow-lg').tooltip('Stop Preview')
 
-                                editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
-                                editor.run_editor_method('updateProps', {'readOnly': True})
+                                editor = ui.json_editor({'content': {'json': info_data[item]["data"]}}) \
+                                    .run_editor_method('updateProps', {'readOnly': True})
 
         with ui.tab_panel(p_media):
             if not media_threads:
@@ -2780,8 +2806,8 @@ def tabs_info_page():
                                                                   execute=True)) \
                                             .classes('shadow-lg').tooltip('Stop Preview')
 
-                                editor = ui.json_editor({'content': {'json': info_data[item]["data"]}})
-                                editor.run_editor_method('updateProps', {'readOnly': True})
+                                editor = ui.json_editor({'content': {'json': info_data[item]["data"]}}) \
+                                    .run_editor_method('updateProps', {'readOnly': True})
 
 
 async def action_to_casts(class_name, cast_name, action, clear, execute, exp_item=None):
@@ -2808,7 +2834,7 @@ async def show_thread_info():
 
 async def root_timer_action():
     """
-    timer occur only when root page is active '/'
+    timer action occur only when root page is active '/'
     :return:
     """
 
@@ -2822,7 +2848,7 @@ async def root_timer_action():
 
 async def info_timer_action():
     """
-    timer occur only when info page is active '/info'
+    timer action occur only when info page is active '/info'
     :return:
     """
 
@@ -2831,7 +2857,7 @@ async def info_timer_action():
 
 async def player_timer_action():
     """
-    timer occur when player is displayed
+    timer action occur when player is displayed
     :return:
     """
     await sync_button()
