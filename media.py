@@ -28,6 +28,7 @@ import numpy as np
 
 import cv2
 import time
+from datetime import datetime
 import os
 
 import cfg_load as cfg
@@ -41,7 +42,6 @@ import concurrent.futures
 
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, ImageUtils
-
 
 """
 When this env var exist, this mean run from the one-file executable.
@@ -69,7 +69,6 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         if str2bool(config_text) is True:
             cfg_text = True
 
-
 """
 Class definition
 """
@@ -83,6 +82,7 @@ class CASTMedia:
 
     cast_names = []  # should contain running Cast instances
     cast_name_todo = []  # list of cast names with action that need to execute from 'to do'
+    cast_name_to_sync = []  # list of cast names to sync time
 
     t_exit_event = threading.Event()  # thread listen event fo exit
     t_todo_event = threading.Event()  # thread listen event for task to do
@@ -138,8 +138,10 @@ class CASTMedia:
         self.player_time: float = 0
         self.player_duration: float = 0
         self.player_sync = False
+        self.all_sync = False
         self.auto_sync = False
         self.auto_sync_delay: int = 30
+        self.cast_sleep = False  # instruct cast to wait until all sync
         self.reset_total = False
 
         if sys.platform.lower() == 'win32':
@@ -184,6 +186,9 @@ class CASTMedia:
             delay: float = 1.0 / self.rate  # Calculate the time interval between frames
 
         t_todo_stop = False
+
+        self.player_sync = False
+        CASTMedia.cast_name_to_sync = []
 
         """
         Cast devices
@@ -353,6 +358,9 @@ class CASTMedia:
 
         CASTMedia.cast_names.append(t_name)
         CASTMedia.count += 1
+        # Calculate the current time
+        current_time = time.time()
+        auto_expected_time = current_time
 
         logger.info(f'{t_name} Cast running ...')
 
@@ -372,26 +380,77 @@ class CASTMedia:
 
             #  read media
             if length != 1:
-                if self.cast_skip_frames != 0:
-                    frame_number = frame_count + self.cast_skip_frames
-                    media.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
-                    self.cast_skip_frames = 0
-                else:
-                    if self.player_sync:
-                        media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
-                        self.player_sync = False
-                        logger.info(f'{t_name} Sync Cast to time :{self.player_time}')
-                    else:
-                        if self.auto_sync:
-                            # sync every x seconds, 5  sec first time
-                            if ((frame_count % (self.rate * self.auto_sync_delay) == 0 or
-                                 (frame_count == (self.rate * 5)) and
-                                    self.player_time != 0 and
-                                    frame_count > 0)):
-                                time_to_set = self.player_time
-                                media.set(cv2.CAP_PROP_POS_MSEC, time_to_set)
-                                logger.info(f'{t_name} Auto Sync Cast to time :{time_to_set}')
+                # Sync all casts to player_time if requested
+                # manage concurrent access to the list by using lock feature
+                # set value if auto sync is true
+                if self.auto_sync is True:
+                    # sync every x seconds
+                    if current_time - auto_expected_time >= self.auto_sync_delay:
+                        time_to_set = self.player_time
+                        self.player_sync = True
+                        CASTMedia.t_media_lock.acquire()
+                        logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
+                        if len(CASTMedia.cast_name_to_sync) == 0 and self.all_sync is True:
+                            CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
+                            logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
+                        CASTMedia.t_media_lock.release()
+                        logger.info(f'{t_name} Auto Sync Cast to time :{time_to_set}')
+                        auto_expected_time = current_time
 
+                if self.all_sync is True and self.player_sync is True:
+
+                    CASTMedia.t_media_lock.acquire()
+
+                    if len(CASTMedia.cast_name_to_sync) == 0 and self.auto_sync is False:
+                        CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
+                        logger.debug(f"{t_name}  Got these to sync  :{CASTMedia.cast_name_to_sync}")
+
+                    # take only cast not already synced
+                    if t_name in CASTMedia.cast_name_to_sync:
+                        self.cast_sleep = True
+                        # remove thread name from cast to sync list
+                        logging.debug(f"{t_name} remove from all sync")
+                        CASTMedia.cast_name_to_sync.remove(t_name)
+                        # sync cast
+                        if self.player_sync is True:
+                            media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
+                            logger.info(f'{t_name} ALL Sync Cast to time :{self.player_time}')
+
+                        logger.debug(f'{t_name} synced')
+
+                        # if no more, reset all_sync
+                        if len(CASTMedia.cast_name_to_sync) == 0:
+                            if self.auto_sync is False:
+                                self.all_sync = False
+                            self.player_sync = False
+                            self.cast_sleep = False
+                            logger.debug(f"{t_name} All sync finished")
+
+                    CASTMedia.t_media_lock.release()
+
+                    logger.debug(f'{t_name} go to sleep if necessary')
+
+                    while self.cast_sleep is True and self.player_sync is True:
+                        time.sleep(.01)
+                        logger.debug(f"{t_name}  Cast sleep : {self.cast_sleep}")
+
+                    logger.debug(f"{t_name} exit sleep")
+
+                else:
+
+                    if self.cast_skip_frames != 0:
+                        # this work only for the cast that first read the value
+                        frame_number = frame_count + self.cast_skip_frames
+                        media.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
+                        self.cast_skip_frames = 0
+                    else:
+                        # this work only for the cast that first read the value
+                        if self.player_sync:
+                            media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
+                            self.player_sync = False
+                            logger.info(f'{t_name} Sync Cast to time :{self.player_time}')
+
+                # read frame
                 success, frame = media.read()
                 if not success:
                     if frame_count != length:
@@ -651,6 +710,8 @@ class CASTMedia:
             logger.info(f'{t_name} Release Media')
             media.release()
 
+        self.all_sync = False
+
         logger.info("_" * 50)
         logger.info(f'Cast {t_name} end using this media: {t_viinput}')
         logger.info(f'Using these devices: {str(ip_addresses)}')
@@ -713,7 +774,7 @@ class CASTMedia:
 
                 # Top
                 text_to_show = f"WLEDVideoSync: {server_port} - "
-                text_to_show += "FPS: " + str(1/fps) + " - "
+                text_to_show += "FPS: " + str(1 / fps) + " - "
                 text_to_show += "FRAME: " + str(frame_count) + " - "
                 text_to_show += "TOTAL: " + str(CASTMedia.total_frame)
             else:

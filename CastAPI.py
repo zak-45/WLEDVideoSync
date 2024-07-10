@@ -541,7 +541,7 @@ def util_casts_info():
     for item in child_list:
         # wait and get info dict from a thread
         try:
-            data = t_data_buffer.get(timeout=1)
+            data = t_data_buffer.get(timeout=10)
             child_info_data.update(data)
             t_data_buffer.task_done()
         except queue.Empty:
@@ -1190,6 +1190,11 @@ async def video_player_page():
                 .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)') \
                 .bind_visibility_from(CastAPI.player)
 
+            media_all_sync = ui.checkbox('Sync All') \
+                .bind_value(Media,'all_sync') \
+                .tooltip('Sync All Casts with selected time') \
+                .bind_visibility_from(CastAPI.player)
+
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
@@ -1649,6 +1654,7 @@ async def main_page_media():
         await net_view_page()
 
         await media_dev_view_page()
+
         ui.button('Run discovery', on_click=discovery_media_notify, color='bg-red-800')
 
 
@@ -1792,7 +1798,7 @@ async def sync_button():
             CastAPI.slider_button_sync.props(add="color='red'")
             CastAPI.slider_button_sync.text = Media.player_time
 
-    if Media.player_sync is False and CastAPI.type_sync != 'none':
+    elif Media.player_sync is False and CastAPI.type_sync != 'none':
         CastAPI.media_button_sync.props(add="color=green")
         CastAPI.media_button_sync.classes(remove="animate-pulse")
         CastAPI.media_button_sync.text = "VSYNC"
@@ -3130,7 +3136,7 @@ async def check_yt(url):
     CastAPI.progress_bar.value = 0
     CastAPI.progress_bar.update()
 
-    async def get_remain_bytes():
+    async def get_size():
         while True:
             if Utils.yt_file_size_remain_bytes == 0:
                 break
@@ -3140,7 +3146,7 @@ async def check_yt(url):
                 CastAPI.progress_bar.update()
                 await asyncio.sleep(.5)
 
-    asyncio.create_task(get_remain_bytes())
+    asyncio.create_task(get_size())
 
     if 'https://youtu' in url:
         yt = await Utils.youtube(url, interactive=True)
