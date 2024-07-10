@@ -188,6 +188,7 @@ class CASTMedia:
         t_todo_stop = False
 
         self.player_sync = False
+        self.cast_sleep = False
         CASTMedia.cast_name_to_sync = []
 
         """

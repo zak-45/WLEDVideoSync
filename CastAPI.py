@@ -1145,7 +1145,7 @@ async def video_player_page():
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
-        CastAPI.player.on('timeupdate', lambda: player_time())
+        CastAPI.player.on('timeupdate', lambda: get_player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
         CastAPI.player.set_visibility(True)
         ui.label() \
@@ -2123,7 +2123,7 @@ async def reset_sync():
 
 async def player_sync():
     """ Set Sync cast to True """
-    current_time = await ui.run_javascript("document.querySelector('video').currentTime")
+    current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
     ui.notify(f'Player Time : {current_time}')
     Media.player_time = current_time * 1000
     Media.player_sync = True
@@ -2136,15 +2136,14 @@ async def player_sync():
     CastAPI.slider_button_sync.text = "TSYNC"
 
 
-async def player_time():
+async def get_player_time():
     """
     Retrieve current play time from the Player
     Set player time for Cast to Sync
     """
     if CastAPI.type_sync == 'player' or CastAPI.last_type_sync == 'player':
-        current_time = await ui.run_javascript("document.querySelector('video').currentTime")
-        if current_time > 0:
-            Media.player_time = current_time * 1000
+        current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
+        Media.player_time = round(current_time * 1000)
 
 
 async def player_duration():
@@ -2152,7 +2151,7 @@ async def player_duration():
     Return current duration time from the Player
     Set slider max value to video duration
     """
-    current_duration = await ui.run_javascript("document.querySelector('video').duration")
+    current_duration = await ui.run_javascript("document.querySelector('video').duration", timeout=2)
     ui.notify(f'Video duration:{current_duration}')
     Media.player_duration = current_duration
     CastAPI.video_slider._props["max"] = current_duration
