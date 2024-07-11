@@ -1148,10 +1148,16 @@ async def video_player_page():
         CastAPI.player.on('timeupdate', lambda: get_player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
         CastAPI.player.set_visibility(True)
-        ui.label() \
-            .bind_text_from(Media, 'player_time') \
-            .classes('self-center bg-slate-400') \
-            .bind_visibility_from(CastAPI.player)
+        with ui.row(wrap=False).classes('self-center'):
+            ui.label() \
+                .bind_text_from(Media, 'player_time') \
+                .classes('self-center bg-slate-400') \
+                .bind_visibility_from(CastAPI.player)
+            ui.label('+')
+            ui.label() \
+                .bind_text_from(Media, 'add_all_sync_delay') \
+                .classes('self-center bg-slate-400') \
+                .bind_visibility_from(CastAPI.player)
         CastAPI.video_slider = ui.slider(min=0, max=7200, step=1, value=0,
                                          on_change=lambda var: slider_time(var.value)).props('label-always') \
             .bind_visibility_from(CastAPI.player)
@@ -1182,12 +1188,17 @@ async def video_player_page():
 
             media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'auto_sync_delay') \
-                .tooltip('Delay in sec to sync') \
+                .tooltip('Interval in sec to auto sync') \
                 .bind_visibility_from(CastAPI.player)
 
             media_auto_sync = ui.checkbox('Auto Sync') \
                 .bind_value(Media, 'auto_sync') \
-                .tooltip('Auto Sync Cast with Video Player Time every x sec (based on delay set)') \
+                .tooltip('Auto Sync Cast with Time every x sec (based on interval set)') \
+                .bind_visibility_from(CastAPI.player)
+
+            media_all_sync_delay = ui.knob(1, min=-2000, max=2000, step=1, show_value=True).classes('bg-gray') \
+                .bind_value(Media, 'add_all_sync_delay') \
+                .tooltip('Add Delay in ms to all sync') \
                 .bind_visibility_from(CastAPI.player)
 
             media_all_sync = ui.checkbox('Sync All') \

@@ -133,17 +133,19 @@ class CASTMedia:
         self.cast_devices: list = []
         self.cast_frame_buffer = []
         self.ddp_multi_names = []
-        self.force_mjpeg = False
-        self.cast_skip_frames: int = 0
-        self.player_time: float = 0
-        self.player_duration: float = 0
-        self.player_sync = False
-        self.all_sync = False
-        self.auto_sync = False
-        self.auto_sync_delay: int = 30
+        self.force_mjpeg = False  # force cv2 to use this format, webcam help on linux
+        self.cast_skip_frames: int = 0  # at cast init , number of frame to skip before start read
+        self.player_time: float = 0  # time retrieved from the video or slider
+        self.player_duration: float = 0  # play time of the video
+        self.player_sync = False  # do we want to sync
+        self.all_sync = False  # sync all running casts
+        self.auto_sync = False  # automatic sync depend on the delay
+        self.auto_sync_delay: int = 30  # delay for auto sync
+        self.add_all_sync_delay = 0  # additional time to add to player_time during all sync +/-
         self.cast_sleep = False  # instruct cast to wait until all sync
-        self.reset_total = False
+        self.reset_total = False  # reset total number of frame / packets on monitor
 
+        # preview window default depend on platform
         if sys.platform.lower() == 'win32':
             self.preview = True
         elif sys.platform.lower() == 'linux':
@@ -389,19 +391,25 @@ class CASTMedia:
                     if current_time - auto_expected_time >= self.auto_sync_delay:
                         time_to_set = self.player_time
                         self.player_sync = True
-                        CASTMedia.t_media_lock.acquire()
                         logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
-                        if len(CASTMedia.cast_name_to_sync) == 0 and self.all_sync is True:
+
+                        CASTMedia.t_media_lock.acquire()
+                        if self.all_sync is True and len(CASTMedia.cast_name_to_sync) == 0:
+                            # populate cast names to sync
                             CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
+                            # add additional time, can help if cast number > 0 to try to avoid small decay
+                            time_to_set += self.add_all_sync_delay
                             logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
                         CASTMedia.t_media_lock.release()
-                        logger.info(f'{t_name} Auto Sync Cast to time :{time_to_set}')
+
                         auto_expected_time = current_time
+                        logger.info(f'{t_name} Auto Sync Cast to time :{time_to_set}')
 
                 if self.all_sync is True and self.player_sync is True:
 
                     CASTMedia.t_media_lock.acquire()
 
+                    # populate cast names to sync if necessary
                     if len(CASTMedia.cast_name_to_sync) == 0 and self.auto_sync is False:
                         CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
                         logger.debug(f"{t_name}  Got these to sync  :{CASTMedia.cast_name_to_sync}")
@@ -430,11 +438,9 @@ class CASTMedia:
                     CASTMedia.t_media_lock.release()
 
                     logger.debug(f'{t_name} go to sleep if necessary')
-
-                    while self.cast_sleep is True and self.player_sync is True:
-                        time.sleep(.01)
-                        logger.debug(f"{t_name}  Cast sleep : {self.cast_sleep}")
-
+                    while self.cast_sleep is True and self.player_sync is True and len(CASTMedia.cast_name_to_sync) > 0:
+                        # sleep until all remaining casts sync
+                        time.sleep(.001)
                     logger.debug(f"{t_name} exit sleep")
 
                 else:
@@ -712,6 +718,7 @@ class CASTMedia:
             media.release()
 
         self.all_sync = False
+        self.cast_sleep = False
 
         logger.info("_" * 50)
         logger.info(f'Cast {t_name} end using this media: {t_viinput}')
