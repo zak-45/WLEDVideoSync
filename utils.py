@@ -1049,10 +1049,11 @@ class YtSearch:
         self.yt_search = None
         ui.separator()
         with ui.row():
-            my_search = ui.input('YT search')
-            my_search.on('focusout', lambda: self.search_youtube(my_search.value))
-            ui.icon('restore_page', color='blue', size='sm') \
-                .style('cursor: pointer').tooltip('Click to Validate/Refresh')
+            self.my_search = ui.input('YT search')
+            # my_search.on('focusout', lambda: self.search_youtube(my_search.value))
+            self.search_button = ui.button('search', icon='restore_page', color='blue') \
+                .tooltip('Click to Validate')
+            self.search_button.on_click(lambda: self.search_youtube(self.my_search.value))
             self.next_button = ui.button('More', on_click=lambda: self.next_search(self.yt_search))
             self.next_button.set_visibility(False)
             self.number_found = ui.label(f'Result : ')
@@ -1081,8 +1082,7 @@ class YtSearch:
     async def search_youtube(self, data):
         """ Search for YT on input """
 
-        # clear as we recreate, sure, not optimal
-        self.search_result.clear()
+        await ui.context.client.connected()
         # Search
         self.yt_search = PySearch(data)
         # number found
@@ -1101,6 +1101,7 @@ class YtSearch:
     async def next_search(self, search_obj):
         """ Next if you want more """
 
+        await ui.context.client.connected()
         if len(search_obj.results) > 0:
             # search additional data
             await run.io_bound(search_obj.get_next_results)
@@ -1116,6 +1117,7 @@ class YtSearch:
     async def create_yt_page(self, data):
         """ Create YT search result """
         # clear first
+        # clear as we recreate, sure, not optimal
         self.search_result.clear()
         # create
         with self.search_result.classes('w-full self-center'):
@@ -1205,4 +1207,3 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     # create logger
     logger = CASTUtils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
-
