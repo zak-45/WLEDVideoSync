@@ -6,7 +6,7 @@
 #    nuitka-project: --macos-create-app-bundle
 # nuitka-project-if: {OS} == "Windows":
 #    nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
-# nuitka-project-if: debug == "On"
+# nuitka-project-if: debug == "On":
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 #
