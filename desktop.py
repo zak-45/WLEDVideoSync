@@ -745,7 +745,7 @@ class CASTDesktop:
 
         return t_preview
 
-    def cast(self, shared_buffer=None, log_ui: classmethod = None):
+    def cast(self, shared_buffer=None, log_ui=None):
         """
             this will run the cast into another thread
             avoiding blocking the main one
