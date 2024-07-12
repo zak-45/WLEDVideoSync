@@ -1,0 +1,65 @@
+2024-07-12 19:48:28 - WLEDLogger - INFO - utils.py:595 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-12 19:48:28 - WLEDLogger - INFO - utils.py:595 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-12 19:48:28 - WLEDLogger - INFO - WLEDVideoSync.py:540 - <module> - WLEDVideoSync Started...Server run in separate process
+2024-07-12 19:48:28 - WLEDLogger - INFO - WLEDVideoSync.py:545 - <module> - Starting webview loop...
+2024-07-12 19:48:29 - WLEDLogger - INFO - utils.py:595 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-07-12 19:48:29 - WLEDLogger - INFO - utils.py:595 - setup_logging - Logging configured using config/logging.ini for WLEDLogger
+2024-07-12 19:48:30 - WLEDLogger - INFO - utils.py:595 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-07-12 19:48:30 - WLEDLogger - INFO - utils.py:595 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-07-12 19:48:30 - WLEDLogger - INFO - utils.py:595 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-07-12 19:48:30 - WLEDLogger - INFO - utils.py:595 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-07-12 19:48:30 - uvicorn.error - INFO - server.py:82 - _serve - Started server process [21700]
+2024-07-12 19:48:30 - uvicorn.error - INFO - on.py:48 - startup - Waiting for application startup.
+2024-07-12 19:48:30 - WLEDLogger - INFO - CastAPI.py:152 - init_actions - apply : default.ini to filter Media
+2024-07-12 19:48:30 - WLEDLogger - INFO - CastAPI.py:155 - init_actions - apply : default.ini to filter Desktop
+2024-07-12 19:48:30 - WLEDLogger - INFO - CastAPI.py:158 - init_actions - apply : default.ini to cast Media
+2024-07-12 19:48:30 - WLEDLogger - INFO - CastAPI.py:161 - init_actions - apply : default.ini to cast Desktop
+2024-07-12 19:48:30 - uvicorn.error - INFO - on.py:62 - startup - Application startup complete.
+2024-07-12 19:48:30 - uvicorn.error - INFO - server.py:214 - _log_started_message - Uvicorn running on http://localhost:8000 (Press CTRL+C to quit)
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:56926 - "GET /WLEDVideoSync HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56931 - "GET /_nicegui/1.4.28/static/quasar.prod.css HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56930 - "GET /_nicegui/1.4.28/static/fonts.css HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:56926 - "GET /_nicegui/1.4.28/static/nicegui.css HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56932 - "GET /_nicegui/1.4.28/static/es-module-shims.js HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56933 - "GET /_nicegui/1.4.28/static/socket.io.min.js HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56930 - "GET /_nicegui/1.4.28/static/tailwindcss.min.js HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56932 - "GET /_nicegui/1.4.28/static/quasar.umd.prod.js HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:56926 - "GET /_nicegui/1.4.28/static/vue.global.prod.js HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56933 - "GET /_nicegui/1.4.28/static/nicegui.js HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56931 - "GET /_nicegui/1.4.28/static/lang/en-US.umd.prod.js HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:56926 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/image.js HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56932 - "GET /_nicegui/1.4.28/static/fonts/01d40c9fd448face.woff2 HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56931 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/dark_mode.js HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56930 - "GET /_nicegui/1.4.28/static/fonts/62873223be6b39e0.woff2 HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 56934) - "WebSocket /socket.io/?client_id=5aca6f56-26e2-4148-94c3-6666c581c621&EIO=4&transport=websocket" [accepted]
+2024-07-12 19:48:30 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56930 - "GET /_nicegui/1.4.28/static/fonts/e62204447c1ed92a.woff2 HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56930 - "GET /_nicegui/auto/static/0743467cf76cb1ac687c66648da682f3/intro.gif HTTP/1.1" 200
+2024-07-12 19:48:30 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56931 - "GET /favicon.ico HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56930 - "GET / HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56930 - "GET /assets/css/animate.min.css HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56933 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/video.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56931 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/query.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56930 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/colors.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:56926 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/link.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56932 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/timer.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:56927 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/input.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56933 - "GET /_nicegui/1.4.28/libraries/c3db162d662122eb0e7be8cd04794fac/echarts.min.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56930 - "GET /_nicegui/1.4.28/components/ef7d009c7e812da10f8aa235954c0e12/refreshable.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56931 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/echart.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:56926 - "GET /_nicegui/1.4.28/components/b0b17893a51343979e2090deee730538/json_editor.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56931 - "GET /_nicegui/1.4.28/static/utils/dynamic_properties.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:56926 - "GET /_nicegui/1.4.28/libraries/26e9f3a0290f18f1ab866f8d6faa7480/index.js HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.error - INFO - websockets_impl.py:273 - asgi_send - ('::1', 56935) - "WebSocket /socket.io/?client_id=c1f89436-262d-43f2-acb6-16c905d6482f&EIO=4&transport=websocket" [accepted]
+2024-07-12 19:48:36 - uvicorn.error - INFO - server.py:642 - handshake - connection open
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - 127.0.0.1:56926 - "GET /_nicegui/1.4.28/static/fonts/0c19a63c7528cc1a.woff2 HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56931 - "GET /_nicegui/auto/static/97e67a593d8134ce8fdd2f5c89d79cfc/Source-intro.png HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56933 - "GET /assets/favicon.ico HTTP/1.1" 200
+2024-07-12 19:48:36 - uvicorn.access - INFO - httptools_impl.py:466 - send - ::1:56933 - "GET /_nicegui/auto/media/0723d1213f22f66dd3bfa209f5a96cae/Big_Buck_Bunny_360_10s_1MB.mp4 HTTP/1.1" 206
+2024-07-12 19:48:42 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-07-12 19:48:42 - WLEDLogger - INFO - WLEDVideoSync.py:551 - <module> - Starting systray loop...
+2024-07-12 19:48:46 - WLEDLogger - INFO - WLEDVideoSync.py:565 - <module> - Remove tmp files
+2024-07-12 19:48:46 - WLEDLogger - INFO - WLEDVideoSync.py:585 - <module> - Stop app
+2024-07-12 19:48:46 - WLEDLogger - INFO - WLEDVideoSync.py:588 - <module> - Server is stopped
+2024-07-12 19:48:46 - WLEDLogger - INFO - WLEDVideoSync.py:602 - <module> - Application Terminated
