@@ -24,3 +24,6 @@ ping3==4.0.8
 requests==2.32.3
 screeninfo==0.8.1
 concurrent-log-handler==0.9.25
+
+av==12.2.0
+argostranslate==1.9.6

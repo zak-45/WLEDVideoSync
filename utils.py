@@ -57,6 +57,9 @@ from screeninfo import get_monitors
 import cfg_load as cfg
 from str2bool import str2bool
 
+import argostranslate.package
+import argostranslate.translate
+
 
 class CASTUtils:
     dev_list: list = []
@@ -1194,6 +1197,58 @@ class AnimatedElement:
         element.classes(f'animate__animated {animation_class} {duration_class}')
         # Delay the actual deletion to allow the animation to complete
         ui.timer(self.duration, lambda: element.delete(), once=True)
+
+
+class Translator:
+    """
+    This use Argos Translate:
+      https://github.com/argosopentech/argos-translate
+
+    Create an instance of the Translator class with the desired source and target language codes.
+    Use the 'translate' method to translate text.
+        translator = Translator("en", "es")
+        translated_text = translator.translate("Hello World")
+
+    """
+    def __init__(self, from_lang="en", to_lang="en"):
+        # should be always 'en' for the app
+        self.from_lang = from_lang
+        # determine to_lang, priority if set in config file
+        cfg_lang = CASTUtils.read_config()[1]['lang']
+        if cfg_lang != '':
+            self.to_lang = cfg_lang
+        else:
+            self.to_lang = to_lang
+
+    def install_language_package(self):
+        # Update package index and get available packages
+        argostranslate.package.update_package_index()
+        available_packages = argostranslate.package.get_available_packages()
+
+        try:
+            # Find and install the required package
+            package_to_install = next(
+                filter(
+                    lambda x: x.from_code == self.from_lang and x.to_code == self.to_lang, available_packages
+                )
+            )
+            argostranslate.package.install_from_path(package_to_install.download())
+            logger.info(f'Language will be translated from : {self.from_lang} to: {self.to_lang}')
+
+        except Exception as error:
+            logger.error(f'Language(s) not available from : {self.from_lang} to: {self.to_lang}, error: {error}')
+            logger.info('Fallback to "en"')
+            self.from_lang = "en"
+            self.to_lang = "en"
+
+    def translate(self, text):
+        """ return translation, in case of any failure, return original"""
+        try:
+            if self.to_lang != self.from_lang:
+                text = argostranslate.translate.translate(text, self.from_lang, self.to_lang)
+                return text
+        except:
+            return text
 
 
 """
