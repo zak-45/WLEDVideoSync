@@ -157,10 +157,10 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
                     logger.info(tra.translate(f"apply : {preset_config['filter_desktop']} to filter Desktop"))
                     await load_filter_preset('Desktop', interactive=False, file_name=preset_config['filter_desktop'])
                 if preset_config['cast_media'] != '':
-                    logger.info(tra.translate(f"apply : {preset_config['cast_media']} to cast Media"))
+                    logger.info(tra.translate(f"apply : {preset_config['cast_media']} to 'Cast' Media"))
                     await load_cast_preset('Media', interactive=False, file_name=preset_config['cast_media'])
                 if preset_config['cast_desktop'] != '':
-                    logger.info(tra.translate(f"apply : {preset_config['cast_desktop']} to cast Desktop"))
+                    logger.info(tra.translate(f"apply : {preset_config['cast_desktop']} to 'Cast' Desktop"))
                     await load_cast_preset('Desktop', interactive=False, file_name=preset_config['cast_desktop'])
 
         except Exception as error:
@@ -547,7 +547,7 @@ def util_casts_info():
             child_info_data.update(data)
             t_data_buffer.task_done()
         except queue.Empty:
-            logger.error(tra.translate('Empty queue, but Desktop/Media cast names list not'))
+            logger.error(tra.translate('Empty queue, but Desktop/Media "Cast" names list not'))
             break
 
     # sort the dict
@@ -612,9 +612,9 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
                             detail=f"Invalid class name: {class_name}")
 
     if cast_name is not None and cast_name not in class_obj.cast_names:
-        logger.error(tra.translate(f"Invalid Cast name: {cast_name}"))
+        logger.error(tra.translate(f"Invalid name: {cast_name}"))
         raise HTTPException(status_code=400,
-                            detail=f"Invalid Cast name: {cast_name}")
+                            detail=f"Invalid name: {cast_name}")
 
     if not hasattr(class_obj, 'cast_name_todo'):
         logger.error(tra.translate(f"Invalid attribute name"))
@@ -852,7 +852,7 @@ async def cast_image(image_number,
     elif buffer_name.lower() == 'multicast':
         images_buffer = class_obj.cast_frame_buffer
 
-    logger.info(tra.translate('Cast one image from buffer'))
+    logger.info(tra.translate('"Cast" one image from buffer'))
     logger.info(tra.translate(f"image number: {image_number}"))
     logger.info(tra.translate(f"device number: {device_number}"))
     logger.info(tra.translate(f"FPS: {fps_number}"))
@@ -922,10 +922,10 @@ async def main_page():
         head_row = ui.row()
 
     with head_row.classes('w-full no-wrap'):
-        ui.label('DESKTOP: Cast Screen / Window content').classes('bg-slate-400 w-1/3')
+        ui.label('DESKTOP: "Cast" Screen / Window content').classes('bg-slate-400 w-1/3')
         with ui.card().classes('bg-slate-400 w-1/3'):
             ui.image("/assets/favicon.ico").classes('self-center').tailwind.border_width('8').width('8')
-        ui.label('MEDIA: Cast Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
+        ui.label('MEDIA: "Cast" Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
 
     ui.separator().classes('mt-6')
     ui.image("./assets/Source-intro.png").classes('self-center').tailwind.border_width('8').width('1/6')
@@ -953,7 +953,7 @@ async def main_page():
                 # end refreshable
 
                 ui.icon('info') \
-                    .tooltip('Show details') \
+                    .tooltip(tra.translate('Show details')) \
                     .on('click', lambda: show_thread_info()) \
                     .classes('self-center') \
                     .style('cursor: pointer')
@@ -962,24 +962,24 @@ async def main_page():
                         with ui.row():
                             ui.checkbox('') \
                                 .bind_value(Desktop, 'preview_top', forward=lambda value: value) \
-                                .tooltip('Preview always on TOP').classes('w-10')
+                                .tooltip(tra.translate('Preview always on TOP')).classes('w-10')
                             ui.knob(640, min=8, max=1920, step=1, show_value=True) \
                                 .bind_value(Desktop, 'preview_w') \
-                                .tooltip('Preview size W').classes('w-10')
+                                .tooltip(tra.translate('Preview size W')).classes('w-10')
                             ui.knob(360, min=8, max=1080, step=1, show_value=True) \
                                 .bind_value(Desktop, 'preview_h') \
-                                .tooltip('Preview size H').classes('w-10')
+                                .tooltip(tra.translate('Preview size H')).classes('w-10')
                     with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
                         with ui.row():
                             ui.knob(640, min=8, max=1920, step=1, show_value=True) \
                                 .bind_value(Media, 'preview_w') \
-                                .tooltip('Preview size W').classes('w-10')
+                                .tooltip(tra.translate('Preview size W')).classes('w-10')
                             ui.knob(360, min=8, max=1080, step=1, show_value=True) \
                                 .bind_value(Media, 'preview_h') \
-                                .tooltip('Preview size H').classes('w-10')
+                                .tooltip(tra.translate('Preview size H')).classes('w-10')
                             ui.checkbox('') \
                                 .bind_value(Media, 'preview_top', forward=lambda value: value) \
-                                .tooltip('Preview always on TOP').classes('w-10')
+                                .tooltip(tra.translate('Preview always on TOP')).classes('w-10')
 
                 # presets
                 with ui.row().classes('self-center'):
@@ -992,7 +992,7 @@ async def main_page():
                     if str2bool(custom_config['system-stats']):
                         with ui.row().classes('self-center'):
                             frame_count = ui.number(prefix='F.').bind_value_from(CastAPI, 'total_frame')
-                            frame_count.tooltip('TOTAL Frames')
+                            frame_count.tooltip(tra.translate('TOTAL Frames'))
                             frame_count.classes("w-20")
                             frame_count.props(remove='type=number', add='borderless')
 
@@ -1001,7 +1001,7 @@ async def main_page():
                             total_reset_icon.on('click', lambda: reset_total())
 
                             packet_count = ui.number(prefix='P.').bind_value_from(CastAPI, 'total_packet')
-                            packet_count.tooltip('TOTAL DDP Packets')
+                            packet_count.tooltip(tra.translate('TOTAL DDP Packets'))
                             packet_count.classes("w-20")
                             packet_count.props(remove='type=number', add='borderless')
 
@@ -1038,7 +1038,7 @@ async def main_page():
             ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
             # clear / load log file
             with ui.row().classes('w-full'):
-                ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log')
+                ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip(tra.translate('Erase the log'))
                 dialog = ui.dialog().classes('w-full') \
                     .props(add='maximized transition-show="slide-up" transition-hide="slide-down"')
                 with dialog, ui.card().classes('w-full'):
@@ -1048,13 +1048,13 @@ async def main_page():
                     ui.button('Close', on_click=dialog.close, color='red')
                     log_area = ui.textarea(value=log_data).classes('w-full').props(add='bg-color=blue-grey-4')
                     log_area.props(add="rows='25'")
-                ui.button('See Log file', on_click=dialog.open).tooltip('Load log data from file')
+                ui.button('See Log file', on_click=dialog.open).tooltip(tra.translate('Load log data from file'))
 
     """
     Footer : usefully links help
     """
     with ui.footer(value=False).classes('items-center bg-red-900') as footer:
-        ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip('Change Layout Mode')
+        ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip(tra.translate('Change Layout Mode'))
 
         await net_view_page()
 
@@ -1077,7 +1077,7 @@ async def main_page():
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \
                 .classes('text-white')
             ui.link('On-Line Help', 'https://github.com/zak-45/WLEDVideoSync', new_tab=True) \
-                .tooltip('Go to documentation').classes('text-white')
+                .tooltip(tra.translate('Go to documentation')).classes('text-white')
 
     with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
         ui.button(on_click=footer.toggle).props('fab icon=contact_support')
@@ -1095,7 +1095,7 @@ async def main_page_cast_manage():
     Header with button menu
     """
     with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
-        ui.label('Cast Manage').classes('text-white text-lg font-medium')
+        ui.label('"Cast" Manage').classes('text-white text-lg font-medium')
         ui.icon('video_settings')
         # Create buttons
         ui.button('MAIN', on_click=lambda: ui.navigate.to('/'), icon='home')
@@ -1146,7 +1146,7 @@ async def video_player_page():
     center_card.classes('self-center w-2/3 bg-gray-500')
     with center_card:
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
-        CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
+        CastAPI.player.on('ended', lambda _: ui.notify(tra.translate('Video playback completed.')))
         CastAPI.player.on('timeupdate', lambda: get_player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
         CastAPI.player.set_visibility(True)
@@ -1167,15 +1167,15 @@ async def video_player_page():
         with ui.row().classes('self-center'):
             media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'cast_skip_frames') \
-                .tooltip('+ / - frames to CAST') \
+                .tooltip(tra.translate('+ / - frames to CAST')) \
                 .bind_visibility_from(CastAPI.player)
 
             CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync, color='green') \
-                .tooltip('Sync Cast with Video Player Time') \
+                .tooltip(tra.translate('Sync "Cast" with Video Player Time')) \
                 .bind_visibility_from(CastAPI.player)
 
             media_reset_icon = ui.icon('restore')
-            media_reset_icon.tooltip('sync Reset')
+            media_reset_icon.tooltip(tra.translate('sync Reset'))
             media_reset_icon.style("cursor: pointer")
             media_reset_icon.on('click', lambda: reset_sync())
             media_reset_icon.bind_visibility_from(CastAPI.player)
@@ -1185,56 +1185,56 @@ async def video_player_page():
             """ End Refresh """
 
             CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync, color='green') \
-                .tooltip('Sync Cast with Slider Time') \
+                .tooltip(tra.translate('Sync "Cast" with the slider time')) \
                 .bind_visibility_from(CastAPI.player)
 
             media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'auto_sync_delay') \
-                .tooltip('Interval in sec to auto sync') \
+                .tooltip(tra.translate('Interval in sec to auto sync')) \
                 .bind_visibility_from(CastAPI.player)
 
             media_auto_sync = ui.checkbox('Auto Sync') \
                 .bind_value(Media, 'auto_sync') \
-                .tooltip('Auto Sync Cast with Time every x sec (based on interval set)') \
+                .tooltip(tra.translate('Auto Sync "Cast" with Time every x sec (based on interval set)')) \
                 .bind_visibility_from(CastAPI.player)
 
             media_all_sync_delay = ui.knob(1, min=-2000, max=2000, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'add_all_sync_delay') \
-                .tooltip('Add Delay in ms to all sync') \
+                .tooltip(tra.translate('Add Delay in ms to all sync')) \
                 .bind_visibility_from(CastAPI.player)
 
             media_all_sync = ui.checkbox('Sync All') \
                 .bind_value(Media,'all_sync') \
-                .tooltip('Sync All Casts with selected time') \
+                .tooltip(tra.translate('Sync All Casts with selected time')) \
                 .bind_visibility_from(CastAPI.player)
 
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda visible=True: CastAPI.player.set_visibility(visible)) \
-                .tooltip("Show Video player")
+                .tooltip(tra.translate("Show Video player"))
 
             hide_player = ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda visible=False: CastAPI.player.set_visibility(visible)) \
-                .tooltip("Hide Video player")
+                .tooltip(tra.translate("Hide Video player"))
 
             cast_player = ui.icon('cast', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda: player_cast(CastAPI.player.source)) \
-                .tooltip('Cast Video') \
+                .tooltip(tra.translate('"Cast" Video')) \
                 .bind_visibility_from(CastAPI.player)
 
             media_info = ui.icon('info', size='sd') \
                 .style("cursor: pointer") \
                 .on('click', lambda: player_media_info(CastAPI.player.source)) \
-                .tooltip('Info') \
+                .tooltip(tra.translate('Info')) \
                 .bind_visibility_from(CastAPI.player)
 
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
                 .on('click', player_pick_file) \
-                .tooltip('Select audio / video file') \
+                .tooltip(tra.translate('Select audio / video file')) \
                 .bind_visibility_from(CastAPI.player)
 
             video_url = ui.input('Enter video Url / Path', placeholder='http://....') \
@@ -1362,7 +1362,7 @@ async def main_page_desktop():
     with exp_edit_param:
         with ui.row():
             ui.icon('restore_page', color='blue', size='sm') \
-                .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
+                .style('cursor: pointer').tooltip(tra.translate('Click to Validate/Refresh')) \
                 .on('click', lambda: ui.navigate.to('/Desktop'))
 
             with ui.card():
@@ -1388,9 +1388,9 @@ async def main_page_desktop():
                 with ui.row():
                     ui.number('', value=Desktop.monitor_number, min=0, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number') \
-                        .tooltip('Enter monitor number')
+                        .tooltip(tra.translate('Enter monitor number'))
                     ui.button('ScreenArea', on_click=select_sc_area) \
-                        .tooltip('Select area from monitor')
+                        .tooltip(tra.translate('Select area from monitor'))
 
             with ui.card():
                 new_vooutput = ui.input('Output', value=str(Desktop.vooutput))
@@ -1403,7 +1403,7 @@ async def main_page_desktop():
                 new_put_to_buffer = ui.input('Capture Frame', value=str(Desktop.put_to_buffer))
                 new_put_to_buffer.bind_value_to(Desktop, 'put_to_buffer', lambda value: str2bool(value))
                 new_frame_max = ui.number('Number to Capture', value=Desktop.frame_max, min=1, max=30, precision=0)
-                new_frame_max.tooltip('Max number of frame to capture')
+                new_frame_max.tooltip(tra.translate('Max number of frame to capture'))
                 new_frame_max.bind_value_to(Desktop, 'frame_max', lambda value: int(value or 0))
 
             with ui.card():
@@ -1415,7 +1415,7 @@ async def main_page_desktop():
                 new_cast_y.bind_value_to(Desktop, 'cast_y', lambda value: int(value or 0))
 
             with ui.card():
-                new_cast_devices = ui.input('Cast Devices', value=str(Desktop.cast_devices))
+                new_cast_devices = ui.input('"Cast" Devices', value=str(Desktop.cast_devices))
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Desktop', 'cast_devices', new_cast_devices.value))
                 ui.button('Manage', on_click=lambda: cast_device_manage(Desktop))
@@ -1476,7 +1476,7 @@ async def main_page_desktop():
             editor = ui.json_editor({'content': {'json': win_title}}) \
                 .run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog.close, color='red')
-        ui.button('Win TITLES', on_click=dialog.open, color='bg-red-800').tooltip('View windows titles')
+        ui.button('Win TITLES', on_click=dialog.open, color='bg-red-800').tooltip(tra.translate('View windows titles'))
 
 
 @ui.page('/Media')
@@ -1567,7 +1567,7 @@ async def main_page_media():
     with media_exp_edit_param:
         with ui.row():
             ui.icon('restore_page', color='blue', size='sm') \
-                .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
+                .style('cursor: pointer').tooltip(tra.translate('Click to Validate/Refresh')) \
                 .on('click', lambda: ui.navigate.to('/Media'))
 
             with ui.card():
@@ -1594,7 +1594,7 @@ async def main_page_media():
                 new_put_to_buffer = ui.input('Capture Frame', value=str(Media.put_to_buffer))
                 new_put_to_buffer.bind_value_to(Media, 'put_to_buffer', lambda value: str2bool(value))
                 new_frame_max = ui.number('Number to Capture', value=Media.frame_max, min=1, max=30, precision=0)
-                new_frame_max.tooltip('Max number of frame to capture')
+                new_frame_max.tooltip(tra.translate('Max number of frame to capture'))
                 new_frame_max.bind_value_to(Media, 'frame_max', lambda value: int(value or 0))
                 new_frame_index = ui.number('Seek to frame N°', value=Media.frame_index, min=0, precision=0)
                 new_frame_index.bind_value_to(Media, 'frame_index', lambda value: int(value or 0))
@@ -1608,7 +1608,7 @@ async def main_page_media():
                 new_cast_y.bind_value_to(Media, 'cast_y', lambda value: int(value or 0))
 
             with ui.card():
-                new_cast_devices = ui.input('Cast Devices', value=str(Media.cast_devices))
+                new_cast_devices = ui.input('"Cast" Devices', value=str(Media.cast_devices))
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Media', 'cast_devices', new_cast_devices.value))
                 ui.button('Manage', on_click=lambda: cast_device_manage(Media))
@@ -1758,9 +1758,9 @@ async def system_stats():
             CastAPI.cpu_chart.update()
 
     if CastAPI.cpu >= 65:
-        ui.notify('High CPU utilization', type='negative', close_button=True)
+        ui.notify(tra.translate('High CPU utilization'), type='negative', close_button=True)
     if CastAPI.ram >= 95:
-        ui.notify('High Memory utilization', type='negative', close_button=True)
+        ui.notify(tra.translate('High Memory utilization'), type='negative', close_button=True)
 
 
 @ui.refreshable
@@ -1773,7 +1773,7 @@ async def net_view_page():
         editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
             .run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('Net devices', on_click=dialog.open, color='bg-red-800').tooltip('View network devices')
+    ui.button('Net devices', on_click=dialog.open, color='bg-red-800').tooltip(tra.translate('View network devices'))
 
 
 @ui.refreshable
@@ -1786,7 +1786,7 @@ async def media_dev_view_page():
         editor = ui.json_editor({'content': {'json': Utils.dev_list}}) \
             .run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('Media devices', on_click=dialog.open, color='bg-red-800').tooltip('View Media devices')
+    ui.button('Media devices', on_click=dialog.open, color='bg-red-800').tooltip(tra.translate('View Media devices'))
 
 
 """
@@ -1866,12 +1866,12 @@ async def cast_icon(class_obj):
     def upd_value():
         class_obj.stopcast = False
         my_icon.classes(remove='animate-pulse')
-        ui.notify('Cast allowed', position='center', close_button=True, type='positive')
+        ui.notify(tra.translate('"Cast" allowed'), position='center', close_button=True, type='positive')
 
     cast_col = 'green' if class_obj.stopcast is False else 'yellow'
     my_icon = ui.icon('cast_connected', size='sm', color=cast_col) \
         .style('cursor: pointer') \
-        .tooltip('Click to authorize') \
+        .tooltip(tra.translate('Click to authorize')) \
         .on('click', lambda: (my_icon.props(add='color=green'), upd_value())) \
         .classes('animate-pulse')
 
@@ -1930,7 +1930,7 @@ async def media_filters():
                 .bind_value(Media, 'sharpen')
             ui.checkbox('auto') \
                 .bind_value(Media, 'auto_bright', forward=lambda value: value) \
-                .tooltip('Auto bri/contrast')
+                .tooltip(tra.translate('Auto bri/contrast'))
             ui.slider(min=0, max=100, step=1) \
                 .props('label-always') \
                 .bind_value(Media, 'clip_hist_percent')
@@ -1992,7 +1992,7 @@ async def desktop_filters():
                 .bind_value(Desktop, 'sharpen')
             ui.checkbox('auto') \
                 .bind_value(Desktop, 'auto_bright', forward=lambda value: value) \
-                .tooltip('Auto bri/contrast')
+                .tooltip(tra.translate('Auto bri/contrast'))
             ui.slider(min=0, max=100, step=1) \
                 .props('label-always') \
                 .bind_value(Desktop, 'clip_hist_percent')
@@ -2057,7 +2057,7 @@ async def reset_total():
                                         )
         ui.notify(result)
 
-    ui.notify('Reset Total')
+    ui.notify(tra.translate('Reset Total'))
 
 
 async def create_cpu_chart():
@@ -2111,7 +2111,7 @@ def select_sc_area():
 async def slider_sync():
     """ Set Sync Cast to True """
     current_time = CastAPI.video_slider.value
-    ui.notify(f'Slider Time : {current_time}')
+    ui.notify(tra.translate(f'Slider Time : {current_time}'))
     Media.player_time = current_time * 1000
     Media.player_sync = True
     CastAPI.type_sync = 'slider'
@@ -2131,14 +2131,14 @@ def slider_time(current_time):
 
 async def reset_sync():
     Media.player_sync = False
-    ui.notify('Reset Sync')
+    ui.notify(tra.translate('Reset Sync'))
 
 
 async def player_sync():
     """ Set Sync cast to True """
     await context.client.connected()
     current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
-    ui.notify(f'Player Time : {current_time}')
+    ui.notify(tra.translate(f'Player Time : {current_time}'))
     Media.player_time = current_time * 1000
     Media.player_sync = True
     CastAPI.type_sync = 'player'
@@ -2168,7 +2168,7 @@ async def player_duration():
     """
     await context.client.connected()
     current_duration = await ui.run_javascript("document.querySelector('video').duration", timeout=2)
-    ui.notify(f'Video duration:{current_duration}')
+    ui.notify(tra.translate(f'Video duration:{current_duration}'))
     Media.player_duration = current_duration
     CastAPI.video_slider._props["max"] = current_duration
     CastAPI.video_slider.update()
@@ -2182,7 +2182,7 @@ def charts_select():
     if os.path.isfile(select_chart_exe()):
         CastAPI.charts_row.set_visibility(True)
     else:
-        ui.notify('No charts executable', type='warning')
+        ui.notify(tra.translate('No charts executable'), type='warning')
 
 
 def dev_stats_info_page():
@@ -2290,12 +2290,12 @@ async def save_filter_preset(class_name):
     def save_file(f_name):
 
         if f_name == ' ' or f_name is None or f_name == '':
-            ui.notification(f'Preset name could not be blank :  {f_name}', type='negative')
+            ui.notification(tra.translate(f'Preset name could not be blank :  {f_name}'), type='negative')
 
         else:
             f_name = f'./config/presets/filter/{class_name}/' + f_name + '.ini'
             if os.path.isfile(f_name):
-                ui.notification(f'Preset {f_name} already exist ', type='warning')
+                ui.notification(tra.translate(f'Preset {f_name} already exist '), type='warning')
 
             else:
                 class_obj = globals()[class_name]
@@ -2326,7 +2326,7 @@ async def save_filter_preset(class_name):
                     preset.write(configfile)
 
                 dialog.close()
-                ui.notification(f'Preset saved for {class_name} as {f_name}')
+                ui.notification(tra.translate(f'Preset saved for {class_name} as {f_name}'))
 
     with ui.dialog() as dialog:
         dialog.open()
@@ -2363,12 +2363,12 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
             class_obj.auto_bright = str2bool(preset_auto['auto_bright'])
             class_obj.clip_hist_percent = int(preset_auto['clip_hist_percent'])
             class_obj.gamma = float(preset_gamma['gamma'])
-            ui.notify('Preset applied', type='info')
+            ui.notify(tra.translate('Preset applied'), type='info')
 
         except Exception as error:
             logger.error(traceback.format_exc())
             logger.error(tra.translate(f'Error to apply preset : {error}'))
-            ui.notify('Error to apply Preset', type='negative', position='center')
+            ui.notify(tra.translate('Error to apply Preset'), type='negative', position='center')
 
     if interactive:
         with ui.dialog() as dialog:
@@ -2435,12 +2435,12 @@ async def save_cast_preset(class_name):
     def save_file(f_name):
 
         if f_name == ' ' or f_name is None or f_name == '':
-            ui.notification(f'Preset name could not be blank :  {f_name}', type='negative')
+            ui.notification(tra.translate(f'Preset name could not be blank :  {f_name}'), type='negative')
 
         else:
             f_name = f'./config/presets/cast/{class_name}/' + f_name + '.ini'
             if os.path.isfile(f_name):
-                ui.notification(f'Preset {f_name} already exist ', type='warning')
+                ui.notification(tra.translate(f'Preset {f_name} already exist '), type='warning')
 
             else:
 
@@ -2466,7 +2466,7 @@ async def save_cast_preset(class_name):
                     preset.write(configfile)
 
                 dialog.close()
-                ui.notification(f'Preset saved for {class_name} as {f_name}')
+                ui.notification(tra.translate(f'Preset saved for {class_name} as {f_name}'))
 
     with ui.dialog() as dialog:
         dialog.open()
@@ -2509,12 +2509,12 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
             class_obj.cast_x = int(preset_multicast['cast_x'])
             class_obj.cast_y = int(preset_multicast['cast_y'])
             class_obj.cast_devices = eval(preset_multicast['cast_devices'])
-            ui.notify('Preset applied', type='info')
+            ui.notify(tra.translate('Preset applied'), type='info')
 
         except Exception as error:
             logger.error(traceback.format_exc())
             logger.error(tra.translate(f'Error to apply preset : {error}'))
-            ui.notify('Error to apply Preset', type='negative', position='center')
+            ui.notify(tra.translate('Error to apply Preset'), type='negative', position='center')
 
     if interactive:
         with ui.dialog() as dialog:
@@ -2558,11 +2558,11 @@ async def player_cast(source):
     # await context.client.connected()
     media_info = Utils.get_media_info(source)
     if Media.stopcast:
-        ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
+        ui.notify(tra.translate(f'"Cast" NOT allowed to run from : {source}'), type='warning')
     else:
         Media.viinput = source
         Media.rate = int(round(float(media_info[3].split(':')[1].replace(' ', '').replace('"', ''))))
-        ui.notify(f'Cast running from : {source}')
+        ui.notify(tra.translate(f'"Cast" running from : {source}'))
         Media.cast(shared_buffer=t_data_buffer)
     CastAPI.player.play()
 
@@ -2580,7 +2580,7 @@ async def cast_device_manage(class_name):
 
         def handle_cell_value_change(e):
             new_row = e.args['data']
-            ui.notify(f'Updated row to: {e.args["data"]}')
+            ui.notify(tra.translate(f'Updated row to: {e.args["data"]}'))
             rows[:] = [row | new_row if row['id'] == new_row['id'] else row for row in rows]
 
         aggrid = ui.aggrid({
@@ -2612,7 +2612,7 @@ async def cast_device_manage(class_name):
             class_name.cast_devices.clear()
             class_name.cast_devices.extend(sorted_devices)
             dialog.close()
-            ui.notify('New data entered into cast_devices, click on validate/refresh to see them ')
+            ui.notify(tra.translate('New data entered into cast_devices, click on validate/refresh to see them '))
 
         for item in class_name.cast_devices:
             new_id = max((dx['id'] for dx in rows), default=-1) + 1
@@ -2653,13 +2653,13 @@ async def cast_manage_page():
                 CastAPI.desktop_cast = ui.icon('cast', size='xl', color=my_col)
                 CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop, log_ui)) \
                     .classes('shadow-lg') \
-                    .tooltip('Initiate Desktop Cast')
+                    .tooltip(tra.translate('Initiate Desktop Cast'))
                 if Desktop.stopcast is True:
                     CastAPI.desktop_cast_run.set_visibility(False)
 
             ui.icon('stop_screen_share', size='xs', color='red') \
                 .style('cursor: pointer') \
-                .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
+                .on('click', lambda: cast_stop(Desktop)).tooltip(tra.translate('Stop Cast'))
 
             if str2bool(custom_config['animate-ui']):
                 animated_card = Animate(ui.card, animation_name_in="fadeInUp", duration=2)
@@ -2680,7 +2680,7 @@ async def cast_manage_page():
 
             ui.icon('stop_screen_share', size='xs', color='red') \
                 .style('cursor: pointer') \
-                .on('click', lambda: cast_stop(Media)).tooltip('Stop Cast')
+                .on('click', lambda: cast_stop(Media)).tooltip(tra.translate('Stop Cast'))
 
             with ui.column(wrap=True):
                 if Media.count > 0:
@@ -2692,7 +2692,7 @@ async def cast_manage_page():
                 CastAPI.media_cast = ui.icon('cast', size='xl', color=my_col)
                 CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media, log_ui)) \
                     .classes('shadow-lg') \
-                    .tooltip('Initiate Media Cast')
+                    .tooltip(tra.translate('Initiate Media Cast'))
                 if Media.stopcast is True:
                     CastAPI.media_cast_run.set_visibility(False)
 
@@ -2761,14 +2761,14 @@ async def tabs_info_page():
                                                   clear=False,
                                                   execute=True,
                                                   exp_item=item_exp)
-                                              ).classes('shadow-lg').tooltip('Cancel Cast')
+                                              ).classes('shadow-lg').tooltip(tra.translate('Cancel Cast'))
                                     ui.button(icon='add_photo_alternate',
                                               on_click=lambda item=item: action_to_casts(class_name='Desktop',
                                                                                          cast_name=item,
                                                                                          action='shot',
                                                                                          clear=False,
                                                                                          execute=True)
-                                              ).classes('shadow-lg').tooltip('Capture picture')
+                                              ).classes('shadow-lg').tooltip(tra.translate('Capture picture'))
                                     if info_data[item]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
                                                   on_click=lambda item=item: action_to_casts(class_name='Desktop',
@@ -2776,7 +2776,7 @@ async def tabs_info_page():
                                                                                              action='close_preview',
                                                                                              clear=False,
                                                                                              execute=True)
-                                                  ).classes('shadow-lg').tooltip('Stop Preview')
+                                                  ).classes('shadow-lg').tooltip(tra.translate('Stop Preview'))
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}}) \
                                     .run_editor_method('updateProps', {'readOnly': True})
@@ -2811,14 +2811,14 @@ async def tabs_info_page():
                                                   clear=False,
                                                   execute=True,
                                                   exp_item=item_exp)
-                                              ).classes('shadow-lg').tooltip('Cancel Cast')
+                                              ).classes('shadow-lg').tooltip(tra.translate('Cancel Cast'))
                                     ui.button(icon='add_photo_alternate',
                                               on_click=lambda item=item: action_to_casts(class_name='Media',
                                                                                          cast_name=item,
                                                                                          action='shot',
                                                                                          clear=False,
                                                                                          execute=True)) \
-                                        .classes('shadow-lg').tooltip('Capture picture')
+                                        .classes('shadow-lg').tooltip(tra.translate('Capture picture'))
                                     if info_data[item]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
                                                   on_click=lambda item=item:
@@ -2827,7 +2827,7 @@ async def tabs_info_page():
                                                                   action='close_preview',
                                                                   clear=False,
                                                                   execute=True)) \
-                                            .classes('shadow-lg').tooltip('Stop Preview')
+                                            .classes('shadow-lg').tooltip(tra.translate('Stop Preview'))
 
                                 editor = ui.json_editor({'content': {'json': info_data[item]["data"]}}) \
                                     .run_editor_method('updateProps', {'readOnly': True})
@@ -2837,12 +2837,12 @@ async def action_to_casts(class_name, cast_name, action, clear, execute, exp_ite
     await action_to_thread(class_name, cast_name, action, clear, execute)
     if action == 'stop':
         exp_item.close()
-        ui.notification(f'Stopping {cast_name}...', type='warning', position='center', timeout=1)
+        ui.notification(tra.translate(f'Stopping {cast_name}...'), type='warning', position='center', timeout=1)
         exp_item.delete()
     elif action == 'shot':
-        ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=1)
+        ui.notification(tra.translate(f'Saving image to buffer for  {cast_name}...'), type='positive', timeout=1)
     elif action == 'close_preview':
-        ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=1)
+        ui.notification(tra.translate(f'Preview window terminated for  {cast_name}...'), type='info', timeout=1)
 
 
 async def show_thread_info():
@@ -2898,7 +2898,7 @@ async def generate_carousel(class_obj):
                 ui.button(text=str(i) + ':size:' + str(w) + 'x' + str(h), icon='tag') \
                     .props('flat fab color=white') \
                     .classes('absolute top-0 left-0 m-2') \
-                    .tooltip('Image Number')
+                    .tooltip(tra.translate('Image Number'))
 
 
 async def cast_to_wled(class_obj, image_number):
@@ -2908,17 +2908,17 @@ async def cast_to_wled(class_obj, image_number):
     """
 
     if not class_obj.wled:
-        ui.notify('No WLED device', type='negative', position='center')
+        ui.notify(tra.translate('No WLED device'), type='negative', position='center')
         return
 
     is_alive = Utils.check_ip_alive(class_obj.host)
 
     # check if valid wled device
     if not is_alive:
-        logger.warning(tra.translate('Device do not accept connection to port 80'))
-        ui.notify('Device do not accept connection to port 80', type='warning')
+        logger.warning('Device do not accept connection to port 80')
+        ui.notify(tra.translate('Device do not accept connection to port 80'), type='warning')
     else:
-        ui.notify(f'Cast to device : {class_obj.host}')
+        ui.notify(tra.translate(f'"Cast" to device : {class_obj.host}'))
         if class_obj.__module__ == 'desktop':
             class_name = 'Desktop'
         elif class_obj.__module__ == 'media':
@@ -2953,7 +2953,7 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False, interacti
     if folder[-1] == '/':
         pass
     else:
-        logger.error(tra.translate("The last character of the folder name is not '/'."))
+        logger.error("The last character of the folder name is not '/'.")
         return
 
     # Get the absolute path of the folder relative to the current working directory
@@ -2961,7 +2961,7 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False, interacti
     if os.path.isdir(absolute_img_folder):
         pass
     else:
-        logger.error(tra.translate(f"The folder {absolute_img_folder} does not exist."))
+        logger.error(f"The folder {absolute_img_folder} does not exist.")
         return
 
     # select buffer
@@ -2990,15 +2990,15 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False, interacti
         cv2.imwrite(filename, img)
 
     if interactive:
-        ui.notify(f"Image saved to {filename}")
+        ui.notify(tra.translate(f"Image saved to {filename}"))
 
-    logger.info(tra.translate(f"Image saved to {filename}"))
+    logger.info(f"Image saved to {filename}")
 
 
 async def discovery_net_notify():
     """ Call Run zero conf net discovery """
 
-    ui.notification('NET Discovery process on go ... let it finish',
+    ui.notification(tra.translate('NET Discovery process on go ... let it finish'),
                     close_button=True,
                     type='warning',
                     timeout=6)
@@ -3009,7 +3009,7 @@ async def discovery_net_notify():
 async def discovery_media_notify():
     """ Call Run OS Media discovery by av """
 
-    ui.notification('MEDIA Discovery process on go ... let it finish',
+    ui.notification(tra.translate('MEDIA Discovery process on go ... let it finish'),
                     close_button=True,
                     type='warning',
                     timeout=3)
@@ -3026,22 +3026,22 @@ async def init_cast(class_obj, clog_ui=None):
     """
     class_obj.cast(shared_buffer=t_data_buffer)
     await cast_manage()
-    logger.info(tra.translate(f' Run Cast for {str(class_obj)}'))
-    ui.notify(f'Cast initiated for :{str(class_obj)} ')
+    logger.info(f' Run "Cast" for {str(class_obj)}')
+    ui.notify(tra.translate(f'"Cast" initiated for :{str(class_obj)} '))
 
 
 async def cast_stop(class_obj):
     """ Stop cast """
 
     class_obj.stopcast = True
-    ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
+    ui.notify(tra.translate(f'Cast(s) stopped and blocked for : {class_obj}'), position='center', type='info', close_button=True)
     await cast_manage()
-    logger.info(tra.translate(f' Stop Cast for {str(class_obj)}'))
+    logger.info(f' Stop "Cast" for {str(class_obj)}')
 
 
 async def show_notify(event: ValueChangeEventArguments):
     name = type(event.sender).__name__
-    ui.notify(f'{name}: {event.value}')
+    ui.notify(tra.translate(f'{name}: {event.value}'))
 
 
 async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
@@ -3071,22 +3071,22 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
                     with ui.row().classes('absolute top-0 left-0 m-2'):
                         ui.button(on_click=lambda: cast_to_wled(class_obj, index), icon='cast') \
                             .props('flat fab color=white') \
-                            .tooltip('Cast to WLED')
+                            .tooltip(tra.translate('"Cast" to "WLED"'))
                         ui.button(on_click=lambda: save_image(class_obj, buffer, index, False, True), icon='save') \
                             .props('flat fab color=white') \
-                            .tooltip('Save Image')
+                            .tooltip(tra.translate('Save Image'))
                         ui.button(on_click=lambda: save_image(class_obj, buffer, index, True, True),
                                   icon='text_format') \
                             .props('flat fab color=white') \
-                            .tooltip('Save Image as Ascii ART')
+                            .tooltip(tra.translate('Save Image as Ascii ART'))
 
                     ui.label(str(index)).classes('absolute-bottom text-subtitle2 text-center').style('background: red')
                 ui.button('Close', on_click=dialog.close, color='red')
-            ui.button('', icon='preview', on_click=dialog.open, color='bg-red-800').tooltip('View image')
+            ui.button('', icon='preview', on_click=dialog.open, color='bg-red-800').tooltip(tra.translate('View image'))
 
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error(tra.translate(f'An exception occurred: {error}'))
+            logger.error(f'An exception occurred: {error}')
 
 
 async def multi_preview(class_name):
@@ -3104,7 +3104,7 @@ async def multi_preview(class_name):
                 with ui.image(Image.fromarray(class_name.cast_frame_buffer[i])).classes('w-60'):
                     ui.label(str(i))
         ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('FULL', icon='preview', on_click=dialog.open).tooltip('View ALL images')
+    ui.button('FULL', icon='preview', on_click=dialog.open).tooltip(tra.translate('View ALL images'))
 
 
 async def cast_devices_view(class_name):
@@ -3128,14 +3128,14 @@ async def cast_devices_view(class_name):
                                 'http://' + str(class_name.cast_devices[i][1]),
                                 new_tab=True).style(text_decoration)
         ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('DEVICE', icon='preview', on_click=dialog.open).tooltip('View Cast devices')
+    ui.button('DEVICE', icon='preview', on_click=dialog.open).tooltip(tra.translate('View "Cast" devices'))
 
 
 async def player_pick_file() -> None:
     """ Select file to read for video CastAPI.player"""
 
     result = await LocalFilePicker('./', multiple=False)
-    ui.notify(f'Selected :  {result}')
+    ui.notify(tra.translate(f'Selected :  {result}'))
 
     if result is not None:
         if sys.platform == 'win32':
@@ -3168,8 +3168,8 @@ async def check_yt(url):
         if yt != '':
             video_url = yt
 
-    ui.notify(f'Video set to : {video_url}')
-    logger.info(tra.translate(f'Video set to : {video_url}'))
+    ui.notify(tra.translate(f'Video set to : {video_url}'))
+    logger.info(f'Video set to : {video_url}')
     CastAPI.progress_bar.value = 1
     CastAPI.progress_bar.update()
     CastAPI.player.set_source(video_url)
@@ -3252,7 +3252,7 @@ ui.run(title='WLEDVideoSync',
 END
 """
 if sys.platform != 'win32':
-    logger.info(tra.translate('Remove tmp files'))
+    logger.info('Remove tmp files')
     for tmp_filename in PathLib("./tmp/").glob("*_file.*"):
         tmp_filename.unlink()
 
