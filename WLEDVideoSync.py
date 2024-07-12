@@ -451,7 +451,7 @@ if __name__ == '__main__':
         # Define the window's contents
         info = ("Extracted executable to WLEDVideoSync folder.....\n\n \
         You can safely delete this file after extraction finished to save some space.\n \
-        (the same for WLEDVideoSync.out.txt and err.txt if there ...)\n\n \
+        (the same for WLEDVideoSync.out.txt and err.txt)\n\n \
         Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file\n \
         This is a portable version, nothing installed on your system and can be moved where wanted.\n\n \
         Enjoy using WLEDVideoSync\n\n \

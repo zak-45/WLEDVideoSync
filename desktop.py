@@ -214,7 +214,7 @@ class CASTDesktop:
 
         def send_multicast_images_to_ips(images_buffer, to_ip_addresses):
             """
-            Create a thread for each image - IP pair and wait for all to finish
+            Create a thread for each image , IP pair and wait for all to finish
             Very simple synchro process
             :param images_buffer:
             :param to_ip_addresses:
@@ -305,10 +305,10 @@ class CASTDesktop:
         if self.viinput == 'area':
             # specific area
             # Calculate crop parameters : ; 19/06/2024 coordinates for 2 monitor need to be reviewed
-            x = int(self.screen_coordinates[0])
-            y = int(self.screen_coordinates[1])
             width = int(self.screen_coordinates[2] - self.screen_coordinates[0])
             height = int(self.screen_coordinates[3] - self.screen_coordinates[1])
+            x = int(self.screen_coordinates[0])
+            y = int(self.screen_coordinates[1])
 
             area_options = {'offset_x': str(x), 'offset_y': str(y),
                             'video_size': f'{width}x{height}',
@@ -747,7 +747,7 @@ class CASTDesktop:
 
         return t_preview
 
-    def cast(self, shared_buffer=None, log_ui=None):
+    def cast(self, shared_buffer=None, log_ui: classmethod = None):
         """
             this will run the cast into another thread
             avoiding blocking the main one

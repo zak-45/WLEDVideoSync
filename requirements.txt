@@ -14,10 +14,10 @@ pystray==0.19.5
 uvicorn==0.30.1
 psutil==6.0.0
 imageio
+pyav
 async-timeout
 cfg-load
 linuxpy
-pyav
 git+https://github.com/zak-45/pytube@master
 FreeSimpleGUI==5.1.0
 ping3==4.0.8

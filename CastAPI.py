@@ -1158,7 +1158,7 @@ async def video_player_page():
                 .bind_text_from(Media, 'player_time') \
                 .classes('self-center bg-slate-400') \
                 .bind_visibility_from(CastAPI.player)
-            ui.label('+').bind_visibility_from(CastAPI.player)
+            ui.label('+')
             ui.label() \
                 .bind_text_from(Media, 'add_all_sync_delay') \
                 .classes('self-center bg-slate-400') \
@@ -2143,7 +2143,6 @@ async def reset_sync():
 
 async def player_sync():
     """ Set Sync cast to True """
-    await context.client.connected()
     current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
     ui.notify(tra.translate(f'Player Time : {current_time}'))
     Media.player_time = current_time * 1000
@@ -2163,7 +2162,6 @@ async def get_player_time():
     Set player time for Cast to Sync
     """
     if CastAPI.type_sync == 'player' or CastAPI.last_type_sync == 'player':
-        await context.client.connected()
         current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
         Media.player_time = round(current_time * 1000)
 
@@ -2173,7 +2171,6 @@ async def player_duration():
     Return current duration time from the Player
     Set slider max value to video duration
     """
-    await context.client.connected()
     current_duration = await ui.run_javascript("document.querySelector('video').duration", timeout=2)
     ui.notify(tra.translate(f'Video duration:{current_duration}'))
     Media.player_duration = current_duration
