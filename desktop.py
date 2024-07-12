@@ -41,10 +41,12 @@ from threading import current_thread
 import asyncio
 import concurrent.futures
 
-from ddp_queue import DDPDevice
-from utils import CASTUtils as Utils, ImageUtils
-
 import av
+
+from ddp_queue import DDPDevice
+from utils import CASTUtils as Utils, ImageUtils, Translator
+
+tra = Translator()
 
 """
 When this env var exist, this mean run from the one-file executable.
@@ -162,7 +164,7 @@ class CASTDesktop:
             CASTDesktop.total_frame = 0
             CASTDesktop.total_packet = 0
 
-        logger.info(f'Child thread: {t_name}')
+        logger.info(tra.translate(f'Child thread: {t_name}'))
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
 
@@ -208,7 +210,7 @@ class CASTDesktop:
                         CASTDesktop.total_packet += device.frame_count
                         break
             else:
-                logger.warning(f'{t_name} Multicast frame dropped')
+                logger.warning(tra.translate(f'{t_name} Multicast frame dropped'))
 
         def send_multicast_images_to_ips(images_buffer, to_ip_addresses):
             """
@@ -242,9 +244,9 @@ class CASTDesktop:
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
-                logger.info(f'{t_name} We work with this IP {self.host} as first device: number 0')
+                logger.info(tra.translate(f'{t_name} We work with this IP {self.host} as first device: number 0'))
             else:
-                logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
+                logger.error(tra.translate(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80'))
                 return False
 
             ddp_host = DDPDevice(self.host)  # init here as queue thread not necessary if 127.0.0.1
@@ -255,14 +257,14 @@ class CASTDesktop:
             if status:
                 self.scale_width, self.scale_height = asyncio.run(Utils.get_wled_matrix_dimensions(self.host))
             else:
-                logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
+                logger.error(tra.translate(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode"))
                 return False
 
         # specifics for Multicast
         if t_multicast:
             # validate cast_devices list
             if not Utils.is_valid_cast_device(str(self.cast_devices)):
-                logger.error(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
+                logger.error(tra.translate(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]"))
                 return False
             else:
                 logger.info(f'{t_name} Virtual Matrix size is : \
@@ -275,13 +277,13 @@ class CASTDesktop:
                         if self.wled:
                             status = asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
-                                logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
+                                logger.error(tra.translate(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode"))
                                 return False
 
                         ip_addresses.append(cast_ip)
                         # create ddp device for each IP
                         self.ddp_multi_names.append(DDPDevice(cast_ip))
-                        logger.info(f'{t_name} IP : {cast_ip} for sub image number {i}')
+                        logger.info(tra.translate(f'{t_name} IP : {cast_ip} for sub image number {i}'))
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
         else:
@@ -335,7 +337,7 @@ class CASTDesktop:
 
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error(f'{t_name} An exception occurred: {error}')
+            logger.error(tra.translate(f'{t_name} An exception occurred: {error}'))
             return False
 
         # Define Output via av only if protocol is other
@@ -353,7 +355,7 @@ class CASTDesktop:
 
             except Exception as error:
                 logger.error(traceback.format_exc())
-                logger.error(f'{t_name} An exception occurred: {error}')
+                logger.error(tra.translate(f'{t_name} An exception occurred: {error}'))
                 return False
 
         CASTDesktop.cast_names.append(t_name)
@@ -368,8 +370,8 @@ class CASTDesktop:
             # Stream loop
             try:
 
-                logger.info(f"{t_name} Capture from {t_viinput}")
-                logger.info(f"{t_name} Stopcast value : {self.stopcast}")
+                logger.info(tra.translate(f"{t_name} Capture from {t_viinput}"))
+                logger.info(tra.translate(f"{t_name} Stopcast value : {self.stopcast}"))
 
                 for frame in input_container.decode(input_stream):
 
@@ -439,7 +441,7 @@ class CASTDesktop:
                         """
 
                         if CASTDesktop.t_todo_event.is_set():
-                            logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
+                            logger.debug(tra.translate(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}"))
                             CASTDesktop.t_desktop_lock.acquire()
                             #  take thread name from cast to do list
                             for item in CASTDesktop.cast_name_todo:
@@ -486,7 +488,7 @@ class CASTDesktop:
                                                       }
                                             # this wait until queue access is free
                                             shared_buffer.put(t_info)
-                                            logger.debug(f"{t_name} we have put on the queue")
+                                            logger.debug(tra.translate(f"{t_name} we have put on the queue"))
 
                                         elif "close_preview" in action:
                                             window_name = (f"{CASTDesktop.server_port}-Desktop Preview input: " +
@@ -507,7 +509,7 @@ class CASTDesktop:
 
                                     except Exception as error:
                                         logger.error(traceback.format_exc())
-                                        logger.error(f'{t_name} Action {action} in ERROR from {t_name}: {error}')
+                                        logger.error(tra.translate(f'{t_name} Action {action} in ERROR from {t_name}: {error}'))
 
                                     CASTDesktop.cast_name_todo.remove(item)
 
@@ -547,7 +549,7 @@ class CASTDesktop:
 
                                 # validate cast_devices number
                                 if len(ip_addresses) < len(self.cast_frame_buffer):
-                                    logger.error(f'{t_name} Cast devices number != sub images number: check cast_devices ')
+                                    logger.error(tra.translate(f'{t_name} Cast devices number != sub images number: check cast_devices '))
                                     break
 
                                 t_cast_frame_buffer = self.cast_frame_buffer
@@ -559,7 +561,7 @@ class CASTDesktop:
 
                             except Exception as error:
                                 logger.error(traceback.format_exc())
-                                logger.error(f'{t_name} An exception occurred: {error}')
+                                logger.error(tra.translate(f'{t_name} An exception occurred: {error}'))
                                 break
 
                             # preview on fixed size window
@@ -604,7 +606,7 @@ class CASTDesktop:
 
             except Exception as error:
                 logger.error(traceback.format_exc())
-                logger.error(f'{t_name} An exception occurred: {error}')
+                logger.error(tra.translate(f'{t_name} An exception occurred: {error}'))
 
             finally:
                 """
@@ -616,7 +618,7 @@ class CASTDesktop:
                 if output_container:
                     output_container.close()
                 if CASTDesktop.count <= 2 and t_preview is True:  # try to avoid block if  casts thread and preview True
-                    logger.info(f'{t_name} Stop window preview if any')
+                    logger.info(tra.translate(f'{t_name} Stop window preview if any'))
                     # close preview window if any
                     window_name = f"{CASTDesktop.server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
                     win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
@@ -625,7 +627,7 @@ class CASTDesktop:
 
         else:
 
-            logger.warning(f'{t_name} av input_container not defined')
+            logger.warning(tra.translate(f'{t_name} av input_container not defined'))
 
         """
         END +
@@ -636,11 +638,11 @@ class CASTDesktop:
         CASTDesktop.t_exit_event.clear()
 
         logger.info("_" * 50)
-        logger.info(f'Cast {t_name} end using this input: {t_viinput}')
-        logger.info(f'Using these devices: {str(ip_addresses)}')
+        logger.info(tra.translate(f'Cast {t_name} end using this input: {t_viinput}'))
+        logger.info(tra.translate(f'Using these devices: {str(ip_addresses)}'))
         logger.info("_" * 50)
 
-        logger.info(f'{t_name} Cast closed')
+        logger.info(tra.translate(f'{t_name} Cast closed'))
 
     """
     preview window
@@ -757,4 +759,4 @@ class CASTDesktop:
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
-        logger.info('Child Desktop cast initiated')
+        logger.info(tra.translate('Child Desktop cast initiated'))

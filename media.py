@@ -41,7 +41,9 @@ import asyncio
 import concurrent.futures
 
 from ddp_queue import DDPDevice
-from utils import CASTUtils as Utils, ImageUtils
+from utils import CASTUtils as Utils, ImageUtils, Translator
+
+tra = Translator()
 
 """
 When this env var exist, this mean run from the one-file executable.
@@ -170,7 +172,7 @@ class CASTMedia:
             CASTMedia.total_frame = 0
             CASTMedia.total_packet = 0
 
-        logger.info(f'Child thread: {t_name}')
+        logger.info(tra.translate(f'Child thread: {t_name}'))
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
 
@@ -212,7 +214,7 @@ class CASTMedia:
         """
 
         if str(self.viinput) == "":
-            logger.error(f'{t_name} Filename could not be empty')
+            logger.error(tra.translate(f'{t_name} Filename could not be empty'))
             return False
 
         t_viinput = self.viinput
@@ -237,7 +239,7 @@ class CASTMedia:
                         CASTMedia.total_packet += device.frame_count
                         break
             else:
-                logger.warning(f'{t_name} Multicast frame dropped')
+                logger.warning(tra.translate(f'{t_name} Multicast frame dropped'))
 
         def send_multicast_images_to_ips(images_buffer, to_ip_addresses):
             """
@@ -272,9 +274,9 @@ class CASTMedia:
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
-                logger.info(f'{t_name} We work with this IP {self.host} as first device: number 0')
+                logger.info(tra.translate(f'{t_name} We work with this IP {self.host} as first device: number 0'))
             else:
-                logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
+                logger.error(tra.translate(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80'))
                 return False
 
             ddp_host = DDPDevice(self.host)  # init here as queue thread not necessary if 127.0.0.1
@@ -285,14 +287,14 @@ class CASTMedia:
             if status is True:
                 self.scale_width, self.scale_height = asyncio.run(Utils.get_wled_matrix_dimensions(self.host))
             else:
-                logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
+                logger.error(tra.translate(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode"))
                 return False
 
         # specifics to Multicast
         if t_multicast:
             # validate cast_devices list
             if not Utils.is_valid_cast_device(str(self.cast_devices)):
-                logger.error(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
+                logger.error(tra.translate(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]"))
                 return False
             else:
                 logger.info(f'{t_name} Virtual Matrix size is :' +
@@ -305,13 +307,13 @@ class CASTMedia:
                         if self.wled:
                             status = asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
-                                logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
+                                logger.error(tra.translate(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode"))
                                 return False
 
                         ip_addresses.append(cast_ip)
                         # create ddp device for each IP
                         self.ddp_multi_names.append(DDPDevice(cast_ip))
-                        logger.info(f'{t_name} IP : {cast_ip} for sub image number {i}')
+                        logger.info(tra.translate(f'{t_name} IP : {cast_ip} for sub image number {i}'))
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
         else:
@@ -329,7 +331,7 @@ class CASTMedia:
         media = cv2.VideoCapture(t_viinput)
         # Check if the capture is successful
         if not media.isOpened():
-            logger.error(f"{t_name} Error: Unable to open media stream {t_viinput}.")
+            logger.error(tra.translate(f"{t_name} Error: Unable to open media stream {t_viinput}."))
             return False
 
         # retrieve frame count, if 1 we assume image (should be no?)
@@ -348,15 +350,15 @@ class CASTMedia:
         if self.rate != 0:
             interval: float = 1.0 / self.rate
         else:
-            logger.error(f'{t_name} Rate could not be zero')
+            logger.error(tra.translate(f'{t_name} Rate could not be zero'))
             return False
 
-        logger.info(f"{t_name} Playing media {t_viinput} of length {length} at {fps} FPS")
-        logger.info(f"{t_name} Stopcast value : {self.stopcast}")
+        logger.info(tra.translate(f"{t_name} Playing media {t_viinput} of length {length} at {fps} FPS"))
+        logger.info(tra.translate(f"{t_name} Stopcast value : {self.stopcast}"))
 
         # detect if we want specific frame index: only for non-live video
         if self.frame_index != 0 and length > 1:
-            logger.info(f"{t_name} Take frame number {self.frame_index}")
+            logger.info(tra.translate(f"{t_name} Take frame number {self.frame_index}"))
             media.set(1, self.frame_index - 1)
 
         CASTMedia.cast_names.append(t_name)
@@ -365,7 +367,7 @@ class CASTMedia:
         current_time = time.time()
         auto_expected_time = current_time
 
-        logger.info(f'{t_name} Cast running ...')
+        logger.info(tra.translate(f'{t_name} Cast running ...'))
 
         """
             Media Loop
@@ -391,7 +393,7 @@ class CASTMedia:
                     if current_time - auto_expected_time >= self.auto_sync_delay:
                         time_to_set = self.player_time
                         self.player_sync = True
-                        logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
+                        logger.debug(tra.translate(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}"))
 
                         CASTMedia.t_media_lock.acquire()
                         if self.all_sync is True and len(CASTMedia.cast_name_to_sync) == 0:
@@ -399,11 +401,11 @@ class CASTMedia:
                             CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
                             # add additional time, can help if cast number > 0 to try to avoid small decay
                             time_to_set += self.add_all_sync_delay
-                            logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
+                            logger.debug(tra.translate(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}"))
                         CASTMedia.t_media_lock.release()
 
                         auto_expected_time = current_time
-                        logger.info(f'{t_name} Auto Sync Cast to time :{time_to_set}')
+                        logger.info(tra.translate(f'{t_name} Auto Sync Cast to time :{time_to_set}'))
 
                 if self.all_sync is True and self.player_sync is True:
 
@@ -412,7 +414,7 @@ class CASTMedia:
                     # populate cast names to sync if necessary
                     if len(CASTMedia.cast_name_to_sync) == 0 and self.auto_sync is False:
                         CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
-                        logger.debug(f"{t_name}  Got these to sync  :{CASTMedia.cast_name_to_sync}")
+                        logger.debug(tra.translate(f"{t_name}  Got these to sync  :{CASTMedia.cast_name_to_sync}"))
 
                     # take only cast not already synced
                     if t_name in CASTMedia.cast_name_to_sync:
@@ -423,9 +425,9 @@ class CASTMedia:
                         # sync cast
                         if self.player_sync is True:
                             media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
-                            logger.info(f'{t_name} ALL Sync Cast to time :{self.player_time}')
+                            logger.info(tra.translate(f'{t_name} ALL Sync Cast to time :{self.player_time}'))
 
-                        logger.debug(f'{t_name} synced')
+                        logger.debug(tra.translate(f'{t_name} synced'))
 
                         # if no more, reset all_sync
                         if len(CASTMedia.cast_name_to_sync) == 0:
@@ -433,15 +435,15 @@ class CASTMedia:
                                 self.all_sync = False
                             self.player_sync = False
                             self.cast_sleep = False
-                            logger.debug(f"{t_name} All sync finished")
+                            logger.debug(tra.translate(f"{t_name} All sync finished"))
 
                     CASTMedia.t_media_lock.release()
 
-                    logger.debug(f'{t_name} go to sleep if necessary')
+                    logger.debug(tra.translate(f'{t_name} go to sleep if necessary'))
                     while self.cast_sleep is True and self.player_sync is True and len(CASTMedia.cast_name_to_sync) > 0:
                         # sleep until all remaining casts sync
                         time.sleep(.001)
-                    logger.debug(f"{t_name} exit sleep")
+                    logger.debug(tra.translate(f"{t_name} exit sleep"))
 
                 else:
 
@@ -455,15 +457,15 @@ class CASTMedia:
                         if self.player_sync:
                             media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
                             self.player_sync = False
-                            logger.info(f'{t_name} Sync Cast to time :{self.player_time}')
+                            logger.info(tra.translate(f'{t_name} Sync Cast to time :{self.player_time}'))
 
                 # read frame
                 success, frame = media.read()
                 if not success:
                     if frame_count != length:
-                        logger.warning(f'{t_name} Not all frames have been read')
+                        logger.warning(tra.translate(f'{t_name} Not all frames have been read'))
                     else:
-                        logger.info(f'{t_name} Media reached END')
+                        logger.info(tra.translate(f'{t_name} Media reached END'))
                     break
 
             # convert to RGB
@@ -507,7 +509,7 @@ class CASTMedia:
             """
 
             if CASTMedia.t_todo_event.is_set():
-                logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
+                logger.debug(tra.translate(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}"))
                 CASTMedia.t_media_lock.acquire()
                 #  take thread name from cast to do list
                 for item in CASTMedia.cast_name_todo:
@@ -550,7 +552,7 @@ class CASTMedia:
                                           }
                                 # this wait until queue access is free
                                 shared_buffer.put(t_info)
-                                logger.debug(f'{t_name} we have put')
+                                logger.debug(tra.translate(f'{t_name} we have put'))
 
                             elif 'close_preview' in action:
                                 window_name = (f"{CASTMedia.server_port}-Media Preview input: " +
@@ -570,7 +572,7 @@ class CASTMedia:
 
                         except Exception as error:
                             logger.error(traceback.format_exc())
-                            logger.error(f'Action {action} in ERROR from {t_name} : {error}')
+                            logger.error(tra.translate(f'Action {action} in ERROR from {t_name} : {error}'))
 
                         CASTMedia.cast_name_todo.remove(item)
 
@@ -612,7 +614,7 @@ class CASTMedia:
                     self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                     # validate cast_devices number
                     if len(ip_addresses) < len(self.cast_frame_buffer):
-                        logger.error(f'{t_name} Cast devices number != sub images number: check cast_devices ')
+                        logger.error(tra.translate(f'{t_name} Cast devices number != sub images number: check cast_devices '))
                         break
                     t_cast_frame_buffer = self.cast_frame_buffer
 
@@ -623,7 +625,7 @@ class CASTMedia:
 
                 except Exception as error:
                     logger.error(traceback.format_exc())
-                    logger.error(f'{t_name} An exception occurred: {error}')
+                    logger.error(tra.translate(f'{t_name} An exception occurred: {error}'))
                     break
 
                 if t_preview:
@@ -677,7 +679,7 @@ class CASTMedia:
                 """
                 if length != -1:
                     if frame_count >= length or self.frame_index != 0:
-                        logger.info(f"{t_name} Reached END ...")
+                        logger.info(tra.translate(f"{t_name} Reached END ..."))
                         break
 
             """
@@ -707,25 +709,25 @@ class CASTMedia:
         CASTMedia.t_exit_event.clear()
 
         if CASTMedia.count <= 2 and t_preview is True:  # try to avoid blocking when click as a bad man !!!
-            logger.info(f'{t_name} Stop window preview if any')
+            logger.info(tra.translate(f'{t_name} Stop window preview if any'))
             window_name = f"{CASTMedia.server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
             win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
             if not win == 0:
                 cv2.destroyWindow(window_name)
 
         if not isinstance(media, np.ndarray):
-            logger.info(f'{t_name} Release Media')
+            logger.info(tra.translate(f'{t_name} Release Media'))
             media.release()
 
         self.all_sync = False
         self.cast_sleep = False
 
         logger.info("_" * 50)
-        logger.info(f'Cast {t_name} end using this media: {t_viinput}')
-        logger.info(f'Using these devices: {str(ip_addresses)}')
+        logger.info(tra.translate(f'Cast {t_name} end using this media: {t_viinput}'))
+        logger.info(tra.translate(f'Using these devices: {str(ip_addresses)}'))
         logger.info("_" * 50)
 
-        logger.info(f"{t_name} Cast closed")
+        logger.info(tra.translate(f"{t_name} Cast closed"))
 
     """
     preview window
@@ -841,4 +843,4 @@ class CASTMedia:
         thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
-        logger.info('Child Media cast initiated')
+        logger.info(tra.translate('Child Media cast initiated'))
