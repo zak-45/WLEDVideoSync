@@ -43,7 +43,6 @@ import time
 import webbrowser
 
 from utils import CASTUtils as Utils
-from utils import Translator
 
 import webview
 import webview.menu as wm
@@ -60,8 +59,6 @@ import cfg_load as cfg
 from str2bool import str2bool
 
 import shelve
-
-tra = Translator()
 
 """
 When this env var exist, this mean run from the one-file executable (compressed file).
@@ -87,7 +84,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     #  validate network config
     server_ip = server_config['server_ip']
     if not Utils.validate_ip_address(server_ip):
-        logger.error(tra.translate(f'Bad server IP: {server_ip}'))
+        logger.error(f'Bad server IP: {server_ip}')
         sys.exit(1)
 
     server_port = server_config['server_port']
@@ -98,7 +95,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         server_port = int(server_config['server_port'])
 
     if server_port not in range(1, 65536):
-        logger.error(tra.translate(f'Bad server Port: {server_port}'))
+        logger.error(f'Bad server Port: {server_port}')
         sys.exit(2)
 
     # systray
@@ -290,7 +287,7 @@ def dialog_stop_server(window):
     if result:
         # initial instance
         if instance.is_alive():
-            logger.warning(tra.translate('Server stopped'))
+            logger.warning('Server stopped')
             instance.terminate()
         # if server has been restarted
         if new_instance is not None:
@@ -300,11 +297,11 @@ def dialog_stop_server(window):
             # this work here as we have only server instance as child
             for srv_child in active_child:
                 srv_child.terminate()
-            logger.warning(tra.translate('"Child" Server stopped'))
+            logger.warning('"Child" Server stopped')
 
     else:
 
-        logger.info(tra.translate('Server stop Canceled'))
+        logger.info('Server stop Canceled')
 
     window.destroy()
     time.sleep(2)
@@ -355,11 +352,11 @@ def on_restart_srv():
     global new_instance
 
     if instance.is_alive():
-        logger.warning(tra.translate(f'Already running instance : {instance}'))
+        logger.warning(f'Already running instance : {instance}')
         return
     new_instance = UvicornServer(config=config)
     if not new_instance.is_alive():
-        logger.warning(tra.translate('Server restarted'))
+        logger.warning('Server restarted')
         new_instance.start()
 
     time.sleep(2)
@@ -540,18 +537,18 @@ if __name__ == '__main__':
 
         # start server
         instance.start()
-        logger.info(tra.translate('WLEDVideoSync Started...Server run in separate process'))
+        logger.info('WLEDVideoSync Started...Server run in separate process')
 
         # start pywebview process
         # this will start native OS window and block main thread
         if show_window:
-            logger.info(tra.translate('Starting webview loop...'))
+            logger.info('Starting webview loop...')
             start_webview_process()
 
         # start pystray Icon
         # main infinite loop on systray if requested
         if put_on_systray:
-            logger.info(tra.translate('Starting systray loop...'))
+            logger.info('Starting systray loop...')
             WLEDVideoSync_icon.run()
 
     else:
@@ -565,7 +562,7 @@ if __name__ == '__main__':
 
     # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     proc_file.close()
-    logger.info(tra.translate('Remove tmp files'))
+    logger.info('Remove tmp files')
 
     try:
         if os.path.isfile(tmp_file + ".dat"):
@@ -582,13 +579,13 @@ if __name__ == '__main__':
             for filename in PathLib("./media/").glob("yt-tmp-*.*"):
                 filename.unlink()
     except Exception as error:
-        logger.error(tra.translate(f'Error to remove tmp files : {error}'))
+        logger.error(f'Error to remove tmp files : {error}')
 
     # stop initial server
-    logger.info(tra.translate('Stop app'))
+    logger.info('Stop app')
     if instance is not None:
         instance.stop()
-    logger.info(tra.translate('Server is stopped'))
+    logger.info('Server is stopped')
     # in case server has been restarted
     if new_instance is not None:
         # get all active child processes (should be only one)
@@ -596,10 +593,10 @@ if __name__ == '__main__':
         # terminate all active children
         for child in active_proc:
             child.terminate()
-        logger.info(tra.translate(f'Active Children: {len(active_proc)} stopped'))
+        logger.info(f'Active Children: {len(active_proc)} stopped')
     # stop webview if any
     if webview_process is not None:
-        logger.info(tra.translate(f'Found webview process...stopping'))
+        logger.info(f'Found webview process...stopping')
         webview_process.terminate()
 
-    logger.info(tra.translate('Application Terminated'))
+    logger.info('Application Terminated')

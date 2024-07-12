@@ -57,7 +57,6 @@ from utils import LocalFilePicker
 from utils import ScreenAreaSelection as Sa
 from utils import YtSearch
 from utils import AnimatedElement as Animate
-from utils import Translator
 
 import ast
 
@@ -89,7 +88,6 @@ else:
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
-tra = Translator()
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview', 'reset']
@@ -129,7 +127,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     #  validate network config
     server_ip = server_config['server_ip']
     if not Utils.validate_ip_address(server_ip):
-        logger.error(tra.translate(f'Bad server IP: {server_ip}'))
+        logger.error(f'Bad server IP: {server_ip}')
         sys.exit(1)
 
     server_port = server_config['server_port']
@@ -140,7 +138,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         server_port = int(server_config['server_port'])
 
     if server_port not in range(1, 65536):
-        logger.error(tra.translate(f'Bad server Port: {server_port}'))
+        logger.error(f'Bad server Port: {server_port}')
         sys.exit(2)
 
 
@@ -151,20 +149,20 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         try:
             if str2bool(preset_config['load_at_start']):
                 if preset_config['filter_media'] != '':
-                    logger.info(tra.translate(f"apply : {preset_config['filter_media']} to filter Media"))
+                    logger.info(f"apply : {preset_config['filter_media']} to filter Media")
                     await load_filter_preset('Media', interactive=False, file_name=preset_config['filter_media'])
                 if preset_config['filter_desktop'] != '':
-                    logger.info(tra.translate(f"apply : {preset_config['filter_desktop']} to filter Desktop"))
+                    logger.info(f"apply : {preset_config['filter_desktop']} to filter Desktop")
                     await load_filter_preset('Desktop', interactive=False, file_name=preset_config['filter_desktop'])
                 if preset_config['cast_media'] != '':
-                    logger.info(tra.translate(f"apply : {preset_config['cast_media']} to cast Media"))
+                    logger.info(f"apply : {preset_config['cast_media']} to cast Media")
                     await load_cast_preset('Media', interactive=False, file_name=preset_config['cast_media'])
                 if preset_config['cast_desktop'] != '':
-                    logger.info(tra.translate(f"apply : {preset_config['cast_desktop']} to cast Desktop"))
+                    logger.info(f"apply : {preset_config['cast_desktop']} to cast Desktop")
                     await load_cast_preset('Desktop', interactive=False, file_name=preset_config['cast_desktop'])
 
         except Exception as error:
-            logger.error(tra.translate(f"Error on app startup {error}"))
+            logger.error(f"Error on app startup {error}")
 
 
 # to share data between threads and main
@@ -280,7 +278,7 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
         try:
             value = int(value)
         except ValueError:
-            logger.info(tra.translate("viinput act as string only"))
+            logger.info("viinput act as string only")
 
     # append title if needed
     if class_name == 'Desktop' and param == 'viinput' and sys.platform == 'win32':
@@ -468,7 +466,7 @@ async def util_download_yt(yt_url: str):
             prog_stream.download(output_path='tmp', filename_prefix='yt-tmp-', timeout=3, max_retries=2)
 
         except Exception as error:
-            logger.info(tra.translate(f'youtube error: {error}'))
+            logger.info(f'youtube error: {error}')
             raise HTTPException(status_code=400,
                                 detail=f"Not able to retrieve video from : {yt_url} {error}")
     else:
@@ -493,7 +491,7 @@ async def util_blackout():
     """
         Put ALL ddp devices Off and stop all Casts
     """
-    logger.warning(tra.translate('** BLACKOUT **'))
+    logger.warning('** BLACKOUT **')
     Desktop.t_exit_event.set()
     Media.t_exit_event.set()
     Desktop.stopcast = True
@@ -518,7 +516,7 @@ def util_casts_info():
     """
         Get info from all Cast Threads
     """
-    logger.debug(tra.translate('Request Cast(s) info'))
+    logger.debug('Request Cast(s) info')
 
     # clear
     child_info_data = {}
@@ -537,7 +535,7 @@ def util_casts_info():
 
     # use to stop the loop in case of
     start_time = time.time()
-    logger.debug(tra.translate(f'Need to receive info from : {child_list}'))
+    logger.debug(f'Need to receive info from : {child_list}')
 
     # iterate through all Cast Names
     for item in child_list:
@@ -547,7 +545,7 @@ def util_casts_info():
             child_info_data.update(data)
             t_data_buffer.task_done()
         except queue.Empty:
-            logger.error(tra.translate('Empty queue, but Desktop/Media cast names list not'))
+            logger.error('Empty queue, but Desktop/Media cast names list not')
             break
 
     # sort the dict
@@ -555,7 +553,7 @@ def util_casts_info():
 
     Desktop.t_todo_event.clear()
     Media.t_todo_event.clear()
-    logger.debug(tra.translate('End request info'))
+    logger.debug('End request info')
 
     return {"t_info": sort_child_info_data}
 
@@ -601,29 +599,29 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
     """
 
     if class_name not in class_to_test:
-        logger.error(tra.translate(f"Class name: {class_name} not in {class_to_test}"))
+        logger.error(f"Class name: {class_name} not in {class_to_test}")
         raise HTTPException(status_code=400,
                             detail=f"Class name: {class_name} not in {class_to_test}")
     try:
         class_obj = globals()[class_name]
     except KeyError:
-        logger.error(tra.translate(f"Invalid class name: {class_name}"))
+        logger.error(f"Invalid class name: {class_name}")
         raise HTTPException(status_code=400,
                             detail=f"Invalid class name: {class_name}")
 
     if cast_name is not None and cast_name not in class_obj.cast_names:
-        logger.error(tra.translate(f"Invalid Cast name: {cast_name}"))
+        logger.error(f"Invalid Cast name: {cast_name}")
         raise HTTPException(status_code=400,
                             detail=f"Invalid Cast name: {cast_name}")
 
     if not hasattr(class_obj, 'cast_name_todo'):
-        logger.error(tra.translate(f"Invalid attribute name"))
+        logger.error(f"Invalid attribute name")
         raise HTTPException(status_code=400,
                             detail=f"Invalid attribute name")
 
     if clear:
         class_obj.cast_name_todo = []
-        logger.debug(tra.translate(f" To do cleared for {class_obj}'"))
+        logger.debug(f" To do cleared for {class_obj}'")
         return {"message": f" To do cleared for {class_obj}'"}
 
     if action not in action_to_test and action is not None:
@@ -642,7 +640,7 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            logger.error(tra.translate(f"Invalid Cast/Thread name or action not set"))
+            logger.error(f"Invalid Cast/Thread name or action not set")
             raise HTTPException(status_code=400,
                                 detail=f"Invalid Cast/Thread name or action not set")
         else:
@@ -651,7 +649,7 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            logger.debug(tra.translate(f"Action '{action}' added successfully to : '{class_obj}'"))
+            logger.debug(f"Action '{action}' added successfully to : '{class_obj}'")
             return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
 
     else:
@@ -662,7 +660,7 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
             class_obj.t_todo_event.set()
-            logger.debug(tra.translate(f"Actions in queue will be executed"))
+            logger.debug(f"Actions in queue will be executed")
             return {"message": f"Actions in queue will be executed"}
 
         elif cast_name is None or action is None:
@@ -670,7 +668,7 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            logger.error(tra.translate(f"Invalid Cast/Thread name or action not set"))
+            logger.error(f"Invalid Cast/Thread name or action not set")
             raise HTTPException(status_code=400,
                                 detail=f"Invalid Cast/Thread name or action not set")
 
@@ -682,7 +680,7 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
             class_obj.t_todo_event.set()
-            logger.debug(tra.translate(f"Action '{action}' added successfully to : '{class_obj} and execute is On'"))
+            logger.debug(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
             return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 
@@ -747,7 +745,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # validate data format received
             if not Utils.validate_ws_json_input(json_data):
-                logger.error(tra.translate('WEBSOCKET: received data not compliant with expected format'))
+                logger.error('WEBSOCKET: received data not compliant with expected format')
                 await websocket.send_text('{"result":"error"}')
                 raise Exception
 
@@ -801,13 +799,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
             else:
 
-                logger.error(tra.translate('WEBSOCKET: received data contain unexpected action'))
+                logger.error('WEBSOCKET: received data contain unexpected action')
                 await websocket.send_text('{"result":"error"}')
                 raise Exception
 
     except Exception as error:
         logger.error(traceback.format_exc())
-        logger.error(tra.translate(f'WEBSOCKET An exception occurred: {error}'))
+        logger.error(f'WEBSOCKET An exception occurred: {error}')
         await websocket.send_text('{"result":"internal error"}')
         await websocket.close()
 
@@ -844,7 +842,7 @@ async def cast_image(image_number,
         ip = socket.gethostbyname(class_obj.cast_devices[device_number][1])
 
     if ip == '127.0.0.1':
-        logger.warning(tra.translate('Nothing to do for localhost 127.0.0.1'))
+        logger.warning('Nothing to do for localhost 127.0.0.1')
         return
 
     if buffer_name.lower() == 'buffer':
@@ -852,14 +850,14 @@ async def cast_image(image_number,
     elif buffer_name.lower() == 'multicast':
         images_buffer = class_obj.cast_frame_buffer
 
-    logger.info(tra.translate('Cast one image from buffer'))
-    logger.info(tra.translate(f"image number: {image_number}"))
-    logger.info(tra.translate(f"device number: {device_number}"))
-    logger.info(tra.translate(f"FPS: {fps_number}"))
-    logger.info(tra.translate(f"Duration (in ms):  {duration_number}"))
-    logger.info(tra.translate(f"retry frame number:  {retry_number}"))
-    logger.info(tra.translate(f"class name: {class_name}"))
-    logger.info(tra.translate(f"Image from buffer: {buffer_name}"))
+    logger.info('Cast one image from buffer')
+    logger.info(f"image number: {image_number}")
+    logger.info(f"device number: {device_number}")
+    logger.info(f"FPS: {fps_number}")
+    logger.info(f"Duration (in ms):  {duration_number}")
+    logger.info(f"retry frame number:  {retry_number}")
+    logger.info(f"class name: {class_name}")
+    logger.info(f"Image from buffer: {buffer_name}")
 
     ddp = DDPDevice(ip)
 
@@ -1457,7 +1455,7 @@ async def main_page_desktop():
                             await light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
                     except Exception as error:
                         logger.error(traceback.format_exc())
-                        logger.error(tra.translate(f'An exception occurred: {error}'))
+                        logger.error(f'An exception occurred: {error}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -1650,7 +1648,7 @@ async def main_page_media():
                             await light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
                     except Exception as error:
                         logger.error(traceback.format_exc())
-                        logger.error(tra.translate(f'An exception occurred: {error}'))
+                        logger.error(f'An exception occurred: {error}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -2030,7 +2028,7 @@ async def youtube_clear_search():
                 area.delete()
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error(tra.translate(f'Search area does not exist: {error}'))
+            logger.error(f'Search area does not exist: {error}')
     CastAPI.search_areas = []
 
 
@@ -2103,9 +2101,9 @@ def select_sc_area():
     # For Calculate crop parameters
     Desktop.screen_coordinates = Sa.screen_coordinates
     #
-    logger.info(tra.translate(f'Monitor infos: {Sa.monitors}'))
-    logger.info(tra.translate(f'Area Coordinates: {Sa.coordinates} from monitor {monitor}'))
-    logger.info(tra.translate(f'Area screen Coordinates: {Sa.screen_coordinates} from monitor {monitor}'))
+    logger.info(f'Monitor infos: {Sa.monitors}')
+    logger.info(f'Area Coordinates: {Sa.coordinates} from monitor {monitor}')
+    logger.info(f'Area screen Coordinates: {Sa.screen_coordinates} from monitor {monitor}')
 
 
 async def slider_sync():
@@ -2213,7 +2211,7 @@ def dev_stats_info_page():
     Popen(["devstats"] + dev_ip + ips_list + dark,
           executable=select_chart_exe())
 
-    logger.info(tra.translate('Run Device(s) Charts'))
+    logger.info('Run Device(s) Charts')
     CastAPI.charts_row.set_visibility(False)
 
 
@@ -2228,7 +2226,7 @@ def net_stats_info_page():
           executable=select_chart_exe())
 
     CastAPI.charts_row.set_visibility(False)
-    logger.info(tra.translate('Run Network Chart'))
+    logger.info('Run Network Chart')
 
 
 def sys_stats_info_page():
@@ -2242,7 +2240,7 @@ def sys_stats_info_page():
           executable=select_chart_exe())
 
     CastAPI.charts_row.set_visibility(False)
-    logger.info(tra.translate('Run System Charts'))
+    logger.info('Run System Charts')
 
 
 def select_chart_exe():
@@ -2340,7 +2338,7 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
     """ load a preset """
 
     if class_name not in ['Desktop', 'Media']:
-        logger.error(tra.translate(f'Unknown Class Name : {class_name}'))
+        logger.error(f'Unknown Class Name : {class_name}')
         return False
 
     def apply_preset():
@@ -2364,7 +2362,7 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
 
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error(tra.translate(f'Error to apply preset : {error}'))
+            logger.error(f'Error to apply preset : {error}')
             ui.notify('Error to apply Preset', type='negative', position='center')
 
     if interactive:
@@ -2481,7 +2479,7 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
     """ load a preset """
 
     if class_name not in ['Desktop', 'Media']:
-        logger.error(tra.translate(f'Unknown Class Name : {class_name}'))
+        logger.error(f'Unknown Class Name : {class_name}')
         return False
 
     def apply_preset():
@@ -2510,7 +2508,7 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
 
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error(tra.translate(f'Error to apply preset : {error}'))
+            logger.error(f'Error to apply preset : {error}')
             ui.notify('Error to apply Preset', type='negative', position='center')
 
     if interactive:
@@ -2912,7 +2910,7 @@ async def cast_to_wled(class_obj, image_number):
 
     # check if valid wled device
     if not is_alive:
-        logger.warning(tra.translate('Device do not accept connection to port 80'))
+        logger.warning('Device do not accept connection to port 80')
         ui.notify('Device do not accept connection to port 80', type='warning')
     else:
         ui.notify(f'Cast to device : {class_obj.host}')
@@ -2950,7 +2948,7 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False, interacti
     if folder[-1] == '/':
         pass
     else:
-        logger.error(tra.translate("The last character of the folder name is not '/'."))
+        logger.error("The last character of the folder name is not '/'.")
         return
 
     # Get the absolute path of the folder relative to the current working directory
@@ -2958,7 +2956,7 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False, interacti
     if os.path.isdir(absolute_img_folder):
         pass
     else:
-        logger.error(tra.translate(f"The folder {absolute_img_folder} does not exist."))
+        logger.error(f"The folder {absolute_img_folder} does not exist.")
         return
 
     # select buffer
@@ -2989,7 +2987,7 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False, interacti
     if interactive:
         ui.notify(f"Image saved to {filename}")
 
-    logger.info(tra.translate(f"Image saved to {filename}"))
+    logger.info(f"Image saved to {filename}")
 
 
 async def discovery_net_notify():
@@ -3023,7 +3021,7 @@ async def init_cast(class_obj, clog_ui=None):
     """
     class_obj.cast(shared_buffer=t_data_buffer)
     await cast_manage()
-    logger.info(tra.translate(f' Run Cast for {str(class_obj)}'))
+    logger.info(f' Run Cast for {str(class_obj)}')
     ui.notify(f'Cast initiated for :{str(class_obj)} ')
 
 
@@ -3033,7 +3031,7 @@ async def cast_stop(class_obj):
     class_obj.stopcast = True
     ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
     await cast_manage()
-    logger.info(tra.translate(f' Stop Cast for {str(class_obj)}'))
+    logger.info(f' Stop Cast for {str(class_obj)}')
 
 
 async def show_notify(event: ValueChangeEventArguments):
@@ -3083,7 +3081,7 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
 
         except Exception as error:
             logger.error(traceback.format_exc())
-            logger.error(tra.translate(f'An exception occurred: {error}'))
+            logger.error(f'An exception occurred: {error}')
 
 
 async def multi_preview(class_name):
@@ -3166,7 +3164,7 @@ async def check_yt(url):
             video_url = yt
 
     ui.notify(f'Video set to : {video_url}')
-    logger.info(tra.translate(f'Video set to : {video_url}'))
+    logger.info(f'Video set to : {video_url}')
     CastAPI.progress_bar.value = 1
     CastAPI.progress_bar.update()
     CastAPI.player.set_source(video_url)
@@ -3249,7 +3247,7 @@ ui.run(title='WLEDVideoSync',
 END
 """
 if sys.platform != 'win32':
-    logger.info(tra.translate('Remove tmp files'))
+    logger.info('Remove tmp files')
     for tmp_filename in PathLib("./tmp/").glob("*_file.*"):
         tmp_filename.unlink()
 

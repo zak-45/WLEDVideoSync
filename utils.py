@@ -1218,13 +1218,12 @@ class Translator:
         else:
             self.to_lang = to_lang
 
-        self.install_language_package()
-
     def install_language_package(self):
         # Update package index and get available packages
+        argostranslate.package.update_package_index()
+        available_packages = argostranslate.package.get_available_packages()
+
         try:
-            argostranslate.package.update_package_index()
-            available_packages = argostranslate.package.get_available_packages()
             # Find and install the required package
             package_to_install = next(
                 filter(
@@ -1245,7 +1244,8 @@ class Translator:
         try:
             if self.to_lang != self.from_lang:
                 text = argostranslate.translate.translate(text, self.from_lang, self.to_lang)
-        finally:
+                return text
+        except:
             return text
 
 
