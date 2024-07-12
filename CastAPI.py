@@ -1038,41 +1038,44 @@ async def main_page():
             ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
             # clear / load log file
             with ui.row().classes('w-full'):
-                ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip(tra.translate('Erase the log'))
+                ui.button(tra.translate('Clear "Log"'), on_click=lambda: log_ui.clear()) \
+                    .tooltip(tra.translate('Erase the log'))
                 dialog = ui.dialog().classes('w-full') \
                     .props(add='maximized transition-show="slide-up" transition-hide="slide-down"')
                 with dialog, ui.card().classes('w-full'):
                     log_filename = 'log/WLEDVideoSync.log'
                     with open(log_filename) as file:
                         log_data = file.read()
-                    ui.button('Close', on_click=dialog.close, color='red')
+                    ui.button(tra.translate('Close'), on_click=dialog.close, color='red')
                     log_area = ui.textarea(value=log_data).classes('w-full').props(add='bg-color=blue-grey-4')
                     log_area.props(add="rows='25'")
-                ui.button('See Log file', on_click=dialog.open).tooltip(tra.translate('Load log data from file'))
+                ui.button(tra.translate('See "Log" file'), on_click=dialog.open) \
+                    .tooltip(tra.translate('Load log data from file'))
 
     """
     Footer : usefully links help
     """
     with ui.footer(value=False).classes('items-center bg-red-900') as footer:
-        ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip(tra.translate('Change Layout Mode'))
+        ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900') \
+            .tooltip(tra.translate('Change Layout Mode'))
 
         await net_view_page()
 
-        ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
+        ui.button(tra.translate('Run network discovery'), on_click=discovery_net_notify, color='bg-red-800')
         ui.button('SysStats', on_click=charts_select, color='bg-red-800')
         CastAPI.charts_row = ui.row().classes('w-full no-wrap')
         with CastAPI.charts_row:
             with ui.card().classes('w-1/3'):
-                ui.button('Device', on_click=dev_stats_info_page)
+                ui.button(tra.translate('Device'), on_click=dev_stats_info_page)
 
             with ui.card().classes('w-1/3'):
-                ui.button('Network', on_click=net_stats_info_page)
+                ui.button(tra.translate('Network'), on_click=net_stats_info_page)
 
             with ui.card().classes('w-1/3'):
-                ui.button('System', on_click=sys_stats_info_page)
+                ui.button(tra.translate('System'), on_click=sys_stats_info_page)
         CastAPI.charts_row.set_visibility(False)
         if sys.platform != 'win32':
-            ui.button('shutdown', on_click=app.shutdown)
+            ui.button(tra.translate('shutdown'), on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \
                 .classes('text-white')
@@ -1095,7 +1098,7 @@ async def main_page_cast_manage():
     Header with button menu
     """
     with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
-        ui.label('"Cast" Manage').classes('text-white text-lg font-medium')
+        ui.label(tra.translate('"Cast" Manage')).classes('text-white text-lg font-medium')
         ui.icon('video_settings')
         # Create buttons
         ui.button('MAIN', on_click=lambda: ui.navigate.to('/'), icon='home')
@@ -1112,7 +1115,7 @@ async def main_page_cast_manage():
     Footer
     """
     with ui.footer():
-        ui.button('Refresh Page', on_click=lambda: ui.navigate.to('/Manage'))
+        ui.button(tra.translate('Refresh Page'), on_click=lambda: ui.navigate.to('/Manage'))
 
         await net_view_page()
 
@@ -1339,13 +1342,13 @@ async def main_page_desktop():
             ui.table(columns=columns_e, rows=rows_e).classes('w-60')
 
             with ui.grid(columns=2):
-                ui.label('Protocol:')
+                ui.label(tra.translate('Protocol:'))
                 ui.label(Desktop.protocol)
 
-                ui.label('Port:')
+                ui.label(tra.translate('Port:'))
                 ui.label(str(Desktop.port))
 
-                ui.label('No of Packet:')
+                ui.label(tra.translate('No of Packet:'))
                 ui.label(str(Desktop.retry_number))
 
     if str2bool(custom_config['animate-ui']):
@@ -1418,7 +1421,7 @@ async def main_page_desktop():
                 new_cast_devices = ui.input('"Cast" Devices', value=str(Desktop.cast_devices))
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Desktop', 'cast_devices', new_cast_devices.value))
-                ui.button('Manage', on_click=lambda: cast_device_manage(Desktop))
+                ui.button(tra.translate('Manage'), on_click=lambda: cast_device_manage(Desktop))
 
     ui.separator().classes('mt-6')
 
@@ -1438,7 +1441,7 @@ async def main_page_desktop():
 
         else:
             with ui.card():
-                ui.label('No image to show...').classes('animate-pulse')
+                ui.label(tra.translate('No image to show...')).classes('animate-pulse')
 
     with ui.expansion('MULTICAST', icon='grid_view', on_value_change=lambda: exp_edit_param.close()) \
             .classes('w-full'):
@@ -1460,10 +1463,10 @@ async def main_page_desktop():
                         logger.error(tra.translate(f'An exception occurred: {error}'))
             else:
                 with ui.card():
-                    ui.label('No frame captured yet...').style('background: red')
+                    ui.label(tra.translate('No frame captured yet...')).style('background: red')
         else:
             with ui.card():
-                ui.label('Multicast not set') \
+                ui.label(tra.translate('Multicast not set')) \
                     .style('text-align:center; font-size: 150%; font-weight: 300') \
                     .classes('animate-pulse')
 
@@ -1475,8 +1478,9 @@ async def main_page_desktop():
             win_title = Utils.windows_titles()
             editor = ui.json_editor({'content': {'json': win_title}}) \
                 .run_editor_method('updateProps', {'readOnly': True})
-            ui.button('Close', on_click=dialog.close, color='red')
-        ui.button('Win TITLES', on_click=dialog.open, color='bg-red-800').tooltip(tra.translate('View windows titles'))
+            ui.button(tra.translate('Close'), on_click=dialog.close, color='red')
+        ui.button(tra.translate('"Windows" titles'), on_click=dialog.open, color='bg-red-800') \
+            .tooltip(tra.translate('View "windows" titles'))
 
 
 @ui.page('/Media')
@@ -1544,13 +1548,13 @@ async def main_page_media():
             ui.table(columns=columns_d, rows=rows_d).classes('w-60')
 
             with ui.grid(columns=2):
-                ui.label('Protocol:')
+                ui.label(tra.translate('Protocol:'))
                 ui.label(Media.protocol)
 
-                ui.label('Port:')
+                ui.label(tra.translate('Port:'))
                 ui.label(str(Media.port))
 
-                ui.label('No of Packet:')
+                ui.label(tra.translate('No of Packet:'))
                 ui.label(str(Media.retry_number))
 
     if str2bool(custom_config['animate-ui']):
@@ -1631,7 +1635,7 @@ async def main_page_media():
 
         else:
             with ui.card():
-                ui.label('No image to show...').classes('animate-pulse')
+                ui.label(tra.translate('No image to show...')).classes('animate-pulse')
 
     with ui.expansion('MULTICAST', icon='grid_view', on_value_change=lambda: media_exp_edit_param.close()) \
             .classes('w-full'):
@@ -1653,10 +1657,10 @@ async def main_page_media():
                         logger.error(tra.translate(f'An exception occurred: {error}'))
             else:
                 with ui.card():
-                    ui.label('No frame captured yet...').style('background: red')
+                    ui.label(tra.translate('No video frame captured yet...')).style('background: red')
         else:
             with ui.card():
-                ui.label('Multicast not set') \
+                ui.label(tra.translate('Multicast not set')) \
                     .style('text-align:center; font-size: 150%; font-weight: 300') \
                     .classes('animate-pulse')
 
@@ -1668,7 +1672,7 @@ async def main_page_media():
 
         await media_dev_view_page()
 
-        ui.button('Run discovery', on_click=discovery_media_notify, color='bg-red-800')
+        ui.button(tra.translate('Run discovery'), on_click=discovery_media_notify, color='bg-red-800')
 
 
 @ui.page('/WLEDVideoSync')
@@ -1677,9 +1681,10 @@ async def splash_page():
     Page displayed on the webview window
     :return:
     """
+    await ui.context.client.connected()
     ui.dark_mode(True)
     ui.image('media/intro.gif').classes('self-center').style('width: 50%')
-    ui.button('MAIN INTERFACE', on_click=lambda: ui.navigate.to(f'/')) \
+    main = ui.button(tra.translate('MAIN'), on_click=lambda: (main.props('loading'), ui.navigate.to(f'/'))) \
         .classes('self-center')
     ui.button('API', on_click=lambda: ui.navigate.to(f'/docs')) \
         .classes('self-center')
@@ -1732,13 +1737,13 @@ async def manage_charts_page():
     """ Select chart """
     with ui.row(wrap=False).classes('w-full'):
         with ui.card().classes('w-1/3'):
-            ui.button('Device', on_click=dev_stats_info_page)
+            ui.button(tra.translate('Device'), on_click=dev_stats_info_page)
 
         with ui.card().classes('w-1/3'):
-            ui.button('Network', on_click=net_stats_info_page)
+            ui.button(tra.translate('Network'), on_click=net_stats_info_page)
 
         with ui.card().classes('w-1/3'):
-            ui.button('System', on_click=sys_stats_info_page)
+            ui.button(tra.translate('System'), on_click=sys_stats_info_page)
 
 
 async def system_stats():
@@ -1772,8 +1777,9 @@ async def net_view_page():
     with ui.dialog() as dialog, ui.card():
         editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
             .run_editor_method('updateProps', {'readOnly': True})
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('Net devices', on_click=dialog.open, color='bg-red-800').tooltip(tra.translate('View network devices'))
+        ui.button(tra.translate('Close'), on_click=dialog.close, color='red')
+    ui.button(tra.translate('Network devices'), on_click=dialog.open, color='bg-red-800') \
+        .tooltip(tra.translate('View network devices'))
 
 
 @ui.refreshable
@@ -1785,8 +1791,9 @@ async def media_dev_view_page():
     with ui.dialog() as dialog, ui.card():
         editor = ui.json_editor({'content': {'json': Utils.dev_list}}) \
             .run_editor_method('updateProps', {'readOnly': True})
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('Media devices', on_click=dialog.open, color='bg-red-800').tooltip(tra.translate('View Media devices'))
+        ui.button(tra.translate('Close'), on_click=dialog.close, color='red')
+    ui.button(tra.translate('Media devices'), on_click=dialog.open, color='bg-red-800') \
+        .tooltip(tra.translate('View Media devices'))
 
 
 """
@@ -1879,7 +1886,7 @@ async def cast_icon(class_obj):
 async def media_filters():
     #  Filters for Media
     with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-        ui.label('Filters/Effects Media')
+        ui.label(tra.translate('Filters/Effects Media'))
         with ui.row().classes('w-44'):
             ui.checkbox('Flip') \
                 .bind_value(Media, 'flip') \
@@ -1908,23 +1915,23 @@ async def media_filters():
                         ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
                             .bind_value(Media, 'balance_b')
                         ui.label('B').classes('self-center')
-                ui.button('reset', on_click=lambda: reset_rgb('Media')).classes('self-center')
+                ui.button(tra.translate('reset'), on_click=lambda: reset_rgb('Media')).classes('self-center')
 
     with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
         with ui.row().classes('w-20').style('justify-content: flex-end'):
-            ui.label('saturation')
+            ui.label(tra.translate('saturation'))
             ui.slider(min=0, max=100, step=1, value=0) \
                 .props('label-always') \
                 .bind_value(Media, 'saturation')
-            ui.label('brightness').classes('text-right')
+            ui.label(tra.translate('brightness')).classes('text-right')
             ui.slider(min=0, max=100, step=1, value=0) \
                 .props('label-always') \
                 .bind_value(Media, 'brightness')
-            ui.label('contrast')
+            ui.label(tra.translate('contrast'))
             ui.slider(min=0, max=100, step=1, value=0) \
                 .props('label-always') \
                 .bind_value(Media, 'contrast')
-            ui.label('sharpen')
+            ui.label(tra.translate('sharpen'))
             ui.slider(min=0, max=100, step=1, value=0) \
                 .props('label-always') \
                 .bind_value(Media, 'sharpen')
@@ -1940,7 +1947,7 @@ async def desktop_filters():
     """ desktop filter page creation"""
 
     with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-        ui.label('Filters/Effects Desktop')
+        ui.label(tra.translate('Filters/Effects Desktop'))
         with ui.row().classes('w-44'):
             ui.checkbox('Flip') \
                 .bind_value(Desktop, 'flip') \
@@ -1970,23 +1977,23 @@ async def desktop_filters():
                         ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
                             .bind_value(Desktop, 'balance_b')
                         ui.label('B').classes('self-center')
-                ui.button('reset', on_click=lambda: reset_rgb('Desktop')).classes('self-center')
+                ui.button(tra.translate('reset'), on_click=lambda: reset_rgb('Desktop')).classes('self-center')
 
     with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
         with ui.row().classes('w-20').style('justify-content: flex-end'):
-            ui.label('saturation')
+            ui.label(tra.translate('saturation'))
             ui.slider(min=0, max=100, step=1, value=0) \
                 .props('label-always') \
                 .bind_value(Desktop, 'saturation')
-            ui.label('brightness')
+            ui.label(tra.translate('brightness'))
             ui.slider(min=0, max=100, step=1, value=0) \
                 .props('label-always') \
                 .bind_value(Desktop, 'brightness')
-            ui.label('contrast')
+            ui.label(tra.translate('contrast'))
             ui.slider(min=0, max=100, step=1, value=0) \
                 .props('label-always') \
                 .bind_value(Desktop, 'contrast')
-            ui.label('sharpen')
+            ui.label(tra.translate('sharpen'))
             ui.slider(min=0, max=100, step=1, value=0) \
                 .props('label-always') \
                 .bind_value(Desktop, 'sharpen')
@@ -2280,8 +2287,8 @@ Filter preset mgr
 
 def manage_filter_presets(class_name):
     """ Manage presets"""
-    ui.button('save preset', on_click=lambda: save_filter_preset(class_name)).classes('w-20')
-    ui.button('load preset', on_click=lambda: load_filter_preset(class_name)).classes('w-20')
+    ui.button(tra.translate('save preset'), on_click=lambda: save_filter_preset(class_name)).classes('w-20')
+    ui.button(tra.translate('load preset'), on_click=lambda: load_filter_preset(class_name)).classes('w-20')
 
 
 async def save_filter_preset(class_name):
@@ -2335,8 +2342,8 @@ async def save_filter_preset(class_name):
             ui.separator()
             file_name = ui.input('Enter name', placeholder='preset name')
             with ui.row():
-                ui.button('OK', on_click=lambda: save_file(file_name.value))
-                ui.button('Cancel', on_click=dialog.close)
+                ui.button(tra.translate('OK'), on_click=lambda: save_file(file_name.value))
+                ui.button(tra.translate('Cancel'), on_click=dialog.close)
 
 
 async def load_filter_preset(class_name, interactive=True, file_name=None):
@@ -2376,7 +2383,7 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
             with ui.card().classes('self-center'):
                 ui.label(class_name).classes('self-center')
                 ui.separator()
-                ui.button('EXIT', on_click=dialog.close)
+                ui.button(tra.translate('EXIT'), on_click=dialog.close)
                 result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False)
                 editor_data = {}
                 if result is not None:
@@ -2399,10 +2406,10 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
                             .run_editor_method('updateProps', {'readOnly': True})
 
                     with ui.row():
-                        ui.button('OK', on_click=apply_preset)
+                        ui.button(tra.translate('OK'), on_click=apply_preset)
                 else:
                     preset_config_r = 'None'
-                ui.label(f'Preset to apply: {preset_config_r}')
+                ui.label(tra.translate(f'Preset to apply: {preset_config_r}'))
     else:
         preset_config_r = cfg.load(f'config/presets/filter/{class_name}/' + file_name)
         preset_rgb = preset_config_r.get('RGB')
@@ -2425,8 +2432,8 @@ Cast preset mgr
 
 def manage_cast_presets(class_name):
     """ Manage presets"""
-    ui.button('save preset', on_click=lambda: save_cast_preset(class_name)).classes('w-20')
-    ui.button('load preset', on_click=lambda: load_cast_preset(class_name)).classes('w-20')
+    ui.button(tra.translate('save preset'), on_click=lambda: save_cast_preset(class_name)).classes('w-20')
+    ui.button(tra.translate('load preset'), on_click=lambda: load_cast_preset(class_name)).classes('w-20')
 
 
 async def save_cast_preset(class_name):
@@ -2476,8 +2483,8 @@ async def save_cast_preset(class_name):
             file_name = ui.input('Enter name', placeholder='preset name')
 
             with ui.row():
-                ui.button('OK', on_click=lambda: save_file(file_name.value))
-                ui.button('Cancel', on_click=dialog.close)
+                ui.button(tra.translate('OK'), on_click=lambda: save_file(file_name.value))
+                ui.button(tra.translate('Cancel'), on_click=dialog.close)
 
 
 async def load_cast_preset(class_name, interactive=True, file_name=None):
@@ -2522,7 +2529,7 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
             with ui.card().classes('self-center'):
                 ui.label(class_name).classes('self-center')
                 ui.separator()
-                ui.button('EXIT', on_click=dialog.close)
+                ui.button(tra.translate('EXIT'), on_click=dialog.close)
                 result = await LocalFilePicker(f'config/presets/cast/{class_name}', multiple=False)
                 if result is not None:
                     editor_data = {}
@@ -2537,10 +2544,10 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
                             .run_editor_method('updateProps', {'readOnly': True})
 
                     with ui.row():
-                        ui.button('OK', on_click=apply_preset)
+                        ui.button(tra.translate('OK'), on_click=apply_preset)
                 else:
                     preset_config_r = 'None'
-                ui.label(f'Preset to apply: {preset_config_r}')
+                ui.label(tra.translate(f'Preset to apply: {preset_config_r}'))
     else:
         preset_config_r = cfg.load(f'config/presets/cast/{class_name}/' + file_name)
         preset_general = preset_config_r.get('GENERAL')
@@ -2619,11 +2626,11 @@ async def cast_device_manage(class_name):
             rows.append({'number': item[0], 'ip': item[1], 'id': new_id})
 
         with ui.row():
-            ui.button('Add row', on_click=add_row)
-            ui.button('Add Net', on_click=add_net)
-            ui.button('Select all', on_click=lambda: aggrid.run_grid_method('selectAll'))
-            ui.button('Validate', on_click=lambda: update_cast_devices())
-            ui.button('Close', color='red', on_click=lambda: dialog.close())
+            ui.button(tra.translate('Add row'), on_click=add_row)
+            ui.button(tra.translate('Add "Net"'), on_click=add_net)
+            ui.button(tra.translate('Select all'), on_click=lambda: aggrid.run_grid_method('selectAll'))
+            ui.button(tra.translate('Validate'), on_click=lambda: update_cast_devices())
+            ui.button(tra.translate('Close'), color='red', on_click=lambda: dialog.close())
 
 
 def reset_rgb(class_name):
@@ -2669,7 +2676,8 @@ async def cast_manage_page():
             card.classes('bg-red-900')
 
             with card:
-                ui.label(' Running Cast(s) ').classes('self-center').style("color: yellow; background: purple")
+                ui.label(tra.translate(' Running Cast(s) ')) \
+                    .classes('self-center').style("color: yellow; background: purple")
                 with ui.row():
                     desktop_count = ui.number(prefix='Desktop:').bind_value_from(Desktop, 'count')
                     desktop_count.classes("w-20")
@@ -2732,7 +2740,7 @@ async def tabs_info_page():
     with (ui.tab_panels(tabs, value=p_desktop).classes('w-full')):
         with ui.tab_panel(p_desktop):
             if not desktop_threads:
-                ui.label('No CAST').classes('animate-pulse') \
+                ui.label(tra.translate('No "CAST"')).classes('animate-pulse') \
                     .style('text-align:center; font-size: 150%; font-weight: 300')
             else:
                 # create Graph
@@ -2783,7 +2791,7 @@ async def tabs_info_page():
 
         with ui.tab_panel(p_media):
             if not media_threads:
-                ui.label('No CAST').classes('animate-pulse') \
+                ui.label(tra.translate('No "CAST"')).classes('animate-pulse') \
                     .style('text-align:center; font-size: 150%; font-weight: 300')
             else:
                 # create Graph
@@ -2851,7 +2859,7 @@ async def show_thread_info():
         cast_info = util_casts_info()
         editor = ui.json_editor({'content': {'json': cast_info}}) \
             .run_editor_method('updateProps', {'readOnly': True})
-        ui.button('Close', on_click=dialog.close, color='red')
+        ui.button(tra.translate('Close'), on_click=dialog.close, color='red')
         dialog.open()
 
 
@@ -3081,7 +3089,7 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
                             .tooltip(tra.translate('Save Image as Ascii ART'))
 
                     ui.label(str(index)).classes('absolute-bottom text-subtitle2 text-center').style('background: red')
-                ui.button('Close', on_click=dialog.close, color='red')
+                ui.button(tra.translate('Close'), on_click=dialog.close, color='red')
             ui.button('', icon='preview', on_click=dialog.open, color='bg-red-800').tooltip(tra.translate('View image'))
 
         except Exception as error:
@@ -3103,8 +3111,8 @@ async def multi_preview(class_name):
             for i in range(len(class_name.cast_frame_buffer)):
                 with ui.image(Image.fromarray(class_name.cast_frame_buffer[i])).classes('w-60'):
                     ui.label(str(i))
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('FULL', icon='preview', on_click=dialog.open).tooltip(tra.translate('View ALL images'))
+        ui.button(tra.translate('Close'), on_click=dialog.close, color='red')
+    ui.button(tra.translate('FULL'), icon='preview', on_click=dialog.open).tooltip(tra.translate('View ALL images'))
 
 
 async def cast_devices_view(class_name):
@@ -3127,8 +3135,8 @@ async def cast_devices_view(class_name):
                         ui.link('IP  :  ' + str(class_name.cast_devices[i][1]),
                                 'http://' + str(class_name.cast_devices[i][1]),
                                 new_tab=True).style(text_decoration)
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('DEVICE', icon='preview', on_click=dialog.open).tooltip(tra.translate('View "Cast" devices'))
+        ui.button(tra.translate('Close'), on_click=dialog.close, color='red')
+    ui.button(tra.translate('DEVICE'), icon='preview', on_click=dialog.open).tooltip(tra.translate('View "Cast" devices'))
 
 
 async def player_pick_file() -> None:
