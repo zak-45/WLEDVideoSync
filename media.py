@@ -421,9 +421,8 @@ class CASTMedia:
                         logging.debug(f"{t_name} remove from all sync")
                         CASTMedia.cast_name_to_sync.remove(t_name)
                         # sync cast
-                        if self.player_sync is True:
-                            media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
-                            logger.info(f'{t_name} ALL Sync Cast to time :{self.player_time}')
+                        media.set(cv2.CAP_PROP_POS_MSEC, self.player_time)
+                        logger.info(f'{t_name} ALL Sync Cast to time :{self.player_time}')
 
                         logger.debug(f'{t_name} synced')
 
@@ -731,15 +730,7 @@ class CASTMedia:
     preview window
     """
 
-    def preview_window(self,
-                       frame,
-                       server_port,
-                       t_viinput,
-                       t_name,
-                       t_preview,
-                       frame_count,
-                       fps,
-                       ip_addresses,
+    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, frame_count, fps, ip_addresses,
                        grid=False):
 
         frame = cv2.resize(frame, (self.preview_w, self.preview_h))
@@ -830,11 +821,16 @@ class CASTMedia:
 
         return t_preview
 
+    """
+    END preview window
+    """
+
     def cast(self, shared_buffer=None, log_ui=None):
         """
             this will run the cast into another thread
             avoid to block the main one
             shared_buffer: if used need to be a queue
+            log_ui: used when want to see log msg into main UI
         """
         if log_ui is not None:
             logger.addHandler(log_ui)

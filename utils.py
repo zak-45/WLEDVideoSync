@@ -1050,12 +1050,9 @@ class YtSearch:
         ui.separator()
         with ui.row():
             self.my_search = ui.input('YT search')
-            # my_search.on('focusout', lambda: self.search_youtube(my_search.value))
             self.search_button = ui.button('search', icon='restore_page', color='blue') \
                 .tooltip('Click to Validate')
             self.search_button.on_click(lambda: self.search_youtube(self.my_search.value))
-            ui.icon('restore_page', color='blue', size='sm') \
-                .style('cursor: pointer').tooltip('Click to Validate/Refresh')
             self.next_button = ui.button('More', on_click=lambda: self.next_search(self.yt_search))
             self.next_button.set_visibility(False)
             self.number_found = ui.label(f'Result : ')
@@ -1085,8 +1082,13 @@ class YtSearch:
         """ Search for YT on input """
 
         await ui.context.client.connected()
+        self.next_button.props('loading')
         # clear as we recreate, sure, not optimal
         self.search_result.clear()
+
+        await self.py_search(data)
+
+    async def py_search(self, data):
         # Search
         self.yt_search = PySearch(data)
         # number found
@@ -1100,12 +1102,15 @@ class YtSearch:
         else:
             self.number_found.text = 'Nothing Found'
 
+        self.search_button.props(remove='loading')
+        self.next_button.props(remove='loading')
         ui.notify('YT Search End', position='center', type='info', close_button=True)
 
     async def next_search(self, search_obj):
         """ Next if you want more """
 
         await ui.context.client.connected()
+        self.search_button.props('loading')
         if len(search_obj.results) > 0:
             # search additional data
             await run.io_bound(search_obj.get_next_results)
@@ -1116,6 +1121,7 @@ class YtSearch:
         else:
             ui.notify('No more to search', position='center', type='negative', close_button=True)
 
+        self.search_button.props(remove='loading')
         ui.notify('YT More Search End', position='center', type='info', close_button=True)
 
     async def create_yt_page(self, data):

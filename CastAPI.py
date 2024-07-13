@@ -69,7 +69,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
-from nicegui import app, ui, native, context, run
+from nicegui import app, ui, native, context
 from nicegui.events import ValueChangeEventArguments
 
 """
@@ -1677,7 +1677,7 @@ async def splash_page():
     """
     ui.dark_mode(True)
     ui.image('media/intro.gif').classes('self-center').style('width: 50%')
-    ui.button('MAIN INTERFACE', on_click=lambda: ui.navigate.to(f'/')) \
+    main = ui.button('MAIN INTERFACE', on_click=lambda:(main.props('loading'), ui.navigate.to(f'/'))) \
         .classes('self-center')
     ui.button('API', on_click=lambda: ui.navigate.to(f'/docs')) \
         .classes('self-center')
