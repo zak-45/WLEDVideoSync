@@ -272,6 +272,8 @@ class CASTUtils:
         av is used to try to have cross-platform solution
         """
         CASTUtils.dev_list = []
+        devicenumber: int = 0
+        typedev: str = ''
 
         if platform.system().lower() == 'darwin':
             try:
@@ -283,9 +285,6 @@ class CASTUtils:
             except Exception as error:
                 logger.error(traceback.format_exc())
                 logger.error(f'An exception occurred: {error}')
-
-        devicenumber: int = 0
-        typedev: str = ''
 
         # linux
         if platform.system().lower() == 'linux':

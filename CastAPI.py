@@ -1069,7 +1069,7 @@ async def main_page():
             with ui.card().classes('w-1/3'):
                 ui.button('System', on_click=sys_stats_info_page)
         CastAPI.charts_row.set_visibility(False)
-        if sys.platform != 'win32':
+        if sys.platform.lower() != 'win32':
             ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \

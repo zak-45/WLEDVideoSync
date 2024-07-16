@@ -19,3 +19,4 @@ screeninfo==0.8.1
 av==12.2.0
 linuxpy
 imageio
+pygrabber
