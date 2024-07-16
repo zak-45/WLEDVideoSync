@@ -35,7 +35,6 @@ import cfg_load as cfg
 from str2bool import str2bool
 
 import threading
-from threading import current_thread
 
 import asyncio
 import concurrent.futures
@@ -165,7 +164,7 @@ class CASTMedia:
             Cast media : video file, image file or video capture device
         """
 
-        t_name = current_thread().name
+        t_name = threading.current_thread().name
         if CASTMedia.count == 0 or self.reset_total is True:
             CASTMedia.total_frame = 0
             CASTMedia.total_packet = 0
@@ -403,7 +402,7 @@ class CASTMedia:
                         CASTMedia.t_media_lock.release()
 
                         auto_expected_time = current_time
-                        logger.info(f'{t_name} Auto Sync Cast to time :{time_to_set}')
+                        logger.debug(f'{t_name} Auto Sync Cast to time :{time_to_set}')
 
                 if self.all_sync is True and self.player_sync is True:
 
@@ -536,7 +535,7 @@ class CASTMedia:
                                                                                          t_cast_x, t_cast_y)
                             elif 'info' in action:
                                 t_info = {t_name: {"type": "info", "data": {"start": start_time,
-                                                                            "tid": current_thread().native_id,
+                                                                            "tid": threading.current_thread().native_id,
                                                                             "viinput": str(t_viinput),
                                                                             "preview": t_preview,
                                                                             "multicast": t_multicast,

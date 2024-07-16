@@ -527,7 +527,7 @@ if __name__ == '__main__':
                         log_level=server_config['log_level'],
                         reload=False,
                         timeout_keep_alive=10,
-                        timeout_graceful_shutdown=1)
+                        timeout_graceful_shutdown=3)
 
         instance = UvicornServer(config=config)
 

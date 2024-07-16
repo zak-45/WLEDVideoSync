@@ -37,7 +37,7 @@ import cfg_load as cfg
 from str2bool import str2bool
 
 import threading
-from threading import current_thread
+
 import asyncio
 import concurrent.futures
 
@@ -157,7 +157,7 @@ class CASTDesktop:
             Cast desktop screen or a window content based on the title
         """
 
-        t_name = current_thread().name
+        t_name = threading.current_thread().name
         if CASTDesktop.count == 0 or self.reset_total is True:
             CASTDesktop.total_frame = 0
             CASTDesktop.total_packet = 0
@@ -474,7 +474,7 @@ class CASTDesktop:
                                         elif 'info' in action:
                                             t_info = {t_name: {"type": "info",
                                                                "data": {"start": start_time,
-                                                                        "tid": current_thread().native_id,
+                                                                        "tid": threading.current_thread().native_id,
                                                                         "viinput": str(t_viinput),
                                                                         "preview": t_preview,
                                                                         "multicast": t_multicast,

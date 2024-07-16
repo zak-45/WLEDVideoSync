@@ -541,7 +541,7 @@ def util_casts_info():
     for item in child_list:
         # wait and get info dict from a thread
         try:
-            data = t_data_buffer.get(timeout=10)
+            data = t_data_buffer.get(timeout=3)
             child_info_data.update(data)
             t_data_buffer.task_done()
         except queue.Empty:
@@ -3136,7 +3136,7 @@ async def player_pick_file() -> None:
     ui.notify(f'Selected :  {result}')
 
     if result is not None:
-        if sys.platform == 'win32':
+        if sys.platform.lower() == 'win32':
             result = str(result[0]).replace('\\', '/')
 
         CastAPI.player.set_source(result)
@@ -3157,7 +3157,7 @@ async def check_yt(url):
             else:
                 CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
                 CastAPI.progress_bar.update()
-                await asyncio.sleep(.5)
+                await asyncio.sleep(.1)
 
     asyncio.create_task(get_size())
 

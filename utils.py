@@ -113,7 +113,7 @@ class CASTUtils:
         return dict_codecs
 
     @staticmethod
-    async def youtube(yt_url: str = None, interactive: bool = True, log_ui: classmethod = None):
+    async def youtube(yt_url: str = None, interactive: bool = True, log_ui=None):
         """download video from youtube"""
 
         if interactive:
@@ -146,7 +146,7 @@ class CASTUtils:
             )
         try:
 
-            # this usually should select the first 720p video, enough for cast
+            # this usually should select the first 720p video, enough for cast: from 14/7/2024, this is 320p
             prog_stream = yt.streams.filter(progressive=True).order_by('resolution').desc().first()
             CASTUtils.yt_file_size_bytes = prog_stream.filesize
             CASTUtils.yt_file_size_remain_bytes = prog_stream.filesize
@@ -209,7 +209,7 @@ class CASTUtils:
     @staticmethod
     def get_wled_info(host, timeout: int = 1):
         """
-        Take matrix information from WLED device
+        Take wled information from WLED device
         :param host:
         :param timeout:
         :return:
@@ -273,19 +273,16 @@ class CASTUtils:
         """
         CASTUtils.dev_list = []
 
-        try:
-            import av
+        if platform.system().lower() == 'darwin':
+            try:
+                import av
 
-            with av.logging.Capture(True) as logs:  # this will capture av output
-                # av command depend on running OS
-                if platform.system().lower() == 'windows':
-                    av.open('dummy', 'r', format='dshow', options={'list_devices': 'True'})
-                elif platform.system().lower() == 'darwin':
+                with av.logging.Capture(True) as logs:  # this will capture av output
                     av.open('', 'r', format='avfoundation', options={'list_devices': 'True'})
 
-        except Exception as error:
-            logger.error(traceback.format_exc())
-            logger.error(f'An exception occurred: {error}')
+            except Exception as error:
+                logger.error(traceback.format_exc())
+                logger.error(f'An exception occurred: {error}')
 
         devicenumber: int = 0
         typedev: str = ''
@@ -303,8 +300,18 @@ class CASTUtils:
                 devicenumber = i
                 CASTUtils.dev_list.append((devname, typedev, devicenumber))
 
+        elif platform.system().lower()== 'windows':
+            from pygrabber.dshow_graph import FilterGraph
+            graph = FilterGraph()
+            devices = graph.get_input_devices()
+            for item in devices:
+                devname = item
+                typedev = 'video'
+                CASTUtils.dev_list.append((devname, typedev, devicenumber))
+                devicenumber +=1
+
         else:
-            # Win / darwin / others
+            # darwin / others
             for i, name in enumerate(logs):
                 if platform.system().lower() == 'windows':
                     if '"' in name[2] and 'Alternative' not in name[2]:
