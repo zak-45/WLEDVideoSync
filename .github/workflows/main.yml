@@ -102,7 +102,7 @@ jobs:
           path: 'build/WLEDVideoSync-${{runner.os}}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.14
         with:
           allowUpdates: true
           commit: main
