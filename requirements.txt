@@ -20,3 +20,5 @@ av==12.2.0
 linuxpy
 imageio
 pygrabber
+concurrent-log-handler
+cfg-load

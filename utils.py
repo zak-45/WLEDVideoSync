@@ -299,7 +299,7 @@ class CASTUtils:
                 devicenumber = i
                 CASTUtils.dev_list.append((devname, typedev, devicenumber))
 
-        elif platform.system().lower()== 'windows':
+        elif platform.system().lower() == 'windows':
             from pygrabber.dshow_graph import FilterGraph
             graph = FilterGraph()
             devices = graph.get_input_devices()
@@ -307,7 +307,7 @@ class CASTUtils:
                 devname = item
                 typedev = 'video'
                 CASTUtils.dev_list.append((devname, typedev, devicenumber))
-                devicenumber +=1
+                devicenumber += 1
 
         else:
             # darwin / others
@@ -526,15 +526,31 @@ class CASTUtils:
 
     @staticmethod
     def validate_ip_address(ip_string):
-        """ check if valid IP format """
+        """ check if valid IP format or hostname reachable """
 
+        # check if valid IP
         try:
-            if ip_string != 'localhost':
-                ipaddress.ip_address(ip_string)
-                return True
-            else:
-                return True
+            ipaddress.ip_address(ip_string)
+            return True
         except ValueError:
+            pass
+
+        # check if valid hostname
+        if len(ip_string) > 255:
+            return False
+        if ip_string[-1] == ".":
+            ip_string = ip_string[:-1]
+        allowed = re.compile(r"(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+        result = all(allowed.match(x) for x in ip_string.split("."))
+
+        if result:
+            # IP lookup from hostname
+            try:
+                socket.gethostbyname(ip_string)
+                return True
+            except socket.gaierror as e:
+                return False
+        else:
             return False
 
     @staticmethod
@@ -1223,4 +1239,3 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     # create logger
     logger = CASTUtils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
-
