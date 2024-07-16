@@ -18,3 +18,4 @@ requests==2.32.3
 screeninfo==0.8.1
 av==12.2.0
 linuxpy
+imageio
