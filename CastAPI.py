@@ -2984,8 +2984,8 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False, interacti
     else:
         filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
             h) + "_" + date_time + ".jpg"
-        # img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
-        cv2.imwrite(filename, buffer[image_number])
+        img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
+        cv2.imwrite(filename, img)
 
     if interactive:
         ui.notify(f"Image saved to {filename}")
