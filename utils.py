@@ -533,6 +533,16 @@ class CASTUtils:
         Returns:
             bool: True if the input is a valid IP address or a reachable hostname, False otherwise.
         """
+
+        def is_valid_hostname(hostname):
+            """Check if the string is a valid hostname."""
+            if len(hostname) > 255:
+                return False
+            if hostname[-1] == ".":
+                hostname = hostname[:-1]
+            allowed = re.compile(r"(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+            return all(allowed.match(x) for x in hostname.split("."))
+
         # Check if it's a valid IP address
         try:
             ipaddress.ip_address(ip_string)
@@ -541,7 +551,7 @@ class CASTUtils:
             pass
 
         # Check if it's a valid hostname
-        if CASTUtils.is_valid_hostname(ip_string):
+        if is_valid_hostname(ip_string):
             try:
                 # Check if hostname is reachable
                 socket.gethostbyname(ip_string)
@@ -550,16 +560,6 @@ class CASTUtils:
                 return False
 
         return False
-
-    @staticmethod
-    def is_valid_hostname(hostname):
-        """Check if the string is a valid hostname."""
-        if len(hostname) > 255:
-            return False
-        if hostname[-1] == ".":
-            hostname = hostname[:-1]
-        allowed = re.compile(r"(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
-        return all(allowed.match(x) for x in hostname.split("."))
 
     @staticmethod
     def is_valid_cast_device(input_string):
