@@ -158,7 +158,7 @@ Pywebview
 """
 
 
-def start_webview_process(window_name='Main'):
+def start_webview_process(window_name='Splash'):
     """
     start a pywebview process and call a window
     :return:
@@ -194,10 +194,17 @@ def start_webview_process(window_name='Main'):
                       ]
 
     # Window creation
-    if window_name == 'Main':
+    if window_name == 'Splash':
         # Main window : splash screen
         main_window = webview.create_window(title=f'WLEDVideoSync {server_port}',
                                             url=f'http://{server_ip}:{server_port}/WLEDVideoSync',
+                                            width=1200,
+                                            height=720)
+
+    elif window_name == 'Main':
+        # Main window : splash screen
+        main_window = webview.create_window(title=f'MAIN WLEDVideoSync {server_port}',
+                                            url=f'http://{server_ip}:{server_port}',
                                             width=1200,
                                             height=720)
 
@@ -306,8 +313,6 @@ def dialog_stop_server(window):
         logger.info('Server stop Canceled')
 
     window.destroy()
-    time.sleep(2)
-
 
 """
 Pystray
@@ -322,7 +327,7 @@ def on_open():
     global webview_process
     if webview_process is not None:
         webview_process.terminate()
-    start_webview_process()
+    start_webview_process('Main')
 
 
 def on_open_bro():
@@ -360,8 +365,6 @@ def on_restart_srv():
     if not new_instance.is_alive():
         logger.warning('Server restarted')
         new_instance.start()
-
-    time.sleep(2)
 
 
 def on_blackout():
@@ -546,6 +549,8 @@ if __name__ == '__main__':
         if show_window:
             logger.info('Starting webview loop...')
             start_webview_process()
+        else:
+            start_webview_process('Main')
 
         # start pystray Icon
         # main infinite loop on systray if requested
