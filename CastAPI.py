@@ -1345,11 +1345,11 @@ async def main_page_desktop():
 
             with ui.card():
                 new_rate = ui.number('FPS', value=Desktop.rate, min=1, max=60, precision=0)
-                new_rate.bind_value_to(Desktop, 'rate', lambda value: int(value or 0))
-                new_scale_width = ui.number('Scale Width', value=Desktop.scale_width, min=1, max=1920, precision=0)
-                new_scale_width.bind_value_to(Desktop, 'scale_width', lambda value: int(value or 0))
-                new_scale_height = (ui.number('Scale Height', value=Desktop.scale_height, min=1, max=1080, precision=0))
-                new_scale_height.bind_value_to(Desktop, 'scale_height', lambda value: int(value or 0))
+                new_rate.bind_value_to(Desktop, 'rate', lambda value: int(value or 1))
+                new_scale_width = ui.number('Scale Width', value=Desktop.scale_width, min=8, max=1920, precision=0)
+                new_scale_width.bind_value_to(Desktop, 'scale_width', lambda value: int(value or 8))
+                new_scale_height = (ui.number('Scale Height', value=Desktop.scale_height, min=8, max=1080, precision=0))
+                new_scale_height.bind_value_to(Desktop, 'scale_height', lambda value: int(value or 8))
 
             with ui.card():
                 new_wled = ui.input('wled', value=str(Desktop.wled))
@@ -1546,11 +1546,11 @@ async def main_page_media():
 
             with ui.card():
                 new_rate = ui.number('FPS', value=Media.rate, min=1, max=60, precision=0)
-                new_rate.bind_value_to(Media, 'rate', lambda value: int(value or 0))
-                new_scale_width = ui.number('Scale Width', value=Media.scale_width, min=1, max=1920, precision=0)
-                new_scale_width.bind_value_to(Media, 'scale_width', lambda value: int(value or 0))
-                new_scale_height = (ui.number('Scale Height', value=Media.scale_height, min=1, max=1080, precision=0))
-                new_scale_height.bind_value_to(Media, 'scale_height', lambda value: int(value or 0))
+                new_rate.bind_value_to(Media, 'rate', lambda value: int(value or 1))
+                new_scale_width = ui.number('Scale Width', value=Media.scale_width, min=8, max=1920, precision=0)
+                new_scale_width.bind_value_to(Media, 'scale_width', lambda value: int(value or 8))
+                new_scale_height = (ui.number('Scale Height', value=Media.scale_height, min=8, max=1080, precision=0))
+                new_scale_height.bind_value_to(Media, 'scale_height', lambda value: int(value or 8))
 
             with ui.card():
                 new_viinput = ui.input('Input', value=str(Media.viinput))
@@ -1877,8 +1877,8 @@ async def media_filters():
             ui.number('type', min=0, max=1) \
                 .bind_value(Media, 'flip_vh', forward=lambda value: int(value or 0)) \
                 .classes('w-20')
-            ui.number('W').classes('w-20').bind_value(Media, 'scale_width', forward=lambda value: int(value or 0))
-            ui.number('H').classes('w-20').bind_value(Media, 'scale_height', forward=lambda value: int(value or 0))
+            ui.number('W').classes('w-20').bind_value(Media, 'scale_width', forward=lambda value: int(value or 8))
+            ui.number('H').classes('w-20').bind_value(Media, 'scale_height', forward=lambda value: int(value or 8))
             with ui.row().classes('w-44').style('justify-content: flex-end'):
                 ui.label('gamma')
                 ui.slider(min=0.01, max=4, step=0.01) \
@@ -1938,9 +1938,9 @@ async def desktop_filters():
             ui.number('type', min=0, max=1) \
                 .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0)) \
                 .classes('w-20')
-            ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 0))
+            ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 8))
             ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height',
-                                                      forward=lambda value: int(value or 0))
+                                                      forward=lambda value: int(value or 8))
             with ui.row().classes('w-44').style('justify-content: flex-end'):
                 ui.label('gamma')
                 ui.slider(min=0.01, max=4, step=0.01) \
