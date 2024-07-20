@@ -1387,10 +1387,10 @@ async def main_page_desktop():
             with ui.card():
                 new_multicast = ui.input('Multicast', value=str(Desktop.multicast))
                 new_multicast.bind_value_to(Desktop, 'multicast', lambda value: str2bool(value))
-                new_cast_x = ui.number('Matrix X', value=Desktop.cast_x, min=0, max=1920, precision=0)
-                new_cast_x.bind_value_to(Desktop, 'cast_x', lambda value: int(value or 0))
-                new_cast_y = ui.number('Matrix Y', value=Desktop.cast_y, min=0, max=1080, precision=0)
-                new_cast_y.bind_value_to(Desktop, 'cast_y', lambda value: int(value or 0))
+                new_cast_x = ui.number('Matrix X', value=Desktop.cast_x, min=1, max=1920, precision=0)
+                new_cast_x.bind_value_to(Desktop, 'cast_x', lambda value: int(value or 1))
+                new_cast_y = ui.number('Matrix Y', value=Desktop.cast_y, min=1, max=1080, precision=0)
+                new_cast_y.bind_value_to(Desktop, 'cast_y', lambda value: int(value or 1))
 
             with ui.card():
                 new_cast_devices = ui.input('Cast Devices', value=str(Desktop.cast_devices))
@@ -1576,10 +1576,10 @@ async def main_page_media():
             with ui.card():
                 new_multicast = ui.input('Multicast', value=str(Media.multicast))
                 new_multicast.bind_value_to(Media, 'multicast', lambda value: str2bool(value))
-                new_cast_x = ui.number('Matrix X', value=Media.cast_x, min=0, max=1920, precision=0)
-                new_cast_x.bind_value_to(Media, 'cast_x', lambda value: int(value or 0))
-                new_cast_y = ui.number('Matrix Y', value=Media.cast_y, min=0, max=1080, precision=0)
-                new_cast_y.bind_value_to(Media, 'cast_y', lambda value: int(value or 0))
+                new_cast_x = ui.number('Matrix X', value=Media.cast_x, min=1, max=1920, precision=0)
+                new_cast_x.bind_value_to(Media, 'cast_x', lambda value: int(value or 1))
+                new_cast_y = ui.number('Matrix Y', value=Media.cast_y, min=1, max=1080, precision=0)
+                new_cast_y.bind_value_to(Media, 'cast_y', lambda value: int(value or 1))
 
             with ui.card():
                 new_cast_devices = ui.input('Cast Devices', value=str(Media.cast_devices))
