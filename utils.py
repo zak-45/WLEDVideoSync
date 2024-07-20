@@ -1089,7 +1089,7 @@ class YtSearch:
 
         self.search_result = ui.card()
         with self.search_result:
-            ui.label('Search could take some time ....').classes('animate-pulse')
+            self.msg = ui.label('Search could take some time ....').classes('animate-pulse')
 
         self.yt_player = ui.page_sticky()
 
@@ -1109,12 +1109,12 @@ class YtSearch:
                         '</iframe>')
 
     async def search_youtube(self, data):
-        """ Search for YT on input """
+        """ Search for YT from input """
 
         await ui.context.client.connected()
-        self.next_button.props('loading')
         # clear as we recreate, sure, not optimal
         self.search_result.clear()
+        self.msg = 'Search running ....'
 
         await self.py_search(data)
 

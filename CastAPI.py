@@ -164,7 +164,6 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         except Exception as error:
             logger.error(f"Error on app startup {error}")
 
-
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
@@ -901,14 +900,7 @@ async def main_page():
     """
     Header with button menu
     """
-    with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
-        ui.link('MAIN', target='/').classes('text-white text-lg font-medium')
-        ui.icon('home')
-        # Create buttons
-        ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
-        ui.button('Desktop Params', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
-        ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
-        ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
+    await head_set(name='Main', target='/', icon='home')
 
     """
     App info
@@ -1092,14 +1084,7 @@ async def main_page_cast_manage():
     """
     Header with button menu
     """
-    with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
-        ui.label('Cast Manage').classes('text-white text-lg font-medium')
-        ui.icon('video_settings')
-        # Create buttons
-        ui.button('MAIN', on_click=lambda: ui.navigate.to('/'), icon='home')
-        ui.button('Desktop', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
-        ui.button('Media', on_click=lambda: ui.navigate.to('/Media'), icon='image')
-        ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
+    await head_set(name='Manage', target='/Manage', icon='video_settings')
 
     """
     Main tabs infos
@@ -1110,7 +1095,6 @@ async def main_page_cast_manage():
     Footer
     """
     with ui.footer():
-        ui.button('Refresh Page', on_click=lambda: ui.navigate.to('/Manage'))
 
         await net_view_page()
 
@@ -1202,7 +1186,7 @@ async def video_player_page():
                 .bind_visibility_from(CastAPI.player)
 
             media_all_sync = ui.checkbox('Sync All') \
-                .bind_value(Media,'all_sync') \
+                .bind_value(Media, 'all_sync') \
                 .tooltip('Sync All Casts with selected time') \
                 .bind_visibility_from(CastAPI.player)
 
@@ -1271,11 +1255,7 @@ async def main_page_desktop():
 
     apply_custom()
 
-    with ui.header():
-        ui.label('Desktop').classes('text-lg font-medium')
-        ui.icon('computer')
-        ui.button('MAIN', on_click=lambda: ui.navigate.to('/'), icon='home')
-        ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
+    await head_set(name='Desktop Params', target='/Desktop', icon='computer')
 
     if str2bool(custom_config['animate-ui']):
         # Add Animate.css to the HTML head
@@ -1486,11 +1466,7 @@ async def main_page_media():
 
     apply_custom()
 
-    with ui.header():
-        ui.link('MEDIA', target='/Media').classes('text-white text-lg font-medium')
-        ui.icon('image')
-        ui.button('Main', on_click=lambda: ui.navigate.to('/'), icon='home')
-        ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
+    await head_set(name='Media Params', target='/Media', icon='image')
 
     if str2bool(custom_config['animate-ui']):
         # Add Animate.css to the HTML head
@@ -1677,7 +1653,7 @@ async def splash_page():
     """
     ui.dark_mode(True)
     ui.image('media/intro.gif').classes('self-center').style('width: 50%')
-    main = ui.button('MAIN INTERFACE', on_click=lambda:(main.props('loading'), ui.navigate.to(f'/'))) \
+    main = ui.button('MAIN INTERFACE', on_click=lambda: (main.props('loading'), ui.navigate.to(f'/'))) \
         .classes('self-center')
     ui.button('API', on_click=lambda: ui.navigate.to(f'/docs')) \
         .classes('self-center')
@@ -1790,6 +1766,22 @@ async def media_dev_view_page():
 """
 helpers /Commons
 """
+
+
+async def head_set(name, target, icon):
+    with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
+        ui.link(name, target=target).classes('text-white text-lg font-medium')
+        ui.icon(icon)
+        # Create buttons
+        if name != 'Main':
+            ui.button('Main', on_click=lambda: ui.navigate.to('/'), icon='home')
+        if name != 'Manage':
+            ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
+        if name != 'Desktop Params':
+            ui.button('Desktop Params', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
+        if name != 'Media Params':
+            ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
+        ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
 
 
 async def sync_button():
@@ -2641,7 +2633,7 @@ async def cast_manage_page():
 
     with ui.card().tight().classes('self-center'):
         with ui.row():
-            with ui.column(wrap=True):
+            with ui.column(align_items='start', wrap=False):
                 if Desktop.count > 0:
                     my_col = 'red'
                 elif Desktop.stopcast:
@@ -2651,6 +2643,7 @@ async def cast_manage_page():
                 CastAPI.desktop_cast = ui.icon('cast', size='xl', color=my_col)
                 CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop, log_ui)) \
                     .classes('shadow-lg') \
+                    .props(add='push size="md"') \
                     .tooltip('Initiate Desktop Cast')
                 if Desktop.stopcast is True:
                     CastAPI.desktop_cast_run.set_visibility(False)
@@ -2680,7 +2673,7 @@ async def cast_manage_page():
                 .style('cursor: pointer') \
                 .on('click', lambda: cast_stop(Media)).tooltip('Stop Cast')
 
-            with ui.column(wrap=True):
+            with ui.column(align_items='end', wrap=False):
                 if Media.count > 0:
                     my_col = 'red'
                 elif Media.stopcast:
@@ -2690,6 +2683,7 @@ async def cast_manage_page():
                 CastAPI.media_cast = ui.icon('cast', size='xl', color=my_col)
                 CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media, log_ui)) \
                     .classes('shadow-lg') \
+                    .props(add='push size="md"') \
                     .tooltip('Initiate Media Cast')
                 if Media.stopcast is True:
                     CastAPI.media_cast_run.set_visibility(False)
