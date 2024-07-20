@@ -64,7 +64,7 @@ jobs:
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@main
         with:
-          nuitka-version: 2.2.3
+          nuitka-version: main
           script-name: WLEDVideoSync.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
