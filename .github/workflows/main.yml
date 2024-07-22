@@ -69,7 +69,7 @@ jobs:
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
           enable-plugins: tk-inter
-          windows-console: false
+          disable-console: True
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
