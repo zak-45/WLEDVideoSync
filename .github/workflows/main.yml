@@ -62,9 +62,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build Executable for ${{runner.os}}
-        uses: Nuitka/Nuitka-Action@main
+        uses: Nuitka/Nuitka-Action@v1.1
         with:
-          nuitka-version: 2.2.4
+          nuitka-version: 2.2.3
           script-name: WLEDVideoSync.py
           company-name: zak-45
           file-version: ${{github.event.inputs.mytag}}
