@@ -7,9 +7,10 @@ WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with 
 
 **Key Features:**
 - Video synchronization with WLED-controlled LED strips
+- Multicast feature: aggregate multi WLED devices to a big, BIG one
 - Support for various video sources
-- Support for desktop / desktop area  
-- Customizable LED mapping and effects
+- Support for desktop / desktop area, window content
+- Customizable LED effects
 
 **Automatic Installation:**
 1. Take the app from releases (Unix/ Mac/ Win)
