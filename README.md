@@ -1,5 +1,5 @@
 Early stage .....
-Cast video / image / desktop / window to ddp device e.g WLED
+Cast video / image / desktop / window to ddp device e.g WLED. All tests done on the Win version.
 
 ## WLEDVideoSync
 
