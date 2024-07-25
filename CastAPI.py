@@ -1773,8 +1773,16 @@ helpers /Commons
 
 
 def animate_toggle():
-    print('animate')
-    pass
+    """ toggle animation """
+
+    if str2bool(custom_config['animate-ui']):
+        # put animation False
+        custom_config['animate-ui'] = 'False'
+    else:
+        # put animation True
+        custom_config['animate-ui'] = 'True'
+
+    logger.info(f'Animate :{custom_config["animate-ui"]}')
 
 
 async def head_set(name, target, icon):
