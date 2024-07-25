@@ -914,7 +914,10 @@ async def main_page():
     with head_row.classes('w-full no-wrap'):
         ui.label('DESKTOP: Cast Screen / Window content').classes('bg-slate-400 w-1/3')
         with ui.card().classes('bg-slate-400 w-1/3'):
-            ui.image("/assets/favicon.ico").classes('self-center').tailwind.border_width('8').width('8')
+            img = ui.image("/assets/favicon.ico").classes('self-center')
+            img.on('click', lambda: animate_toggle())
+            img.style('cursor: pointer')
+            img.tailwind.border_width('8').width('8')
         ui.label('MEDIA: Cast Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
 
     ui.separator().classes('mt-6')
@@ -1070,7 +1073,9 @@ async def main_page():
                 .tooltip('Go to documentation').classes('text-white')
 
     with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
-        ui.button(on_click=footer.toggle).props('fab icon=contact_support')
+        # ui.button(on_click=footer.toggle).props('fab icon=contact_support')
+        with ui.button(on_click=footer.toggle):
+            ui.image('assets/favicon.ico').classes('rounded-full w-8 h-8')
 
 
 @ui.page('/Manage')
@@ -1095,7 +1100,6 @@ async def main_page_cast_manage():
     Footer
     """
     with ui.footer():
-
         await net_view_page()
 
         await media_dev_view_page()
@@ -1766,6 +1770,11 @@ async def media_dev_view_page():
 """
 helpers /Commons
 """
+
+
+def animate_toggle():
+    print('animate')
+    pass
 
 
 async def head_set(name, target, icon):
