@@ -918,7 +918,7 @@ async def main_page():
         ui.label('DESKTOP: Cast Screen / Window content').classes('bg-slate-400 w-1/3')
         with ui.card().classes('bg-slate-400 w-1/3'):
             img = ui.image("/assets/favicon.ico").classes('self-center')
-            img.on('click', lambda: animate_toggle())
+            img.on('click', lambda: animate_toggle(img))
             img.style('cursor: pointer')
             img.tailwind.border_width('8').width('8')
         ui.label('MEDIA: Cast Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
@@ -1077,7 +1077,7 @@ async def main_page():
 
     with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
         # ui.button(on_click=footer.toggle).props('fab icon=contact_support')
-        with ui.button(on_click=footer.toggle):
+        with ui.button(on_click=footer.toggle).props(add='round'):
             ui.image('assets/favicon.ico').classes('rounded-full w-8 h-8')
 
 
@@ -1775,15 +1775,22 @@ helpers /Commons
 """
 
 
-def animate_toggle():
+def animate_toggle(img):
     """ toggle animation """
+
+    # Add Animate.css to the HTML head
+    ui.add_head_html("""
+    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+    """)
 
     if str2bool(custom_config['animate-ui']):
         # put animation False
         custom_config['animate-ui'] = 'False'
+        img.classes('animate__animated animate__hinge')
     else:
         # put animation True
         custom_config['animate-ui'] = 'True'
+        img.classes('animate__animated animate__rubberBand')
 
     logger.info(f'Animate :{custom_config["animate-ui"]}')
 
