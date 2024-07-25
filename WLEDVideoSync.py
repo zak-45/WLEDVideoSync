@@ -10,7 +10,7 @@
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 # nuitka-project: --noinclude-default-mode=error
-#
+# nuitka-project: --nofollow-import-to=markdown2
 #
 
 """
