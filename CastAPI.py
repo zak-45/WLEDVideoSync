@@ -30,6 +30,7 @@ import threading
 import traceback
 import multiprocessing
 import asyncio
+
 from subprocess import Popen
 
 from ddp_queue import DDPDevice
@@ -88,6 +89,8 @@ else:
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
+
+asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview', 'reset']
