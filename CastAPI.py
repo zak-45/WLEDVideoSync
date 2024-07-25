@@ -1076,8 +1076,7 @@ async def main_page():
                 .tooltip('Go to documentation').classes('text-white')
 
     with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
-        # ui.button(on_click=footer.toggle).props('fab icon=contact_support')
-        with ui.button(on_click=footer.toggle).props(add='round'):
+        with ui.button(on_click=footer.toggle).props(add='round outline'):
             ui.image('assets/favicon.ico').classes('rounded-full w-8 h-8')
 
 
