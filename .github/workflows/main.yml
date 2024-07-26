@@ -84,6 +84,7 @@ jobs:
             zeroconf._handlers.answers
             pygments.formatters.html
             dbm.dumb
+            comtypes.stream
           include-data-dir: |
             tmp=tmp
             log=log
