@@ -1797,20 +1797,20 @@ def animate_wled_image(visible):
 def animate_toggle(img):
     """ toggle animation """
 
-    # Add Animate.css to the HTML head
-    ui.add_head_html("""
-    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
-    """)
-
     if str2bool(custom_config['animate-ui']):
         # put animation False
         custom_config['animate-ui'] = 'False'
         img.classes('animate__animated animate__hinge')
     else:
+        # Add Animate.css to the HTML head
+        ui.add_head_html("""
+        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        """)
         # put animation True
         custom_config['animate-ui'] = 'True'
         img.classes('animate__animated animate__rubberBand')
 
+    ui.notify(f'Animate :{custom_config["animate-ui"]}')
     logger.info(f'Animate :{custom_config["animate-ui"]}')
 
 
