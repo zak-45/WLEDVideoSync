@@ -192,6 +192,7 @@ class CastAPI:
     total_packet = 0
     ram = 0
     cpu = 0
+    w_image = None
 
 
 """
@@ -923,8 +924,14 @@ async def main_page():
             img.tailwind.border_width('8').width('8')
         ui.label('MEDIA: Cast Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
 
+    """
+    WLEDVideoSync image
+    """
+
     ui.separator().classes('mt-6')
-    ui.image("./assets/Source-intro.png").classes('self-center').tailwind.border_width('8').width('1/6')
+    CastAPI.w_image = ui.image("./assets/Source-intro.png").classes('self-center')
+    CastAPI.w_image.classes(add='animate__animated')
+    CastAPI.w_image.tailwind.border_width('8').width('1/6')
 
     """
     Video player
@@ -1199,12 +1206,14 @@ async def video_player_page():
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
-                .on('click', lambda visible=True: CastAPI.player.set_visibility(visible)) \
+                .on('click', lambda visible=True: (CastAPI.player.set_visibility(visible),
+                                                   animate_wled_image(visible))) \
                 .tooltip("Show Video player")
 
             hide_player = ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
-                .on('click', lambda visible=False: CastAPI.player.set_visibility(visible)) \
+                .on('click', lambda visible=False: (CastAPI.player.set_visibility(visible),
+                                                    animate_wled_image(visible))) \
                 .tooltip("Hide Video player")
 
             cast_player = ui.icon('cast', size='md') \
@@ -1772,6 +1781,17 @@ async def media_dev_view_page():
 """
 helpers /Commons
 """
+
+
+def animate_wled_image(visible):
+    """ toggle main image animation """
+
+    if visible:
+        CastAPI.w_image.classes(add='animate__flipOutX', remove='animate__flipInX')
+        ui.timer(0.7, lambda: CastAPI.w_image.set_visibility(False), once=True)
+    else:
+        CastAPI.w_image.classes(add='animate__flipInX', remove='animate__flipOutX')
+        CastAPI.w_image.set_visibility(True)
 
 
 def animate_toggle(img):
