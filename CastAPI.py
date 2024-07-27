@@ -1794,7 +1794,7 @@ def animate_wled_image(visible):
         CastAPI.w_image.set_visibility(True)
 
 
-def animate_toggle(img):
+async def animate_toggle(img):
     """ toggle animation """
 
     if str2bool(custom_config['animate-ui']):
@@ -2165,7 +2165,7 @@ def slider_time(current_time):
         Media.player_time = current_time * 1000
 
 
-async def reset_sync():
+def reset_sync():
     Media.player_sync = False
     ui.notify('Reset Sync')
 
