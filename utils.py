@@ -1093,7 +1093,7 @@ class YtSearch:
 
         self.yt_player = ui.page_sticky()
 
-    async def youtube_player(self, yt_id):
+    def youtube_player(self, yt_id):
         """ YT Player in iframe """
         self.yt_player.clear()
         with self.yt_player:
@@ -1174,10 +1174,15 @@ class YtSearch:
                         yt_url.style('text-decoration: underline; cursor: pointer;')
                         yt_url.on('click', lambda my_yt=yt_url: (ui.clipboard.write(my_yt.text),
                                                                  ui.notify('copied')))
-                        yt_watch = ui.icon('smart_display', size='sm')
-                        yt_watch.tooltip('Play')
-                        yt_watch.style('cursor: pointer')
-                        yt_watch.on('click', lambda yt_stream=self.yt_stream: self.youtube_player(yt_stream.video_id))
+                        with ui.row():
+                            yt_watch = ui.icon('smart_display', size='sm')
+                            yt_watch.tooltip('Player On')
+                            yt_watch.style('cursor: pointer')
+                            yt_watch.on('click', lambda yt_stream=self.yt_stream: self.youtube_player(yt_stream.video_id))
+                            yt_watch_close = ui.icon('videocam_off', size='sm')
+                            yt_watch_close.tooltip('Player OFF')
+                            yt_watch_close.style('cursor: pointer')
+                            yt_watch_close.on('click', lambda: self.yt_player.clear())
 
 
 class AnimatedElement:

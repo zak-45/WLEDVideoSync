@@ -515,7 +515,7 @@ async def util_blackout():
 
 
 @app.get("/api/util/casts_info", tags=["casts"])
-def util_casts_info():
+async def util_casts_info():
     """
         Get info from all Cast Threads
     """
@@ -2737,7 +2737,7 @@ async def cast_manage_page():
 
 async def tabs_info_page():
     # grab data
-    info_data = util_casts_info()
+    info_data = await util_casts_info()
     # take only info data key
     info_data = info_data['t_info']
     # split desktop / media by using content of thread name
@@ -2886,7 +2886,7 @@ async def action_to_casts(class_name, cast_name, action, clear, execute, exp_ite
 async def show_thread_info():
     dialog = ui.dialog().props(add='transition-show="slide-down" transition-hide="slide-up"')
     with dialog, ui.card():
-        cast_info = util_casts_info()
+        cast_info = await util_casts_info()
         editor = ui.json_editor({'content': {'json': cast_info}}) \
             .run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
