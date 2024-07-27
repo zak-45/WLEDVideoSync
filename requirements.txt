@@ -16,7 +16,7 @@ git+https://github.com/zak-45/pytube@master
 FreeSimpleGUI==5.1.0
 requests==2.32.3
 screeninfo==0.8.1
-av==12.2.0
+av==12.3.0
 linuxpy
 imageio
 pygrabber
