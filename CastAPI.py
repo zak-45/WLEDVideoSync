@@ -1870,26 +1870,33 @@ async def cast_manage():
         CastAPI.desktop_cast.classes(add="animate-pulse")
     elif Desktop.stopcast is True:
         CastAPI.desktop_cast.props(add="color=yellow")
+        CastAPI.desktop_cast.style(add='cursor: pointer')
         CastAPI.desktop_cast_run.set_visibility(False)
         CastAPI.desktop_cast.classes(remove="animate-pulse")
     else:
         CastAPI.desktop_cast.props(add="color=green")
+        CastAPI.desktop_cast.style(remove='cursor: pointer')
         CastAPI.desktop_cast.classes(remove="animate-pulse")
     if Desktop.stopcast is False:
         CastAPI.desktop_cast_run.set_visibility(True)
+        CastAPI.desktop_cast.style(remove='cursor: pointer')
 
     if Media.count > 0:
         CastAPI.media_cast.props(add="color=red")
+        CastAPI.media_cast.style(remove='cursor: pointer')
         CastAPI.media_cast.classes(add="animate-pulse")
     elif Media.stopcast is True:
         CastAPI.media_cast.props(add="color=yellow")
+        CastAPI.media_cast.style(add='cursor: pointer')
         CastAPI.media_cast.classes(remove="animate-pulse")
         CastAPI.media_cast_run.set_visibility(False)
     else:
         CastAPI.media_cast.props(add="color=green")
+        CastAPI.media_cast.style(remove='cursor: pointer')
         CastAPI.media_cast.classes(remove="animate-pulse")
     if Media.stopcast is False:
         CastAPI.media_cast_run.set_visibility(True)
+        CastAPI.media_cast.style(remove='cursor: pointer')
 
 
 async def cast_icon(class_obj):
@@ -2687,6 +2694,7 @@ async def cast_manage_page():
                 else:
                     my_col = 'green'
                 CastAPI.desktop_cast = ui.icon('cast', size='xl', color=my_col)
+                CastAPI.desktop_cast.on('click', lambda: auth_cast(Desktop))
                 CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop, log_ui)) \
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
@@ -2727,6 +2735,7 @@ async def cast_manage_page():
                 else:
                     my_col = 'green'
                 CastAPI.media_cast = ui.icon('cast', size='xl', color=my_col)
+                CastAPI.media_cast.on('click', lambda: auth_cast(Media))
                 CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media, log_ui)) \
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
@@ -3075,6 +3084,15 @@ async def cast_stop(class_obj):
     ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
     await cast_manage()
     logger.info(f' Stop Cast for {str(class_obj)}')
+
+
+async def auth_cast(class_obj):
+    """ Stop cast """
+
+    class_obj.stopcast = False
+    ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
+    await cast_manage()
+    logger.info(f' Cast auth. for {str(class_obj)}')
 
 
 async def show_notify(event: ValueChangeEventArguments):
