@@ -28,7 +28,6 @@ import numpy as np
 
 import cv2
 import time
-from datetime import datetime
 import os
 
 import cfg_load as cfg

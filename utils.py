@@ -16,7 +16,6 @@ cv2.destroyAllWindows()
 import av
 #
 """
-import asyncio
 import logging
 import logging.config
 import concurrent_log_handler

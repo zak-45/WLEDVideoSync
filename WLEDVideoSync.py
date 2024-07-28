@@ -38,7 +38,6 @@ from multiprocessing import active_children
 import sys
 from pathlib import Path as PathLib
 import os
-import time
 import webbrowser
 
 from utils import CASTUtils as Utils
@@ -54,7 +53,6 @@ if sys.platform == 'win32':
 from uvicorn import Config, Server
 from nicegui import native
 
-import cfg_load as cfg
 from str2bool import str2bool
 
 import shelve
@@ -283,13 +281,13 @@ def go_to_home():
         main_window.load_url(f'http://{server_ip}:{server_port}/WLEDVideoSync')
 
 
-def dialog_stop_server(window):
+def dialog_stop_server(my_window):
     """
     Dialog window: true stop server
-    :param window:
+    :param my_window:
     :return:
     """
-    result = window.create_confirmation_dialog(f'Confirmation-{server_port}', 'Do you really want to stop the Server?')
+    result = my_window.create_confirmation_dialog(f'Confirm-{server_port}', 'Do you really want to stop the Server?')
     if result:
         # initial instance
         if instance.is_alive():
@@ -310,6 +308,7 @@ def dialog_stop_server(window):
         logger.info('Server stop Canceled')
 
     window.destroy()
+
 
 """
 Pystray
