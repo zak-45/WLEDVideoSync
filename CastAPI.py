@@ -3087,7 +3087,7 @@ async def cast_stop(class_obj):
 
 
 async def auth_cast(class_obj):
-    """ Stop cast """
+    """ Authorized cast """
 
     class_obj.stopcast = False
     ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
