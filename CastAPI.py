@@ -2796,37 +2796,37 @@ async def tabs_info_page():
                         ''')
                     casts_row = ui.row()
                     with casts_row:
-                        for item in desktop_threads:
-                            item_exp = ui.expansion(item, icon='cast') \
+                        for item_th in desktop_threads:
+                            item_exp = ui.expansion(item_th, icon='cast') \
                                 .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
                             with item_exp:
                                 with ui.row():
                                     ui.button(icon='delete_forever',
-                                              on_click=lambda item=item, item_exp=item_exp: action_to_casts(
+                                              on_click=lambda item_v=item_th, item_exp_v=item_exp: action_to_casts(
                                                   class_name='Desktop',
-                                                  cast_name=item,
+                                                  cast_name=item_v,
                                                   action='stop',
                                                   clear=False,
                                                   execute=True,
-                                                  exp_item=item_exp)
+                                                  exp_item=item_exp_v)
                                               ).classes('shadow-lg').tooltip('Cancel Cast')
                                     ui.button(icon='add_photo_alternate',
-                                              on_click=lambda item=item: action_to_casts(class_name='Desktop',
-                                                                                         cast_name=item,
-                                                                                         action='shot',
-                                                                                         clear=False,
-                                                                                         execute=True)
+                                              on_click=lambda item_v=item_th: action_to_casts(class_name='Desktop',
+                                                                                              cast_name=item_v,
+                                                                                              action='shot',
+                                                                                              clear=False,
+                                                                                              execute=True)
                                               ).classes('shadow-lg').tooltip('Capture picture')
-                                    if info_data[item]["data"]["preview"]:
+                                    if info_data[item_th]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
-                                                  on_click=lambda item=item: action_to_casts(class_name='Desktop',
-                                                                                             cast_name=item,
-                                                                                             action='close_preview',
-                                                                                             clear=False,
-                                                                                             execute=True)
+                                                  on_click=lambda item_v=item_th: action_to_casts(class_name='Desktop',
+                                                                                                  cast_name=item_v,
+                                                                                                  action='close_preview',
+                                                                                                  clear=False,
+                                                                                                  execute=True)
                                                   ).classes('shadow-lg').tooltip('Stop Preview')
 
-                                editor = ui.json_editor({'content': {'json': info_data[item]["data"]}}) \
+                                editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
                                     .run_editor_method('updateProps', {'readOnly': True})
 
         with ui.tab_panel(p_media):
@@ -2846,38 +2846,38 @@ async def tabs_info_page():
                         graph LR;''' + graph_data + '''
                         ''')
                     with ui.row():
-                        for item in media_threads:
-                            item_exp = ui.expansion(item, icon='cast') \
+                        for item_th in media_threads:
+                            item_exp = ui.expansion(item_th, icon='cast') \
                                 .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
                             with item_exp:
                                 with ui.row():
                                     ui.button(icon='delete_forever',
-                                              on_click=lambda item=item, item_exp=item_exp: action_to_casts(
+                                              on_click=lambda item_v=item_th, item_exp_v=item_exp: action_to_casts(
                                                   class_name='Media',
-                                                  cast_name=item,
+                                                  cast_name=item_v,
                                                   action='stop',
                                                   clear=False,
                                                   execute=True,
-                                                  exp_item=item_exp)
+                                                  exp_item=item_exp_v)
                                               ).classes('shadow-lg').tooltip('Cancel Cast')
                                     ui.button(icon='add_photo_alternate',
-                                              on_click=lambda item=item: action_to_casts(class_name='Media',
-                                                                                         cast_name=item,
-                                                                                         action='shot',
-                                                                                         clear=False,
-                                                                                         execute=True)) \
+                                              on_click=lambda item_v=item_th: action_to_casts(class_name='Media',
+                                                                                              cast_name=item_v,
+                                                                                              action='shot',
+                                                                                              clear=False,
+                                                                                              execute=True)) \
                                         .classes('shadow-lg').tooltip('Capture picture')
-                                    if info_data[item]["data"]["preview"]:
+                                    if info_data[item_th]["data"]["preview"]:
                                         ui.button(icon='cancel_presentation',
-                                                  on_click=lambda item=item:
+                                                  on_click=lambda item_v=item_th:
                                                   action_to_casts(class_name='Media',
-                                                                  cast_name=item,
+                                                                  cast_name=item_v,
                                                                   action='close_preview',
                                                                   clear=False,
                                                                   execute=True)) \
                                             .classes('shadow-lg').tooltip('Stop Preview')
 
-                                editor = ui.json_editor({'content': {'json': info_data[item]["data"]}}) \
+                                editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
                                     .run_editor_method('updateProps', {'readOnly': True})
 
 
