@@ -2045,10 +2045,11 @@ async def youtube_search():
     """
     display search result from pytube
     """
-
+    anime = False
     if str2bool(custom_config['animate-ui']):
         animated_yt_area = Animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
         yt_area = animated_yt_area.create_element()
+        anime = True
     else:
         yt_area = ui.scroll_area()
 
@@ -2056,7 +2057,7 @@ async def youtube_search():
     yt_area.classes('w-full border')
     CastAPI.search_areas.append(yt_area)
     with yt_area:
-        YtSearch()
+        YtSearch(anime)
 
 
 async def youtube_clear_search():
@@ -2598,7 +2599,7 @@ END Cast preset mgr
 
 async def player_cast(source):
     """ Cast from video CastAPI.player only for Media"""
-    # await context.client.connected()
+    await context.client.connected()
     media_info = Utils.get_media_info(source)
     if Media.stopcast:
         ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')

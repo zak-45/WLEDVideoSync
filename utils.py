@@ -1073,10 +1073,11 @@ class YtSearch:
     On click, copy YT Url to clipboard
     """
 
-    def __init__(self):
+    def __init__(self, anime: bool = False):
         self.yt_stream = None
         self.search_txt: str = ''
         self.yt_search = None
+        self.yt_anime = anime
         ui.separator()
         with ui.row():
             self.my_search = ui.input('YT search')
@@ -1098,6 +1099,8 @@ class YtSearch:
         self.yt_player.clear()
         with self.yt_player:
             player = ui.card()
+            if self.yt_anime:
+                player.classes(add='animate__animated animate__slideInRight')
             youtube_url = f"https://www.youtube.com/embed/{yt_id}"
             with player:
                 ui.html('<iframe width="350" height="230" '
