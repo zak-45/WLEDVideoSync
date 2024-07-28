@@ -547,7 +547,8 @@ class CASTDesktop:
 
                                 # validate cast_devices number
                                 if len(ip_addresses) < len(self.cast_frame_buffer):
-                                    logger.error(f'{t_name} Cast devices number != sub images number: check cast_devices ')
+                                    logger.error(
+                                        f'{t_name} Cast devices number != sub images number: check cast_devices ')
                                     break
 
                                 t_cast_frame_buffer = self.cast_frame_buffer
@@ -564,15 +565,16 @@ class CASTDesktop:
 
                             # preview on fixed size window
                             if t_preview:
-                                t_preview = self.preview_window(frame_art,
-                                                                CASTDesktop.server_port,
-                                                                t_viinput,
-                                                                t_name,
-                                                                t_preview,
-                                                                frame_count,
-                                                                frame_interval,
-                                                                ip_addresses,
-                                                                grid=True)
+                                t_preview, t_todo_stop = self.preview_window(frame_art,
+                                                                             CASTDesktop.server_port,
+                                                                             t_viinput,
+                                                                             t_name,
+                                                                             t_preview,
+                                                                             t_todo_stop,
+                                                                             frame_count,
+                                                                             frame_interval,
+                                                                             ip_addresses,
+                                                                             grid=True)
 
                         else:
 
@@ -592,15 +594,16 @@ class CASTDesktop:
 
                             # preview on fixed size window
                             if t_preview:
-                                t_preview = self.preview_window(frame,
-                                                                CASTDesktop.server_port,
-                                                                t_viinput,
-                                                                t_name,
-                                                                t_preview,
-                                                                frame_count,
-                                                                frame_interval,
-                                                                ip_addresses,
-                                                                grid=False)
+                                t_preview, t_todo_stop = self.preview_window(frame,
+                                                                             CASTDesktop.server_port,
+                                                                             t_viinput,
+                                                                             t_name,
+                                                                             t_preview,
+                                                                             t_todo_stop,
+                                                                             frame_count,
+                                                                             frame_interval,
+                                                                             ip_addresses,
+                                                                             grid=False)
 
             except Exception as error:
                 logger.error(traceback.format_exc())
@@ -652,6 +655,7 @@ class CASTDesktop:
                        t_viinput,
                        t_name,
                        t_preview,
+                       t_todo_stop,
                        frame_count,
                        fps,
                        ip_addresses,
@@ -697,7 +701,7 @@ class CASTDesktop:
 
                 # Top
                 text_to_show = f"WLEDVideoSync: {server_port} - "
-                text_to_show += "FPS: " + str(1/fps) + " - "
+                text_to_show += "FPS: " + str(1 / fps) + " - "
                 text_to_show += "FRAME: " + str(frame_count) + " - "
                 text_to_show += "TOTAL: " + str(CASTDesktop.total_frame)
             else:
@@ -737,13 +741,20 @@ class CASTDesktop:
             if not win == 0:
                 cv2.destroyWindow(window_name)
             t_preview = False
+            t_todo_stop = True
+            logger.info(f'Request to stop {t_name}')
+        elif key_pressed == ord("p"):
+            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+            if not win == 0:
+                cv2.destroyWindow(window_name)
+            t_preview = False
         elif key_pressed == ord("t"):
             if self.text:
                 self.text = False
             else:
                 self.text = True
 
-        return t_preview
+        return t_preview, t_todo_stop
 
     def cast(self, shared_buffer=None, log_ui=None):
         """

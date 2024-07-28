@@ -625,15 +625,16 @@ class CASTMedia:
                     break
 
                 if t_preview:
-                    t_preview = self.preview_window(frame_art,
-                                                    CASTMedia.server_port,
-                                                    t_viinput,
-                                                    t_name,
-                                                    t_preview,
-                                                    frame_count,
-                                                    interval,
-                                                    ip_addresses,
-                                                    grid=True)
+                    t_preview, t_todo_stop = self.preview_window(frame_art,
+                                                                 CASTMedia.server_port,
+                                                                 t_viinput,
+                                                                 t_name,
+                                                                 t_preview,
+                                                                 t_todo_stop,
+                                                                 frame_count,
+                                                                 interval,
+                                                                 ip_addresses,
+                                                                 grid=True)
 
                 if length == 1 and fps == 1:
                     break
@@ -659,15 +660,16 @@ class CASTMedia:
 
                 # preview on fixed size window
                 if t_preview:
-                    t_preview = self.preview_window(frame,
-                                                    CASTMedia.server_port,
-                                                    t_viinput,
-                                                    t_name,
-                                                    t_preview,
-                                                    frame_count,
-                                                    interval,
-                                                    ip_addresses
-                                                    )
+                    t_preview, t_todo_stop = self.preview_window(frame,
+                                                                 CASTMedia.server_port,
+                                                                 t_viinput,
+                                                                 t_name,
+                                                                 t_preview,
+                                                                 t_todo_stop,
+                                                                 frame_count,
+                                                                 interval,
+                                                                 ip_addresses
+                                                                 )
 
                 """
                     stop for non-live video (length not -1)
@@ -729,7 +731,16 @@ class CASTMedia:
     preview window
     """
 
-    def preview_window(self, frame, server_port, t_viinput, t_name, t_preview, frame_count, fps, ip_addresses,
+    def preview_window(self,
+                       frame,
+                       server_port,
+                       t_viinput,
+                       t_name,
+                       t_preview,
+                       t_todo_stop,
+                       frame_count,
+                       fps,
+                       ip_addresses,
                        grid=False):
 
         frame = cv2.resize(frame, (self.preview_w, self.preview_h))
@@ -812,13 +823,20 @@ class CASTMedia:
             if not win == 0:
                 cv2.destroyWindow(window_name)
             t_preview = False
+            t_todo_stop = True
+            logger.info(f'Request to stop {t_name}')
+        elif key_pressed == ord("p"):
+            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+            if not win == 0:
+                cv2.destroyWindow(window_name)
+            t_preview = False
         elif key_pressed == ord("t"):
             if self.text:
                 self.text = False
             else:
                 self.text = True
 
-        return t_preview
+        return t_preview, t_todo_stop
 
     """
     END preview window

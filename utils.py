@@ -1096,6 +1096,7 @@ class YtSearch:
 
     def youtube_player(self, yt_id):
         """ YT Player in iframe """
+
         self.yt_player.clear()
         with self.yt_player:
             player = ui.card()
