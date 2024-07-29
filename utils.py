@@ -1116,7 +1116,7 @@ class YtSearch:
 
         await ui.context.client.connected()
         # clear as we recreate, sure, not optimal
-        self.search_result.clear()
+        # self.search_result.clear()
         self.msg = 'Search running ....'
 
         await self.py_search(data)
@@ -1155,7 +1155,7 @@ class YtSearch:
             ui.notify('No more to search', position='center', type='negative', close_button=True)
 
         self.search_button.props(remove='loading')
-        ui.notify('YT More Search End', position='center', type='info', close_button=True)
+        ui.notify('YT End Search More', position='center', type='info', close_button=True)
 
     async def create_yt_page(self, data):
         """ Create YT search result """
@@ -1169,7 +1169,7 @@ class YtSearch:
                 ui.label(self.yt_stream.title)
                 with ui.row(wrap=False).classes('w-1/2'):
                     yt_image = ui.image(self.yt_stream.thumbnail_url).classes('self-center w-1/2')
-                    yt_image.on('mouseenter', lambda yt_stream=self.yt_stream: self.youtube_player(yt_stream.video_id))
+                    yt_image.on('mouseenter', lambda yt_str=self.yt_stream: self.youtube_player(yt_str.video_id))
                     with ui.column():
                         ui.label(f'Length: {self.yt_stream.length}')
                         yt_url = ui.label(self.yt_stream.watch_url)
@@ -1181,7 +1181,7 @@ class YtSearch:
                             yt_watch = ui.icon('smart_display', size='sm')
                             yt_watch.tooltip('Player On')
                             yt_watch.style('cursor: pointer')
-                            yt_watch.on('click', lambda yt_stream=self.yt_stream: self.youtube_player(yt_stream.video_id))
+                            yt_watch.on('click', lambda yt_str=self.yt_stream: self.youtube_player(yt_str.video_id))
                             yt_watch_close = ui.icon('videocam_off', size='sm')
                             yt_watch_close.tooltip('Player OFF')
                             yt_watch_close.style('cursor: pointer')

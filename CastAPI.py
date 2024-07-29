@@ -1230,7 +1230,7 @@ async def video_player_page():
 
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
-                .on('click', player_pick_file) \
+                .on('click', lambda: player_pick_file()) \
                 .tooltip('Select audio / video file') \
                 .bind_visibility_from(CastAPI.player)
 
@@ -1238,7 +1238,6 @@ async def video_player_page():
                 .bind_visibility_from(CastAPI.player)
             video_url.tooltip('Enter Url, click on outside to validate the entry, '
                               ' hide and show player should refresh data')
-            # video_url.on('keydown.enter', lambda: check_yt(video_url.value))
             video_url.on('focusout', lambda: check_yt(video_url.value))
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
