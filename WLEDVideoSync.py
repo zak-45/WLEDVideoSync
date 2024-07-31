@@ -9,7 +9,8 @@
 # nuitka-project-if: os.getenv("DEBUG_COMPILATION", "no") == "yes":
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
-#
+# nuitka-project: --lto=yes
+# nuitka-project: --clang
 
 """
 a: zak-45
