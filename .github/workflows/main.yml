@@ -85,6 +85,7 @@ jobs:
             pygments.formatters.html
             dbm.dumb
             comtypes.stream
+            yt_dlp
           include-data-dir: |
             tmp=tmp
             log=log
