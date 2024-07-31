@@ -16,6 +16,11 @@ cv2.destroyAllWindows()
 import av
 #
 """
+from youtubesearchpython.__future__ import VideosSearch
+from yt_dlp import YoutubeDL
+
+import asyncio
+
 import logging
 import logging.config
 import concurrent_log_handler
@@ -46,9 +51,6 @@ from pathlib import Path
 from typing import Optional
 
 from nicegui import events, ui, run
-
-from pytube import YouTube
-from pytube import Search as PySearch
 
 import tkinter as tk
 from screeninfo import get_monitors
@@ -112,50 +114,50 @@ class CASTUtils:
         return dict_codecs
 
     @staticmethod
-    async def youtube(yt_url: str = None, interactive: bool = True, log_ui=None):
+    async def youtube_download(yt_url: str = None, interactive: bool = True, log_ui=None):
         """download video from youtube"""
 
         if interactive:
             if log_ui is not None:
                 logger.addHandler(LogElementHandler(log_ui))
 
-            def progress_func(yt_stream, data, remain_bytes):
-                CASTUtils.yt_file_size_remain_bytes = remain_bytes
-                logger.info(f'In progress from YouTube ... remaining :{CASTUtils.bytes2human(remain_bytes)} ')
+            def progress_hook(d):
+                if d['status'] == 'downloading':
+                    CASTUtils.yt_file_size_bytes = d['total_bytes']
+                    CASTUtils.yt_file_size_remain_bytes = d['total_bytes'] - d['downloaded_bytes']
+                    logger.info(f"Downloading: {d['_percent_str']} of "
+                                f"{d['_total_bytes_str']} at {d['_speed_str']} ETA {d['_eta_str']}")
+                elif d['status'] == 'finished':
+                    CASTUtils.yt_file_name = d['filename']
+                    CASTUtils.yt_file_size_remain_bytes = 0
+                    logger.info(f"Finished downloading {d['filename']}")
 
-            def complete_func(yt_stream, file_path):
-                CASTUtils.yt_file_name = file_path
-                CASTUtils.yt_file_size_remain_bytes = 0
-                logger.info(f'YouTube STREAM : {yt_stream}')
-                logger.info(f'YouTube Finished : {file_path}')
-
-            yt = YouTube(
-                url=yt_url,
-                on_progress_callback=progress_func,
-                on_complete_callback=complete_func,
-                use_oauth=False,
-                allow_oauth_cache=True
-            )
+            ydl_opts = {
+                'format': '18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]',  # Ensure 320p and single stream
+                'outtmpl': './media/yt-tmp-%(title)s.%(ext)s',  # Output file name format
+                'progress_hooks': [progress_hook],  # Hook for progress
+                'noplaylist': True,  # Do not download playlists
+                'ignoreerrors': True,  # Ignore errors, such as unavailable formats
+                'quiet': True,  # Suppress unnecessary output
+            }
 
         else:
-            yt = YouTube(
-                url=yt_url,
-                use_oauth=False,
-                allow_oauth_cache=True
-            )
+
+            ydl_opts = {
+                'format': '18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]',  # Ensure 320p and single stream
+                'outtmpl': './media/yt-tmp-%(title)s.%(ext)s',  # Output file name format
+                'noplaylist': True,  # Do not download playlists
+                'ignoreerrors': True,  # Ignore errors, such as unavailable formats
+                'quiet': True,  # Suppress unnecessary output
+            }
+
         try:
 
-            # this usually should select the first 720p video, enough for cast: from 14/7/2024, this is 320p
-            prog_stream = yt.streams.filter(progressive=True).order_by('resolution').desc().first()
-            CASTUtils.yt_file_size_bytes = prog_stream.filesize
-            CASTUtils.yt_file_size_remain_bytes = prog_stream.filesize
-            # initiate download to media folder
-            result = await run.io_bound(prog_stream.download,
-                                        output_path='media',
-                                        filename_prefix='yt-tmp-',
-                                        timeout=3,
-                                        max_retries=2
-                                        )
+            CASTUtils.yt_file_size_remain_bytes = 1024
+            CASTUtils.yt_file_size_bytes = 1024
+
+            ydl = YoutubeDL(ydl_opts)
+            await run.io_bound(ydl.download, url_list=yt_url)
 
         except Exception as error:
             CASTUtils.yt_file_name = ''
@@ -1074,22 +1076,22 @@ class YtSearch:
 
     def __init__(self, anime: bool = False):
         self.yt_stream = None
-        self.search_txt: str = ''
         self.yt_search = None
         self.yt_anime = anime
+        self.videos_search = None
         ui.separator()
         with ui.row():
             self.my_search = ui.input('YT search')
             self.search_button = ui.button('search', icon='restore_page', color='blue') \
                 .tooltip('Click to Validate')
-            self.search_button.on_click(lambda: self.search_youtube(self.my_search.value))
-            self.next_button = ui.button('More', on_click=lambda: self.next_search(self.yt_search))
+            self.search_button.on_click(lambda: self.search_youtube())
+            self.next_button = ui.button('More', on_click=lambda: self.next_search())
             self.next_button.set_visibility(False)
             self.number_found = ui.label(f'Result : ')
 
         self.search_result = ui.card()
         with self.search_result:
-            self.msg = ui.label('Search could take some time ....').classes('animate-pulse')
+            ui.label('Search could take some time ....').classes('animate-pulse')
 
         self.yt_player = ui.page_sticky()
 
@@ -1111,21 +1113,26 @@ class YtSearch:
                         'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>'
                         '</iframe>')
 
-    async def search_youtube(self, data):
-        """ Search for YT from input """
+    async def search_youtube(self):
+        """ Run Search YT from input """
+
+        def run_search():
+            asyncio.create_task(self.py_search(self.my_search.value))
 
         await ui.context.client.connected()
-        # clear as we recreate, sure, not optimal
-        # self.search_result.clear()
-        self.msg = 'Search running ....'
 
-        await self.py_search(data)
+        self.search_button.props('loading')
+        self.search_result.clear()
+        ui.timer(.5, run_search, once=True)
 
     async def py_search(self, data):
-        # Search
-        self.yt_search = PySearch(data)
+        """ Search for YT from input """
+
+        self.videos_search = VideosSearch(data, limit=5)
+        self.yt_search = await self.videos_search.next()
+
         # number found
-        number = len(self.yt_search.results)
+        number = len(self.yt_search['result'])
         self.number_found.text = f'Number found: {number}'
         # activate 'more' button
         if number > 0:
@@ -1136,56 +1143,54 @@ class YtSearch:
             self.number_found.text = 'Nothing Found'
 
         self.search_button.props(remove='loading')
-        self.next_button.props(remove='loading')
-        ui.notify('YT Search End', position='center', type='info', close_button=True)
 
-    async def next_search(self, search_obj):
+    async def next_search(self):
         """ Next if you want more """
 
         await ui.context.client.connected()
         self.search_button.props('loading')
-        if len(search_obj.results) > 0:
+        tmp_dict = await self.videos_search.next()
+        if len(tmp_dict['result']) > 0:
             # search additional data
-            await run.io_bound(search_obj.get_next_results)
+            self.yt_search.update(tmp_dict)
             # update number
-            self.number_found.text = f'Number found: {len(search_obj.results)}'
+            self.number_found.text = f'Number found: {len(tmp_dict["result"])}'
             # re create  result page
-            await self.create_yt_page(search_obj)
+            await self.create_yt_page(self.yt_search)
         else:
             ui.notify('No more to search', position='center', type='negative', close_button=True)
 
         self.search_button.props(remove='loading')
-        ui.notify('YT End Search More', position='center', type='info', close_button=True)
 
     async def create_yt_page(self, data):
         """ Create YT search result """
-        # clear first
-        # clear as we recreate, sure, not optimal
+
+        # clear as we recreate
         self.search_result.clear()
         # create
         with self.search_result.classes('w-full self-center'):
-            for self.yt_stream in data.results:
+            for self.yt_stream in data['result']:
                 ui.separator()
-                ui.label(self.yt_stream.title)
+                ui.label(self.yt_stream['title'])
                 with ui.row(wrap=False).classes('w-1/2'):
-                    yt_image = ui.image(self.yt_stream.thumbnail_url).classes('self-center w-1/2')
-                    yt_image.on('mouseenter', lambda yt_str=self.yt_stream: self.youtube_player(yt_str.video_id))
+                    yt_image = ui.image(self.yt_stream['thumbnails'][0]['url']).classes('self-center w-1/2')
+                    yt_image.on('mouseenter', lambda yt_str=self.yt_stream: self.youtube_player(yt_str['id']))
                     with ui.column():
-                        ui.label(f'Length: {self.yt_stream.length}')
-                        yt_url = ui.label(self.yt_stream.watch_url)
+                        ui.label(f'Length: {self.yt_stream["duration"]}')
+                        yt_url = ui.label(self.yt_stream['link'])
                         yt_url.tooltip('Click to copy')
                         yt_url.style('text-decoration: underline; cursor: pointer;')
                         yt_url.on('click', lambda my_yt=yt_url: (ui.clipboard.write(my_yt.text),
                                                                  ui.notify('copied')))
                         with ui.row():
-                            yt_watch = ui.icon('smart_display', size='sm')
-                            yt_watch.tooltip('Player On')
-                            yt_watch.style('cursor: pointer')
-                            yt_watch.on('click', lambda yt_str=self.yt_stream: self.youtube_player(yt_str.video_id))
                             yt_watch_close = ui.icon('videocam_off', size='sm')
                             yt_watch_close.tooltip('Player OFF')
                             yt_watch_close.style('cursor: pointer')
                             yt_watch_close.on('click', lambda: self.yt_player.clear())
+                            yt_watch = ui.icon('smart_display', size='sm')
+                            yt_watch.tooltip('Player On')
+                            yt_watch.style('cursor: pointer')
+                            yt_watch.on('click', lambda yt_str=self.yt_stream: self.youtube_player(yt_str['id']))
 
 
 class AnimatedElement:

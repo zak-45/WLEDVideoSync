@@ -12,11 +12,12 @@ pywebview==5.1
 pystray==0.19.5
 uvicorn[standard]==0.30.3
 psutil==6.0.0
-git+https://github.com/zak-45/pytube@master
 FreeSimpleGUI==5.1.0
 requests==2.32.3
 screeninfo==0.8.1
 av==12.3.0
+youtube-search-python==1.6.6
+yt-dlp==2024.7.25
 linuxpy
 imageio
 pygrabber

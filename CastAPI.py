@@ -2179,7 +2179,7 @@ def reset_sync():
 
 async def player_sync():
     """ Set Sync cast to True """
-    await context.client.connected()
+    # await context.client.connected()
     current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
     ui.notify(f'Player Time : {current_time}')
     Media.player_time = current_time * 1000
@@ -2198,7 +2198,7 @@ async def get_player_time():
     Retrieve current play time from the Player
     Set player time for Cast to Sync
     """
-    await context.client.connected()
+    # await context.client.connected()
     if CastAPI.type_sync == 'player' or CastAPI.last_type_sync == 'player':
         current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
         Media.player_time = round(current_time * 1000)
@@ -2209,7 +2209,7 @@ async def player_duration():
     Return current duration time from the Player
     Set slider max value to video duration
     """
-    await context.client.connected()
+    # await context.client.connected()
     current_duration = await ui.run_javascript("document.querySelector('video').duration", timeout=2)
     ui.notify(f'Video duration:{current_duration}')
     Media.player_duration = current_duration
@@ -2598,7 +2598,7 @@ END Cast preset mgr
 
 async def player_cast(source):
     """ Cast from video CastAPI.player only for Media"""
-    await context.client.connected()
+    # await context.client.connected()
     media_info = Utils.get_media_info(source)
     if Media.stopcast:
         ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
@@ -3219,8 +3219,8 @@ async def check_yt(url):
 
     asyncio.create_task(get_size())
 
-    if 'https://youtu' in url:
-        yt = await Utils.youtube(url, interactive=True)
+    if 'https://www.youtu' in url:
+        yt = await Utils.youtube_download(url, interactive=True)
         if yt != '':
             video_url = yt
 
