@@ -124,9 +124,6 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     if str2bool(custom_config['player']) or str2bool(custom_config['system-stats']):
         import psutil
 
-        if str2bool(custom_config['player']):
-            from pytube import YouTube
-
     #  validate network config
     server_ip = server_config['server_ip']
     if not Utils.validate_ip_address(server_ip):
@@ -453,20 +450,11 @@ async def util_download_yt(yt_url: str):
        Download video from Youtube Url
     """
 
-    if 'https://youtu' in yt_url:
-
-        yt = YouTube(
-            url=yt_url,
-            use_oauth=False,
-            allow_oauth_cache=True
-        )
+    if 'youtu' in yt_url:
 
         try:
 
-            # this usually should select the first 720p video, enough for cast
-            prog_stream = yt.streams.filter(progressive=True).order_by('resolution').desc().first()
-            # initiate download to tmp folder
-            prog_stream.download(output_path='tmp', filename_prefix='yt-tmp-', timeout=3, max_retries=2)
+            await Utils.youtube_download(yt_url=yt_url, interactive=False)
 
         except Exception as error:
             logger.info(f'youtube error: {error}')
