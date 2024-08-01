@@ -17,7 +17,7 @@ requests==2.32.3
 screeninfo==0.8.1
 av==12.3.0
 youtube-search-python==1.6.6
-yt-dlp==2024.7.25
+yt-dlp
 linuxpy
 imageio
 pygrabber
