@@ -1224,15 +1224,17 @@ async def video_player_page():
 
             video_url = ui.input('Enter video Url / Path', placeholder='http://....') \
                 .bind_visibility_from(CastAPI.player)
-            video_url.tooltip('Enter Url, click on outside to validate the entry, '
+            video_url.tooltip('Enter Url, click on icon to download video, '
                               ' hide and show player should refresh data')
-            # video_url.on('focusout', lambda: check_yt(video_url.value))
+            video_url.on('focus', js_handler='''(event) => {const input = event.target;input.select();}''')
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
+            video_url_icon.tooltip("Download video from Url")
             video_url_icon.on('click', lambda: download_yt(video_url.value))
             video_url_icon.bind_visibility_from(CastAPI.player)
             video_url_info = ui.icon('info')
             video_url_info.style("cursor: pointer")
+            video_url_info.tooltip("Youtube information's, including formats etc ...")
             video_url_info.on('click', lambda: player_url_info(video_url.value))
             video_url_info.bind_visibility_from(CastAPI.player)
 
@@ -2297,10 +2299,15 @@ async def player_media_info(player_media):
 
 
 async def player_url_info(player_url):
-    with ui.dialog() as dialog:
-        dialog.open()
-        editor = ui.json_editor({'content': {'json': await Utils.list_yt_formats(player_url)}}) \
-            .run_editor_method('updateProps', {'readOnly': True, 'mode': 'tree'})
+    """ Grab YouTube information from an Url """
+    async def yt_search():
+        await ui.context.client.connected()
+        with ui.dialog() as dialog:
+            dialog.open()
+            editor = ui.json_editor({'content': {'json': await Utils.list_yt_formats(player_url)}}) \
+                .run_editor_method('updateProps', {'readOnly': True, 'mode': 'tree'})
+    ui.notify('Grab info from YT ...')
+    ui.timer(.1, yt_search, once=True)
 
 
 async def display_formats():
