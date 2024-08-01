@@ -1226,10 +1226,16 @@ async def video_player_page():
                 .bind_visibility_from(CastAPI.player)
             video_url.tooltip('Enter Url, click on outside to validate the entry, '
                               ' hide and show player should refresh data')
-            video_url.on('focusout', lambda: check_yt(video_url.value))
+            # video_url.on('focusout', lambda: check_yt(video_url.value))
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
+            video_url_icon.on('click', lambda: download_yt(video_url.value))
             video_url_icon.bind_visibility_from(CastAPI.player)
+            video_url_info = ui.icon('info')
+            video_url_info.style("cursor: pointer")
+            video_url_info.on('click', lambda: player_url_info(video_url.value))
+            video_url_info.bind_visibility_from(CastAPI.player)
+
             # Progress bar
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
 
@@ -2290,17 +2296,24 @@ async def player_media_info(player_media):
             .run_editor_method('updateProps', {'readOnly': True, 'mode': 'table'})
 
 
+async def player_url_info(player_url):
+    with ui.dialog() as dialog:
+        dialog.open()
+        editor = ui.json_editor({'content': {'json': await Utils.list_yt_formats(player_url)}}) \
+            .run_editor_method('updateProps', {'readOnly': True, 'mode': 'tree'})
+
+
 async def display_formats():
     with ui.dialog() as dialog:
         dialog.open()
-        editor = ui.json_editor({'content': {'json': Utils.list_formats()}}) \
+        editor = ui.json_editor({'content': {'json': Utils.list_av_formats()}}) \
             .run_editor_method('updateProps', {'readOnly': True})
 
 
 async def display_codecs():
     with ui.dialog() as dialog:
         dialog.open()
-        editor = ui.json_editor({'content': {'json': Utils.list_codecs()}}) \
+        editor = ui.json_editor({'content': {'json': Utils.list_av_codecs()}}) \
             .run_editor_method('updateProps', {'readOnly': True})
 
 
@@ -3189,8 +3202,9 @@ async def player_pick_file() -> None:
         CastAPI.player.update()
 
 
-async def check_yt(url):
-    """Check Download youtube video"""
+async def download_yt(url):
+    """ Download youtube video """
+
     video_url = url
     CastAPI.progress_bar.value = 0
     CastAPI.progress_bar.update()

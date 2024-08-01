@@ -94,7 +94,7 @@ class CASTUtils:
         return dict_media
 
     @staticmethod
-    def list_formats():
+    def list_av_formats():
         dict_formats = []
         j = 0
         for item in av.formats_available:
@@ -104,7 +104,7 @@ class CASTUtils:
         return dict_formats
 
     @staticmethod
-    def list_codecs():
+    def list_av_codecs():
         dict_codecs = []
         j = 0
         for item in av.codec.codecs_available:
@@ -114,8 +114,27 @@ class CASTUtils:
         return dict_codecs
 
     @staticmethod
+    async def list_yt_formats(url):
+        """ List available format for an YT Url """
+
+        ydl_opts = {
+            'listformats': True,
+            'noplaylist': True,  # Do not download playlists
+            'ignoreerrors': True,  # Ignore errors, such as unavailable formats
+            'quiet': True,  # Suppress unnecessary output
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+
+        return info
+
+    @staticmethod
     async def youtube_download(yt_url: str = None, interactive: bool = True, log_ui=None):
         """download video from youtube"""
+
+        # select from ini file
+        config_data = CASTUtils.read_config()
+        download_format = config_data[3]['yt-format']
 
         if interactive:
             if log_ui is not None:
@@ -123,19 +142,32 @@ class CASTUtils:
 
             def progress_hook(d):
                 if d['status'] == 'downloading':
-                    CASTUtils.yt_file_size_bytes = d['total_bytes']
-                    CASTUtils.yt_file_size_remain_bytes = d['total_bytes'] - d['downloaded_bytes']
-                    logger.info(f"Downloading: {d['_percent_str']} of "
-                                f"{d['_total_bytes_str']} at {d['_speed_str']} ETA {d['_eta_str']}")
+                    try:
+                        CASTUtils.yt_file_size_bytes = d['total_bytes']
+                        CASTUtils.yt_file_size_remain_bytes = d['total_bytes'] - d['downloaded_bytes']
+                        logger.info(f"Downloading: {d['_percent_str']} of "
+                                    f"{d['_total_bytes_str']} at {d['_speed_str']} ETA {d['_eta_str']}")
+                    except:
+                        CASTUtils.yt_file_size_bytes = 0
+                        CASTUtils.yt_file_size_remain_bytes = 0
+
                 elif d['status'] == 'finished':
                     CASTUtils.yt_file_name = d['filename']
                     CASTUtils.yt_file_size_remain_bytes = 0
                     logger.info(f"Finished downloading {d['filename']}")
 
+            def post_hook(d):
+                if d['status'] == 'finished':
+                    final_filename = d.get('info_dict').get('_filename')
+                    CASTUtils.yt_file_name = final_filename
+                    CASTUtils.yt_file_size_remain_bytes = 0
+                    logger.info(f"Finished Post Process {final_filename}")
+
             ydl_opts = {
-                'format': '18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]',  # Ensure 320p and single stream
+                f'format': f'{download_format}',  # choose format to download
                 'outtmpl': './media/yt-tmp-%(title)s.%(ext)s',  # Output file name format
                 'progress_hooks': [progress_hook],  # Hook for progress
+                'postprocessor_hooks': [post_hook],  # Hook for postprocessor
                 'noplaylist': True,  # Do not download playlists
                 'ignoreerrors': True,  # Ignore errors, such as unavailable formats
                 'quiet': True,  # Suppress unnecessary output
@@ -144,7 +176,8 @@ class CASTUtils:
         else:
 
             ydl_opts = {
-                'format': '18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]',  # Ensure 320p and single stream
+                # 'format': '134/18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]' single stream
+                f'format': f'{download_format}',  # choose format to download
                 'outtmpl': './media/yt-tmp-%(title)s.%(ext)s',  # Output file name format
                 'noplaylist': True,  # Do not download playlists
                 'ignoreerrors': True,  # Ignore errors, such as unavailable formats
