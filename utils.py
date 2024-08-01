@@ -136,6 +136,13 @@ class CASTUtils:
         config_data = CASTUtils.read_config()
         download_format = config_data[3]['yt-format']
 
+        def post_hook(d):
+            if d['status'] == 'finished':
+                final_filename = d.get('info_dict').get('_filename')
+                CASTUtils.yt_file_name = final_filename
+                CASTUtils.yt_file_size_remain_bytes = 0
+                logger.info(f"Finished Post Process {final_filename}")
+
         if interactive:
             if log_ui is not None:
                 logger.addHandler(LogElementHandler(log_ui))
@@ -153,16 +160,7 @@ class CASTUtils:
                                 f"{d['_total_bytes_str']} at {d['_speed_str']} ETA {d['_eta_str']}")
 
                 elif d['status'] == 'finished':
-                    CASTUtils.yt_file_name = d['filename']
-                    CASTUtils.yt_file_size_remain_bytes = 0
                     logger.info(f"Finished downloading {d['filename']}")
-
-            def post_hook(d):
-                if d['status'] == 'finished':
-                    final_filename = d.get('info_dict').get('_filename')
-                    CASTUtils.yt_file_name = final_filename
-                    CASTUtils.yt_file_size_remain_bytes = 0
-                    logger.info(f"Finished Post Process {final_filename}")
 
             ydl_opts = {
                 f'format': f'{download_format}',  # choose format to download
@@ -182,6 +180,7 @@ class CASTUtils:
                 f'format': f'{download_format}',  # choose format to download
                 'paths': {'temp': './tmp'},  # temp folder
                 'outtmpl': './media/yt-tmp-%(title)s.%(ext)s',  # Output file name format
+                'postprocessor_hooks': [post_hook],  # Hook for postprocessor
                 'noplaylist': True,  # Do not download playlists
                 'ignoreerrors': True,  # Ignore errors, such as unavailable formats
                 'quiet': True,  # Suppress unnecessary output
