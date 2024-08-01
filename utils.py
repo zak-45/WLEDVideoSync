@@ -142,14 +142,15 @@ class CASTUtils:
 
             def progress_hook(d):
                 if d['status'] == 'downloading':
-                    try:
+                    if 'total_bytes_estimate' in d:
+                        CASTUtils.yt_file_size_bytes = d['total_bytes_estimate']
+                        CASTUtils.yt_file_size_remain_bytes = d['total_bytes_estimate'] - d['downloaded_bytes']
+                    if 'total_bytes' in d:
                         CASTUtils.yt_file_size_bytes = d['total_bytes']
                         CASTUtils.yt_file_size_remain_bytes = d['total_bytes'] - d['downloaded_bytes']
-                        logger.info(f"Downloading: {d['_percent_str']} of "
-                                    f"{d['_total_bytes_str']} at {d['_speed_str']} ETA {d['_eta_str']}")
-                    except:
-                        CASTUtils.yt_file_size_bytes = 0
-                        CASTUtils.yt_file_size_remain_bytes = 0
+
+                    logger.info(f"Downloading: {d['_percent_str']} of "
+                                f"{d['_total_bytes_str']} at {d['_speed_str']} ETA {d['_eta_str']}")
 
                 elif d['status'] == 'finished':
                     CASTUtils.yt_file_name = d['filename']
@@ -165,6 +166,7 @@ class CASTUtils:
 
             ydl_opts = {
                 f'format': f'{download_format}',  # choose format to download
+                'paths': {'temp': './tmp'},  # temp folder
                 'outtmpl': './media/yt-tmp-%(title)s.%(ext)s',  # Output file name format
                 'progress_hooks': [progress_hook],  # Hook for progress
                 'postprocessor_hooks': [post_hook],  # Hook for postprocessor
@@ -178,6 +180,7 @@ class CASTUtils:
             ydl_opts = {
                 # 'format': '134/18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]' single stream
                 f'format': f'{download_format}',  # choose format to download
+                'paths': {'temp': './tmp'},  # temp folder
                 'outtmpl': './media/yt-tmp-%(title)s.%(ext)s',  # Output file name format
                 'noplaylist': True,  # Do not download playlists
                 'ignoreerrors': True,  # Ignore errors, such as unavailable formats
