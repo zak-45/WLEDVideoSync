@@ -14,13 +14,17 @@ WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with 
 
 **Automatic Installation:**
 1. Take the app from releases (Unix/ Mac/ Win)
-2. Execute it to extract the standalone version
-3. Go to ./WLEDVideoSync folder and run WLEDVideoSync-{OS} app.
+2. --> On Mac/Linux: chmod +x WLEDVideoSync
+3. Execute it to extract the standalone version
+4. Go to ./WLEDVideoSync folder and run WLEDVideoSync-{OS} app.
+5. --> On Mac/Linux: chmod +x WLEDVideoSync-{OS}.bin
 
 **Manual Installation:**
 1. Clone the repository from GitHub
 2. Install required dependencies : pip -r requirements.txt
-3. Run it with : python -m WLEDVideoSync.py
+3. --> on Mac/linux : pip3 -r requirements.txt
+4. Run it with : python -m WLEDVideoSync.py
+5. --> on Mac/linux : python3 -m WLEDVideoSync.py
 
 **Usage:**
 1. Connect your WLED-controlled LED strips
