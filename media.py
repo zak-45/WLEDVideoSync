@@ -742,37 +742,71 @@ class CASTMedia:
                        ip_addresses,
                        grid=False):
 
-        frame = cv2.resize(frame, (self.preview_w, self.preview_h))
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        if sys.platform.lower() == 'darwin':
+            """
+            On MacOS openCV imshow do not work in multithreaded env
+            """
+            self.preview = False
+            t_preview = False
+            logger.warning('No preview for MacOS')
 
-        # put text on the image
-        if self.text:
-            # common param
-            # font
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            # fontScale
-            fontscale = .4
-            original_width = 640
-            # Blue color in BGR
-            color = (255, 255, 255)
-            # Line thickness of 2 px
-            thickness = 1
+        else:
 
-            # Calculate new font scale
-            new_font_scale = fontscale * (self.preview_w / original_width)
+            frame = cv2.resize(frame, (self.preview_w, self.preview_h))
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-            if self.custom_text == "":
-                # bottom
+            # put text on the image
+            if self.text:
+                # common param
+                # font
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                # fontScale
+                fontscale = .4
+                original_width = 640
+                # Blue color in BGR
+                color = (255, 255, 255)
+                # Line thickness of 2 px
+                thickness = 1
+
+                # Calculate new font scale
+                new_font_scale = fontscale * (self.preview_w / original_width)
+
+                if self.custom_text == "":
+                    # bottom
+                    # org
+                    org = (50, self.preview_h - 50)
+                    x, y, w, h = 40, self.preview_h - 60, self.preview_w - 80, 15
+                    # Draw black background rectangle
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
+                    text_to_show_bottom = "Device(s) : "
+                    text_to_show_bottom += str(ip_addresses)
+                    # Using cv2.putText() method
+                    frame = cv2.putText(frame,
+                                        text_to_show_bottom,
+                                        org,
+                                        font,
+                                        new_font_scale,
+                                        color,
+                                        thickness,
+                                        cv2.LINE_AA)
+
+                    # Top
+                    text_to_show = f"WLEDVideoSync: {server_port} - "
+                    text_to_show += "FPS: " + str(1 / fps) + " - "
+                    text_to_show += "FRAME: " + str(frame_count) + " - "
+                    text_to_show += "TOTAL: " + str(CASTMedia.total_frame)
+                else:
+                    text_to_show = self.custom_text
+
+                # Top
                 # org
-                org = (50, self.preview_h - 50)
-                x, y, w, h = 40, self.preview_h - 60, self.preview_w - 80, 15
+                org = (50, 50)
+                x, y, w, h = 40, 15, self.preview_w - 80, 40
                 # Draw black background rectangle
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
-                text_to_show_bottom = "Device(s) : "
-                text_to_show_bottom += str(ip_addresses)
+                cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
                 # Using cv2.putText() method
                 frame = cv2.putText(frame,
-                                    text_to_show_bottom,
+                                    text_to_show,
                                     org,
                                     font,
                                     new_font_scale,
@@ -780,60 +814,36 @@ class CASTMedia:
                                     thickness,
                                     cv2.LINE_AA)
 
-                # Top
-                text_to_show = f"WLEDVideoSync: {server_port} - "
-                text_to_show += "FPS: " + str(1 / fps) + " - "
-                text_to_show += "FRAME: " + str(frame_count) + " - "
-                text_to_show += "TOTAL: " + str(CASTMedia.total_frame)
-            else:
-                text_to_show = self.custom_text
+            # Displaying the image
+            window_name = f"{server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
+            if grid:
+                frame = ImageUtils.grid_on_image(frame, self.cast_x, self.cast_y)
 
-            # Top
-            # org
-            org = (50, 50)
-            x, y, w, h = 40, 15, self.preview_w - 80, 40
-            # Draw black background rectangle
-            cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
-            # Using cv2.putText() method
-            frame = cv2.putText(frame,
-                                text_to_show,
-                                org,
-                                font,
-                                new_font_scale,
-                                color,
-                                thickness,
-                                cv2.LINE_AA)
+            cv2.imshow(window_name, frame)
+            cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
 
-        # Displaying the image
-        window_name = f"{server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
-        if grid:
-            frame = ImageUtils.grid_on_image(frame, self.cast_x, self.cast_y)
-
-        cv2.imshow(window_name, frame)
-        cv2.resizeWindow(window_name, self.preview_w, self.preview_h)
-
-        top = 0
-        if self.preview_top is True:
-            top = 1
-        cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
-        key_pressed = cv2.waitKey(1)
-        if key_pressed == ord("q"):
-            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-            if not win == 0:
-                cv2.destroyWindow(window_name)
-            t_preview = False
-            t_todo_stop = True
-            logger.info(f'Request to stop {t_name}')
-        elif key_pressed == ord("p"):
-            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-            if not win == 0:
-                cv2.destroyWindow(window_name)
-            t_preview = False
-        elif key_pressed == ord("t"):
-            if self.text:
-                self.text = False
-            else:
-                self.text = True
+            top = 0
+            if self.preview_top is True:
+                top = 1
+            cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
+            key_pressed = cv2.waitKey(1)
+            if key_pressed == ord("q"):
+                win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+                if not win == 0:
+                    cv2.destroyWindow(window_name)
+                t_preview = False
+                t_todo_stop = True
+                logger.info(f'Request to stop {t_name}')
+            elif key_pressed == ord("p"):
+                win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+                if not win == 0:
+                    cv2.destroyWindow(window_name)
+                t_preview = False
+            elif key_pressed == ord("t"):
+                if self.text:
+                    self.text = False
+                else:
+                    self.text = True
 
         return t_preview, t_todo_stop
 
