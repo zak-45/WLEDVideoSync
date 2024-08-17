@@ -50,13 +50,12 @@ from utils import CASTUtils as Utils, ImageUtils
 fix cv2.imshow() on not windows platforms
 """
 if sys.platform.lower() != "win32":
+    print('Run ffmpeg fix')
     img = cv2.imread('splash-screen.png')
     cv2.imshow('ffmpeg fix', img)
-    # time.sleep(1)
+    time.sleep(1)
     cv2.destroyAllWindows()
-    import av
-else:
-    import av
+    print('END Run ffmpeg fix')
 """
 END fix
 """
@@ -171,6 +170,8 @@ class CASTDesktop:
         """
             Cast desktop screen or a window content based on the title
         """
+
+        import av
 
         t_name = threading.current_thread().name
         if CASTDesktop.count == 0 or self.reset_total is True:
