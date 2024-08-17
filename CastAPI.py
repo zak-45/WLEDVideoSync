@@ -143,7 +143,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
 
 
     async def init_actions():
-        """ Done at start of app and before GUI available"""
+        """ Done at start of app and before GUI available """
 
         # Apply presets
         try:
@@ -2164,8 +2164,8 @@ async def slider_sync():
 
 def slider_time(current_time):
     """ Set player time for Cast """
-    if current_time > 0:
-        Media.player_time = current_time * 1000
+
+    Media.player_time = current_time * 1000
 
 
 def reset_sync():
@@ -2175,6 +2175,7 @@ def reset_sync():
 
 async def player_sync():
     """ Set Sync cast to True """
+
     # await context.client.connected()
     current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
     ui.notify(f'Player Time : {current_time}')
@@ -2605,7 +2606,8 @@ END Cast preset mgr
 
 
 async def player_cast(source):
-    """ Cast from video CastAPI.player only for Media"""
+    """ Cast from video CastAPI.player only for Media """
+
     # await context.client.connected()
     media_info = Utils.get_media_info(source)
     if Media.stopcast:

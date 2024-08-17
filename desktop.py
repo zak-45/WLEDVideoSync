@@ -20,8 +20,10 @@
 # You can cast your entire desktop screen or only window content.
 # Data will be sent through 'ddp' protocol or stream via udp:// rtp:// etc ...
 # ddp data are sent by using queue feature to avoid any network problem which cause latency
-# 27/05/2024: cv2.imshow with import av  freeze
-#
+# 27/05/2024: cv2.imshow with import av  freeze on OS not Win
+# one fix is to initiate cv2.imshow() before import av
+# on linux, preview default to False: should work but on some test do memory dump
+
 import sys
 import os
 
@@ -44,7 +46,20 @@ import concurrent.futures
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, ImageUtils
 
-import av
+"""
+fix cv2.imshow() on not windows platforms
+"""
+if sys.platform.lower() != "win32":
+    img = cv2.imread('splash-screen.png')
+    cv2.imshow('ffmpeg fix', img)
+    # time.sleep(1)
+    cv2.destroyAllWindows()
+    import av
+else:
+    import av
+"""
+END fix
+"""
 
 """
 When this env var exist, this mean run from the one-file executable.
