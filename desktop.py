@@ -774,7 +774,9 @@ class CASTDesktop:
             log_ui : logger to send data to main logger on root page
         """
         if log_ui is not None:
-            logger.addHandler(log_ui)
+            root_logger = logging.getLogger()
+            if log_ui not in root_logger:
+                logger.addHandler(log_ui)
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
