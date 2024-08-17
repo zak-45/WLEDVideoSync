@@ -13,6 +13,7 @@
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 # nuitka-project: --lto=no
 # nuitka-project: --clang
+# nuitka-project: --nofollow-import-to=doctest
 
 """
 a: zak-45
