@@ -70,6 +70,128 @@ class CASTUtils:
         pass
 
     @staticmethod
+    def main_preview_window(total_frame,
+                            frame,
+                            server_port,
+                            t_viinput,
+                            t_name,
+                            preview_top,
+                            t_preview,
+                            preview_w,
+                            preview_h,
+                            t_todo_stop,
+                            frame_count,
+                            fps,
+                            ip_addresses,
+                            text,
+                            custom_text,
+                            cast_x,
+                            cast_y,
+                            grid=False):
+        """
+        CV2 preview window
+        """
+
+        frame = cv2.resize(frame, (preview_w, preview_h))
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        # put text on the image
+        if text:
+            # common param
+            # font
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            # fontScale
+            fontscale = .4
+            original_width = 640
+            # Blue color in BGR
+            color = (255, 255, 255)
+            # Line thickness of 2 px
+            thickness = 1
+
+            # Calculate new font scale
+            new_font_scale = fontscale * (preview_w / original_width)
+
+            if custom_text == "":
+                # bottom
+                # org
+                org = (50, preview_h - 50)
+                x, y, w, h = 40, preview_h - 60, preview_w - 80, 15
+                # Draw black background rectangle
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
+                text_to_show_bottom = "Device(s) : "
+                text_to_show_bottom += str(ip_addresses)
+                # Using cv2.putText() method
+                frame = cv2.putText(frame,
+                                    text_to_show_bottom,
+                                    org,
+                                    font,
+                                    new_font_scale,
+                                    color,
+                                    thickness,
+                                    cv2.LINE_AA)
+
+                # Top
+                text_to_show = f"WLEDVideoSync: {server_port} - "
+                text_to_show += "FPS: " + str(1 / fps) + " - "
+                text_to_show += "FRAME: " + str(frame_count) + " - "
+                text_to_show += "TOTAL: " + str(total_frame)
+            else:
+                text_to_show = custom_text
+
+            # Top
+            # org
+            org = (50, 50)
+            x, y, w, h = 40, 15, preview_w - 80, 40
+            # Draw black background rectangle
+            cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
+            # Using cv2.putText() method
+            frame = cv2.putText(frame,
+                                text_to_show,
+                                org,
+                                font,
+                                new_font_scale,
+                                color,
+                                thickness,
+                                cv2.LINE_AA)
+
+        # Displaying the image
+        window_name = f"{server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
+        if grid:
+            frame = ImageUtils.grid_on_image(frame, cast_x, cast_y)
+
+        cv2.imshow(window_name, frame)
+        cv2.resizeWindow(window_name, preview_w, preview_h)
+
+        top = 0
+        if preview_top is True:
+            top = 1
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
+        key_pressed = cv2.waitKey(1)
+        if key_pressed == ord("q"):
+            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+            if not win == 0:
+                cv2.destroyWindow(window_name)
+            t_preview = False
+            t_todo_stop = True
+            logger.info(f'Request to stop {t_name}')
+        elif key_pressed == ord("p"):
+            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+            if not win == 0:
+                cv2.destroyWindow(window_name)
+            t_preview = False
+        elif key_pressed == ord("t"):
+            if text:
+                text = False
+            else:
+                text = True
+
+        return t_preview, t_todo_stop, text
+
+    """
+    END preview window
+    """
+
+    @staticmethod
     def get_media_info(media: str = None):
         dict_media = ['"File_Name":"{}"'.format(media)]
         capture = cv2.VideoCapture(media)
