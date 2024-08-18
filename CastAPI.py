@@ -3082,8 +3082,8 @@ async def init_cast(class_obj, clog_ui=None):
     """
     class_obj.cast(shared_buffer=t_data_buffer)
     await cast_manage()
-    logger.info(f' Run Cast for {str(class_obj)}')
-    ui.notify(f'Cast initiated for :{str(class_obj)} ')
+    logger.info(f'Run Cast for {str(class_obj)}')
+    ui.notify(f'Cast initiated for :{str(class_obj)}')
 
 
 async def cast_stop(class_obj):
