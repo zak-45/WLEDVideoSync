@@ -32,7 +32,6 @@ import cv2
 import numpy as np
 import pywinctl as pwc
 from wled import WLED
-import av
 
 from PIL import Image
 import io
@@ -95,6 +94,7 @@ class CASTUtils:
 
     @staticmethod
     def list_av_formats():
+        import av
         dict_formats = []
         j = 0
         for item in av.formats_available:
@@ -105,6 +105,7 @@ class CASTUtils:
 
     @staticmethod
     def list_av_codecs():
+        import av
         dict_codecs = []
         j = 0
         for item in av.codec.codecs_available:

@@ -54,7 +54,7 @@ if sys.platform.lower() != "win32":
     img = cv2.imread('splash-screen.png')
     cv2.imshow('ffmpeg fix', img)
     time.sleep(1)
-    cv2.destroyAllWindows()
+
     print('END Run ffmpeg fix')
 """
 END fix

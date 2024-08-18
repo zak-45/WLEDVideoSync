@@ -71,7 +71,6 @@ from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
 from nicegui import app, ui, native, context
-from nicegui.events import ValueChangeEventArguments
 
 """
 Main test for platform
@@ -3103,11 +3102,6 @@ async def auth_cast(class_obj):
     ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
     await cast_manage()
     logger.info(f' Cast auth. for {str(class_obj)}')
-
-
-async def show_notify(event: ValueChangeEventArguments):
-    name = type(event.sender).__name__
-    ui.notify(f'{name}: {event.value}')
 
 
 async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
