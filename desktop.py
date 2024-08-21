@@ -50,11 +50,11 @@ from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, ImageUtils
 
 """
-Main test for platform
-    MacOS need specific case
-    Linux(POSIX) - Windows use the same 
+Main test for mp platform
+    MacOS / Linux need specific case (spawn)
+    Windows use default 
 """
-if sys.platform == 'darwin':
+if sys.platform.lower() == 'darwin' or sys.platform.lower() == 'linux':
     ctx = multiprocessing.get_context('spawn')
     Process = ctx.Process
     Queue = ctx.Queue
@@ -62,20 +62,6 @@ else:
     Process = multiprocessing.Process
     Queue = multiprocessing.Queue
 
-
-"""
-fix cv2.imshow() on not windows platforms
-"""
-if sys.platform.lower() != "win32":
-    print('Run ffmpeg fix')
-    img = cv2.imread('splash-screen.png')
-    cv2.imshow('ffmpeg fix', img)
-    time.sleep(1)
-    cv2.destroyAllWindows()
-    print('END Run ffmpeg fix')
-"""
-END fix
-"""
 
 """
 When this env var exist, this mean run from the one-file executable.
@@ -158,7 +144,7 @@ def main_preview(shared_list):
             received_frame = sl_frame.reshape(int(received_shape[0]), int(received_shape[1]), int(received_shape[2]))
         else:
             # in case of any array data problem
-            received_frame = img
+            received_frame = sl_img
 
         # Display grid for Multicast
         if sl_grid:
@@ -182,8 +168,12 @@ def main_preview(shared_list):
             sl_cast_y,
             sl_grid)
 
-        if sl[9] is True:
+        # Stop if requested
+        if sl[9] is True or sl[6] is False:
             sl[18] = '0,0,0'
+            break
+
+    logger.info(f'Child process exit for : {sl_t_name}')
 
 
 class CASTDesktop:
@@ -512,7 +502,7 @@ class CASTDesktop:
 
                     else:
 
-                        # frame = frame.reformat(800,600)
+                        frame = frame.reformat(640, 480)
 
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
@@ -701,12 +691,12 @@ class CASTDesktop:
                                 self.frame_buffer.append(frame)
 
                         """
-                        Manage preview window, depend of the platform
+                        Manage preview window, depend on the platform
                         """
                         # preview on fixed size window
                         if t_preview:
 
-                            if sys.platform.lower() != 'win32':
+                            if sys.platform.lower() == 'win32':
                                 # for no win platform, cv2.imshow() need to run into Main thread
                                 # We use ShareableList to share data between this thread and new process
                                 if frame_count == 1:
@@ -795,14 +785,16 @@ class CASTDesktop:
                 # close av output if any
                 if output_container:
                     output_container.close()
-                if CASTDesktop.count <= 2 and t_preview is True:  # try to avoid block if  casts thread and preview True
+                if t_preview is True:
                     logger.info(f'{t_name} Stop window preview if any')
                     # close preview window if any
                     window_name = f"{CASTDesktop.server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
-                    win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                    if not win == 0:
-                        cv2.destroyWindow(window_name)
-
+                    try:
+                        win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+                        if not win == 0:
+                            cv2.destroyWindow(window_name)
+                    except:
+                        pass
         else:
 
             logger.warning(f'{t_name} av input_container not defined')
