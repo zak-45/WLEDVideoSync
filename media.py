@@ -248,7 +248,7 @@ class CASTMedia:
         if sys.platform.lower() == 'win32':
             self.preview = True
         elif sys.platform.lower() == 'linux':
-            self.preview = False
+            self.preview = True
         elif sys.platform.lower() == 'darwin':
             self.preview = False
         else:
@@ -769,7 +769,7 @@ class CASTMedia:
             # preview on fixed size window
             if t_preview:
 
-                if sys.platform.lower() == 'win32':
+                if sys.platform.lower() != 'win32':
                     # for no win platform, cv2.imshow() need to run into Main thread
                     # We use ShareableList to share data between this thread and new process
                     if frame_count == 1:

@@ -244,7 +244,7 @@ class CASTDesktop:
         elif sys.platform.lower() == 'linux':
             self.viinput = ':0.0'
             self.viformat: str = 'x11grab'
-            self.preview = False
+            self.preview = True
         elif sys.platform.lower() == 'darwin':
             self.viinput = '"<screen device index>:<audio device index>"'
             self.viformat: str = 'avfoundation'
@@ -696,7 +696,7 @@ class CASTDesktop:
                         # preview on fixed size window
                         if t_preview:
 
-                            if sys.platform.lower() == 'win32':
+                            if sys.platform.lower() != 'win32':
                                 # for no win platform, cv2.imshow() need to run into Main thread
                                 # We use ShareableList to share data between this thread and new process
                                 if frame_count == 1:
