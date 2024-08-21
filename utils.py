@@ -76,10 +76,8 @@ class CASTUtils:
                             t_viinput,
                             t_name,
                             preview_top,
-                            t_preview,
                             preview_w,
                             preview_h,
-                            t_todo_stop,
                             frame_count,
                             fps,
                             ip_addresses,
@@ -91,6 +89,9 @@ class CASTUtils:
         """
         CV2 preview window
         """
+
+        t_preview = True
+        t_todo_stop = False
 
         frame = cv2.resize(frame, (preview_w, preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)

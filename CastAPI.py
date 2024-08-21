@@ -33,6 +33,8 @@ import asyncio
 
 from subprocess import Popen
 
+import numpy as np
+
 from ddp_queue import DDPDevice
 
 import time
@@ -70,7 +72,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
-from nicegui import app, ui, native, context
+from nicegui import app, ui, native, context, run
 
 """
 Main test for platform
@@ -143,6 +145,8 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
 
     async def init_actions():
         """ Done at start of app and before GUI available """
+
+        logger.info(f'Main running {threading.current_thread().name}')
 
         # Apply presets
         try:
@@ -1724,28 +1728,6 @@ async def manage_charts_page():
             ui.button('System', on_click=sys_stats_info_page)
 
 
-async def system_stats():
-    CastAPI.cpu = psutil.cpu_percent(interval=1, percpu=False)
-    CastAPI.ram = psutil.virtual_memory().percent
-    CastAPI.total_packet = Desktop.total_packet + Media.total_packet
-    CastAPI.total_frame = Desktop.total_frame + Media.total_frame
-
-    if str2bool(custom_config['cpu-chart']):
-        if CastAPI.cpu_chart is not None:
-            now = datetime.now()
-            date_time_str = now.strftime("%H:%M:%S")
-
-            CastAPI.cpu_chart.options['series'][0]['data'].append(CastAPI.cpu)
-            CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
-
-            CastAPI.cpu_chart.update()
-
-    if CastAPI.cpu >= 65:
-        ui.notify('High CPU utilization', type='negative', close_button=True)
-    if CastAPI.ram >= 95:
-        ui.notify('High Memory utilization', type='negative', close_button=True)
-
-
 @ui.refreshable
 async def net_view_page():
     """
@@ -1775,6 +1757,28 @@ async def media_dev_view_page():
 """
 helpers /Commons
 """
+
+
+async def system_stats():
+    CastAPI.cpu = psutil.cpu_percent(interval=1, percpu=False)
+    CastAPI.ram = psutil.virtual_memory().percent
+    CastAPI.total_packet = Desktop.total_packet + Media.total_packet
+    CastAPI.total_frame = Desktop.total_frame + Media.total_frame
+
+    if str2bool(custom_config['cpu-chart']):
+        if CastAPI.cpu_chart is not None:
+            now = datetime.now()
+            date_time_str = now.strftime("%H:%M:%S")
+
+            CastAPI.cpu_chart.options['series'][0]['data'].append(CastAPI.cpu)
+            CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
+
+            CastAPI.cpu_chart.update()
+
+    if CastAPI.cpu >= 65:
+        ui.notify('High CPU utilization', type='negative', close_button=True)
+    if CastAPI.ram >= 95:
+        ui.notify('High Memory utilization', type='negative', close_button=True)
 
 
 def animate_wled_image(visible):
@@ -2300,12 +2304,14 @@ async def player_media_info(player_media):
 
 async def player_url_info(player_url):
     """ Grab YouTube information from an Url """
+
     async def yt_search():
         await ui.context.client.connected()
         with ui.dialog() as dialog:
             dialog.open()
             editor = ui.json_editor({'content': {'json': await Utils.list_yt_formats(player_url)}}) \
                 .run_editor_method('updateProps', {'readOnly': True, 'mode': 'tree'})
+
     ui.notify('Grab info from YT ...')
     ui.timer(.1, yt_search, once=True)
 

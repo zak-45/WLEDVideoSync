@@ -22,6 +22,7 @@
 import logging
 import logging.config
 import concurrent_log_handler
+from multiprocessing.shared_memory import ShareableList
 import sys
 import traceback
 import numpy as np
@@ -34,12 +35,26 @@ import cfg_load as cfg
 from str2bool import str2bool
 
 import threading
+import multiprocessing
 
 import asyncio
 import concurrent.futures
 
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils, ImageUtils
+
+"""
+Main test for platform
+    MacOS need specific case
+    Linux(POSIX) - Windows use the same 
+"""
+if sys.platform == 'darwin':
+    ctx = multiprocessing.get_context('spawn')
+    Process = ctx.Process
+    Queue = ctx.Queue
+else:
+    Process = multiprocessing.Process
+    Queue = multiprocessing.Queue
 
 """
 When this env var exist, this mean run from the one-file executable.
@@ -66,6 +81,88 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         config_text = app_config['text']
         if str2bool(config_text) is True:
             cfg_text = True
+
+
+def main_preview(shared_list):
+    """
+    Used by platform <> win32, in this way cv2.imshow() will run on MainThread
+    from a subprocess
+    :param shared_list:
+    :return:
+    """
+    # Default image to display in case of np.array conversion problem
+    img = cv2.imread('assets/Source-intro.png')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = Utils.resize_image(img, 640, 480, keep_ratio=False)
+
+    # attach to a shareable list by name
+    sl = ShareableList(name=shared_list)
+
+    # Display image on preview window
+    while True:
+        # Data from shared List
+        sl_total_frame = sl[0]
+        sl_frame = np.frombuffer(sl[1], dtype=np.uint8)
+        sl_server_port = sl[2]
+        sl_t_viinput = sl[3]
+        sl_t_name = sl[4]
+        sl_preview_top = sl[5]
+        sl_preview_w = sl[7]
+        sl_preview_h = sl[8]
+        sl_frame_count = sl[10]
+        sl_fps = sl[11]
+        sl_ip_addresses = sl[12]
+        sl_text = sl[13]
+        sl_custom_text = sl[14]
+        sl_cast_x = sl[15]
+        sl_cast_y = sl[16]
+        sl_grid = sl[17]
+        received_shape = sl[18].split(',')
+
+        # calculate new shape value, if 0 then stop preview
+        shape_bytes = int(received_shape[0]) * int(received_shape[1]) * int(received_shape[2])
+        if shape_bytes == 0:
+            window_name = f"{sl_server_port}-Media Preview input: " + str(sl_t_viinput) + str(sl_t_name)
+            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+            if not win == 0:
+                cv2.destroyWindow(window_name)
+            break
+        # Generate new frame from ShareableList. Display default img in case of problem
+        # original np.array has been transformed to bytes with 'tobytes()'
+        # re-created as array with 'frombuffer()' ... looks like some data can be alterate !!!
+        # shape need to be the same
+        if sl_frame.nbytes == shape_bytes:
+            # we need to reshape the array to provide right dim. ( w, h, 3-->rgb)
+            received_frame = sl_frame.reshape(int(received_shape[0]), int(received_shape[1]), int(received_shape[2]))
+        else:
+            # in case of any array data problem
+            received_frame = img
+
+        # Display grid for Multicast
+        if sl_grid:
+            received_frame = ImageUtils.grid_on_image(received_frame, sl_cast_x, sl_cast_y)
+
+        sl[6], sl[9], sl[13] = Utils.main_preview_window(
+            sl_total_frame,
+            received_frame,
+            sl_server_port,
+            sl_t_viinput,
+            sl_t_name,
+            sl_preview_top,
+            sl_preview_w,
+            sl_preview_h,
+            sl_frame_count,
+            sl_fps,
+            sl_ip_addresses,
+            sl_text,
+            sl_custom_text,
+            sl_cast_x,
+            sl_cast_y,
+            sl_grid)
+
+        if sl[9] is True:
+            sl[18] = '0,0,0'
+
 
 """
 Class definition
@@ -190,6 +287,9 @@ class CASTMedia:
         self.player_sync = False
         self.cast_sleep = False
         CASTMedia.cast_name_to_sync = []
+
+        sl_process = None
+        sl = None
 
         """
         Cast devices
@@ -588,6 +688,8 @@ class CASTMedia:
                         
                 """
 
+                grid = True
+
                 # resize frame to virtual matrix size
                 frame_art = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
                 frame = Utils.resize_image(frame,
@@ -623,38 +725,20 @@ class CASTMedia:
                     logger.error(f'{t_name} An exception occurred: {error}')
                     break
 
-                if t_preview:
-                    t_preview, t_todo_stop, self.text = Utils.main_preview_window(
-                        CASTMedia.total_frame,
-                        frame,
-                        CASTMedia.server_port,
-                        t_viinput,
-                        t_name,
-                        self.preview_top,
-                        t_preview,
-                        self.preview_w,
-                        self.preview_h,
-                        t_todo_stop,
-                        frame_count,
-                        fps,
-                        ip_addresses,
-                        self.text,
-                        self.custom_text,
-                        self.cast_x,
-                        self.cast_y,
-                        grid=True)
-
                 if length == 1 and fps == 1:
                     break
 
             else:
+
+                grid = False
 
                 # resize frame for sending to ddp device
                 frame_to_send = Utils.resize_image(frame, self.scale_width, self.scale_height)
                 # resize frame to pixelart
                 frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
-                # send to DDP : run in separate thread to avoid block main loop
+                # DDP run in separate thread to avoid block main loop
+                # here we fead the queue read by DDP thread
                 if self.protocol == "ddp" and ip_addresses[0] != '127.0.0.1':
                     # send data to queue
                     ddp_host.send_to_queue(frame_to_send, self.retry_number)
@@ -666,27 +750,6 @@ class CASTMedia:
                     add_frame = Utils.resize_image(add_frame, self.scale_width, self.scale_height)
                     self.frame_buffer.append(add_frame)
 
-                # preview on fixed size window
-                if t_preview:
-                    t_preview, t_todo_stop, self.text = Utils.main_preview_window(
-                        CASTMedia.total_frame,
-                        frame,
-                        CASTMedia.server_port,
-                        t_viinput,
-                        t_name,
-                        self.preview_top,
-                        t_preview,
-                        self.preview_w,
-                        self.preview_h,
-                        t_todo_stop,
-                        frame_count,
-                        fps,
-                        ip_addresses,
-                        self.text,
-                        self.custom_text,
-                        self.cast_x,
-                        self.cast_y)
-
                 """
                     stop for non-live video (length not -1)
                     if we reach end of video or request only one frame from index
@@ -695,6 +758,88 @@ class CASTMedia:
                     if frame_count >= length or self.frame_index != 0:
                         logger.info(f"{t_name} Reached END ...")
                         break
+
+            """
+            Manage preview window, depend of the platform
+            """
+            # preview on fixed size window
+            if t_preview:
+
+                if sys.platform.lower() != 'win32':
+                    # for no win platform, cv2.imshow() need to run into Main thread
+                    # We use ShareableList to share data between this thread and new process
+                    if frame_count == 1:
+                        # create a shared list, name is thread name
+                        sl = ShareableList(
+                            [
+                                CASTMedia.total_frame,
+                                frame.tobytes(),
+                                self.server_port,
+                                t_viinput,
+                                t_name,
+                                self.preview_top,
+                                t_preview,
+                                self.preview_w,
+                                self.preview_h,
+                                t_todo_stop,
+                                frame_count,
+                                fps,
+                                str(ip_addresses),
+                                self.text,
+                                self.custom_text,
+                                self.cast_x,
+                                self.cast_y,
+                                grid,
+                                str(frame.shape).replace('(', '').replace(')', '')
+                            ],
+                            name=t_name)
+
+                        # run main_preview in another process
+                        # create a child process, so cv2.imshow() will run from its Main Thread
+                        sl_process = Process(target=main_preview, args=(t_name,))
+                        # start the child process
+                        # small delay occur during necessary time OS take to initiate the new process
+                        sl_process.start()
+                        logger.info(f'Starting Child Process for Preview : {t_name}')
+
+                    # working with the shared list
+                    if frame_count > 1:
+                        # what to do from data updated by the child process
+                        if sl[9] is True:
+                            t_todo_stop = True
+                        elif sl[6] is False:
+                            t_preview = False
+                        else:
+                            # Update Data on shared List
+                            sl[0] = CASTMedia.total_frame
+                            sl[1] = frame.tobytes()
+                            sl[5] = self.preview_top
+                            sl[7] = self.preview_w
+                            sl[8] = self.preview_h
+                            sl[10] = frame_count
+                            sl[13] = self.text
+                            sl[18] = str(frame.shape).replace('(', '').replace(')', '')
+
+                else:
+
+                    # for win, not necessary to use child process as this work into thread (avoid overhead)
+                    t_preview, t_todo_stop, self.text = Utils.main_preview_window(
+                        CASTMedia.total_frame,
+                        frame,
+                        CASTMedia.server_port,
+                        t_viinput,
+                        t_name,
+                        self.preview_top,
+                        self.preview_w,
+                        self.preview_h,
+                        frame_count,
+                        fps,
+                        ip_addresses,
+                        self.text,
+                        self.custom_text,
+                        self.cast_x,
+                        self.cast_y,
+                        grid)
 
             """
             do we need to sleep.
@@ -722,7 +867,17 @@ class CASTMedia:
         CASTMedia.cast_names.remove(t_name)
         CASTMedia.t_exit_event.clear()
 
-        if CASTMedia.count <= 2 and t_preview is True:  # try to avoid blocking when click as a bad man !!!
+        # Clean ShareableList
+        if sl_process is not None:
+            logger.info(f'Stopping Child Process for Preview if any : {t_name}')
+            sl_process.kill()
+        if sl is not None:
+            # close the shared memory
+            sl.shm.close()
+            # destroy the shared memory
+            sl.shm.unlink()
+
+        if t_preview is True:
             logger.info(f'{t_name} Stop window preview if any')
             window_name = f"{CASTMedia.server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
             win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
