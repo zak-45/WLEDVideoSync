@@ -107,8 +107,10 @@ def main_preview(shared_list):
         sl_t_viinput = sl[3]
         sl_t_name = sl[4]
         sl_preview_top = sl[5]
+        sl_t_preview = sl[6]
         sl_preview_w = sl[7]
         sl_preview_h = sl[8]
+        sl_t_todo_stop = sl[9]
         sl_frame_count = sl[10]
         sl_fps = sl[11]
         sl_ip_addresses = sl[12]
@@ -149,8 +151,10 @@ def main_preview(shared_list):
             sl_t_viinput,
             sl_t_name,
             sl_preview_top,
+            sl_t_preview,
             sl_preview_w,
             sl_preview_h,
+            sl_t_todo_stop,
             sl_frame_count,
             sl_fps,
             sl_ip_addresses,
@@ -742,7 +746,7 @@ class CASTMedia:
                 frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
                 # DDP run in separate thread to avoid block main loop
-                # here we fead the queue read by DDP thread
+                # here we feed the queue that is read by DDP thread
                 if self.protocol == "ddp" and ip_addresses[0] != '127.0.0.1':
                     # send data to queue
                     ddp_host.send_to_queue(frame_to_send, self.retry_number)
@@ -814,6 +818,10 @@ class CASTMedia:
                         elif sl[6] is False:
                             t_preview = False
                         else:
+                            if sl[13] is False:
+                                self.text = False
+                            else:
+                                self.text = True
                             # Update Data on shared List
                             sl[0] = CASTMedia.total_frame
                             sl[1] = frame.tobytes()
@@ -834,8 +842,10 @@ class CASTMedia:
                         t_viinput,
                         t_name,
                         self.preview_top,
+                        t_preview,
                         self.preview_w,
                         self.preview_h,
+                        t_todo_stop,
                         frame_count,
                         fps,
                         ip_addresses,

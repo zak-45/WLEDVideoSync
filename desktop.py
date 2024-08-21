@@ -681,7 +681,7 @@ class CASTDesktop:
                             # resize frame to pixelart
                             frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
-                            # send to ddp device
+                            # to send to ddp device, we feed the queue
                             if self.protocol == 'ddp' and ip_addresses[0] != '127.0.0.1':
                                 ddp_host.send_to_queue(frame_to_send, self.retry_number)
                                 CASTDesktop.total_packet += ddp_host.frame_count
@@ -729,7 +729,7 @@ class CASTDesktop:
                                     # create a child process, so cv2.imshow() will run from its Main Thread
                                     sl_process = Process(target=main_preview, args=(t_name,))
                                     # start the child process
-                                    # small delay occur during necessary time OS take to initiate the new process
+                                    # small delay occur, OS take some time to initiate the new process
                                     sl_process.start()
                                     logger.info(f'Starting Child Process for Preview : {t_name}')
 
@@ -740,6 +740,8 @@ class CASTDesktop:
                                         t_todo_stop = True
                                     elif sl[6] is False:
                                         t_preview = False
+                                    elif sl[13] is False:
+                                        self.text = False
                                     else:
                                         # Update Data on shared List
                                         sl[0] = CASTDesktop.total_frame
@@ -761,8 +763,10 @@ class CASTDesktop:
                                     t_viinput,
                                     t_name,
                                     self.preview_top,
+                                    t_preview,
                                     self.preview_w,
                                     self.preview_h,
+                                    t_todo_stop,
                                     frame_count,
                                     self.rate,
                                     ip_addresses,
