@@ -83,95 +83,6 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
             cfg_text = True
 
 
-def main_preview(shared_list):
-    """
-    Used by platform <> win32, in this way cv2.imshow() will run on MainThread
-    from a subprocess
-    :param shared_list:
-    :return:
-    """
-    # Default image to display in case of np.array conversion problem
-    img = cv2.imread('assets/Source-intro.png')
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = Utils.resize_image(img, 640, 480, keep_ratio=False)
-
-    # attach to a shareable list by name
-    sl = ShareableList(name=shared_list)
-
-    # Display image on preview window
-    while True:
-        # Data from shared List
-        sl_total_frame = sl[0]
-        sl_frame = np.frombuffer(sl[1], dtype=np.uint8)
-        sl_server_port = sl[2]
-        sl_t_viinput = sl[3]
-        sl_t_name = sl[4]
-        sl_preview_top = sl[5]
-        sl_t_preview = sl[6]
-        sl_preview_w = sl[7]
-        sl_preview_h = sl[8]
-        sl_t_todo_stop = sl[9]
-        sl_frame_count = sl[10]
-        sl_fps = sl[11]
-        sl_ip_addresses = sl[12]
-        sl_text = sl[13]
-        sl_custom_text = sl[14]
-        sl_cast_x = sl[15]
-        sl_cast_y = sl[16]
-        sl_grid = sl[17]
-        received_shape = sl[18].split(',')
-
-        # calculate new shape value, if 0 then stop preview
-        shape_bytes = int(received_shape[0]) * int(received_shape[1]) * int(received_shape[2])
-        if shape_bytes == 0:
-            window_name = f"{sl_server_port}-Media Preview input: " + str(sl_t_viinput) + str(sl_t_name)
-            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-            if not win == 0:
-                cv2.destroyWindow(window_name)
-            break
-        # Generate new frame from ShareableList. Display default img in case of problem
-        # original np.array has been transformed to bytes with 'tobytes()'
-        # re-created as array with 'frombuffer()' ... looks like some data can be alterate !!!
-        # shape need to be the same
-        if sl_frame.nbytes == shape_bytes:
-            # we need to reshape the array to provide right dim. ( w, h, 3-->rgb)
-            received_frame = sl_frame.reshape(int(received_shape[0]), int(received_shape[1]), int(received_shape[2]))
-        else:
-            # in case of any array data problem
-            received_frame = img
-
-        # Display grid for Multicast
-        if sl_grid:
-            received_frame = ImageUtils.grid_on_image(received_frame, sl_cast_x, sl_cast_y)
-
-        sl[6], sl[9], sl[13] = Utils.main_preview_window(
-            sl_total_frame,
-            received_frame,
-            sl_server_port,
-            sl_t_viinput,
-            sl_t_name,
-            sl_preview_top,
-            sl_t_preview,
-            sl_preview_w,
-            sl_preview_h,
-            sl_t_todo_stop,
-            sl_frame_count,
-            sl_fps,
-            sl_ip_addresses,
-            sl_text,
-            sl_custom_text,
-            sl_cast_x,
-            sl_cast_y,
-            sl_grid)
-
-        # Stop if requested
-        if sl[9] is True or sl[6] is False:
-            sl[18] = '0,0,0'
-            break
-
-    logger.info(f'Child process exit for : {sl_t_name}')
-
-
 """
 Class definition
 """
@@ -804,7 +715,7 @@ class CASTMedia:
 
                         # run main_preview in another process
                         # create a child process, so cv2.imshow() will run from its Main Thread
-                        sl_process = Process(target=main_preview, args=(t_name,))
+                        sl_process = Process(target=Utils.sl_main_preview, args=(t_name, 'Media',))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
                         sl_process.start()
@@ -835,7 +746,7 @@ class CASTMedia:
                 else:
 
                     # for win, not necessary to use child process as this work into thread (avoid overhead)
-                    t_preview, t_todo_stop, self.text = Utils.main_preview_window(
+                    t_preview, t_todo_stop, self.text = Utils.cv2_preview_window(
                         CASTMedia.total_frame,
                         frame,
                         CASTMedia.server_port,
