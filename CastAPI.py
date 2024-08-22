@@ -91,7 +91,8 @@ Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
 
-# asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+if sys.platform.lower() == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview', 'reset']

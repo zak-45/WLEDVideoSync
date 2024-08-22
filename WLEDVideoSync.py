@@ -47,7 +47,7 @@ import webview.menu as wm
 
 from PIL import Image
 
-if sys.platform == 'win32':
+if sys.platform.lower() == 'win32':
     from pystray import Icon, Menu, MenuItem
 
 from uvicorn import Config, Server
