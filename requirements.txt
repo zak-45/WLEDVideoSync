@@ -8,7 +8,7 @@ str2bool==1.1
 pillow==10.4.0
 fastapi==0.109.2
 starlette==0.36.3
-pywebview==5.2
+pywebview==5.1
 pystray==0.19.5
 uvicorn[standard]==0.30.6
 psutil==6.0.0
