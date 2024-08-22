@@ -3219,6 +3219,20 @@ async def player_pick_file() -> None:
         CastAPI.player.update()
 
 
+async def bar_get_size():
+    """ Read data from YT download, loop until no more data to download """
+
+    while True:
+        if Utils.yt_file_size_remain_bytes == 0:
+            break
+
+        else:
+
+            CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
+            CastAPI.progress_bar.update()
+            await asyncio.sleep(.1)
+
+
 async def download_yt(url):
     """ Download youtube video """
 
@@ -3226,27 +3240,26 @@ async def download_yt(url):
     CastAPI.progress_bar.value = 0
     CastAPI.progress_bar.update()
 
-    async def get_size():
-        while True:
-            if Utils.yt_file_size_remain_bytes == 0:
-                break
-
-            else:
-                CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
-                CastAPI.progress_bar.update()
-                await asyncio.sleep(.1)
-
-    asyncio.create_task(get_size())
-
+    # check if YT Url
     if 'https://www.youtu' in url:
+
+        # this will run async loop in background and continue...
+        run_get_size = asyncio.create_task(bar_get_size())
+
+        # wait YT download finished
         yt = await Utils.youtube_download(url, interactive=True)
+
+        # if no error, set local YT file name to video player
         if yt != '':
             video_url = yt
 
     ui.notify(f'Video set to : {video_url}')
     logger.info(f'Video set to : {video_url}')
+
+    # put max value to progress bar
     CastAPI.progress_bar.value = 1
     CastAPI.progress_bar.update()
+    # set video player media
     CastAPI.player.set_source(video_url)
     CastAPI.player.update()
 
