@@ -3213,6 +3213,8 @@ async def player_pick_file() -> None:
         if sys.platform.lower() == 'win32':
             result = str(result[0]).replace('\\', '/')
 
+        result = './' + result
+
         CastAPI.player.set_source(result)
         CastAPI.player.update()
 
