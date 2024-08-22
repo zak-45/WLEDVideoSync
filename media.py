@@ -755,6 +755,7 @@ class CASTMedia:
                         self.custom_text,
                         self.cast_x,
                         self.cast_y,
+                        'Media',
                         grid)
 
             """

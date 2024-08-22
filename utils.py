@@ -177,6 +177,7 @@ class CASTUtils:
                            custom_text,
                            cast_x,
                            cast_y,
+                           cast_type,
                            grid=False):
         """
         CV2 preview window
@@ -246,7 +247,7 @@ class CASTUtils:
                                 cv2.LINE_AA)
 
         # Displaying the image
-        window_name = f"{server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
+        window_name = f"{server_port}-{cast_type} Preview input: " + str(t_viinput) + str(t_name)
         if grid:
             frame = ImageUtils.grid_on_image(frame, cast_x, cast_y)
 

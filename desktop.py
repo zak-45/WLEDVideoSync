@@ -694,6 +694,7 @@ class CASTDesktop:
                                     self.custom_text,
                                     self.cast_x,
                                     self.cast_y,
+                                    'Desktop',
                                     grid)
 
             except Exception as error:
