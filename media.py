@@ -724,7 +724,7 @@ class CASTMedia:
                     # working with the shared list
                     if frame_count > 1:
                         # what to do from data updated by the child process
-                        if sl[9] is True:
+                        if sl[9] is True or sl[18] == '0,0,0':
                             t_todo_stop = True
                         elif sl[6] is False:
                             t_preview = False

@@ -655,13 +655,15 @@ class CASTDesktop:
                                 # working with the shared list
                                 if frame_count > 1:
                                     # what to do from data updated by the child process
-                                    if sl[9] is True:
+                                    if sl[9] is True or sl[18] == '0,0,0':
                                         t_todo_stop = True
                                     elif sl[6] is False:
                                         t_preview = False
-                                    elif sl[13] is False:
-                                        self.text = False
                                     else:
+                                        if sl[13] is False:
+                                            self.text = False
+                                        else:
+                                            self.text = True
                                         # Update Data on shared List
                                         sl[0] = CASTDesktop.total_frame
                                         sl[1] = frame.tobytes()

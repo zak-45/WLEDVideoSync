@@ -103,7 +103,7 @@ Main test for platform
     MacOS need specific case
     Linux(POSIX) - Windows use the same 
 """
-if sys.platform == 'darwin':
+if sys.platform.lower() == 'darwin' or sys.platform.lower == 'linux':
     ctx = multiprocessing.get_context('spawn')
     Process = ctx.Process
     Queue = ctx.Queue
@@ -307,7 +307,7 @@ def dialog_stop_server(my_window):
 
         logger.info('Server stop Canceled')
 
-    window.destroy()
+    my_window.destroy()
 
 
 """

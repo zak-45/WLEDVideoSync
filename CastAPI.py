@@ -79,7 +79,7 @@ Main test for platform
     MacOS need specific case
     Linux(POSIX) - Windows use the same 
 """
-if sys.platform == 'darwin':
+if sys.platform.lower() == 'darwin' or sys.platform.lower() == 'linux':
     ctx = multiprocessing.get_context('spawn')
     Process = ctx.Process
     Queue = ctx.Queue
