@@ -696,7 +696,7 @@ class CASTDesktop:
                         # preview on fixed size window
                         if t_preview:
 
-                            if sys.platform.lower() != 'win32':
+                            if str2bool(app_config['preview_proc']):
                                 # for no win platform, cv2.imshow() need to run into Main thread
                                 # We use ShareableList to share data between this thread and new process
                                 if frame_count == 1:
