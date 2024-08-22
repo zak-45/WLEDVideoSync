@@ -62,7 +62,6 @@ else:
     Process = multiprocessing.Process
     Queue = multiprocessing.Queue
 
-
 """
 When this env var exist, this mean run from the one-file executable.
 Load of the config is not possible, folder config should not exist.
@@ -155,23 +154,23 @@ class CASTDesktop:
         self.monitor_number: int = 0  # monitor to use for area selection
         self.screen_coordinates = []
         self.reset_total = False
+        self.preview = True
 
         if sys.platform.lower() == 'win32':
             self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>' or 'area' for portion of screen
             self.viformat: str = 'gdigrab'  # 'gdigrab' for win
-            self.preview = True
+
         elif sys.platform.lower() == 'linux':
-            self.viinput = ':0.0'
+            self.viinput: str = os.getenv('DISPLAY')
             self.viformat: str = 'x11grab'
-            self.preview = True
+
         elif sys.platform.lower() == 'darwin':
             self.viinput = '"<screen device index>:<audio device index>"'
             self.viformat: str = 'avfoundation'
-            self.preview = False
+
         else:
             self.viinput = ''
             self.viformat = ''
-            self.preview = False
 
     def t_desktop_cast(self, shared_buffer=None):
         """

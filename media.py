@@ -158,16 +158,7 @@ class CASTMedia:
         self.add_all_sync_delay = 0  # additional time to add to player_time during all sync +/-
         self.cast_sleep = False  # instruct cast to wait until all sync
         self.reset_total = False  # reset total number of frame / packets on monitor
-
-        # preview window default depend on platform
-        if sys.platform.lower() == 'win32':
-            self.preview = True
-        elif sys.platform.lower() == 'linux':
-            self.preview = True
-        elif sys.platform.lower() == 'darwin':
-            self.preview = False
-        else:
-            self.preview = False
+        self.preview = True
 
     """
     Cast Thread

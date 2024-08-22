@@ -33,8 +33,6 @@ import asyncio
 
 from subprocess import Popen
 
-import numpy as np
-
 from ddp_queue import DDPDevice
 
 import time
@@ -72,7 +70,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
-from nicegui import app, ui, native, context, run
+from nicegui import app, ui, native
 
 """
 Main test for platform
@@ -99,6 +97,13 @@ action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview', 'rese
 
 app.debug = False
 log_ui = None
+
+logger = None
+app_config = None
+server_config = None
+init_actions = None
+server_port = None
+server_ip = None
 
 """
 When this env var exist, this mean run from the one-file compressed executable.
