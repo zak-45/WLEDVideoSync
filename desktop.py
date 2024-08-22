@@ -33,7 +33,6 @@ import logging.config
 import concurrent_log_handler
 import multiprocessing
 from multiprocessing.shared_memory import ShareableList
-import numpy as np
 import traceback
 
 import time
@@ -61,6 +60,7 @@ if sys.platform.lower() == 'darwin' or sys.platform.lower() == 'linux':
 else:
     Process = multiprocessing.Process
     Queue = multiprocessing.Queue
+
 
 """
 When this env var exist, this mean run from the one-file executable.
@@ -420,7 +420,8 @@ class CASTDesktop:
 
                     else:
 
-                        frame = frame.reformat(640, 480)
+                        # resize to default size
+                        frame = frame.reformat(640, 360)
 
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")

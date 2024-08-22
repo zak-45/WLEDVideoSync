@@ -83,7 +83,7 @@ class CASTUtils:
         # Default image to display in case of np.array conversion problem
         sl_img = cv2.imread('assets/Source-intro.png')
         sl_img = cv2.cvtColor(sl_img, cv2.COLOR_BGR2RGB)
-        sl_img = CASTUtils.resize_image(sl_img, 640, 480, keep_ratio=False)
+        sl_img = CASTUtils.resize_image(sl_img, 640, 360, keep_ratio=False)
 
         # attach to a shareable list by name
         sl = ShareableList(name=shared_list)
@@ -112,7 +112,7 @@ class CASTUtils:
             received_shape = sl[18].split(',')
 
             # calculate new shape value, if 0 then stop preview
-            # ( w * h * (colors number)) e.g. 640(w) * 320()h * 3(rgb)
+            # ( w * h * (colors number)) e.g. 640(w) * 360()h * 3(rgb)
             shape_bytes = int(received_shape[0]) * int(received_shape[1]) * int(received_shape[2])
             if shape_bytes == 0:
                 window_name = f"{sl_server_port}-{cast_type} Preview input: " + str(sl_t_viinput) + str(sl_t_name)

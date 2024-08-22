@@ -473,6 +473,8 @@ class CASTMedia:
                         logger.info(f'{t_name} Media reached END')
                     break
 
+            # resize to default
+            frame = Utils.resize_image(frame,640, 360)
             # convert to RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             # adjust gamma
