@@ -115,8 +115,10 @@ def main_preview(shared_list):
         sl_t_viinput = sl[3]
         sl_t_name = sl[4]
         sl_preview_top = sl[5]
+        sl_t_preview = sl[6]
         sl_preview_w = sl[7]
         sl_preview_h = sl[8]
+        sl_t_todo_stop = sl[9]
         sl_frame_count = sl[10]
         sl_fps = sl[11]
         sl_ip_addresses = sl[12]
@@ -157,8 +159,10 @@ def main_preview(shared_list):
             sl_t_viinput,
             sl_t_name,
             sl_preview_top,
+            sl_t_preview,
             sl_preview_w,
             sl_preview_h,
+            sl_t_todo_stop,
             sl_frame_count,
             sl_fps,
             sl_ip_addresses,
