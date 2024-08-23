@@ -23,7 +23,6 @@ import logging
 import logging.config
 import concurrent_log_handler
 from multiprocessing.shared_memory import ShareableList
-import sys
 import traceback
 import numpy as np
 
@@ -35,7 +34,6 @@ import cfg_load as cfg
 from str2bool import str2bool
 
 import threading
-import multiprocessing
 
 import asyncio
 import concurrent.futures

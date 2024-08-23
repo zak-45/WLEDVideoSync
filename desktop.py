@@ -31,7 +31,6 @@ import cv2
 import logging
 import logging.config
 import concurrent_log_handler
-import multiprocessing
 from multiprocessing.shared_memory import ShareableList
 import traceback
 

@@ -28,7 +28,6 @@ import logging.config
 import concurrent_log_handler
 import threading
 import traceback
-import multiprocessing
 import asyncio
 
 from subprocess import Popen
@@ -72,8 +71,6 @@ from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
 from nicegui import app, ui, native
-
-Process, Queue = Utils.mp_setup()
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()

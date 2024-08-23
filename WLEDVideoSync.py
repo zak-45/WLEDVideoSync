@@ -33,7 +33,6 @@ import logging
 import logging.config
 import concurrent_log_handler
 
-import multiprocessing
 from multiprocessing import active_children
 import sys
 from pathlib import Path as PathLib
@@ -115,7 +114,7 @@ Uvicorn class
 """
 
 
-class UvicornServer(multiprocessing.Process):
+class UvicornServer(Process):
     """
     This allows to do stop / run server and define programmatically Config
     """
