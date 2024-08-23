@@ -41,7 +41,8 @@ import asyncio
 import concurrent.futures
 
 from ddp_queue import DDPDevice
-from utils import CASTUtils as Utils, ImageUtils
+from utils import CASTUtils as Utils
+from cv2utils import CV2Utils, ImageUtils
 
 """
 Main test for mp platform
@@ -81,7 +82,6 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         config_text = app_config['text']
         if str2bool(config_text) is True:
             cfg_text = True
-
 
 """
 Class definition
@@ -474,7 +474,7 @@ class CASTMedia:
                     break
 
             # resize to default
-            frame = Utils.resize_image(frame,640, 360)
+            frame = CV2Utils.resize_image(frame, 640, 360)
             # convert to RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             # adjust gamma
@@ -533,14 +533,14 @@ class CASTMedia:
                             if 'stop' in action:
                                 t_todo_stop = True
                             elif 'shot' in action:
-                                add_frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                                add_frame = Utils.resize_image(add_frame, self.scale_width, self.scale_height)
+                                add_frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                                add_frame = CV2Utils.resize_image(add_frame, self.scale_width, self.scale_height)
                                 self.frame_buffer.append(add_frame)
                                 if t_multicast:
                                     # resize frame to virtual matrix size
-                                    add_frame = Utils.resize_image(frame,
-                                                                   self.scale_width * t_cast_x,
-                                                                   self.scale_height * t_cast_y)
+                                    add_frame = CV2Utils.resize_image(frame,
+                                                                      self.scale_width * t_cast_x,
+                                                                      self.scale_height * t_cast_y)
 
                                     self.cast_frame_buffer = Utils.split_image_to_matrix(add_frame,
                                                                                          t_cast_x, t_cast_y)
@@ -564,9 +564,12 @@ class CASTMedia:
                             elif 'close_preview' in action:
                                 window_name = (f"{CASTMedia.server_port}-Media Preview input: " +
                                                str(t_viinput) + str(t_name))
-                                win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                                if not win == 0:
-                                    cv2.destroyWindow(window_name)
+                                try:
+                                    win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+                                    if not win == 0:
+                                        cv2.destroyWindow(window_name)
+                                except:
+                                    pass
                                 t_preview = False
 
                             elif 'open_preview' in action:
@@ -603,8 +606,8 @@ class CASTMedia:
                 grid = True
 
                 # resize frame to virtual matrix size
-                frame_art = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                frame = Utils.resize_image(frame,
+                frame_art = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                frame = CV2Utils.resize_image(frame,
                                            self.scale_width * t_cast_x,
                                            self.scale_height * t_cast_y)
 
@@ -614,8 +617,8 @@ class CASTMedia:
                     t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                     # put frame to np buffer (so can be used after by the main)
                     if self.put_to_buffer and frame_count <= self.frame_max:
-                        add_frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                        add_frame = Utils.resize_image(add_frame, self.scale_width, self.scale_height)
+                        add_frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                        add_frame = CV2Utils.resize_image(add_frame, self.scale_width, self.scale_height)
                         self.frame_buffer.append(add_frame)
 
                 else:
@@ -645,9 +648,9 @@ class CASTMedia:
                 grid = False
 
                 # resize frame for sending to ddp device
-                frame_to_send = Utils.resize_image(frame, self.scale_width, self.scale_height)
+                frame_to_send = CV2Utils.resize_image(frame, self.scale_width, self.scale_height)
                 # resize frame to pixelart
-                frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
                 # DDP run in separate thread to avoid block main loop
                 # here we feed the queue that is read by DDP thread
@@ -658,8 +661,8 @@ class CASTMedia:
 
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:
-                    add_frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                    add_frame = Utils.resize_image(add_frame, self.scale_width, self.scale_height)
+                    add_frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                    add_frame = CV2Utils.resize_image(add_frame, self.scale_width, self.scale_height)
                     self.frame_buffer.append(add_frame)
 
                 """
@@ -708,7 +711,7 @@ class CASTMedia:
 
                         # run main_preview in another process
                         # create a child process, so cv2.imshow() will run from its Main Thread
-                        sl_process = Process(target=Utils.sl_main_preview, args=(t_name, 'Media',))
+                        sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Media',))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
                         sl_process.start()
@@ -739,7 +742,7 @@ class CASTMedia:
                 else:
 
                     # for win, not necessary to use child process as this work into thread (avoid overhead)
-                    t_preview, t_todo_stop, self.text = Utils.cv2_preview_window(
+                    t_preview, t_todo_stop, self.text = CV2Utils.cv2_preview_window(
                         CASTMedia.total_frame,
                         frame,
                         CASTMedia.server_port,
@@ -806,6 +809,7 @@ class CASTMedia:
             except:
                 pass
 
+        # release only if managed video capture device
         if not isinstance(media, np.ndarray):
             logger.info(f'{t_name} Release Media')
             media.release()

@@ -46,7 +46,8 @@ import asyncio
 import concurrent.futures
 
 from ddp_queue import DDPDevice
-from utils import CASTUtils as Utils, ImageUtils
+from utils import CASTUtils as Utils
+from cv2utils import CV2Utils, ImageUtils
 
 """
 Main test for mp platform
@@ -60,7 +61,6 @@ if sys.platform.lower() == 'darwin' or sys.platform.lower() == 'linux':
 else:
     Process = multiprocessing.Process
     Queue = multiprocessing.Queue
-
 
 """
 When this env var exist, this mean run from the one-file executable.
@@ -482,18 +482,18 @@ class CASTDesktop:
                                         if 'stop' in action:
                                             t_todo_stop = True
                                         elif 'shot' in action:
-                                            add_frame = Utils.pixelart_image(frame,
-                                                                             self.scale_width,
-                                                                             self.scale_height)
-                                            add_frame = Utils.resize_image(add_frame,
-                                                                           self.scale_width,
-                                                                           self.scale_height)
+                                            add_frame = CV2Utils.pixelart_image(frame,
+                                                                                self.scale_width,
+                                                                                self.scale_height)
+                                            add_frame = CV2Utils.resize_image(add_frame,
+                                                                              self.scale_width,
+                                                                              self.scale_height)
                                             self.frame_buffer.append(add_frame)
                                             if t_multicast:
                                                 # resize frame to virtual matrix size
-                                                add_frame = Utils.resize_image(frame,
-                                                                               self.scale_width * t_cast_x,
-                                                                               self.scale_height * t_cast_y)
+                                                add_frame = CV2Utils.resize_image(frame,
+                                                                                  self.scale_width * t_cast_x,
+                                                                                  self.scale_height * t_cast_y)
 
                                                 self.cast_frame_buffer = Utils.split_image_to_matrix(add_frame,
                                                                                                      t_cast_x, t_cast_y)
@@ -518,9 +518,12 @@ class CASTDesktop:
                                             window_name = (f"{CASTDesktop.server_port}-Desktop Preview input: " +
                                                            str(t_viinput) +
                                                            str(t_name))
-                                            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                                            if not win == 0:
-                                                cv2.destroyWindow(window_name)
+                                            try:
+                                                win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+                                                if not win == 0:
+                                                    cv2.destroyWindow(window_name)
+                                            except:
+                                                pass
                                             t_preview = False
 
                                         elif "open_preview" in action:
@@ -557,10 +560,10 @@ class CASTDesktop:
                             grid = True
 
                             # resize frame to virtual matrix size
-                            frame_art = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                            frame = Utils.resize_image(frame,
-                                                       self.scale_width * t_cast_x,
-                                                       self.scale_height * t_cast_y)
+                            frame_art = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                            frame = CV2Utils.resize_image(frame,
+                                                          self.scale_width * t_cast_x,
+                                                          self.scale_height * t_cast_y)
 
                             if frame_count > 1:
                                 # split to matrix
@@ -596,9 +599,9 @@ class CASTDesktop:
                             grid = False
 
                             # resize frame for sending to ddp device
-                            frame_to_send = Utils.resize_image(frame, self.scale_width, self.scale_height)
+                            frame_to_send = CV2Utils.resize_image(frame, self.scale_width, self.scale_height)
                             # resize frame to pixelart
-                            frame = Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                            frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
                             # to send to ddp device, we feed the queue
                             if self.protocol == 'ddp' and ip_addresses[0] != '127.0.0.1':
@@ -646,7 +649,7 @@ class CASTDesktop:
 
                                     # run main_preview in another process
                                     # create a child process, so cv2.imshow() will run from its Main Thread
-                                    sl_process = Process(target=Utils.sl_main_preview, args=(t_name, 'Desktop',))
+                                    sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Desktop',))
                                     # start the child process
                                     # small delay occur, OS take some time to initiate the new process
                                     sl_process.start()
@@ -677,7 +680,7 @@ class CASTDesktop:
                             else:
 
                                 # for win, not necessary to use child process as this work into thread (avoid overhead)
-                                t_preview, t_todo_stop, self.text = Utils.cv2_preview_window(
+                                t_preview, t_todo_stop, self.text = CV2Utils.cv2_preview_window(
                                     CASTDesktop.total_frame,
                                     frame,
                                     CASTDesktop.server_port,

@@ -53,7 +53,8 @@ import media
 
 from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
-from utils import ImageUtils
+from cv2utils import ImageUtils
+from cv2utils import CV2Utils
 from utils import LocalFilePicker
 from utils import ScreenAreaSelection as Sa
 from utils import YtSearch
@@ -1427,7 +1428,7 @@ async def main_page_desktop():
                 with media_grid:
                     for i in range(len(Desktop.frame_buffer)):
                         # put fixed size for preview
-                        img = Utils.resize_image(Desktop.frame_buffer[i], 640, 360)
+                        img = CV2Utils.resize_image(Desktop.frame_buffer[i], 640, 360)
                         img = Image.fromarray(img)
                         await light_box_image(i, img, '', '', Desktop, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
@@ -1449,7 +1450,7 @@ async def main_page_desktop():
                     try:
                         for i in range(Desktop.cast_x * Desktop.cast_y):
                             # put fixed size for preview
-                            img = Utils.resize_image(Desktop.cast_frame_buffer[i], 640, 360)
+                            img = CV2Utils.resize_image(Desktop.cast_frame_buffer[i], 640, 360)
                             img = Image.fromarray(img)
                             await light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
                     except Exception as error:
@@ -1616,7 +1617,7 @@ async def main_page_media():
                 with media_grid:
                     for i in range(len(Media.frame_buffer)):
                         # put fixed size for preview
-                        img = Utils.resize_image(Media.frame_buffer[i], 640, 360)
+                        img = CV2Utils.resize_image(Media.frame_buffer[i], 640, 360)
                         img = Image.fromarray(img)
                         await light_box_image(i, img, '', '', Media, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
@@ -1638,7 +1639,7 @@ async def main_page_media():
                     try:
                         for i in range(Media.cast_x * Media.cast_y):
                             # put fixed size for preview
-                            img = Utils.resize_image(Media.cast_frame_buffer[i], 640, 360)
+                            img = CV2Utils.resize_image(Media.cast_frame_buffer[i], 640, 360)
                             img = Image.fromarray(img)
                             await light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
                     except Exception as error:
@@ -2304,7 +2305,7 @@ def select_chart_exe():
 async def player_media_info(player_media):
     with ui.dialog() as dialog:
         dialog.open()
-        editor = ui.json_editor({'content': {'json': Utils.get_media_info(player_media)}}) \
+        editor = ui.json_editor({'content': {'json': CV2Utils.get_media_info(player_media)}}) \
             .run_editor_method('updateProps', {'readOnly': True, 'mode': 'table'})
 
 
@@ -2620,7 +2621,7 @@ async def player_cast(source):
     """ Cast from video CastAPI.player only for Media """
 
     # await context.client.connected()
-    media_info = Utils.get_media_info(source)
+    media_info = CV2Utils.get_media_info(source)
     if Media.stopcast:
         ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
     else:
