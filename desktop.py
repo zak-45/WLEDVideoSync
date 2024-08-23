@@ -515,15 +515,7 @@ class CASTDesktop:
                                             logger.debug(f"{t_name} we have put on the queue")
 
                                         elif "close_preview" in action:
-                                            window_name = (f"{CASTDesktop.server_port}-Desktop Preview input: " +
-                                                           str(t_viinput) +
-                                                           str(t_name))
-                                            try:
-                                                win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                                                if not win == 0:
-                                                    cv2.destroyWindow(window_name)
-                                            except:
-                                                pass
+                                            CV2Utils.cv2_win_close(CASTDesktop.server_port, 'Desktop', t_name, t_viinput)
                                             t_preview = False
 
                                         elif "open_preview" in action:
@@ -715,15 +707,7 @@ class CASTDesktop:
                 if output_container:
                     output_container.close()
                 if t_preview is True:
-                    logger.info(f'{t_name} Stop window preview if any')
-                    # close preview window if any
-                    window_name = f"{CASTDesktop.server_port}-Desktop Preview input: " + str(t_viinput) + str(t_name)
-                    try:
-                        win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                        if not win == 0:
-                            cv2.destroyWindow(window_name)
-                    except:
-                        pass
+                    CV2Utils.cv2_win_close(CASTDesktop.server_port, 'Desktop', t_name, t_viinput)
         else:
 
             logger.warning(f'{t_name} av input_container not defined')
@@ -737,14 +721,7 @@ class CASTDesktop:
         CASTDesktop.t_exit_event.clear()
 
         # Clean ShareableList
-        if sl_process is not None:
-            logger.info(f'Stopping Child Process for Preview if any : {t_name}')
-            sl_process.kill()
-        if sl is not None:
-            # close the shared memory
-            sl.shm.close()
-            # destroy the shared memory
-            sl.shm.unlink()
+        Utils.sl_clean(sl, sl_process, t_name)
 
         logger.info("_" * 50)
         logger.info(f'Cast {t_name} end using this input: {t_viinput}')

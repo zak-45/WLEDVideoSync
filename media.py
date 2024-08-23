@@ -562,14 +562,7 @@ class CASTMedia:
                                 logger.debug(f'{t_name} we have put')
 
                             elif 'close_preview' in action:
-                                window_name = (f"{CASTMedia.server_port}-Media Preview input: " +
-                                               str(t_viinput) + str(t_name))
-                                try:
-                                    win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                                    if not win == 0:
-                                        cv2.destroyWindow(window_name)
-                                except:
-                                    pass
+                                CV2Utils.cv2_win_close(CASTMedia.server_port, 'Media', t_name, t_viinput)
                                 t_preview = False
 
                             elif 'open_preview' in action:
@@ -790,24 +783,10 @@ class CASTMedia:
         CASTMedia.t_exit_event.clear()
 
         # Clean ShareableList
-        if sl_process is not None:
-            logger.info(f'Stopping Child Process for Preview if any : {t_name}')
-            sl_process.kill()
-        if sl is not None:
-            # close the shared memory
-            sl.shm.close()
-            # destroy the shared memory
-            sl.shm.unlink()
+        Utils.sl_clean(sl, sl_process, t_name)
 
         if t_preview is True:
-            logger.info(f'{t_name} Stop window preview if any')
-            window_name = f"{CASTMedia.server_port}-Media Preview input: " + str(t_viinput) + str(t_name)
-            try:
-                win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                if not win == 0:
-                    cv2.destroyWindow(window_name)
-            except:
-                pass
+            CV2Utils.cv2_win_close(CASTMedia.server_port, 'Media', t_name, t_viinput)
 
         # release only if managed video capture device
         if not isinstance(media, np.ndarray):

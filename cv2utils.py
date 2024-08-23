@@ -32,7 +32,20 @@ class CV2Utils:
         pass
 
     @staticmethod
-    def sl_main_preview(shared_list, cast_type):
+    def cv2_win_close(server_port, class_name, t_name, t_viinput):
+        """ Close cv2 window created by imshow """
+
+        logger.info(f'{t_name} Stop window preview if any')
+        window_name = f"{server_port}-{class_name} Preview input: " + str(t_viinput) + str(t_name)
+        try:
+            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+            if not win == 0:
+                cv2.destroyWindow(window_name)
+        except:
+            pass
+
+    @staticmethod
+    def sl_main_preview(shared_list, class_name):
         """
         Used by platform <> win32, in this way cv2.imshow() will run on MainThread from a subprocess
         This one will read data from a ShareAbleList created by cast thread
@@ -76,7 +89,7 @@ class CV2Utils:
             # ( w * h * (colors number)) e.g. 640(w) * 360()h * 3(rgb)
             shape_bytes = int(received_shape[0]) * int(received_shape[1]) * int(received_shape[2])
             if shape_bytes == 0:
-                window_name = f"{sl_server_port}-{cast_type} Preview input: " + str(sl_t_viinput) + str(sl_t_name)
+                window_name = f"{sl_server_port}-{class_name} Preview input: " + str(sl_t_viinput) + str(sl_t_name)
                 try:
                     win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                     if not win == 0:
