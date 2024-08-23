@@ -50,7 +50,7 @@ class CV2Utils:
         Used by platform <> win32, in this way cv2.imshow() will run on MainThread from a subprocess
         This one will read data from a ShareAbleList created by cast thread
         Updated data are: t_preview, to_todo_stop and text caught from user entry on preview window
-        :param cast_type: Desktop or Media
+        :param class_name:  Desktop or Media
         :param shared_list:
         :return:
         """

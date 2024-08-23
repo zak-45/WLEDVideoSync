@@ -57,6 +57,8 @@ from str2bool import str2bool
 
 import shelve
 
+Process, Queue = Utils.mp_setup()
+
 """
 When this env var exist, this mean run from the one-file executable (compressed file).
 Load of the config is not possible, folder config should not exist.
@@ -97,19 +99,6 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
 
     # systray
     put_on_systray = str2bool(app_config['put_on_systray'])
-
-"""
-Main test for platform
-    MacOS need specific case
-    Linux(POSIX) - Windows use the same 
-"""
-if sys.platform.lower() == 'darwin' or sys.platform.lower == 'linux':
-    ctx = multiprocessing.get_context('spawn')
-    Process = ctx.Process
-    Queue = ctx.Queue
-else:
-    Process = multiprocessing.Process
-    Queue = multiprocessing.Queue
 
 """
 Params

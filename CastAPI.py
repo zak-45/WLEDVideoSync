@@ -73,18 +73,7 @@ from starlette.concurrency import run_in_threadpool
 
 from nicegui import app, ui, native
 
-"""
-Main test for platform
-    MacOS need specific case
-    Linux(POSIX) - Windows use the same 
-"""
-if sys.platform.lower() == 'darwin' or sys.platform.lower() == 'linux':
-    ctx = multiprocessing.get_context('spawn')
-    Process = ctx.Process
-    Queue = ctx.Queue
-else:
-    Process = multiprocessing.Process
-    Queue = multiprocessing.Queue
+Process, Queue = Utils.mp_setup()
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()

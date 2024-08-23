@@ -28,6 +28,7 @@ from wled import WLED
 import time
 import shelve
 import os
+import sys
 
 from zeroconf import ServiceBrowser, Zeroconf
 import socket
@@ -45,6 +46,8 @@ from screeninfo import get_monitors
 import cfg_load as cfg
 from str2bool import str2bool
 
+import multiprocessing
+
 
 class CASTUtils:
     dev_list: list = []
@@ -56,6 +59,22 @@ class CASTUtils:
 
     def __init__(self):
         pass
+
+    @staticmethod
+    def mp_setup():
+        """
+        Main test for platform
+            macOS / linux need specific case
+        """
+        if sys.platform.lower() == 'darwin' or sys.platform.lower() == 'linux':
+            ctx = multiprocessing.get_context('spawn')
+            process = ctx.Process
+            queue = ctx.Queue
+        else:
+            process = multiprocessing.Process
+            queue = multiprocessing.Queue
+
+        return process, queue
 
     @staticmethod
     def sl_clean(sl, sl_process, t_name):

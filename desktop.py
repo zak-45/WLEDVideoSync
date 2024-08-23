@@ -49,18 +49,7 @@ from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 
-"""
-Main test for mp platform
-    MacOS / Linux need specific case (spawn)
-    Windows use default 
-"""
-if sys.platform.lower() == 'darwin' or sys.platform.lower() == 'linux':
-    ctx = multiprocessing.get_context('spawn')
-    Process = ctx.Process
-    Queue = ctx.Queue
-else:
-    Process = multiprocessing.Process
-    Queue = multiprocessing.Queue
+Process, Queue = Utils.mp_setup()
 
 """
 When this env var exist, this mean run from the one-file executable.
