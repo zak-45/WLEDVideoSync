@@ -37,12 +37,28 @@ class CV2Utils:
 
         logger.info(f'{t_name} Stop window preview if any')
         window_name = f"{server_port}-{class_name} Preview input: " + str(t_viinput) + str(t_name)
-        try:
-            win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-            if not win == 0:
-                cv2.destroyWindow(window_name)
-        except:
-            pass
+
+        # check if window run into sub process to instruct it by ShareableList
+        config_data = CV2Utils.read_config()
+        preview_proc = str2bool(config_data[1]['preview_proc'])
+
+        # for window into sub process
+        if preview_proc:
+            logger.debug('Window on sub process')
+            # attach to a shareable list by name
+            sl = ShareableList(name=t_name)
+            sl[6] = False
+            sl[18] = '0,0,0'
+
+        else:
+
+            # for window into thread
+            try:
+                win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
+                if not win == 0:
+                    cv2.destroyWindow(window_name)
+            except:
+                pass
 
     @staticmethod
     def sl_main_preview(shared_list, class_name):
@@ -59,14 +75,19 @@ class CV2Utils:
         sl_img = cv2.cvtColor(sl_img, cv2.COLOR_BGR2RGB)
         sl_img = CV2Utils.resize_image(sl_img, 640, 360, keep_ratio=False)
 
-        # attach to a shareable list by name
+        # attach to a shareable list by name: name is Thread Name
         sl = ShareableList(name=shared_list)
 
         # Display image on preview window
         while True:
             # Data from shared List
             sl_total_frame = sl[0]
-            sl_frame = np.frombuffer(sl[1], dtype=np.uint8)
+            # remove the last byte and convert back to numpy
+            sl_frame = bytearray(sl[1])
+            sl_frame = sl_frame[:-1]
+            sl_frame = bytes(sl_frame)
+            sl_frame = np.frombuffer(sl_frame, dtype=np.uint8)
+            #
             sl_server_port = sl[2]
             sl_t_viinput = sl[3]
             sl_t_name = sl[4]
@@ -99,14 +120,16 @@ class CV2Utils:
                 break
             # Generate new frame from ShareableList. Display default img in case of problem
             # original np.array has been transformed to bytes with 'tobytes()'
-            # re-created as array with 'frombuffer()' ... looks like some data can miss (cv2 bug ???) !!!
+            # re-created as array with 'frombuffer()'
+            # ... looks like some data can miss (ShareableList bug)  !!!
+            # see https://github.com/python/cpython/issues/106939
             # shape need to be the same
             if sl_frame.nbytes == shape_bytes:
                 # we need to reshape the array to provide right dim. ( w, h, 3-->rgb)
-                received_frame = sl_frame.reshape(int(received_shape[0]), int(received_shape[1]),
-                                                  int(received_shape[2]))
+                received_frame = sl_frame.reshape(int(received_shape[0]), int(received_shape[1]), -1)
             else:
-                # in case of any array data problem
+                # in case of any array data/size problem
+                logger.debug(received_shape, shape_bytes, sl_frame.nbytes)
                 received_frame = sl_img
 
             sl[6], sl[9], sl[13] = CV2Utils.cv2_preview_window(
@@ -127,11 +150,16 @@ class CV2Utils:
                 sl_custom_text,
                 sl_cast_x,
                 sl_cast_y,
+                class_name,
                 sl_grid)
 
             # Stop if requested
-            if sl[9] is True or sl[6] is False:
+            if sl[9] is True:
                 sl[18] = '0,0,0'
+                logger.info(f'STOP Cast for : {sl_t_name}')
+                break
+            elif sl[6] is False:
+                logger.info(f'END Preview for : {sl_t_name}')
                 break
 
         logger.info(f'Child process exit for : {sl_t_name}')
@@ -154,7 +182,7 @@ class CV2Utils:
                            custom_text,
                            cast_x,
                            cast_y,
-                           cast_type,
+                           class_name,
                            grid=False):
         """
         CV2 preview window
@@ -224,7 +252,7 @@ class CV2Utils:
                                 cv2.LINE_AA)
 
         # Displaying the image
-        window_name = f"{server_port}-{cast_type} Preview input: " + str(t_viinput) + str(t_name)
+        window_name = f"{server_port}-{class_name} Preview input: " + str(t_viinput) + str(t_name)
         if grid:
             frame = ImageUtils.grid_on_image(frame, cast_x, cast_y)
 

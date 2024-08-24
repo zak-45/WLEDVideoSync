@@ -649,7 +649,14 @@ class CASTDesktop:
                                             self.text = True
                                         # Update Data on shared List
                                         sl[0] = CASTDesktop.total_frame
-                                        sl[1] = frame.tobytes()
+                                        # append not zero value to bytes to solve ShareableList bug
+                                        # see https://github.com/python/cpython/issues/106939
+                                        new_frame = frame.tobytes()
+                                        new_frame = bytearray(new_frame)
+                                        new_frame.append(1)
+                                        new_frame = bytes(new_frame)
+                                        sl[1] = new_frame
+                                        #
                                         sl[5] = self.preview_top
                                         sl[7] = self.preview_w
                                         sl[8] = self.preview_h

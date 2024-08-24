@@ -549,7 +549,7 @@ class CASTMedia:
                                 logger.debug(f'{t_name} we have put')
 
                             elif 'close_preview' in action:
-                                CV2Utils.cv2_win_close(CASTMedia.server_port, 'Media', t_name, t_viinput)
+                                CV2Utils.cv2_win_close(str(CASTMedia.server_port), 'Media', t_name, t_viinput)
                                 t_preview = False
 
                             elif 'open_preview' in action:
@@ -702,22 +702,28 @@ class CASTMedia:
                         # what to do from data updated by the child process
                         if sl[9] is True or sl[18] == '0,0,0':
                             t_todo_stop = True
-                        elif sl[6] is False:
+                        if sl[6] is False:
                             t_preview = False
+                        if sl[13] is False:
+                            self.text = False
                         else:
-                            if sl[13] is False:
-                                self.text = False
-                            else:
-                                self.text = True
-                            # Update Data on shared List
-                            sl[0] = CASTMedia.total_frame
-                            sl[1] = frame.tobytes()
-                            sl[5] = self.preview_top
-                            sl[7] = self.preview_w
-                            sl[8] = self.preview_h
-                            sl[10] = frame_count
-                            sl[13] = self.text
-                            sl[18] = str(frame.shape).replace('(', '').replace(')', '')
+                            self.text = True
+                        # Update Data on shared List
+                        sl[0] = CASTMedia.total_frame
+                        # append not zero value to bytes to solve ShareableList bug
+                        # see https://github.com/python/cpython/issues/106939
+                        new_frame = frame.tobytes()
+                        new_frame = bytearray(new_frame)
+                        new_frame.append(1)
+                        new_frame = bytes(new_frame)
+                        sl[1] = new_frame
+                        #
+                        sl[5] = self.preview_top
+                        sl[7] = self.preview_w
+                        sl[8] = self.preview_h
+                        sl[10] = frame_count
+                        sl[13] = self.text
+                        sl[18] = str(frame.shape).replace('(', '').replace(')', '')
 
                 else:
 
