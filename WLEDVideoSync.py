@@ -437,24 +437,6 @@ if __name__ == '__main__':
 
         import FreeSimpleGUI as sg  # Part 1 - The import
 
-        # Apply default GUI / param , depend on platform
-        """
-        preview_proc = False
-        native_ui = False
-        native_ui_size = 1200, 720
-        uvicorn = True
-        """
-        if sys.platform.lower() == 'win32':
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
-        else:
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', 'browser')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
-
         # Define the window's contents
         info = ("Extracted executable to WLEDVideoSync folder.....\n\n \
         You can safely delete this file after extraction finished to save some space.\n \

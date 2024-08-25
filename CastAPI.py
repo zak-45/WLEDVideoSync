@@ -142,6 +142,28 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
 
         logger.info(f'Main running {threading.current_thread().name}')
 
+        # Apply some default params only once
+        if str2bool(app_config['init_config_done']) is not True:
+            # Apply default GUI / param , depend on platform
+            """
+            preview_proc = False
+            native_ui = False
+            native_ui_size = 1200, 720
+            uvicorn = True
+            """
+            if sys.platform.lower() == 'win32':
+                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
+                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
+                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
+                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
+            else:
+                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
+                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
+                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', 'browser')
+                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
+
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
+
         # Apply presets
         try:
             if str2bool(preset_config['load_at_start']):

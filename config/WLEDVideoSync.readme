@@ -28,6 +28,7 @@ reconnect_timeout = 3
 
 
 # app default
+# init_config_done : True or False, if False, app will set some default params depend on OS and put it to True after
 # show_window	: False, no splash window
 # log_to_main   : False or True, capture logs from modules and display on the main page, put False to save resources
 # log_level     : Log level to filter, INFO, WARN, ERROR, DEBUG, CRITICAL on the main UI page
