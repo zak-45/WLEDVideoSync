@@ -89,7 +89,6 @@ log_ui = None
 logger = None
 app_config = None
 server_config = None
-init_actions = None
 server_port = None
 server_ip = None
 
@@ -137,52 +136,66 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         sys.exit(2)
 
 
-    async def init_actions():
-        """ Done at start of app and before GUI available """
+async def init_actions():
+    """ Done at start of app and before GUI available """
 
-        logger.info(f'Main running {threading.current_thread().name}')
+    logger.info(f'Main running {threading.current_thread().name}')
 
-        # Apply some default params only once
-        if str2bool(app_config['init_config_done']) is not True:
-            # Apply default GUI / param , depend on platform
-            """
-            preview_proc = False
-            native_ui = False
-            native_ui_size = 1200, 720
-            uvicorn = True
-            """
-            if sys.platform.lower() == 'win32':
-                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
-                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
-                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
-                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
-            else:
-                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
-                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
-                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', 'browser')
-                Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
+    # Apply some default params only once
+    if str2bool(app_config['init_config_done']) is not True:
 
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
+        import FreeSimpleGUI as sg  # Part 1 - The import
 
-        # Apply presets
-        try:
-            if str2bool(preset_config['load_at_start']):
-                if preset_config['filter_media'] != '':
-                    logger.info(f"apply : {preset_config['filter_media']} to filter Media")
-                    await load_filter_preset('Media', interactive=False, file_name=preset_config['filter_media'])
-                if preset_config['filter_desktop'] != '':
-                    logger.info(f"apply : {preset_config['filter_desktop']} to filter Desktop")
-                    await load_filter_preset('Desktop', interactive=False, file_name=preset_config['filter_desktop'])
-                if preset_config['cast_media'] != '':
-                    logger.info(f"apply : {preset_config['cast_media']} to cast Media")
-                    await load_cast_preset('Media', interactive=False, file_name=preset_config['cast_media'])
-                if preset_config['cast_desktop'] != '':
-                    logger.info(f"apply : {preset_config['cast_desktop']} to cast Desktop")
-                    await load_cast_preset('Desktop', interactive=False, file_name=preset_config['cast_desktop'])
+        # Apply default GUI / param , depend on platform
+        """
+        preview_proc = False
+        native_ui = False
+        native_ui_size = 1200, 720
+        uvicorn = True
+        """
+        if sys.platform.lower() == 'win32':
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
+        else:
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', 'browser')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
 
-        except Exception as m_error:
-            logger.error(f"Error on app startup {m_error}")
+        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
 
+        # Define the window's contents
+        info = "Some Params has changed.... restart your app"
+        layout = [[sg.Text(info)],  # Part 2 - The Layout
+                  [sg.Button('Ok')]]
+        # Create the window
+        window = sg.Window('WLEDVideoSync', layout)  # Part 3 - Window Definition
+        # Display and interact with the Window
+        event, values = window.read()  # Part 4 - Event loop or Window.read call
+        # Finish up by removing from the screen
+        window.close()  # Part 5 - Close the Window
+        sys.exit()
+
+    # Apply presets
+    try:
+        if str2bool(preset_config['load_at_start']):
+            if preset_config['filter_media'] != '':
+                logger.info(f"apply : {preset_config['filter_media']} to filter Media")
+                await load_filter_preset('Media', interactive=False, file_name=preset_config['filter_media'])
+            if preset_config['filter_desktop'] != '':
+                logger.info(f"apply : {preset_config['filter_desktop']} to filter Desktop")
+                await load_filter_preset('Desktop', interactive=False, file_name=preset_config['filter_desktop'])
+            if preset_config['cast_media'] != '':
+                logger.info(f"apply : {preset_config['cast_media']} to cast Media")
+                await load_cast_preset('Media', interactive=False, file_name=preset_config['cast_media'])
+            if preset_config['cast_desktop'] != '':
+                logger.info(f"apply : {preset_config['cast_desktop']} to cast Desktop")
+                await load_cast_preset('Desktop', interactive=False, file_name=preset_config['cast_desktop'])
+
+    except Exception as m_error:
+        logger.error(f"Error on app startup {m_error}")
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
