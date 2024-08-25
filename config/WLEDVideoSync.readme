@@ -18,6 +18,14 @@
 # log_level 	    : Set the log level of the server. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'
 # workers 	        : Uvicorn also has an option to start and run several worker processes
 # reconnect_timeout : maximum time the server waits for the browser to reconnect (default: 3.0 seconds)
+[server]
+server_port = auto
+server_ip = localhost
+log_level = info
+workers = 1
+reconnect_timeout = 3
+
+
 
 # app default
 # show_window	: False, no splash window
@@ -42,10 +50,36 @@
 #                   True run Uvicorn server on sub process
 #                   False to run from nicegui server (uvicorn implementation)
 #                   on Win32, put to True to have feature like systray
+[app]
+show_window = True
+log_to_main = True
+log_level = INFO
+put_on_systray = True
+timer = 2
+img_folder = ./media/
+video_file = ./media/Big_Buck_Bunny_360_10s_1MB.mp4
+keep_yt = False
+charts_exe = C:\NiceDashboard\runcharts.exe
+text = True
+preview_proc = False
+native_ui = False
+native_ui_size = 1200,720
+uvicorn = True
+
 
 # ui.colors() color theme
 # change default colors on UI look
 # see: https://quasar.dev/style/theme-builder
+[colors]
+primary = #0c2f52
+secondary = #AAAFBB
+accent = #9C27B0
+dark = #1d1d1d
+dark-page = #121212
+positive = #21BA45
+negative = #C10015
+info = #31CCEC
+warning = #F2C037
 
 
 # More customization
@@ -56,7 +90,13 @@
 # animate-ui    : will apply animation on some UI elements, can be disabled to free some resources (True or False)
 # yt-format     : video format yt-dlp to choose
 #                    ex:  '18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]', Ensure 320p and single stream
-
+[custom]
+bg-image =
+system-stats = True
+cpu-chart = True
+player = True
+animate-ui = True
+yt-format = 18/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]
 
 # presets to load at app startup
 # file name must exist on related folder
@@ -66,3 +106,9 @@
 # filter_desktop : filter preset name for Desktop to apply
 # cast_media     : cast preset name for Media to apply
 # cast_desktop   : cast preset name for Desktop to apply
+[presets]
+load_at_start = False
+filter_media =
+filter_desktop =
+cast_media =
+cast_desktop =
