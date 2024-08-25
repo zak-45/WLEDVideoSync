@@ -47,6 +47,7 @@ import cfg_load as cfg
 from str2bool import str2bool
 
 import multiprocessing
+import configparser
 
 
 class CASTUtils:
@@ -59,6 +60,31 @@ class CASTUtils:
 
     def __init__(self):
         pass
+
+    @staticmethod
+    def update_ini_key(file_path, section, key, new_value):
+        # Create a ConfigParser object
+        config = configparser.ConfigParser()
+
+        # Read the existing INI file
+        config.read(file_path)
+
+        # Check if the section exists
+        if not config.has_section(section):
+            raise ValueError(f"Section '{section}' not found in the INI file.")
+
+        # Check if the key exists within the section
+        if not config.has_option(section, key):
+            raise ValueError(f"Key '{key}' not found in the section '{section}'.")
+
+        # Update the key with the new value
+        config.set(section, key, new_value)
+
+        # Write the updated configuration back to the file
+        with open(file_path, 'w') as configfile:
+            config.write(configfile)
+
+        logger.info(f"Updated '{key}' to '{new_value}' in section '{section}'.")
 
     @staticmethod
     def mp_setup():
