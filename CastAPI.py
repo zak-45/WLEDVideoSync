@@ -161,24 +161,6 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         except Exception as m_error:
             logger.error(f"Error on app startup {m_error}")
 
-else:
-    # Apply default GUI / param , depend on platform
-    """
-    preview_proc = False
-    native_ui = False
-    native_ui_size = 1200, 720
-    uvicorn = True
-    """
-    if sys.platform.lower() == 'win32':
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
-    else:
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', 'browser')
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue

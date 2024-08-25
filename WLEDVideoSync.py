@@ -99,6 +99,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # systray
     put_on_systray = str2bool(app_config['put_on_systray'])
 
+
 """
 Params
 """
@@ -430,9 +431,29 @@ if __name__ == '__main__':
     freeze_support()  # noqa
 
     # test to see if executed from compressed version
+    # apply default param once
     # instruct user to go to WLEDVideoSync folder to execute program
     if "NUITKA_ONEFILE_PARENT" in os.environ:
+
         import FreeSimpleGUI as sg  # Part 1 - The import
+
+        # Apply default GUI / param , depend on platform
+        """
+        preview_proc = False
+        native_ui = False
+        native_ui_size = 1200, 720
+        uvicorn = True
+        """
+        if sys.platform.lower() == 'win32':
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
+        else:
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', 'browser')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
 
         # Define the window's contents
         info = ("Extracted executable to WLEDVideoSync folder.....\n\n \
