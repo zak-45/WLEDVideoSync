@@ -3315,13 +3315,27 @@ app.add_static_files('/tmp', 'tmp')
 app.add_static_files('/xtra', 'xtra')
 app.on_startup(init_actions)
 
+native_ui_size = app_config['native_ui_size']
+show = None
+if native_ui_size == 'None':
+    native_ui_size = None
+    show = False
+elif native_ui_size == 'browser':
+    show = True
+    native_ui_size = None
+else:
+    native_ui_size = tuple(native_ui_size.split(','))
+    native_ui_size = (int(native_ui_size[0]), int(native_ui_size[1]))
+
 ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',
        host=server_ip,
        port=server_port,
-       show=True,
+       show=show,
        reconnect_timeout=int(server_config['reconnect_timeout']),
-       reload=False)
+       reload=False,
+       native=str2bool(app_config['native_ui']),
+       window_size=native_ui_size)
 
 """
 END

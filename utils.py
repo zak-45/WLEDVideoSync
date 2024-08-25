@@ -858,7 +858,7 @@ class YtSearch:
         def run_search():
             asyncio.create_task(self.py_search(self.my_search.value))
 
-        await ui.context.client.connected()
+        # await ui.context.client.connected()
 
         self.search_button.props('loading')
         self.search_result.clear()
@@ -886,7 +886,7 @@ class YtSearch:
     async def next_search(self):
         """ Next if you want more """
 
-        await ui.context.client.connected()
+        # await ui.context.client.connected()
         self.search_button.props('loading')
         tmp_dict = await self.videos_search.next()
         if len(tmp_dict['result']) > 0:

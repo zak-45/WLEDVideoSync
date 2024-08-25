@@ -498,6 +498,11 @@ if __name__ == '__main__':
 
         WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
 
+    """
+    Run uvicorn server 
+    """
+
+    if str2bool(app_config['uvicorn']) is True:
         """
         Uvicorn
 
@@ -528,23 +533,29 @@ if __name__ == '__main__':
         instance.start()
         logger.info('WLEDVideoSync Started...Server run in separate process')
 
-        # start pywebview process
-        # this will start native OS window and block main thread
-        if show_window:
-            logger.info('Starting webview loop...')
-            start_webview_process()
-        else:
-            start_webview_process('Main')
+        """
+        systray and webview only if OS win32
+        """
 
-        # start pystray Icon
-        # main infinite loop on systray if requested
-        if put_on_systray:
-            logger.info('Starting systray loop...')
-            WLEDVideoSync_icon.run()
+        if sys.platform.lower() == 'win32':
+
+            # start pywebview process
+            # this will start native OS window and block main thread
+            if show_window:
+                logger.info('Starting webview loop...')
+                start_webview_process()
+            else:
+                start_webview_process('Main')
+
+            # start pystray Icon
+            # main infinite loop on systray if requested
+            if put_on_systray:
+                logger.info('Starting systray loop...')
+                WLEDVideoSync_icon.run()
 
     else:
 
-        # for OS  Linux, Darwin : this will execute ui.run : nicegui main loop
+        # run NiceGUI app with built-in server
         import CastAPI
 
     """
