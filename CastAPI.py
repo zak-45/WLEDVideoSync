@@ -58,6 +58,7 @@ from utils import LocalFilePicker
 from utils import ScreenAreaSelection as Sa
 from utils import YtSearch
 from utils import AnimatedElement as Animate
+import niceutils as nice
 
 import ast
 
@@ -157,8 +158,8 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
                     logger.info(f"apply : {preset_config['cast_desktop']} to cast Desktop")
                     await load_cast_preset('Desktop', interactive=False, file_name=preset_config['cast_desktop'])
 
-        except Exception as error:
-            logger.error(f"Error on app startup {error}")
+        except Exception as m_error:
+            logger.error(f"Error on app startup {m_error}")
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
@@ -331,8 +332,8 @@ async def buffer_image(class_obj: str = Path(description=f'Class name, should be
 
     try:
         img = ImageUtils.image_array_to_base64(class_name.frame_buffer[number])
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {error}")
+    except Exception as b_error:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {b_error}")
 
     return {"buffer_base64": img}
 
@@ -356,8 +357,8 @@ async def buffer_image_save(class_obj: str = Path(description=f'Class name, shou
 
     try:
         await save_image(class_name, 'frame_buffer', number)
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {error}")
+    except Exception as b_error:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {b_error}")
 
     return {"buffer_save": True}
 
@@ -381,8 +382,8 @@ async def buffer_image_save_ascii(class_obj: str = Path(description=f'Class name
 
     try:
         await save_image(class_name, 'frame_buffer', number, ascii_art=True)
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {error}")
+    except Exception as b_error:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {b_error}")
 
     return {"buffer_save": True}
 
@@ -452,10 +453,10 @@ async def util_download_yt(yt_url: str):
 
             await Utils.youtube_download(yt_url=yt_url, interactive=False)
 
-        except Exception as error:
-            logger.info(f'youtube error: {error}')
+        except Exception as y_error:
+            logger.info(f'youtube error: {y_error}')
             raise HTTPException(status_code=400,
-                                detail=f"Not able to retrieve video from : {yt_url} {error}")
+                                detail=f"Not able to retrieve video from : {yt_url} {y_error}")
     else:
         raise HTTPException(status_code=400,
                             detail=f"Looks like not YT url : {yt_url} ")
@@ -693,9 +694,9 @@ async def apply_preset_api(class_name: str = Path(description=f'Class name, shou
         if result is False:
             raise HTTPException(status_code=400,
                                 detail=f"Apply preset return value : {result}")
-    except Exception as error:
+    except Exception as a_error:
         raise HTTPException(status_code=400,
-                            detail=f"Not able to apply preset : {error}")
+                            detail=f"Not able to apply preset : {a_error}")
 
     return {"apply_preset_result": True}
 
@@ -790,9 +791,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_text('{"result":"error"}')
                 raise Exception
 
-    except Exception as error:
+    except Exception as w_error:
         logger.error(traceback.format_exc())
-        logger.error(f'WEBSOCKET An exception occurred: {error}')
+        logger.error(f'WEBSOCKET An exception occurred: {w_error}')
         await websocket.send_text('{"result":"internal error"}')
         await websocket.close()
 
@@ -888,7 +889,7 @@ async def main_page():
     """
     Header with button menu
     """
-    await head_set(name='Main', target='/', icon='home')
+    await nice.head_set(name='Main', target='/', icon='home')
 
     """
     App info
@@ -930,7 +931,7 @@ async def main_page():
     # filters for Desktop / Media
     with ui.row().classes('self-center'):
 
-        await desktop_filters()
+        await nice.desktop_filters(Desktop)
 
         with ui.card().tight().classes('w-42'):
             with ui.column():
@@ -1004,9 +1005,9 @@ async def main_page():
                             ram_count.props(remove='type=number', add='borderless')
 
                     if str2bool(custom_config['cpu-chart']):
-                        await create_cpu_chart()
+                        await nice.create_cpu_chart(CastAPI)
 
-        await media_filters()
+        await nice.media_filters(Media)
 
     ui.separator().classes('mt-6')
 
@@ -1082,7 +1083,7 @@ async def main_page_cast_manage():
     """
     Header with button menu
     """
-    await head_set(name='Manage', target='/Manage', icon='video_settings')
+    await nice.head_set(name='Manage', target='/Manage', icon='video_settings')
 
     """
     Main tabs infos
@@ -1160,7 +1161,7 @@ async def video_player_page():
             media_reset_icon.bind_visibility_from(CastAPI.player)
 
             """ Refreshable """
-            await sync_button()
+            await nice.sync_button(CastAPI, Media)
             """ End Refresh """
 
             CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync, color='green') \
@@ -1191,13 +1192,13 @@ async def video_player_page():
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda visible=True: (CastAPI.player.set_visibility(visible),
-                                                   animate_wled_image(visible))) \
+                                                   nice.animate_wled_image(CastAPI, visible))) \
                 .tooltip("Show Video player")
 
             hide_player = ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda visible=False: (CastAPI.player.set_visibility(visible),
-                                                    animate_wled_image(visible))) \
+                                                    nice.animate_wled_image(CastAPI, visible))) \
                 .tooltip("Hide Video player")
 
             cast_player = ui.icon('cast', size='md') \
@@ -1208,13 +1209,13 @@ async def video_player_page():
 
             media_info = ui.icon('info', size='sd') \
                 .style("cursor: pointer") \
-                .on('click', lambda: player_media_info(CastAPI.player.source)) \
+                .on('click', lambda: nice.player_media_info(CastAPI.player.source)) \
                 .tooltip('Info') \
                 .bind_visibility_from(CastAPI.player)
 
             video_file = ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
-                .on('click', lambda: player_pick_file()) \
+                .on('click', lambda: nice.player_pick_file(CastAPI)) \
                 .tooltip('Select audio / video file') \
                 .bind_visibility_from(CastAPI.player)
 
@@ -1231,7 +1232,7 @@ async def video_player_page():
             video_url_info = ui.icon('info')
             video_url_info.style("cursor: pointer")
             video_url_info.tooltip("Youtube information's, including formats etc ...")
-            video_url_info.on('click', lambda: player_url_info(video_url.value))
+            video_url_info.on('click', lambda: nice.player_url_info(video_url.value))
             video_url_info.bind_visibility_from(CastAPI.player)
 
             # Progress bar
@@ -1261,7 +1262,7 @@ async def main_page_desktop():
 
     apply_custom()
 
-    await head_set(name='Desktop Params', target='/Desktop', icon='computer')
+    await nice.head_set(name='Desktop Params', target='/Desktop', icon='computer')
 
     if str2bool(custom_config['animate-ui']):
         # Add Animate.css to the HTML head
@@ -1312,7 +1313,7 @@ async def main_page_desktop():
     with exp_param.classes('w-full bg-sky-800'):
 
         with ui.row():
-            await cast_icon(Desktop)
+            await nice.cast_icon(Desktop)
             manage_cast_presets('Desktop')
 
         with ui.row():
@@ -1368,7 +1369,7 @@ async def main_page_desktop():
                 new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', new_viinput.value))
                 new_viformat = ui.input('Method', value=Desktop.viformat)
                 new_viformat.bind_value_to(Desktop, 'viformat')
-                ui.button('formats', on_click=display_formats)
+                ui.button('formats', on_click=nice.display_formats)
                 with ui.row():
                     ui.number('', value=Desktop.monitor_number, min=0, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number') \
@@ -1381,7 +1382,7 @@ async def main_page_desktop():
                 new_vooutput.bind_value_to(Desktop, 'vooutput')
                 new_voformat = ui.input('Codec', value=Desktop.voformat)
                 new_voformat.bind_value_to(Desktop, 'voformat')
-                ui.button('Codecs', on_click=display_codecs)
+                ui.button('Codecs', on_click=nice.display_codecs)
 
             with ui.card():
                 new_put_to_buffer = ui.input('Capture Frame', value=str(Desktop.put_to_buffer))
@@ -1402,7 +1403,7 @@ async def main_page_desktop():
                 new_cast_devices = ui.input('Cast Devices', value=str(Desktop.cast_devices))
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Desktop', 'cast_devices', new_cast_devices.value))
-                ui.button('Manage', on_click=lambda: cast_device_manage(Desktop))
+                ui.button('Manage', on_click=lambda: nice.cast_device_manage(Desktop, Netdevice))
 
     ui.separator().classes('mt-6')
 
@@ -1418,7 +1419,7 @@ async def main_page_desktop():
                         img = Image.fromarray(img)
                         await light_box_image(i, img, '', '', Desktop, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
-                    await generate_carousel(Desktop)
+                    await nice.generate_carousel(Desktop)
 
         else:
             with ui.card():
@@ -1429,8 +1430,8 @@ async def main_page_desktop():
         # columns number  = cast_x, number of cards = cast_x * cast_y
         if Desktop.multicast:
             with ui.row():
-                await multi_preview(Desktop)
-                await cast_devices_view(Desktop)
+                await nice.multi_preview(Desktop)
+                await nice.cast_devices_view(Desktop)
             if len(Desktop.cast_frame_buffer) > 0:
                 with ui.grid(columns=Desktop.cast_x):
                     try:
@@ -1439,9 +1440,9 @@ async def main_page_desktop():
                             img = CV2Utils.resize_image(Desktop.cast_frame_buffer[i], 640, 360)
                             img = Image.fromarray(img)
                             await light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
-                    except Exception as error:
+                    except Exception as m_error:
                         logger.error(traceback.format_exc())
-                        logger.error(f'An exception occurred: {error}')
+                        logger.error(f'An exception occurred: {m_error}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -1472,7 +1473,7 @@ async def main_page_media():
 
     apply_custom()
 
-    await head_set(name='Media Params', target='/Media', icon='image')
+    await nice.head_set(name='Media Params', target='/Media', icon='image')
 
     if str2bool(custom_config['animate-ui']):
         # Add Animate.css to the HTML head
@@ -1514,7 +1515,7 @@ async def main_page_media():
     with media_exp_param.classes('w-full bg-sky-800'):
 
         with ui.row(wrap=False):
-            await cast_icon(Media)
+            await nice.cast_icon(Media)
             manage_cast_presets('Media')
 
         with ui.row():
@@ -1591,7 +1592,7 @@ async def main_page_media():
                 new_cast_devices = ui.input('Cast Devices', value=str(Media.cast_devices))
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Media', 'cast_devices', new_cast_devices.value))
-                ui.button('Manage', on_click=lambda: cast_device_manage(Media))
+                ui.button('Manage', on_click=lambda: nice.cast_device_manage(Media, Netdevice))
 
     ui.separator().classes('mt-6')
 
@@ -1607,7 +1608,7 @@ async def main_page_media():
                         img = Image.fromarray(img)
                         await light_box_image(i, img, '', '', Media, 'frame_buffer')
                 with ui.carousel(animated=True, arrows=True, navigation=True).props('height=480px'):
-                    await generate_carousel(Media)
+                    await nice.generate_carousel(Media)
 
         else:
             with ui.card():
@@ -1618,8 +1619,8 @@ async def main_page_media():
         # columns number  = cast_x, number of cards = cast_x * cast_y
         if Media.multicast:
             with ui.row():
-                await multi_preview(Media)
-                await cast_devices_view(Media)
+                await nice.multi_preview(Media)
+                await nice.cast_devices_view(Media)
             if len(Media.cast_frame_buffer) > 0:
                 with ui.grid(columns=Media.cast_x):
                     try:
@@ -1628,9 +1629,9 @@ async def main_page_media():
                             img = CV2Utils.resize_image(Media.cast_frame_buffer[i], 640, 360)
                             img = Image.fromarray(img)
                             await light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
-                    except Exception as error:
+                    except Exception as m_error:
                         logger.error(traceback.format_exc())
-                        logger.error(f'An exception occurred: {error}')
+                        logger.error(f'An exception occurred: {m_error}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -1752,39 +1753,6 @@ helpers /Commons
 """
 
 
-async def system_stats():
-    CastAPI.cpu = psutil.cpu_percent(interval=1, percpu=False)
-    CastAPI.ram = psutil.virtual_memory().percent
-    CastAPI.total_packet = Desktop.total_packet + Media.total_packet
-    CastAPI.total_frame = Desktop.total_frame + Media.total_frame
-
-    if str2bool(custom_config['cpu-chart']):
-        if CastAPI.cpu_chart is not None:
-            now = datetime.now()
-            date_time_str = now.strftime("%H:%M:%S")
-
-            CastAPI.cpu_chart.options['series'][0]['data'].append(CastAPI.cpu)
-            CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
-
-            CastAPI.cpu_chart.update()
-
-    if CastAPI.cpu >= 65:
-        ui.notify('High CPU utilization', type='negative', close_button=True)
-    if CastAPI.ram >= 95:
-        ui.notify('High Memory utilization', type='negative', close_button=True)
-
-
-def animate_wled_image(visible):
-    """ toggle main image animation """
-
-    if visible:
-        CastAPI.w_image.classes(add='animate__flipOutX', remove='animate__flipInX')
-        ui.timer(0.7, lambda: CastAPI.w_image.set_visibility(False), once=True)
-    else:
-        CastAPI.w_image.classes(add='animate__flipInX', remove='animate__flipOutX')
-        CastAPI.w_image.set_visibility(True)
-
-
 async def animate_toggle(img):
     """ toggle animation """
 
@@ -1803,233 +1771,6 @@ async def animate_toggle(img):
 
     ui.notify(f'Animate :{custom_config["animate-ui"]}')
     logger.info(f'Animate :{custom_config["animate-ui"]}')
-
-
-async def head_set(name, target, icon):
-    with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
-        ui.link(name, target=target).classes('text-white text-lg font-medium')
-        ui.icon(icon)
-        # Create buttons
-        if name != 'Main':
-            ui.button('Main', on_click=lambda: ui.navigate.to('/'), icon='home')
-        if name != 'Manage':
-            ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
-        if name != 'Desktop Params':
-            ui.button('Desktop Params', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
-        if name != 'Media Params':
-            ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
-        ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
-
-
-async def sync_button():
-    """ Sync Buttons """
-
-    if Media.player_sync is True:
-        # VSYNC
-        CastAPI.media_button_sync.classes('animate-pulse')
-        CastAPI.media_button_sync.props(add="color='gray'")
-        if CastAPI.last_type_sync == 'player':
-            CastAPI.media_button_sync.props(add="color='red'")
-            CastAPI.media_button_sync.text = Media.player_time
-        # TSYNC
-        CastAPI.slider_button_sync.classes('animate-pulse')
-        CastAPI.slider_button_sync.props(add="color='gray'")
-        if CastAPI.last_type_sync == 'slider':
-            CastAPI.slider_button_sync.props(add="color='red'")
-            CastAPI.slider_button_sync.text = Media.player_time
-
-    elif Media.player_sync is False and CastAPI.type_sync != 'none':
-        CastAPI.media_button_sync.props(add="color=green")
-        CastAPI.media_button_sync.classes(remove="animate-pulse")
-        CastAPI.media_button_sync.text = "VSYNC"
-        CastAPI.media_button_sync.update()
-        CastAPI.slider_button_sync.props(add="color=green")
-        CastAPI.slider_button_sync.classes(remove="animate-pulse")
-        CastAPI.slider_button_sync.text = "TSYNC"
-        CastAPI.slider_button_sync.update()
-        CastAPI.type_sync = 'none'
-
-
-async def cast_manage():
-    """
-    refresh cast parameters  on the root page '/'
-    :return:
-    """
-
-    if Desktop.count > 0:
-        CastAPI.desktop_cast.props(add="color=red")
-        CastAPI.desktop_cast.classes(add="animate-pulse")
-    elif Desktop.stopcast is True:
-        CastAPI.desktop_cast.props(add="color=yellow")
-        CastAPI.desktop_cast.style(add='cursor: pointer')
-        CastAPI.desktop_cast_run.set_visibility(False)
-        CastAPI.desktop_cast.classes(remove="animate-pulse")
-    else:
-        CastAPI.desktop_cast.props(add="color=green")
-        CastAPI.desktop_cast.style(remove='cursor: pointer')
-        CastAPI.desktop_cast.classes(remove="animate-pulse")
-    if Desktop.stopcast is False:
-        CastAPI.desktop_cast_run.set_visibility(True)
-        CastAPI.desktop_cast.style(remove='cursor: pointer')
-
-    if Media.count > 0:
-        CastAPI.media_cast.props(add="color=red")
-        CastAPI.media_cast.style(remove='cursor: pointer')
-        CastAPI.media_cast.classes(add="animate-pulse")
-    elif Media.stopcast is True:
-        CastAPI.media_cast.props(add="color=yellow")
-        CastAPI.media_cast.style(add='cursor: pointer')
-        CastAPI.media_cast.classes(remove="animate-pulse")
-        CastAPI.media_cast_run.set_visibility(False)
-    else:
-        CastAPI.media_cast.props(add="color=green")
-        CastAPI.media_cast.style(remove='cursor: pointer')
-        CastAPI.media_cast.classes(remove="animate-pulse")
-    if Media.stopcast is False:
-        CastAPI.media_cast_run.set_visibility(True)
-        CastAPI.media_cast.style(remove='cursor: pointer')
-
-
-async def cast_icon(class_obj):
-    """
-    refresh Icon color on '/Desktop' and '/Media' pages
-    :param class_obj:
-    :return:
-    """
-
-    def upd_value():
-        class_obj.stopcast = False
-        my_icon.classes(remove='animate-pulse')
-        ui.notify('Cast allowed', position='center', close_button=True, type='positive')
-
-    cast_col = 'green' if class_obj.stopcast is False else 'yellow'
-    my_icon = ui.icon('cast_connected', size='sm', color=cast_col) \
-        .style('cursor: pointer') \
-        .tooltip('Click to authorize') \
-        .on('click', lambda: (my_icon.props(add='color=green'), upd_value())) \
-        .classes('animate-pulse')
-
-
-async def media_filters():
-    #  Filters for Media
-    with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-        ui.label('Filters/Effects Media')
-        with ui.row().classes('w-44'):
-            ui.checkbox('Flip') \
-                .bind_value(Media, 'flip') \
-                .classes('w-20')
-            ui.number('type', min=0, max=1) \
-                .bind_value(Media, 'flip_vh', forward=lambda value: int(value or 0)) \
-                .classes('w-20')
-            ui.number('W').classes('w-20').bind_value(Media, 'scale_width', forward=lambda value: int(value or 8))
-            ui.number('H').classes('w-20').bind_value(Media, 'scale_height', forward=lambda value: int(value or 8))
-            with ui.row().classes('w-44').style('justify-content: flex-end'):
-                ui.label('gamma')
-                ui.slider(min=0.01, max=4, step=0.01) \
-                    .props('label-always') \
-                    .bind_value(Media, 'gamma')
-            with ui.column(wrap=True):
-                with ui.row():
-                    with ui.column():
-                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
-                            .bind_value(Media, 'balance_r')
-                        ui.label('R').classes('self-center')
-                    with ui.column():
-                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
-                            .bind_value(Media, 'balance_g')
-                        ui.label('G').classes('self-center')
-                    with ui.column():
-                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
-                            .bind_value(Media, 'balance_b')
-                        ui.label('B').classes('self-center')
-                ui.button('reset', on_click=lambda: reset_rgb('Media')).classes('self-center')
-
-    with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-        with ui.row().classes('w-20').style('justify-content: flex-end'):
-            ui.label('saturation')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Media, 'saturation')
-            ui.label('brightness').classes('text-right')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Media, 'brightness')
-            ui.label('contrast')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Media, 'contrast')
-            ui.label('sharpen')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Media, 'sharpen')
-            ui.checkbox('auto') \
-                .bind_value(Media, 'auto_bright', forward=lambda value: value) \
-                .tooltip('Auto bri/contrast')
-            ui.slider(min=0, max=100, step=1) \
-                .props('label-always') \
-                .bind_value(Media, 'clip_hist_percent')
-
-
-async def desktop_filters():
-    """ desktop filter page creation"""
-
-    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-        ui.label('Filters/Effects Desktop')
-        with ui.row().classes('w-44'):
-            ui.checkbox('Flip') \
-                .bind_value(Desktop, 'flip') \
-                .classes('w-20')
-            ui.number('type', min=0, max=1) \
-                .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0)) \
-                .classes('w-20')
-            ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 8))
-            ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height',
-                                                      forward=lambda value: int(value or 8))
-            with ui.row().classes('w-44').style('justify-content: flex-end'):
-                ui.label('gamma')
-                ui.slider(min=0.01, max=4, step=0.01) \
-                    .props('label-always') \
-                    .bind_value(Desktop, 'gamma')
-            with ui.column(wrap=True):
-                with ui.row():
-                    with ui.column():
-                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
-                            .bind_value(Desktop, 'balance_r')
-                        ui.label('R').classes('self-center')
-                    with ui.column():
-                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
-                            .bind_value(Desktop, 'balance_g')
-                        ui.label('G').classes('self-center')
-                    with ui.column():
-                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
-                            .bind_value(Desktop, 'balance_b')
-                        ui.label('B').classes('self-center')
-                ui.button('reset', on_click=lambda: reset_rgb('Desktop')).classes('self-center')
-
-    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-        with ui.row().classes('w-20').style('justify-content: flex-end'):
-            ui.label('saturation')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Desktop, 'saturation')
-            ui.label('brightness')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Desktop, 'brightness')
-            ui.label('contrast')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Desktop, 'contrast')
-            ui.label('sharpen')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Desktop, 'sharpen')
-            ui.checkbox('auto') \
-                .bind_value(Desktop, 'auto_bright', forward=lambda value: value) \
-                .tooltip('Auto bri/contrast')
-            ui.slider(min=0, max=100, step=1) \
-                .props('label-always') \
-                .bind_value(Desktop, 'clip_hist_percent')
 
 
 async def youtube_search():
@@ -2063,9 +1804,9 @@ async def youtube_clear_search():
                 animated_area.delete_element(area)
             else:
                 area.delete()
-        except Exception as error:
+        except Exception as y_error:
             logger.error(traceback.format_exc())
-            logger.error(f'Search area does not exist: {error}')
+            logger.error(f'Search area does not exist: {y_error}')
     CastAPI.search_areas = []
 
 
@@ -2093,39 +1834,6 @@ async def reset_total():
         ui.notify(result)
 
     ui.notify('Reset Total')
-
-
-async def create_cpu_chart():
-    CastAPI.cpu_chart = ui.echart({
-        'darkMode': 'auto',
-        'legend': {
-            'show': 'true',
-            'data': []
-        },
-        'textStyle': {
-            'fontSize': 1,
-            'color': '#d2a'
-        },
-        'grid': {
-            'top': 60
-        },
-        'tooltip': {
-            'trigger': 'axis'
-        },
-        'xAxis': {
-            'type': 'category',
-            'data': []
-        },
-        'yAxis': {
-            'type': 'value'
-        },
-        'series': [{
-            'data': [],
-            'name': 'CPU %',
-            'areaStyle': {'color': '#535894', 'opacity': 0.5},
-            'type': 'line'
-        }]
-    }).style('height:80px ')
 
 
 def select_sc_area():
@@ -2288,41 +1996,6 @@ def select_chart_exe():
     return app_config['charts_exe']
 
 
-async def player_media_info(player_media):
-    with ui.dialog() as dialog:
-        dialog.open()
-        editor = ui.json_editor({'content': {'json': CV2Utils.get_media_info(player_media)}}) \
-            .run_editor_method('updateProps', {'readOnly': True, 'mode': 'table'})
-
-
-async def player_url_info(player_url):
-    """ Grab YouTube information from an Url """
-
-    async def yt_search():
-        await ui.context.client.connected()
-        with ui.dialog() as dialog:
-            dialog.open()
-            editor = ui.json_editor({'content': {'json': await Utils.list_yt_formats(player_url)}}) \
-                .run_editor_method('updateProps', {'readOnly': True, 'mode': 'tree'})
-
-    ui.notify('Grab info from YT ...')
-    ui.timer(.1, yt_search, once=True)
-
-
-async def display_formats():
-    with ui.dialog() as dialog:
-        dialog.open()
-        editor = ui.json_editor({'content': {'json': Utils.list_av_formats()}}) \
-            .run_editor_method('updateProps', {'readOnly': True})
-
-
-async def display_codecs():
-    with ui.dialog() as dialog:
-        dialog.open()
-        editor = ui.json_editor({'content': {'json': Utils.list_av_codecs()}}) \
-            .run_editor_method('updateProps', {'readOnly': True})
-
-
 """
 Filter preset mgr
 """
@@ -2415,9 +2088,9 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
             class_obj.gamma = float(preset_gamma['gamma'])
             ui.notify('Preset applied', type='info')
 
-        except Exception as error:
+        except Exception as pr_error:
             logger.error(traceback.format_exc())
-            logger.error(f'Error to apply preset : {error}')
+            logger.error(f'Error to apply preset : {pr_error}')
             ui.notify('Error to apply Preset', type='negative', position='center')
 
     if interactive:
@@ -2449,7 +2122,7 @@ async def load_filter_preset(class_name, interactive=True, file_name=None):
                             .run_editor_method('updateProps', {'readOnly': True})
 
                     with ui.row():
-                        ui.button('OK', on_click=apply_preset)
+                        ui.button('Apply', on_click=apply_preset)
                 else:
                     preset_config_r = 'None'
                 ui.label(f'Preset to apply: {preset_config_r}')
@@ -2561,9 +2234,9 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
             class_obj.cast_devices = eval(preset_multicast['cast_devices'])
             ui.notify('Preset applied', type='info')
 
-        except Exception as error:
+        except Exception as pr_error:
             logger.error(traceback.format_exc())
-            logger.error(f'Error to apply preset : {error}')
+            logger.error(f'Error to apply preset : {pr_error}')
             ui.notify('Error to apply Preset', type='negative', position='center')
 
     if interactive:
@@ -2587,7 +2260,7 @@ async def load_cast_preset(class_name, interactive=True, file_name=None):
                             .run_editor_method('updateProps', {'readOnly': True})
 
                     with ui.row():
-                        ui.button('OK', on_click=apply_preset)
+                        ui.button('Apply', on_click=apply_preset)
                 else:
                     preset_config_r = 'None'
                 ui.label(f'Preset to apply: {preset_config_r}')
@@ -2616,74 +2289,6 @@ async def player_cast(source):
         ui.notify(f'Cast running from : {source}')
         Media.cast(shared_buffer=t_data_buffer)
     CastAPI.player.play()
-
-
-async def cast_device_manage(class_name):
-    with ui.dialog() as dialog, ui.card().classes('w-1/2'):
-        dialog.open()
-        columns = [
-            {'field': 'number', 'editable': True, 'sortable': True, 'checkboxSelection': True},
-            {'field': 'ip', 'editable': True},
-            {'field': 'id', 'hide': True},
-        ]
-        rows = [
-        ]
-
-        def handle_cell_value_change(e):
-            new_row = e.args['data']
-            ui.notify(f'Updated row to: {e.args["data"]}')
-            rows[:] = [row | new_row if row['id'] == new_row['id'] else row for row in rows]
-
-        aggrid = ui.aggrid({
-            'columnDefs': columns,
-            'rowData': rows,
-            'rowSelection': 'multiple',
-            'stopEditingWhenCellsLoseFocus': True,
-        }).on('cellValueChanged', handle_cell_value_change)
-
-        def add_row():
-            row_new_id = max((dx['id'] for dx in rows), default=-1) + 1
-            rows.append({'number': 0, 'ip': '127.0.0.1', 'id': row_new_id})
-            aggrid.update()
-
-        def add_net():
-            i = len(class_name.cast_devices)
-            for net in Netdevice.http_devices:
-                i += 1
-                row_new_id = max((dx['id'] for dx in rows), default=-1) + 1
-                rows.append({'number': i, 'ip': Netdevice.http_devices[net]['address'], 'id': row_new_id})
-                aggrid.update()
-
-        async def update_cast_devices():
-            new_cast_devices = []
-            for row in await aggrid.get_selected_rows():
-                new_cast_device = tuple((row["number"], row["ip"]))
-                new_cast_devices.append(new_cast_device)
-            sorted_devices = sorted(new_cast_devices, key=lambda x: x[0])
-            class_name.cast_devices.clear()
-            class_name.cast_devices.extend(sorted_devices)
-            dialog.close()
-            ui.notify('New data entered into cast_devices, click on validate/refresh to see them ')
-
-        for item in class_name.cast_devices:
-            new_id = max((dx['id'] for dx in rows), default=-1) + 1
-            rows.append({'number': item[0], 'ip': item[1], 'id': new_id})
-
-        with ui.row():
-            ui.button('Add row', on_click=add_row)
-            ui.button('Add Net', on_click=add_net)
-            ui.button('Select all', on_click=lambda: aggrid.run_grid_method('selectAll'))
-            ui.button('Validate', on_click=lambda: update_cast_devices())
-            ui.button('Close', color='red', on_click=lambda: dialog.close())
-
-
-def reset_rgb(class_name):
-    """ reset RGB value """
-
-    class_obj = globals()[class_name]
-    class_obj.balance_r = 0
-    class_obj.balance_g = 0
-    class_obj.balance_b = 0
 
 
 async def cast_manage_page():
@@ -2916,12 +2521,12 @@ async def root_timer_action():
     :return:
     """
 
-    await sync_button()
+    await nice.sync_button(CastAPI, Media)
 
-    await cast_manage()
+    await nice.cast_manage(CastAPI, Desktop, Media)
 
     if str2bool(custom_config['system-stats']):
-        await system_stats()
+        await nice.system_stats(CastAPI, Desktop, Media)
 
 
 async def info_timer_action():
@@ -2930,7 +2535,7 @@ async def info_timer_action():
     :return:
     """
 
-    await cast_manage()
+    await nice.cast_manage(CastAPI, Desktop, Media)
 
 
 async def player_timer_action():
@@ -2938,22 +2543,7 @@ async def player_timer_action():
     timer action occur when player is displayed
     :return:
     """
-    await sync_button()
-
-
-async def generate_carousel(class_obj):
-    """ Images carousel for Desktop and Media """
-
-    for i in range(len(class_obj.frame_buffer)):
-        with ui.carousel_slide().classes('-p0'):
-            carousel_image = Image.fromarray(class_obj.frame_buffer[i])
-            h, w = class_obj.frame_buffer[i].shape[:2]
-            img = ui.interactive_image(carousel_image.resize(size=(640, 360))).classes('w-[640]')
-            with img:
-                ui.button(text=str(i) + ':size:' + str(w) + 'x' + str(h), icon='tag') \
-                    .props('flat fab color=white') \
-                    .classes('absolute top-0 left-0 m-2') \
-                    .tooltip('Image Number')
+    await nice.sync_button(CastAPI, Media)
 
 
 async def cast_to_wled(class_obj, image_number):
@@ -3080,7 +2670,7 @@ async def init_cast(class_obj, clog_ui=None):
     :return:
     """
     class_obj.cast(shared_buffer=t_data_buffer)
-    await cast_manage()
+    await nice.cast_manage(CastAPI, Desktop, Media)
     logger.info(f'Run Cast for {str(class_obj)}')
     ui.notify(f'Cast initiated for :{str(class_obj)}')
 
@@ -3090,7 +2680,7 @@ async def cast_stop(class_obj):
 
     class_obj.stopcast = True
     ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
-    await cast_manage()
+    await nice.cast_manage(CastAPI, Desktop, Media)
     logger.info(f' Stop Cast for {str(class_obj)}')
 
 
@@ -3099,7 +2689,7 @@ async def auth_cast(class_obj):
 
     class_obj.stopcast = False
     ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
-    await cast_manage()
+    await nice.cast_manage(CastAPI, Desktop, Media)
     logger.info(f' Cast auth. for {str(class_obj)}')
 
 
@@ -3143,67 +2733,9 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
                 ui.button('Close', on_click=dialog.close, color='red')
             ui.button('', icon='preview', on_click=dialog.open, color='bg-red-800').tooltip('View image')
 
-        except Exception as error:
+        except Exception as im_error:
             logger.error(traceback.format_exc())
-            logger.error(f'An exception occurred: {error}')
-
-
-async def multi_preview(class_name):
-    """
-    Generate matrix image preview for multicast
-    :return:
-    """
-    dialog = ui.dialog().style('width: 200px')
-    with dialog:
-        grid_col = ''
-        for c in range(class_name.cast_x):
-            grid_col += '1fr '
-        with ui.grid(columns=grid_col).classes('w-full gap-0'):
-            for i in range(len(class_name.cast_frame_buffer)):
-                with ui.image(Image.fromarray(class_name.cast_frame_buffer[i])).classes('w-60'):
-                    ui.label(str(i))
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('FULL', icon='preview', on_click=dialog.open).tooltip('View ALL images')
-
-
-async def cast_devices_view(class_name):
-    """
-    view cast_devices list
-    :return:
-    """
-    dialog = ui.dialog().style('width: 800px')
-    with dialog:
-        with ui.card():
-            with ui.grid(columns=3):
-                for i in range(len(class_name.cast_devices)):
-                    with ui.card():
-                        ui.label('No: ' + str(class_name.cast_devices[i][0]))
-                        if Utils.validate_ip_address(str(class_name.cast_devices[i][1])):
-                            text_decoration = "color: green; text-decoration: underline"
-                        else:
-                            text_decoration = "color: red; text-decoration: red wavy underline"
-
-                        ui.link('IP  :  ' + str(class_name.cast_devices[i][1]),
-                                'http://' + str(class_name.cast_devices[i][1]),
-                                new_tab=True).style(text_decoration)
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('DEVICE', icon='preview', on_click=dialog.open).tooltip('View Cast devices')
-
-
-async def player_pick_file() -> None:
-    """ Select file to read for video CastAPI.player"""
-
-    result = await LocalFilePicker('./', multiple=False)
-    ui.notify(f'Selected :  {result}')
-
-    if result is not None:
-        if sys.platform.lower() == 'win32':
-            result = str(result[0]).replace('\\', '/')
-
-        result = './' + result
-
-        CastAPI.player.set_source(result)
-        CastAPI.player.update()
+            logger.error(f'An exception occurred: {im_error}')
 
 
 async def bar_get_size():
@@ -3306,6 +2838,7 @@ def apply_custom():
 RUN
 """
 
+# settings
 app.openapi = custom_openapi
 app.add_static_files('/assets', 'assets')
 app.add_media_files('/media', 'media')
@@ -3315,18 +2848,24 @@ app.add_static_files('/tmp', 'tmp')
 app.add_static_files('/xtra', 'xtra')
 app.on_startup(init_actions)
 
+# choose GUI
 native_ui_size = app_config['native_ui_size']
 show = None
-if native_ui_size == 'None':
-    native_ui_size = None
-    show = False
-elif native_ui_size == 'browser':
-    show = True
-    native_ui_size = None
-else:
-    native_ui_size = tuple(native_ui_size.split(','))
-    native_ui_size = (int(native_ui_size[0]), int(native_ui_size[1]))
+try:
+    if native_ui_size == 'None':
+        native_ui_size = None
+        show = False
+    elif native_ui_size == 'browser':
+        show = True
+        native_ui_size = None
+    else:
+        native_ui_size = tuple(native_ui_size.split(','))
+        native_ui_size = (int(native_ui_size[0]), int(native_ui_size[1]))
+except Exception as error:
+    logger.error(f'Error in config file for native_ui_size : {native_ui_size} - {error}')
+    sys.exit(1)
 
+# run app
 ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',
        host=server_ip,
@@ -3340,12 +2879,13 @@ ui.run(title='WLEDVideoSync',
 """
 END
 """
-if sys.platform != 'win32':
-    logger.info('Remove tmp files')
-    for tmp_filename in PathLib("./tmp/").glob("*_file.*"):
-        tmp_filename.unlink()
 
-    # remove yt files
-    if str2bool(app_config['keep_yt']) is not True:
-        for media_filename in PathLib("./media/").glob("yt-tmp-*.*"):
-            media_filename.unlink()
+# some cleaning
+logger.info('Remove tmp files')
+for tmp_filename in PathLib("./tmp/").glob("*_file.*"):
+    tmp_filename.unlink()
+
+# remove yt files
+if str2bool(app_config['keep_yt']) is not True:
+    for media_filename in PathLib("./media/").glob("yt-tmp-*.*"):
+        media_filename.unlink()
