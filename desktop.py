@@ -149,7 +149,7 @@ class CASTDesktop:
             self.viformat: str = 'gdigrab'  # 'gdigrab' for win
 
         elif sys.platform.lower() == 'linux':
-            self.viinput: str = os.getenv('DISPLAY')
+            self.viinput: str = os.getenv('DISPLAY')  # retrieve display from env variable
             self.viformat: str = 'x11grab'
 
         elif sys.platform.lower() == 'darwin':
