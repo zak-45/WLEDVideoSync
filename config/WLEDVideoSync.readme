@@ -1,0 +1,68 @@
+# INI file for WLEDVideoSync Configuration
+#
+# Config parsers do not guess datatypes of values in configuration files, always storing them internally as strings.
+# This means that if you need other datatypes, you should convert on your own
+#
+# ------------ ATTENTION -------------------
+# do not change order entries: server, app, ...
+# new section need to be added at end .........
+#-------------------------------------------
+
+
+# uvicorn server
+# server_port	    : 1...65536 port number , need to be free one, 'auto' to let system found a free one from 8000...
+# server_ip 	    : 0.0.0.0 server bind in all net interfaces
+#                  	    127.0.0.1 localhost only, will not allow remote access
+#                       enter 'localhost' (host name) if want to avoid 'video not available' and see YT Video locally
+#                       or hostname of the running computer
+# log_level 	    : Set the log level of the server. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'
+# workers 	        : Uvicorn also has an option to start and run several worker processes
+# reconnect_timeout : maximum time the server waits for the browser to reconnect (default: 3.0 seconds)
+
+# app default
+# show_window	: False, no splash window
+# log_to_main   : False or True, capture logs from modules and display on the main page, put False to save resources
+# log_level     : Log level to filter, INFO, WARN, ERROR, DEBUG, CRITICAL on the main UI page
+# put_on_systray: True, application will go to systray
+# timer         : seconds before refresh data on main page, bigger less resource needed
+# img_folder    : folder where to save images, need to terminate by '/' e.g. C:/test/image/ for Win absolute path
+# video_file    : default video to show, relative to installed folder
+# keep_yt       : default to False, if True, downloaded youtube file(s) will remain on the media folder
+# charts_exe    : path to runcharts app file, only if you want to display nicecharts.
+# text          : display information on preview window : fps, frames, device ...
+# preview_proc  : True or False
+#                 run preview window in sub process, need to be True on macOS/linux
+#                 False : cv2.imshow() run from the cast thread, ok for win platform
+# native_ui     : True or False, True run ui in native OS window or False run in browser. Mainly for OS not win32.
+# native_ui_size: None, browser or w,h e.g. 1200,720.
+#                   None will run NiceGUI without GUI (native_ui need to be False)
+#                   browser, run default browser
+#                   1200,720 for example, will run it into pywebview (native OS window of 1200x720), force native_ui
+# uvicorn       : True or False
+#                   True run Uvicorn server on sub process
+#                   False to run from nicegui server (uvicorn implementation)
+#                   on Win32, put to True to have feature like systray
+
+# ui.colors() color theme
+# change default colors on UI look
+# see: https://quasar.dev/style/theme-builder
+
+
+# More customization
+# bg-image      : background image, can be animated, relative to installed folder
+# system-stats  : display CPU and RAM usage, can be disabled to free some resources (True or False)
+# cpu-chart     : display CPU chart, can be disabled to free some resources (True or False)
+# player        : display video player with additional features, can be disabled to free some resources (True or False)
+# animate-ui    : will apply animation on some UI elements, can be disabled to free some resources (True or False)
+# yt-format     : video format yt-dlp to choose
+#                    ex:  '18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]', Ensure 320p and single stream
+
+
+# presets to load at app startup
+# file name must exist on related folder
+# in case of trouble (non exist etc ...) this will gently bypassed ....
+# load_at_start  : False, True if you want to load and apply defined presets
+# filter_media   : filter preset name for Media to apply
+# filter_desktop : filter preset name for Desktop to apply
+# cast_media     : cast preset name for Media to apply
+# cast_desktop   : cast preset name for Desktop to apply
