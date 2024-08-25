@@ -336,7 +336,7 @@ class CASTDesktop:
                     or str
         """
 
-        if self.viinput in ['desktop', 'area']:
+        if self.viinput in ['desktop', 'area'] and sys.platform.lower() == 'win32':
             t_viinput = 'desktop'
         else:
             t_viinput = self.viinput
