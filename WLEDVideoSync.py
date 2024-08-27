@@ -444,7 +444,7 @@ if __name__ == '__main__':
         native_ui_size = 1200, 720
         uvicorn = True
         """
-        config_file = os.path.join(os.path.dirname(sys.argv[0]), "/config/WLEDVideoSync.ini")
+        config_file = os.path.join(os.path.dirname(__file__), "/config/WLEDVideoSync.ini")
         if sys.platform.lower() == 'win32':
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'False')
             Utils.update_ini_key(config_file, 'app', 'native_ui', 'True')
