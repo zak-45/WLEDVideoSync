@@ -338,6 +338,8 @@ class CASTDesktop:
 
         if self.viinput in ['desktop', 'area'] and sys.platform.lower() == 'win32':
             t_viinput = 'desktop'
+        elif self.viinput in ['area'] and sys.platform.lower() == 'linux':
+            t_viinput = os.getenv('DISPLAY')
         else:
             t_viinput = self.viinput
 
