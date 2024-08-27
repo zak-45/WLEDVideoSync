@@ -444,18 +444,19 @@ if __name__ == '__main__':
         native_ui_size = 1200, 720
         uvicorn = True
         """
+        config_file = os.path.join(os.path.dirname(sys.argv[0]), "/config/WLEDVideoSync.ini")
         if sys.platform.lower() == 'win32':
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
+            Utils.update_ini_key(config_file, 'app', 'preview_proc', 'False')
+            Utils.update_ini_key(config_file, 'app', 'native_ui', 'True')
+            Utils.update_ini_key(config_file, 'app', 'native_ui_size', '1200,720')
+            Utils.update_ini_key(config_file, 'app', 'uvicorn', 'True')
         else:
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', 'browser')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
+            Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
+            Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
+            Utils.update_ini_key(config_file, 'app', 'native_ui_size', 'browser')
+            Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
 
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
+        Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
 
         # Define the window's contents
         info = ("Extracted executable to WLEDVideoSync folder.....\n\n \
