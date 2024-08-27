@@ -445,8 +445,20 @@ if __name__ == '__main__':
         uvicorn = True
         """
         os.listdir()
-        config_file = os.path.join(__compiled__.containing_dir, "/config/WLEDVideoSync.ini")
 
+        abs_pth = os.path.abspath(sys.argv[0])
+        your_dir = os.path.dirname(abs_pth)
+
+        for val in abs_pth, your_dir:
+            print(val)
+
+        config_file1 = os.path.join(__compiled__.containing_dir, "/config/WLEDVideoSync.ini")
+        config_file2 = os.path.join(os.path.dirname(sys.argv[0]), "/config/WLEDVideoSync.ini")
+        config_file3 = os.path.join(os.path.dirname(__file__), "/config/WLEDVideoSync.ini")
+
+        print(config_file1, config_file2, config_file3)
+
+        """
         if sys.platform.lower() == 'win32':
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'False')
             Utils.update_ini_key(config_file, 'app', 'native_ui', 'True')
@@ -458,7 +470,9 @@ if __name__ == '__main__':
             Utils.update_ini_key(config_file, 'app', 'native_ui_size', 'browser')
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
 
+        
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
+        """
 
         # Define the window's contents
         info = ("Extracted executable to WLEDVideoSync folder.....\n\n \
