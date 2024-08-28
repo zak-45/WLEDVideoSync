@@ -84,7 +84,10 @@ class CASTUtils:
         with open(file_path, 'w') as configfile:
             config.write(configfile)
 
-        logger.info(f"Updated '{key}' to '{new_value}' in section '{section}'.")
+        try:
+            logger.info(f"Updated '{key}' to '{new_value}' in section '{section}'.")
+        except NameError:
+            print(f"Updated '{key}' to '{new_value}' in section '{section}'.")
 
     @staticmethod
     def mp_setup():
@@ -761,10 +764,10 @@ class ScreenAreaSelection:
         # Set the geometry to match the selected monitor
         self.root.geometry(f"{self.monitor.width}x{self.monitor.height}+{self.monitor.x}+{self.monitor.y}")
         self.root.overrideredirect(True)  # Remove window decorations
-        self.root.attributes('-alpha', 0.5)  # Set window transparency
-        self.root.configure(bg='black')
+        self.root.wm_attributes('-alpha', 0.5)  # Set window transparency
+        self.root.configure()
 
-        self.canvas = tk.Canvas(self.root, cursor="cross", bg='black', highlightthickness=0)
+        self.canvas = tk.Canvas(self.root, cursor="cross", highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         self.rect = None

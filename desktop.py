@@ -17,12 +17,12 @@
 # By using PyAV, ffmpeg do not need to be installed on the OS.
 # PyAV is a Pythonic binding for ffmpeg.
 # This utility aim to be cross-platform.
-# You can cast your entire desktop screen or only window content.
+# You can cast your entire desktop screen or only window content or desktop area.
 # Data will be sent through 'ddp' protocol or stream via udp:// rtp:// etc ...
 # ddp data are sent by using queue feature to avoid any network problem which cause latency
 # 27/05/2024: cv2.imshow with import av  freeze on OS not Win
-# one fix is to initiate cv2.imshow() before import av
-# on linux, preview default to False: should work but on some test do memory dump
+# to fix it, cv2.imshow can run from its own process with cost of additional overhead, set preview_proc = True
+#
 
 import sys
 import os
