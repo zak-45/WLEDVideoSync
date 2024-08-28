@@ -570,9 +570,10 @@ class CASTMedia:
                     CASTMedia.t_todo_event.clear()
                 CASTMedia.t_media_lock.release()
 
-            if t_multicast:
+            if t_multicast and (t_cast_y != 1 and t_cast_x != 1):
                 """
                     multicast manage any number of devices of same configuration
+                    matrix need to be more than 1 x 1
                     each device need to drive the same amount of leds, same config
                     e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
                     ==> this give 6 devices to set into cast_devices list                         
@@ -586,10 +587,8 @@ class CASTMedia:
                 grid = True
 
                 # resize frame to virtual matrix size
-                frame_art = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                frame = CV2Utils.resize_image(frame,
-                                           self.scale_width * t_cast_x,
-                                           self.scale_height * t_cast_y)
+                # frame_art = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                frame = CV2Utils.resize_image(frame, self.scale_width * t_cast_x, self.scale_height * t_cast_y)
 
                 # populate global cast buffer from first frame only
                 if frame_count > 1:
@@ -605,7 +604,7 @@ class CASTMedia:
                     # split to matrix
                     self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                     # validate cast_devices number
-                    if len(ip_addresses) < len(self.cast_frame_buffer):
+                    if len(ip_addresses) != len(self.cast_frame_buffer):
                         logger.error(f'{t_name} Cast devices number != sub images number: check cast_devices ')
                         break
                     t_cast_frame_buffer = self.cast_frame_buffer
@@ -634,10 +633,26 @@ class CASTMedia:
 
                 # DDP run in separate thread to avoid block main loop
                 # here we feed the queue that is read by DDP thread
-                if self.protocol == "ddp" and ip_addresses[0] != '127.0.0.1':
-                    # send data to queue
-                    ddp_host.send_to_queue(frame_to_send, self.retry_number)
-                    CASTMedia.total_packet += ddp_host.frame_count
+                if self.protocol == "ddp":
+                    if ip_addresses[0] != '127.0.0.1' and len(ip_addresses) == 1:
+                        # send data to queue
+                        ddp_host.send_to_queue(frame_to_send, self.retry_number)
+                        CASTMedia.total_packet += ddp_host.frame_count
+
+                        # if multicast and more than one ip address and matrix size 1 * 1
+                        # we send the frame to all cast devices
+                    elif len(ip_addresses) > 1 and t_multicast is True and t_cast_x == 1 and t_cast_y == 1:
+                        # send, keep synchronized
+                        try:
+
+                            send_multicast_images_to_ips(frame, ip_addresses)
+
+                        except Exception as error:
+                            logger.error(traceback.format_exc())
+                            logger.error(f'{t_name} An exception occurred: {error}')
+                            break
+
+                        CASTMedia.total_packet += ddp_host.frame_count
 
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:

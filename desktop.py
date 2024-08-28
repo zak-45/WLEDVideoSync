@@ -294,7 +294,7 @@ class CASTDesktop:
                         ip_addresses.append(cast_ip)
                         # create ddp device for each IP
                         self.ddp_multi_names.append(DDPDevice(cast_ip))
-                        logger.info(f'{t_name} IP : {cast_ip} for sub image number {i}')
+                        logger.info(f'{t_name} IP : {cast_ip} as device number {i}')
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
         else:
@@ -526,7 +526,7 @@ class CASTDesktop:
                                 CASTDesktop.t_todo_event.clear()
                             CASTDesktop.t_desktop_lock.release()
 
-                        if t_multicast:
+                        if t_multicast and (t_cast_y != 1 and t_cast_x != 1):
                             """
                                 multicast manage any number of devices of same configuration
                                 each device need to drive the same amount of leds, same config
@@ -585,10 +585,28 @@ class CASTDesktop:
                             # resize frame to pixelart
                             frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
 
-                            # to send to ddp device, we feed the queue
-                            if self.protocol == 'ddp' and ip_addresses[0] != '127.0.0.1':
-                                ddp_host.send_to_queue(frame_to_send, self.retry_number)
-                                CASTDesktop.total_packet += ddp_host.frame_count
+                            # DDP run in separate thread to avoid block main loop
+                            # here we feed the queue that is read by DDP thread
+                            if self.protocol == "ddp":
+                                if ip_addresses[0] != '127.0.0.1' and len(ip_addresses) == 1:
+                                    # send data to queue
+                                    ddp_host.send_to_queue(frame_to_send, self.retry_number)
+                                    CASTDesktop.total_packet += ddp_host.frame_count
+
+                                    # if multicast and more than one ip address and matrix size 1 * 1
+                                    # we send the frame to all cast devices
+                                elif len(ip_addresses) > 1 and t_multicast is True and t_cast_x == 1 and t_cast_y == 1:
+                                    # send, keep synchronized
+                                    try:
+
+                                        send_multicast_images_to_ips(frame_to_send, ip_addresses)
+
+                                    except Exception as error:
+                                        logger.error(traceback.format_exc())
+                                        logger.error(f'{t_name} An exception occurred: {error}')
+                                        break
+
+                                    CASTDesktop.total_packet += ddp_host.frame_count
 
                             # save frame to np buffer if requested (so can be used after by the main)
                             if self.put_to_buffer and frame_count <= self.frame_max:
