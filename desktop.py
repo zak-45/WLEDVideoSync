@@ -599,7 +599,6 @@ class CASTDesktop:
 
                                     for i in ip_addresses:
                                         t_cast_frame_buffer.append(frame_to_send)
-
                                     # send, keep synchronized
                                     try:
 
