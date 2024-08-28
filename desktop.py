@@ -559,7 +559,7 @@ class CASTDesktop:
                                 self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
 
                                 # validate cast_devices number
-                                if len(ip_addresses) < len(self.cast_frame_buffer):
+                                if len(ip_addresses) != len(self.cast_frame_buffer):
                                     logger.error(
                                         f'{t_name} Cast devices number != sub images number: check cast_devices ')
                                     break
@@ -596,10 +596,14 @@ class CASTDesktop:
                                     # if multicast and more than one ip address and matrix size 1 * 1
                                     # we send the frame to all cast devices
                                 elif len(ip_addresses) > 1 and t_multicast is True and t_cast_x == 1 and t_cast_y == 1:
+
+                                    for i in ip_addresses:
+                                        t_cast_frame_buffer.append(frame_to_send)
+
                                     # send, keep synchronized
                                     try:
 
-                                        send_multicast_images_to_ips(frame_to_send, ip_addresses)
+                                        send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                                     except Exception as error:
                                         logger.error(traceback.format_exc())

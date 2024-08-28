@@ -1,0 +1,242 @@
+2024-08-27 23:09:44 - uvicorn.error - INFO - server.py:258 - shutdown - Shutting down
+2024-08-27 23:09:44 - uvicorn.error - INFO - server.py:264 - handler - connection closed
+2024-08-27 23:09:45 - uvicorn.error - INFO - on.py:67 - shutdown - Waiting for application shutdown.
+2024-08-27 23:09:45 - uvicorn.error - INFO - on.py:76 - shutdown - Application shutdown complete.
+2024-08-27 23:09:45 - uvicorn.error - INFO - server.py:92 - _serve - Finished server process [27320]
+2024-08-28 13:34:59 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 14:41:12 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 14:41:12 - WLEDLogger - INFO - CastAPI.py:142 - init_actions - Main running MainThread
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:87 - update_ini_key - Updated 'preview_proc' to 'False' in section 'app'.
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:87 - update_ini_key - Updated 'native_ui' to 'True' in section 'app'.
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:87 - update_ini_key - Updated 'native_ui_size' to '1200,720' in section 'app'.
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:87 - update_ini_key - Updated 'uvicorn' to 'True' in section 'app'.
+2024-08-28 14:41:12 - WLEDLogger - INFO - utils.py:87 - update_ini_key - Updated 'init_config_done' to 'True' in section 'app'.
+2024-08-28 14:41:14 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 14:41:14 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 14:41:14 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 14:41:14 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 14:41:14 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 14:41:14 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 14:41:14 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 14:41:14 - WLEDLogger - INFO - CastAPI.py:2920 - <module> - Remove tmp files
+2024-08-28 14:41:19 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 14:41:19 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 14:41:19 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 14:41:19 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 14:41:19 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 14:41:19 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 14:41:19 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 14:41:19 - WLEDLogger - INFO - CastAPI.py:142 - init_actions - Main running MainThread
+2024-08-28 14:41:21 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 14:41:21 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 14:41:21 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 14:41:21 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 14:41:21 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 14:41:21 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 14:41:21 - WLEDLogger - INFO - utils.py:599 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 14:41:21 - WLEDLogger - INFO - CastAPI.py:2920 - <module> - Remove tmp files
+2024-08-28 14:41:37 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 14:41:37 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [714.0, 182.0, 1494.0, 842.0] from monitor 1
+2024-08-28 14:41:37 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [714.0, 182.0, 1494.0, 842.0] from monitor 1
+2024-08-28 14:41:47 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 14:41:47 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [69.0, 95.0, 326.0, 297.0] from monitor 1
+2024-08-28 14:41:47 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [69.0, 95.0, 326.0, 297.0] from monitor 1
+2024-08-28 14:41:51 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 14:41:51 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [1009.0, 660.0, 1197.0, 766.0] from monitor 1
+2024-08-28 14:41:51 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [1009.0, 660.0, 1197.0, 766.0] from monitor 1
+2024-08-28 14:41:55 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 14:41:55 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [1572.0, 50.0, 1792.0, 231.0] from monitor 1
+2024-08-28 14:41:55 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [1572.0, 50.0, 1792.0, 231.0] from monitor 1
+2024-08-28 14:42:03 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 14:42:03 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [122.0, 605.0, 238.0, 736.0] from monitor 1
+2024-08-28 14:42:03 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [122.0, 605.0, 238.0, 736.0] from monitor 1
+2024-08-28 14:42:09 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 14:42:09 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [246.0, 238.0, 356.0, 362.0] from monitor 1
+2024-08-28 14:42:09 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [246.0, 238.0, 356.0, 362.0] from monitor 1
+2024-08-28 14:42:11 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 14:42:11 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [663.0, 77.0, 677.0, 79.0] from monitor 1
+2024-08-28 14:42:11 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [663.0, 77.0, 677.0, 79.0] from monitor 1
+2024-08-28 14:42:17 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 14:42:17 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [0.0, 0.0, 673.0, 920.0] from monitor 1
+2024-08-28 14:42:17 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [0.0, 0.0, 673.0, 920.0] from monitor 1
+2024-08-28 14:42:22 - WLEDLogger - INFO - CastAPI.py:2920 - <module> - Remove tmp files
+2024-08-28 16:45:04 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:45:04 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:45:04 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:45:04 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:45:04 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:45:04 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:45:04 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:45:05 - WLEDLogger - INFO - CastAPI.py:142 - init_actions - Main running MainThread
+2024-08-28 16:45:07 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:45:07 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:45:07 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:45:07 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:45:07 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:45:07 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:45:07 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:45:07 - WLEDLogger - INFO - CastAPI.py:2920 - <module> - Remove tmp files
+2024-08-28 16:45:26 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 16:45:26 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [1007.0, 229.0, 1388.0, 468.0] from monitor 1
+2024-08-28 16:45:26 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [1007.0, 229.0, 1388.0, 468.0] from monitor 1
+2024-08-28 16:45:27 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 16:45:27 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [991.0, 210.0, 1354.0, 467.0] from monitor 1
+2024-08-28 16:45:27 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [991.0, 210.0, 1354.0, 467.0] from monitor 1
+2024-08-28 16:45:54 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 16:45:54 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [1091.0, 347.0, 1410.0, 531.0] from monitor 1
+2024-08-28 16:45:54 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [1091.0, 347.0, 1410.0, 531.0] from monitor 1
+2024-08-28 16:46:56 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:46:56 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:46:56 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:46:56 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:46:56 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:46:56 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:46:56 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:46:56 - WLEDLogger - INFO - CastAPI.py:142 - init_actions - Main running MainThread
+2024-08-28 16:46:58 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:46:58 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:46:58 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:46:58 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:46:58 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:46:58 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:46:58 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:46:58 - WLEDLogger - INFO - CastAPI.py:2920 - <module> - Remove tmp files
+2024-08-28 16:47:06 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: []
+2024-08-28 16:47:06 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [] from monitor 1
+2024-08-28 16:47:06 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [] from monitor 1
+2024-08-28 16:48:54 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:48:54 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:48:54 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:48:54 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:48:54 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:48:54 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:48:54 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:48:54 - WLEDLogger - INFO - CastAPI.py:142 - init_actions - Main running MainThread
+2024-08-28 16:48:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:48:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:48:55 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:48:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:48:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:48:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:48:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:48:55 - WLEDLogger - INFO - CastAPI.py:2920 - <module> - Remove tmp files
+2024-08-28 16:49:03 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Monitor infos: []
+2024-08-28 16:49:03 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area Coordinates: [] from monitor 1
+2024-08-28 16:49:03 - WLEDLogger - INFO - CastAPI.py:1887 - select_sc_area - Area screen Coordinates: [] from monitor 1
+2024-08-28 16:51:06 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:51:06 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:51:06 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:51:06 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:51:06 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:51:06 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:51:06 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:51:07 - WLEDLogger - INFO - CastAPI.py:142 - init_actions - Main running MainThread
+2024-08-28 16:51:08 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:51:08 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:51:08 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:51:08 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:51:08 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:51:08 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:51:08 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:51:08 - WLEDLogger - INFO - CastAPI.py:2923 - <module> - Remove tmp files
+2024-08-28 16:51:33 - nicegui - ERROR - app.py:122 - handle_exception - 'NoneType' object is not callable
+Traceback (most recent call last):
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\.venv\Lib\site-packages\nicegui\events.py", line 417, in wait_for_result
+    await result
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\CastAPI.py", line 1883, in select_sc_area
+    await run_in_threadpool(Sa.run(monitor))
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\.venv\Lib\site-packages\starlette\concurrency.py", line 42, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\.venv\Lib\site-packages\anyio\to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 2144, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\.venv\Lib\site-packages\anyio\_backends\_asyncio.py", line 851, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'NoneType' object is not callable
+2024-08-28 16:52:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:52:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:52:55 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:52:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:52:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:52:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:52:55 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:52:55 - WLEDLogger - INFO - CastAPI.py:142 - init_actions - Main running MainThread
+2024-08-28 16:52:57 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:52:57 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:52:57 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:52:57 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:52:57 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:52:57 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:52:57 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:52:57 - WLEDLogger - INFO - CastAPI.py:2923 - <module> - Remove tmp files
+2024-08-28 16:53:22 - nicegui - ERROR - app.py:122 - handle_exception - the first argument must be callable
+Traceback (most recent call last):
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\.venv\Lib\site-packages\nicegui\events.py", line 417, in wait_for_result
+    await result
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\CastAPI.py", line 1883, in select_sc_area
+    await run.io_bound(Sa.run(monitor))
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\.venv\Lib\site-packages\nicegui\run.py", line 74, in io_bound
+    return await _run(thread_pool, callback, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\zak-4\PycharmProjects\WLEDVideoSync\.venv\Lib\site-packages\nicegui\run.py", line 52, in _run
+    return await loop.run_in_executor(executor, partial(callback, *args, **kwargs))
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: the first argument must be callable
+2024-08-28 16:54:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:54:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:54:14 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:54:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:54:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:54:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:54:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:54:14 - WLEDLogger - INFO - CastAPI.py:142 - init_actions - Main running MainThread
+2024-08-28 16:54:15 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:54:15 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:54:15 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:54:15 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:54:15 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:54:15 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:54:15 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:54:15 - WLEDLogger - INFO - CastAPI.py:2923 - <module> - Remove tmp files
+2024-08-28 16:55:01 - WLEDLogger - INFO - CastAPI.py:1888 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 16:55:01 - WLEDLogger - INFO - CastAPI.py:1889 - select_sc_area - Area Coordinates: [239.0, 235.0, 365.0, 348.0] from monitor 1
+2024-08-28 16:55:01 - WLEDLogger - INFO - CastAPI.py:1890 - select_sc_area - Area screen Coordinates: [239.0, 235.0, 365.0, 348.0] from monitor 1
+2024-08-28 16:55:16 - WLEDLogger - INFO - CastAPI.py:1888 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 16:55:16 - WLEDLogger - INFO - CastAPI.py:1889 - select_sc_area - Area Coordinates: [928.0, 225.0, 953.0, 254.0] from monitor 1
+2024-08-28 16:55:16 - WLEDLogger - INFO - CastAPI.py:1890 - select_sc_area - Area screen Coordinates: [928.0, 225.0, 953.0, 254.0] from monitor 1
+2024-08-28 16:56:13 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:56:13 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:56:13 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:56:13 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:56:13 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:56:13 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:56:13 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:56:13 - WLEDLogger - INFO - CastAPI.py:142 - init_actions - Main running MainThread
+2024-08-28 16:56:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:56:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.ddp
+2024-08-28 16:56:14 - WLEDLogger - INFO - cv2utils.py:416 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.utils
+2024-08-28 16:56:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.desktop
+2024-08-28 16:56:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.media
+2024-08-28 16:56:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:56:14 - WLEDLogger - INFO - utils.py:603 - setup_logging - Logging configured using config/logging.ini for WLEDLogger.api
+2024-08-28 16:56:14 - WLEDLogger - INFO - CastAPI.py:2919 - <module> - Remove tmp files
+2024-08-28 16:56:33 - WLEDLogger - INFO - CastAPI.py:1884 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 16:56:33 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Area Coordinates: [1054.0, 118.0, 1390.0, 285.0] from monitor 1
+2024-08-28 16:56:33 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area screen Coordinates: [1054.0, 118.0, 1390.0, 285.0] from monitor 1
+2024-08-28 16:57:07 - WLEDLogger - INFO - CastAPI.py:1884 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 16:57:07 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Area Coordinates: [1000.0, 85.0, 1298.0, 248.0] from monitor 1
+2024-08-28 16:57:07 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area screen Coordinates: [1000.0, 85.0, 1298.0, 248.0] from monitor 1
+2024-08-28 16:57:30 - WLEDLogger - INFO - CastAPI.py:1884 - select_sc_area - Monitor infos: [Monitor(x=1920, y=-1070, width=3200, height=1800, width_mm=600, height_mm=340, name='\\\\.\\DISPLAY9', is_primary=False), Monitor(x=0, y=0, width=1920, height=1080, width_mm=344, height_mm=193, name='\\\\.\\DISPLAY1', is_primary=True)]
+2024-08-28 16:57:30 - WLEDLogger - INFO - CastAPI.py:1885 - select_sc_area - Area Coordinates: [0.0, 0.0, 605.0, 356.0] from monitor 1
+2024-08-28 16:57:30 - WLEDLogger - INFO - CastAPI.py:1886 - select_sc_area - Area screen Coordinates: [0.0, 0.0, 605.0, 356.0] from monitor 1

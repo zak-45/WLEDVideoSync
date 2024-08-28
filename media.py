@@ -642,10 +642,14 @@ class CASTMedia:
                         # if multicast and more than one ip address and matrix size 1 * 1
                         # we send the frame to all cast devices
                     elif len(ip_addresses) > 1 and t_multicast is True and t_cast_x == 1 and t_cast_y == 1:
+
+                        for i in ip_addresses:
+                            t_cast_frame_buffer.append(frame_to_send)
+
                         # send, keep synchronized
                         try:
 
-                            send_multicast_images_to_ips(frame, ip_addresses)
+                            send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                         except Exception as error:
                             logger.error(traceback.format_exc())
