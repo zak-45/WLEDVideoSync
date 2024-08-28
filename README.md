@@ -1,5 +1,5 @@
 Early stage .....
-Cast video / image / desktop / window to ddp device e.g WLED. All tests done on the Win version.
+Cast video / image / desktop / window to ddp device e.g. WLED. All tests done on the Win version.
 
 ## WLEDVideoSync
 
@@ -21,8 +21,8 @@ WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with 
 
 **Manual Installation:**
 1. Clone the repository from GitHub
-2. Install required dependencies : pip -r requirements.txt
-3. --> on Mac/linux : pip3 -r requirements.txt
+2. Install required dependencies : pip install -r requirements.txt
+3. --> on Mac/linux : pip3 install -r requirements.txt
 4. Run it with : python -m WLEDVideoSync.py
 5. --> on Mac/linux : python3 -m WLEDVideoSync.py
 

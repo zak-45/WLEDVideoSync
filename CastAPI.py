@@ -71,7 +71,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 
-from nicegui import app, ui, native
+from nicegui import app, ui, native, run
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
@@ -1872,13 +1872,12 @@ async def reset_total():
     ui.notify('Reset Total')
 
 
-def select_sc_area():
+async def select_sc_area():
     """ Draw rectangle to monitor x """
+
     monitor = int(Desktop.monitor_number)
-    thread = threading.Thread(target=Sa.run, args=(monitor,))
-    thread.daemon = True
-    thread.start()
-    thread.join()
+    # run in no blocking way
+    await run.io_bound(Sa.run, monitor)
     # For Calculate crop parameters
     Desktop.screen_coordinates = Sa.screen_coordinates
     #

@@ -92,6 +92,7 @@ class CASTUtils:
     @staticmethod
     def mp_setup():
         """
+        Set process action/type : fork, spawn ...
         Main test for platform
             macOS / linux need specific case
         """
