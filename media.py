@@ -243,9 +243,14 @@ class CASTMedia:
             :return:
             """
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                # Submit a thread for each image and IP pair
-                multicast = [executor.submit(send_multicast_image, ip, image)
-                             for ip, image in zip(to_ip_addresses, images_buffer)]
+                if t_multicast and (t_cast_x != 1 or t_cast_y != 1):
+                    # Submit a thread for each image and IP pair
+                    multicast = [executor.submit(send_multicast_image, ip, image)
+                                 for ip, image in zip(to_ip_addresses, images_buffer)]
+                else:
+                    # Submit a thread for each IP with same image
+                    multicast = [executor.submit(send_multicast_image, ip, images_buffer[0])
+                                 for ip in to_ip_addresses]
 
                 # once all threads up, need to set event because they wait for
                 t_send_frame.set()
@@ -643,8 +648,8 @@ class CASTMedia:
                         # we send the frame to all cast devices
                     elif len(ip_addresses) > 1 and t_multicast is True and t_cast_x == 1 and t_cast_y == 1:
 
-                        for i in ip_addresses:
-                            t_cast_frame_buffer.append(frame_to_send)
+                        t_cast_frame_buffer.append(frame_to_send)
+
                         # send, keep synchronized
                         try:
 

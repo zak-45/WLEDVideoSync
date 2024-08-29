@@ -512,4 +512,3 @@ async def player_pick_file(CastAPI) -> None:
         CastAPI.player.set_source(result)
         CastAPI.player.update()
 
-
