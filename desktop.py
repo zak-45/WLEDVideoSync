@@ -593,14 +593,14 @@ class CASTDesktop:
                             # DDP run in separate thread to avoid block main loop
                             # here we feed the queue that is read by DDP thread
                             if self.protocol == "ddp":
-                                if ip_addresses[0] != '127.0.0.1' and len(ip_addresses) == 1:
+                                if ip_addresses[0] != '127.0.0.1' and len(ip_addresses) == 1 and t_multicast is False:
                                     # send data to queue
                                     ddp_host.send_to_queue(frame_to_send, self.retry_number)
                                     CASTDesktop.total_packet += ddp_host.frame_count
 
                                     # if multicast and more than one ip address and matrix size 1 * 1
                                     # we send the frame to all cast devices
-                                elif len(ip_addresses) > 1 and t_multicast is True and t_cast_x == 1 and t_cast_y == 1:
+                                elif len(ip_addresses) >= 1 and t_multicast is True and t_cast_x == 1 and t_cast_y == 1:
 
                                     t_cast_frame_buffer.append(frame_to_send)
 
@@ -614,7 +614,7 @@ class CASTDesktop:
                                         logger.error(f'{t_name} An exception occurred: {error}')
                                         break
 
-                                    CASTDesktop.total_packet += ddp_host.frame_count
+                                    # CASTDesktop.total_packet += ddp_host.frame_count
 
                             # save frame to np buffer if requested (so can be used after by the main)
                             if self.put_to_buffer and frame_count <= self.frame_max:
