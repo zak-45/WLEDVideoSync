@@ -333,8 +333,8 @@ class CASTMedia:
             return False
 
         # retrieve frame count, if 1 we assume image (should be no?)
-        length = int(media.get(cv2.CAP_PROP_FRAME_COUNT))
-        if length == 1:
+        media_length = int(media.get(cv2.CAP_PROP_FRAME_COUNT))
+        if media_length == 1:
             media = cv2.imread(str(t_viinput))
             frame = media
             fps = 1
@@ -351,11 +351,11 @@ class CASTMedia:
             logger.error(f'{t_name} Rate could not be zero')
             return False
 
-        logger.info(f"{t_name} Playing media {t_viinput} of length {length} at {fps} FPS")
+        logger.info(f"{t_name} Playing media {t_viinput} of length {media_length} at {fps} FPS")
         logger.info(f"{t_name} Stopcast value : {self.stopcast}")
 
         # detect if we want specific frame index: only for non-live video
-        if self.frame_index != 0 and length > 1:
+        if self.frame_index != 0 and media_length > 1:
             logger.info(f"{t_name} Take frame number {self.frame_index}")
             media.set(1, self.frame_index - 1)
 
@@ -382,7 +382,7 @@ class CASTMedia:
             expected_time = start_time + frame_count * interval
 
             #  read media
-            if length != 1:
+            if media_length != 1:
                 # Sync all casts to player_time if requested
                 # manage concurrent access to the list by using lock feature
                 # set value if auto sync is true
@@ -459,7 +459,7 @@ class CASTMedia:
                 # read frame
                 success, frame = media.read()
                 if not success:
-                    if frame_count != length:
+                    if frame_count != media_length:
                         logger.warning(f'{t_name} Not all frames have been read')
                     else:
                         logger.info(f'{t_name} Media reached END')
@@ -545,7 +545,7 @@ class CASTMedia:
                                                                             "devices": ip_addresses,
                                                                             "fps": 1 / delay,
                                                                             "frames": frame_count,
-                                                                            "length": length
+                                                                            "length": media_length
                                                                             }
                                                    }
                                           }
@@ -624,7 +624,7 @@ class CASTMedia:
                     logger.error(f'{t_name} An exception occurred: {error}')
                     break
 
-                if length == 1 and fps == 1:
+                if media_length == 1 and fps == 1:
                     break
 
             else:
@@ -639,10 +639,16 @@ class CASTMedia:
                 # DDP run in separate thread to avoid block main loop
                 # here we feed the queue that is read by DDP thread
                 if self.protocol == "ddp":
-                    if ip_addresses[0] != '127.0.0.1' and len(ip_addresses) == 1 and t_multicast is False:
-                        # send data to queue
-                        ddp_host.send_to_queue(frame_to_send, self.retry_number)
-                        CASTMedia.total_packet += ddp_host.frame_count
+                    if len(ip_addresses) == 1 and t_multicast is False:
+                        try:
+                            if ip_addresses[0] != '127.0.0.1':
+                                # send data to queue
+                                ddp_host.send_to_queue(frame_to_send, self.retry_number)
+                                CASTMedia.total_packet += ddp_host.frame_count
+                        except Exception as tr_error:
+                            logger.error(traceback.format_exc())
+                            logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
+                            break
 
                         # if multicast and more than one ip address and matrix size 1 * 1
                         # we send the frame to all cast devices
@@ -660,8 +666,6 @@ class CASTMedia:
                             logger.error(f'{t_name} An exception occurred: {error}')
                             break
 
-                        # CASTMedia.total_packet += ddp_host.frame_count
-
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:
                     add_frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
@@ -672,8 +676,8 @@ class CASTMedia:
                     stop for non-live video (length not -1)
                     if we reach end of video or request only one frame from index
                 """
-                if length != -1:
-                    if frame_count >= length or self.frame_index != 0:
+                if media_length != -1:
+                    if frame_count >= media_length or self.frame_index != 0:
                         logger.info(f"{t_name} Reached END ...")
                         break
 

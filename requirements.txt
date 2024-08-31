@@ -1,6 +1,6 @@
 numpy==1.26.4
 opencv-python==4.10.0.84
-PyWinCtl==0.4.0
+PyWinCtl==0.4
 wled==0.16.0
 zeroconf==0.132.2
 nicegui==1.4.36
@@ -24,3 +24,5 @@ pygrabber
 concurrent-log-handler
 cfg-load
 async-timeout
+
+setuptools==68.2.0

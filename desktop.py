@@ -20,8 +20,8 @@
 # You can cast your entire desktop screen or only window content or desktop area.
 # Data will be sent through 'ddp' protocol or stream via udp:// rtp:// etc ...
 # ddp data are sent by using queue feature to avoid any network problem which cause latency
-# 27/05/2024: cv2.imshow with import av  freeze on OS not Win
-# to fix it, cv2.imshow can run from its own process with cost of additional overhead, set preview_proc = True
+# 27/05/2024: cv2.imshow with import av  freeze on not win OS
+# to fix it, cv2.imshow can run from its own process with cost of additional overhead: set preview_proc = True
 #
 
 import sys
@@ -593,10 +593,16 @@ class CASTDesktop:
                             # DDP run in separate thread to avoid block main loop
                             # here we feed the queue that is read by DDP thread
                             if self.protocol == "ddp":
-                                if ip_addresses[0] != '127.0.0.1' and len(ip_addresses) == 1 and t_multicast is False:
-                                    # send data to queue
-                                    ddp_host.send_to_queue(frame_to_send, self.retry_number)
-                                    CASTDesktop.total_packet += ddp_host.frame_count
+                                if len(ip_addresses) == 1 and t_multicast is False:
+                                    try:
+                                        if ip_addresses[0] != '127.0.0.1':
+                                            # send data to queue
+                                            ddp_host.send_to_queue(frame_to_send, self.retry_number)
+                                            CASTDesktop.total_packet += ddp_host.frame_count
+                                    except Exception as tr_error:
+                                        logger.error(traceback.format_exc())
+                                        logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
+                                        break
 
                                     # if multicast and more than one ip address and matrix size 1 * 1
                                     # we send the frame to all cast devices
@@ -613,8 +619,6 @@ class CASTDesktop:
                                         logger.error(traceback.format_exc())
                                         logger.error(f'{t_name} An exception occurred: {error}')
                                         break
-
-                                    # CASTDesktop.total_packet += ddp_host.frame_count
 
                             # save frame to np buffer if requested (so can be used after by the main)
                             if self.put_to_buffer and frame_count <= self.frame_max:

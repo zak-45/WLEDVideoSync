@@ -765,10 +765,10 @@ class ScreenAreaSelection:
         # Set the geometry to match the selected monitor
         self.root.geometry(f"{self.monitor.width}x{self.monitor.height}+{self.monitor.x}+{self.monitor.y}")
         self.root.overrideredirect(True)  # Remove window decorations
-        self.root.wm_attributes('-alpha', 0.5)  # Set window transparency
-        self.root.configure()
 
-        self.canvas = tk.Canvas(self.root, cursor="cross", highlightthickness=0)
+        self.root.withdraw()  # Hide the window initially to avoid flicker
+
+        self.canvas = tk.Canvas(self.root, cursor="cross", highlightthickness=0, bg='gray')
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         self.rect = None
@@ -778,6 +778,13 @@ class ScreenAreaSelection:
         self.canvas.bind("<Button-1>", self.on_button_press)
         self.canvas.bind("<B1-Motion>", self.on_mouse_drag)
         self.canvas.bind("<ButtonRelease-1>", self.on_button_release)
+
+        # Apply transparency and show window after short delay
+        self.root.after(100, self.apply_transparency)
+
+    def apply_transparency(self):
+        self.root.wm_attributes('-alpha', 0.5)  # Set window transparency
+        self.root.deiconify()  # Show the window
 
     def on_button_press(self, event):
         # Save mouse drag start position
