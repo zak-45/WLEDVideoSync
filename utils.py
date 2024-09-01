@@ -855,6 +855,7 @@ class YtSearch:
         self.yt_search = None
         self.yt_anime = anime
         self.videos_search = None
+        self.limit = 5
         ui.separator()
         with ui.row():
             self.my_search = ui.input('YT search')
@@ -904,7 +905,7 @@ class YtSearch:
     async def py_search(self, data):
         """ Search for YT from input """
 
-        self.videos_search = VideosSearch(data, limit=5)
+        self.videos_search = VideosSearch(data, limit=self.limit)
         self.yt_search = await self.videos_search.next()
 
         # number found
@@ -923,6 +924,7 @@ class YtSearch:
     async def next_search(self):
         """ Next if you want more """
 
+        self.limit += 5
         # await ui.context.client.connected()
         self.search_button.props('loading')
         tmp_dict = await self.videos_search.next()
