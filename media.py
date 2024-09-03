@@ -175,10 +175,6 @@ class CASTMedia:
 
         frame_count = 0
 
-        delay: float = 0
-        if self.rate != 0:
-            delay: float = 1.0 / self.rate  # Calculate the time interval between frames
-
         t_todo_stop = False
 
         self.player_sync = False
@@ -543,7 +539,7 @@ class CASTMedia:
                                                                             "preview": t_preview,
                                                                             "multicast": t_multicast,
                                                                             "devices": ip_addresses,
-                                                                            "fps": 1 / delay,
+                                                                            "fps": 1 / interval,
                                                                             "frames": frame_count,
                                                                             "length": media_length
                                                                             }
@@ -705,7 +701,7 @@ class CASTMedia:
                                 self.preview_h,
                                 t_todo_stop,
                                 frame_count,
-                                fps,
+                                (1 / interval),
                                 str(ip_addresses),
                                 self.text,
                                 self.custom_text,
@@ -767,7 +763,7 @@ class CASTMedia:
                         self.preview_h,
                         t_todo_stop,
                         frame_count,
-                        fps,
+                        (1 / interval),
                         ip_addresses,
                         self.text,
                         self.custom_text,
@@ -808,10 +804,12 @@ class CASTMedia:
         if t_preview is True:
             CV2Utils.cv2_win_close(CASTMedia.server_port, 'Media', t_name, t_viinput)
 
-        # release only if managed video capture device
-        if not isinstance(media, np.ndarray):
-            logger.info(f'{t_name} Release Media')
+        # release media
+        try:
             media.release()
+            logger.info(f'{t_name} Release Media')
+        except Exception as r_error:
+            logger.warning(f'{t_name} Release Media status : {r_error}')
 
         self.all_sync = False
         self.cast_sleep = False

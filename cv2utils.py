@@ -229,7 +229,7 @@ class CV2Utils:
 
                 # Top
                 text_to_show = f"WLEDVideoSync: {server_port} - "
-                text_to_show += "FPS: " + str(1 / fps) + " - "
+                text_to_show += "FPS: " + str(fps) + " - "
                 text_to_show += "FRAME: " + str(frame_count) + " - "
                 text_to_show += "TOTAL: " + str(total_frame)
             else:
