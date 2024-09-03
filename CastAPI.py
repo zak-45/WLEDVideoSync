@@ -1915,7 +1915,7 @@ def reset_sync():
 async def player_sync():
     """ Set Sync cast to True """
 
-    # await context.client.connected()
+    await ui.context.client.connected()
     current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
     ui.notify(f'Player Time : {current_time}')
     Media.player_time = current_time * 1000
@@ -1934,7 +1934,7 @@ async def get_player_time():
     Retrieve current play time from the Player
     Set player time for Cast to Sync
     """
-    # await context.client.connected()
+    await ui.context.client.connected()
     if CastAPI.type_sync == 'player' or CastAPI.last_type_sync == 'player':
         current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
         Media.player_time = round(current_time * 1000)
@@ -1945,7 +1945,7 @@ async def player_duration():
     Return current duration time from the Player
     Set slider max value to video duration
     """
-    # await context.client.connected()
+    await ui.context.client.connected()
     current_duration = await ui.run_javascript("document.querySelector('video').duration", timeout=2)
     ui.notify(f'Video duration:{current_duration}')
     Media.player_duration = current_duration
