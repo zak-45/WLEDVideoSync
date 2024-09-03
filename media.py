@@ -340,7 +340,7 @@ class CASTMedia:
             if self.force_mjpeg:
                 media.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 
-        # Calculate the interval between frames in seconds
+        # Calculate the interval between frames in seconds (fps)
         if self.rate != 0:
             interval: float = 1.0 / self.rate
         else:
@@ -798,9 +798,6 @@ class CASTMedia:
         CASTMedia.cast_names.remove(t_name)
         CASTMedia.t_exit_event.clear()
 
-        # Clean ShareableList
-        Utils.sl_clean(sl, sl_process, t_name)
-
         if t_preview is True:
             CV2Utils.cv2_win_close(CASTMedia.server_port, 'Media', t_name, t_viinput)
 
@@ -813,6 +810,9 @@ class CASTMedia:
 
         self.all_sync = False
         self.cast_sleep = False
+
+        # Clean ShareableList
+        Utils.sl_clean(sl, sl_process, t_name)
 
         logger.info("_" * 50)
         logger.info(f'Cast {t_name} end using this media: {t_viinput}')

@@ -45,10 +45,13 @@ class CV2Utils:
         # for window into sub process
         if preview_proc:
             logger.debug('Window on sub process')
-            # attach to a shareable list by name
-            sl = ShareableList(name=t_name)
-            sl[6] = False
-            sl[18] = '0,0,0'
+            try:
+                # attach to a shareable list by name
+                sl = ShareableList(name=t_name)
+                sl[6] = False
+                sl[18] = '0,0,0'
+            except Exception as t_error:
+                logger.error(f'Error to access SharedList  {t_name} with error : {t_error} ')
 
         else:
 
@@ -57,8 +60,8 @@ class CV2Utils:
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                 if not win == 0:
                     cv2.destroyWindow(window_name)
-            except:
-                pass
+            except Exception as t_error:
+                logger.error(f'Error on thread  {t_name} closing window with error : {t_error} ')
 
     @staticmethod
     def sl_main_preview(shared_list, class_name):
