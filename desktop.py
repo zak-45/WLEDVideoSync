@@ -73,6 +73,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
 
         # config keys
         app_config = cast_config.get('app')
+        desktop_config = cast_config.get('desktop')
         config_text = app_config['text']
         if str2bool(config_text) is True:
             cfg_text = True
@@ -357,6 +358,10 @@ class CASTDesktop:
             logger.error(traceback.format_exc())
             logger.error(f'{t_name} An exception occurred: {error}')
             return False
+
+        # Decoding with auto threading...if True Decode using both FRAME and SLICE methods
+        if str2bool(desktop_config['multi_thread']) is True:
+            input_container.streams.video[0].thread_type = "AUTO"  # Go faster!
 
         # Define Output via av only if protocol is other
         if 'other' in self.protocol:

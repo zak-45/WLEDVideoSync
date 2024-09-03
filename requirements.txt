@@ -24,5 +24,3 @@ pygrabber
 concurrent-log-handler
 cfg-load
 async-timeout
-
-setuptools==68.2.0
