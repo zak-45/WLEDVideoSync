@@ -42,11 +42,12 @@ reconnect_timeout = 3
 # preview_proc  : True or False
 #                 run preview window in sub process, need to be True on macOS/linux
 #                 False : cv2.imshow() run from the cast thread, ok for win platform
-# native_ui     : True or False, True run ui in native OS window or False run in browser. Mainly for OS not win32.
-# native_ui_size: None, browser or w,h e.g. 1200,720.
-#                   None will run NiceGUI without GUI (native_ui need to be False)
-#                   browser, run default browser
-#                   1200,720 for example, will run it into pywebview (native OS window of 1200x720), force native_ui
+# native_ui     : True, browser , none or False
+#                   True run ui in native OS window
+#                   False run ui browser
+#                   none , no GUI
+# native_ui_size: w,h e.g. 1200,720.
+#                   1200,720 for example, will run it into pywebview (native OS window of 1200x720)
 # uvicorn       : True or False
 #                   True run Uvicorn server on sub process
 #                   False to run from nicegui server (uvicorn implementation)

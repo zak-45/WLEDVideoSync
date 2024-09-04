@@ -2884,20 +2884,24 @@ app.add_static_files('/xtra', 'xtra')
 app.on_startup(init_actions)
 
 # choose GUI
+native_ui = app_config['native_ui']
 native_ui_size = app_config['native_ui_size']
 show = None
 try:
-    if native_ui_size == 'None':
+    if native_ui.lower() == 'none':
         native_ui_size = None
+        native_ui = False
         show = False
-    elif native_ui_size == 'browser':
-        show = True
-        native_ui_size = None
-    else:
+    elif str2bool(native_ui):
+        native_ui = True
         native_ui_size = tuple(native_ui_size.split(','))
         native_ui_size = (int(native_ui_size[0]), int(native_ui_size[1]))
+    else:
+        show = True
+        native_ui_size = None
+        native_ui = False
 except Exception as error:
-    logger.error(f'Error in config file for native_ui_size : {native_ui_size} - {error}')
+    logger.error(f'Error in config file for native_ui : {native_ui} - {error}')
     sys.exit(1)
 
 # run app
@@ -2908,7 +2912,7 @@ ui.run(title='WLEDVideoSync',
        show=show,
        reconnect_timeout=int(server_config['reconnect_timeout']),
        reload=False,
-       native=str2bool(app_config['native_ui']),
+       native=native_ui,
        window_size=native_ui_size)
 
 """

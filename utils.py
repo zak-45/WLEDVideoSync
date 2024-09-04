@@ -959,7 +959,7 @@ class YtSearch:
                         yt_url.tooltip('Click to copy')
                         yt_url.style('text-decoration: underline; cursor: pointer;')
                         yt_url.on('click', lambda my_yt=yt_url: (ui.clipboard.write(my_yt.text),
-                                                                 ui.notify('copied')))
+                                                                 ui.notify('YT Url copied')))
                         with ui.row():
                             yt_watch_close = ui.icon('videocam_off', size='sm')
                             yt_watch_close.tooltip('Player OFF')
