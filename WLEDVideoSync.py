@@ -15,6 +15,7 @@
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
 # nuitka-project: --lto=no
+# nuitka-project: --clang
 # nuitka-project: --nofollow-import-to=doctest
 
 """
