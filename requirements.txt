@@ -25,4 +25,5 @@ concurrent-log-handler
 cfg-load
 async-timeout
 pycairo ; sys_platform == "linux"
+PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
