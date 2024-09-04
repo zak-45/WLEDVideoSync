@@ -42,7 +42,7 @@ reconnect_timeout = 3
 # preview_proc  : True or False
 #                 run preview window in sub process, need to be True on macOS/linux
 #                 False : cv2.imshow() run from the cast thread, ok for win platform
-# native_ui     : True, browser , none or False
+# native_ui     : True, None or False
 #                   True run ui in native OS window
 #                   False run ui browser
 #                   none , no GUI
