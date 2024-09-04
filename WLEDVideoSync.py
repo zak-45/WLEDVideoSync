@@ -249,7 +249,10 @@ def start_webview_process(window_name='Splash'):
         )
 
     # start webview
-    webview.start(menu=menu_items)
+    if sys.platform.lower() == 'linux':
+        webview.start()
+    else:
+        webview.start(menu=menu_items)
 
 
 def keep_running():
