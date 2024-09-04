@@ -12,7 +12,7 @@
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 # nuitka-project-if: {OS} == "Linux":
-#   nuitka-project: --include-module=qi
+#   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
 # nuitka-project: --lto=no
 # nuitka-project: --nofollow-import-to=doctest
