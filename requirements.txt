@@ -8,7 +8,6 @@ str2bool==1.1
 pillow==10.4.0
 fastapi==0.109.2
 starlette==0.36.3
-pywebview==5.1
 pystray==0.19.5
 uvicorn[standard]==0.30.6
 psutil==6.0.0
@@ -17,6 +16,11 @@ requests==2.32.3
 screeninfo==0.8.1
 av==12.3.0
 youtube-search-python==1.6.6
+pywebview==5.1 ; sys_platform != "linux"
+pywebview[qt]==5.1 ; sys_platform == "linux"
+pycairo ; sys_platform == "linux"
+PyGObject ; sys_platform == "linux"
+qtpy ; sys_platform == "linux"
 yt-dlp
 linuxpy
 imageio
@@ -24,6 +28,3 @@ pygrabber
 concurrent-log-handler
 cfg-load
 async-timeout
-pycairo ; sys_platform == "linux"
-PyGObject ; sys_platform == "linux"
-qtpy ; sys_platform == "linux"
