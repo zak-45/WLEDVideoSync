@@ -1168,7 +1168,7 @@ async def video_player_page():
         CastAPI.player.set_visibility(True)
         with ui.row(wrap=False).classes('self-center'):
             ui.label() \
-                .bind_text_from(Media, 'player_time') \
+                .bind_text_from(Media, 'sync_to_time') \
                 .classes('self-center bg-slate-400') \
                 .bind_visibility_from(CastAPI.player)
             ui.label('+').bind_visibility_from(CastAPI.player)
@@ -1873,7 +1873,7 @@ async def reset_total():
 
 
 async def select_sc_area():
-    """ Draw rectangle to monitor x """
+    """ with mouse, draw rectangle to monitor x """
 
     monitor = int(Desktop.monitor_number)
     # run in no blocking way
@@ -1886,16 +1886,39 @@ async def select_sc_area():
     logger.info(f'Area screen Coordinates: {Sa.screen_coordinates} from monitor {monitor}')
 
 
+async def player_sync():
+    """ Set Sync cast to True """
+
+    # client need to be connected
+    await ui.context.client.connected()
+    current_time = round(await ui.run_javascript("document.querySelector('video').currentTime", timeout=2))
+    ui.notify(f'Player Time : {current_time}')
+    # set time
+    Media.sync_to_time = current_time * 1000
+    Media.cast_sync = True
+    CastAPI.type_sync = 'player'
+    CastAPI.last_type_sync = 'player'
+    # gui update
+    CastAPI.media_button_sync.props(add="color=red")
+    CastAPI.media_button_sync.text = current_time
+    CastAPI.media_button_sync.classes('animate-pulse')
+    CastAPI.slider_button_sync.props(remove="color=red")
+    CastAPI.slider_button_sync.text = "TSYNC"
+
+
 async def slider_sync():
     """ Set Sync Cast to True """
+
     current_time = CastAPI.video_slider.value
     ui.notify(f'Slider Time : {current_time}')
-    Media.player_time = current_time * 1000
-    Media.player_sync = True
+    # set time
+    Media.sync_to_time = current_time * 1000
+    Media.cast_sync = True
     CastAPI.type_sync = 'slider'
     CastAPI.last_type_sync = 'slider'
+    # gui update
     CastAPI.slider_button_sync.props(add="color=red")
-    CastAPI.slider_button_sync.text = round(current_time)
+    CastAPI.slider_button_sync.text = current_time
     CastAPI.slider_button_sync.classes('animate-pulse')
     CastAPI.media_button_sync.props(remove="color=red")
     CastAPI.media_button_sync.text = "VSYNC"
@@ -1904,29 +1927,17 @@ async def slider_sync():
 def slider_time(current_time):
     """ Set player time for Cast """
 
-    Media.player_time = current_time * 1000
+    if CastAPI.type_sync == 'slider':
+        Media.sync_to_time = current_time * 1000
 
 
 def reset_sync():
-    Media.player_sync = False
+    """ Reset player sync value to default """
+
+    Media.cast_sync = False
+    Media.auto_sync_delay = 30
+    Media.add_all_sync_delay = 0
     ui.notify('Reset Sync')
-
-
-async def player_sync():
-    """ Set Sync cast to True """
-
-    await ui.context.client.connected()
-    current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
-    ui.notify(f'Player Time : {current_time}')
-    Media.player_time = current_time * 1000
-    Media.player_sync = True
-    CastAPI.type_sync = 'player'
-    CastAPI.last_type_sync = 'player'
-    CastAPI.media_button_sync.props(add="color=red")
-    CastAPI.media_button_sync.text = round(current_time)
-    CastAPI.media_button_sync.classes('animate-pulse')
-    CastAPI.slider_button_sync.props(remove="color=red")
-    CastAPI.slider_button_sync.text = "TSYNC"
 
 
 async def get_player_time():
@@ -1936,8 +1947,8 @@ async def get_player_time():
     """
     await ui.context.client.connected()
     if CastAPI.type_sync == 'player' or CastAPI.last_type_sync == 'player':
-        current_time = await ui.run_javascript("document.querySelector('video').currentTime", timeout=2)
-        Media.player_time = round(current_time * 1000)
+        current_time = round(await ui.run_javascript("document.querySelector('video').currentTime", timeout=2))
+        Media.sync_to_time = current_time * 1000
 
 
 async def player_duration():

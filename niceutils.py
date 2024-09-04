@@ -97,21 +97,21 @@ async def head_set(name, target, icon):
 async def sync_button(CastAPI, Media):
     """ Sync Buttons """
 
-    if Media.player_sync is True:
+    if Media.cast_sync is True:
         # VSYNC
         CastAPI.media_button_sync.classes('animate-pulse')
         CastAPI.media_button_sync.props(add="color='gray'")
         if CastAPI.last_type_sync == 'player':
             CastAPI.media_button_sync.props(add="color='red'")
-            CastAPI.media_button_sync.text = Media.player_time
+            CastAPI.media_button_sync.text = Media.sync_to_time
         # TSYNC
         CastAPI.slider_button_sync.classes('animate-pulse')
         CastAPI.slider_button_sync.props(add="color='gray'")
         if CastAPI.last_type_sync == 'slider':
             CastAPI.slider_button_sync.props(add="color='red'")
-            CastAPI.slider_button_sync.text = Media.player_time
+            CastAPI.slider_button_sync.text = Media.sync_to_time
 
-    elif Media.player_sync is False and CastAPI.type_sync != 'none':
+    elif Media.cast_sync is False and CastAPI.type_sync != 'none':
         CastAPI.media_button_sync.props(add="color=green")
         CastAPI.media_button_sync.classes(remove="animate-pulse")
         CastAPI.media_button_sync.text = "VSYNC"
