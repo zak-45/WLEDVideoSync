@@ -24,4 +24,5 @@ pygrabber
 concurrent-log-handler
 cfg-load
 async-timeout
-qtpy
+gi ; sys_platform == "linux"
+qtpy ; sys_platform == "linux"
