@@ -14,8 +14,6 @@
 # nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
-# nuitka-project: --lto=no
-# nuitka-project: --clang
 # nuitka-project: --nofollow-import-to=doctest
 
 """
@@ -463,7 +461,7 @@ if __name__ == '__main__':
         else:
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
             Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
-            Utils.update_ini_key(config_file, 'app', 'native_ui_size', 'browser')
+            Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
 
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')

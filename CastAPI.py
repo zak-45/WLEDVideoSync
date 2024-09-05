@@ -135,6 +135,10 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
         logger.error(f'Bad server Port: {server_port}')
         sys.exit(2)
 
+"""
+Actions to do at application initialization 
+"""
+
 
 async def init_actions():
     """ Done at start of app and before GUI available """
@@ -161,7 +165,7 @@ async def init_actions():
         else:
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', 'browser')
+            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '')
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
 
         Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
