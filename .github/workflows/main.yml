@@ -60,7 +60,8 @@ jobs:
       - name: Ubuntu specific bis
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.0          
+          sudo apt-get install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.0          
+          sudo apt-get install gstreamer1.0-plugins-bad
 
       - name: Install Dependencies for All
         run: |
