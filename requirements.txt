@@ -24,7 +24,7 @@ youtube-search-python==1.6.6
 
 # Platform dependant
 pywebview==5.1 ; sys_platform != "linux"
-pywebview[qt]==5.2 ; sys_platform == "linux"
+pywebview[qt]==5.1 ; sys_platform == "linux"
 pycairo ; sys_platform == "linux"
 PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"

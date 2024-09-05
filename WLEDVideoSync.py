@@ -14,6 +14,7 @@
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 # nuitka-project-if: {OS} == "Linux":
+#   nuitka-project: --lto=no
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
 # nuitka-project: --nofollow-import-to=doctest
@@ -250,7 +251,7 @@ def start_webview_process(window_name='Splash'):
 
     # start webview
     if sys.platform.lower() == 'linux':
-        webview.start()
+        webview.start(gui="qt", menu=menu_items)
     else:
         webview.start(menu=menu_items)
 
