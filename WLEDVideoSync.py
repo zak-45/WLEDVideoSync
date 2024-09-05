@@ -251,10 +251,8 @@ def start_webview_process(window_name='Splash'):
         )
 
     # start webview
-    if sys.platform.lower() == 'linux':
-        webview.start(gui="qt", menu=menu_items)
-    else:
-        webview.start(menu=menu_items)
+    # To change a default renderer set PYWEBVIEW_GUI environment variable: cef, qt, gtk ...
+    webview.start(menu=menu_items)
 
 
 def keep_running():

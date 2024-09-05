@@ -19,7 +19,7 @@ psutil==6.0.0
 FreeSimpleGUI==5.1.1
 requests==2.32.3
 screeninfo==0.8.1
-av==12.3.0
+av==13.0.0
 youtube-search-python==1.6.6
 
 # Platform dependant

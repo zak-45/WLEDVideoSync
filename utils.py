@@ -151,6 +151,7 @@ class CASTUtils:
             'ignoreerrors': True,  # Ignore errors, such as unavailable formats
             'quiet': True,  # Suppress unnecessary output
         }
+
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
