@@ -15,6 +15,7 @@
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 # nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --lto=no
+#   nuitka-project: --clang
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
 # nuitka-project: --nofollow-import-to=doctest
