@@ -350,7 +350,7 @@ class CASTMedia:
         logger.info(f"{t_name} Playing media {t_viinput} of length {media_length} at {fps} FPS")
         logger.info(f"{t_name} Stopcast value : {self.stopcast}")
 
-        # detect if we want specific frame index: only for non-live video
+        # detect if we want specific frame index: only for non-live video (-1) and not image (1)
         if self.frame_index != 0 and media_length > 1:
             logger.info(f"{t_name} Take frame number {self.frame_index}")
             media.set(1, self.frame_index - 1)
@@ -377,7 +377,11 @@ class CASTMedia:
             # Calculate the expected time for the current frame
             expected_time = start_time + frame_count * interval
 
+            #
             #  read media
+            #
+
+            # media is video or live video (usb camera, web url ...)
             if media_length != 1:
                 # Sync all casts to player_time if requested
                 # manage concurrent access to the list by using lock feature
@@ -452,7 +456,9 @@ class CASTMedia:
                             self.cast_sync = False
                             logger.info(f'{t_name} Sync Cast to time :{self.sync_to_time}')
 
+                #
                 # read frame
+                #
                 success, frame = media.read()
                 if not success:
                     if frame_count != media_length:
@@ -462,7 +468,15 @@ class CASTMedia:
                     break
 
             # resize to default
-            frame = CV2Utils.resize_image(frame, 640, 360)
+            # this will validate media passed to cv2
+            # common part for image media_length = 1 or live video = -1 or video > 1
+            # break in case of failure
+            try:
+                frame = CV2Utils.resize_image(frame, 640, 360)
+            except Exception as im_error:
+                logger.error(f'Error to resize image : {im_error}')
+                break
+
             # convert to RGB
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             # adjust gamma
@@ -501,6 +515,7 @@ class CASTMedia:
             check if something to do
             manage concurrent access to the list by using lock feature
             event clear only when no more item in list
+            this should be owned by the first cast which take control
             """
 
             if CASTMedia.t_todo_event.is_set():
@@ -591,20 +606,22 @@ class CASTMedia:
                 # frame_art = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
                 frame = CV2Utils.resize_image(frame, self.scale_width * t_cast_x, self.scale_height * t_cast_y)
 
-                # populate global cast buffer from first frame only
+                #
                 if frame_count > 1:
                     # split to matrix
                     t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                     # put frame to np buffer (so can be used after by the main)
+                    # new cast overwrite, only the last can be seen from GUI
                     if self.put_to_buffer and frame_count <= self.frame_max:
                         add_frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
                         add_frame = CV2Utils.resize_image(add_frame, self.scale_width, self.scale_height)
                         self.frame_buffer.append(add_frame)
 
                 else:
+                    # populate global cast buffer from first frame only
                     # split to matrix
                     self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
-                    # validate cast_devices number
+                    # validate cast_devices number only once
                     if len(ip_addresses) != len(self.cast_frame_buffer):
                         logger.error(f'{t_name} Cast devices number != sub images number: check cast_devices ')
                         break
@@ -620,6 +637,7 @@ class CASTMedia:
                     logger.error(f'{t_name} An exception occurred: {error}')
                     break
 
+                # looks like we read an image, so out from the loop...
                 if media_length == 1 and fps == 1:
                     break
 
@@ -713,7 +731,7 @@ class CASTMedia:
                             name=t_name)
 
                         # run main_preview in another process
-                        # create a child process, so cv2.imshow() will run from its Main Thread
+                        # create a child process, so cv2.imshow() will run from its own Main Thread
                         sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Media',))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
@@ -750,7 +768,7 @@ class CASTMedia:
 
                 else:
 
-                    # for win, not necessary to use child process as this work into thread (avoid overhead)
+                    # for win, not necessary to use child process as this work from this thread (avoid overhead)
                     t_preview, t_todo_stop, self.text = CV2Utils.cv2_preview_window(
                         CASTMedia.total_frame,
                         frame,
@@ -798,18 +816,20 @@ class CASTMedia:
         CASTMedia.cast_names.remove(t_name)
         CASTMedia.t_exit_event.clear()
 
+        self.all_sync = False
+        self.cast_sleep = False
+
+        # close preview
         if t_preview is True:
             CV2Utils.cv2_win_close(CASTMedia.server_port, 'Media', t_name, t_viinput)
 
         # release media
         try:
-            media.release()
-            logger.info(f'{t_name} Release Media')
+            if not isinstance(media, np.ndarray):
+                media.release()
+                logger.info(f'{t_name} Release Media')
         except Exception as r_error:
             logger.warning(f'{t_name} Release Media status : {r_error}')
-
-        self.all_sync = False
-        self.cast_sleep = False
 
         # Clean ShareableList
         Utils.sl_clean(sl, sl_process, t_name)

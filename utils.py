@@ -49,6 +49,9 @@ from str2bool import str2bool
 import multiprocessing
 import configparser
 
+import io
+from PIL import Image
+
 
 class CASTUtils:
     dev_list: list = []
@@ -621,6 +624,46 @@ class CASTUtils:
         preset_config = cast_config.get('presets')
 
         return server_config, app_config, colors_config, custom_config, preset_config
+
+    @staticmethod
+    async def download_image(download_path, url, file_name):
+        """ Download an image from an Url """
+
+        try:
+            image_content = requests.get(url).content
+            image_file = io.BytesIO(image_content)
+            image = Image.open(image_file)
+            image = image.convert('RGB')
+            file_path = download_path + file_name
+
+            if os.path.isfile(file_path):
+                logger.info(f'Image already exist : {file_path}')
+            else:
+                with open(file_path, "wb") as f:
+                    image.save(f, "JPEG")
+
+                logger.info(f'Image saved to : {file_path}')
+
+            return True
+
+        except Exception as e:
+            logger.error(f'Error to save image from {url} :  {e}')
+
+            return False
+
+    @staticmethod
+    async def is_image_url(url):
+        """ detect if url contains an image """
+
+        try:
+            response = requests.get(url, stream=True)
+            content_type = response.headers.get('Content-Type')
+            if content_type and content_type.startswith('image/'):
+                return True
+            return False
+        except requests.RequestException as e:
+            logger.error(f"Error checking URL: {e}")
+            return False
 
 
 class HTTPDiscovery:

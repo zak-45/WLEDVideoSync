@@ -344,6 +344,10 @@ async def player_media_info(player_media):
         editor = ui.json_editor({'content': {'json': CV2Utils.get_media_info(player_media)}}) \
             .run_editor_method('updateProps', {'readOnly': True, 'mode': 'table'})
 
+        with ui.card():
+            ui.label(player_media)
+            ui.image(player_media)
+
 
 async def player_url_info(player_url):
     """ Grab YouTube information from an Url """

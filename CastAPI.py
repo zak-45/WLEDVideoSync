@@ -1259,15 +1259,15 @@ async def video_player_page():
                 .tooltip('Select audio / video file') \
                 .bind_visibility_from(CastAPI.player)
 
-            video_url = ui.input('Enter video Url / Path', placeholder='http://....') \
+            video_url = ui.input('Enter video/image Url / Path', placeholder='http://....') \
                 .bind_visibility_from(CastAPI.player)
-            video_url.tooltip('Enter Url, click on icon to download video, '
+            video_url.tooltip('Enter Url, click on icon to download video/image, '
                               ' hide and show player should refresh data')
             video_url.on('focus', js_handler='''(event) => {const input = event.target;input.select();}''')
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
-            video_url_icon.tooltip("Download video from Url")
-            video_url_icon.on('click', lambda: download_yt(video_url.value))
+            video_url_icon.tooltip("Download video/image from Url")
+            video_url_icon.on('click', lambda: download_url(video_url.value))
             video_url_icon.bind_visibility_from(CastAPI.player)
             video_url_info = ui.icon('info')
             video_url_info.style("cursor: pointer")
@@ -2673,21 +2673,21 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False, interacti
         img = buffer[image_number]
         img = Image.fromarray(img)
         img = ImageUtils.image_to_ascii(img)
-        filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
+        t_filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
             h) + "_" + date_time + ".txt"
-        with open(filename, 'w') as ascii_file:
+        with open(t_filename, 'w') as ascii_file:
             ascii_file.write(img)
 
     else:
-        filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
+        t_filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
             h) + "_" + date_time + ".jpg"
         img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
-        cv2.imwrite(filename, img)
+        cv2.imwrite(t_filename, img)
 
     if interactive:
-        ui.notify(f"Image saved to {filename}")
+        ui.notify(f"Image saved to {t_filename}")
 
-    logger.info(f"Image saved to {filename}")
+    logger.info(f"Image saved to {t_filename}")
 
 
 async def discovery_net_notify():
@@ -2802,8 +2802,8 @@ async def bar_get_size():
             await asyncio.sleep(.1)
 
 
-async def download_yt(url):
-    """ Download youtube video """
+async def download_url(url):
+    """ Download url video/image from Web """
 
     video_url = url
     CastAPI.progress_bar.value = 0
@@ -2821,6 +2821,19 @@ async def download_yt(url):
         # if no error, set local YT file name to video player
         if yt != '':
             video_url = yt
+
+    # check if image
+    elif await Utils.is_image_url(url):
+
+        # generate a unique name
+        # Get the current date and time
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Format the unique name with prefix, date, time, and extension
+        image_name = f"image_{current_time}.jpg"
+
+        result = await Utils.download_image('./media/', url, image_name)
+        if result:
+            video_url = './media/' + image_name
 
     ui.notify(f'Video set to : {video_url}')
     logger.info(f'Video set to : {video_url}')
@@ -2943,3 +2956,9 @@ for tmp_filename in PathLib("./tmp/").glob("*_file.*"):
 if str2bool(app_config['keep_yt']) is not True:
     for media_filename in PathLib("./media/").glob("yt-tmp-*.*"):
         media_filename.unlink()
+
+# remove image files
+if str2bool(app_config['keep_image']) is not True:
+    for filename in PathLib("./media/").glob("image_*_*.jpg"):
+        filename.unlink()
+

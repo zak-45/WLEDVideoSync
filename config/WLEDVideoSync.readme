@@ -19,12 +19,6 @@
 # workers 	        : Uvicorn also has an option to start and run several worker processes
 # reconnect_timeout : maximum time the server waits for the browser to reconnect (default: 3.0 seconds)
 [server]
-server_port = auto
-server_ip = localhost
-log_level = info
-workers = 1
-reconnect_timeout = 3
-
 
 
 # app default
@@ -35,8 +29,10 @@ reconnect_timeout = 3
 # put_on_systray: True, application will go to systray
 # timer         : seconds before refresh data on main page, bigger less resource needed
 # img_folder    : folder where to save images, need to terminate by '/' e.g. C:/test/image/ for Win absolute path
+#                   used only for image saving not downloading
 # video_file    : default video to show, relative to installed folder
-# keep_yt       : default to False, if True, downloaded youtube file(s) will remain on the media folder
+# keep_yt       : default to False, if True, downloaded youtube file(s) will remain on the media folder (yt-tmp-*)
+# keep_image    : default to False, if True, downloaded image file(s) will remain on the media folder (image_*_*.jpg)
 # charts_exe    : path to runcharts app file, only if you want to display nicecharts.
 # text          : display information on preview window : fps, frames, device ...
 # preview_proc  : True or False
@@ -53,35 +49,12 @@ reconnect_timeout = 3
 #                   False to run from nicegui server (uvicorn implementation)
 #                   on Win32, put to True to have feature like systray
 [app]
-show_window = True
-log_to_main = True
-log_level = INFO
-put_on_systray = True
-timer = 2
-img_folder = ./media/
-video_file = ./media/Big_Buck_Bunny_360_10s_1MB.mp4
-keep_yt = False
-charts_exe = C:\NiceDashboard\runcharts.exe
-text = True
-preview_proc = False
-native_ui = False
-native_ui_size = 1200,720
-uvicorn = True
 
 
 # ui.colors() color theme
 # change default colors on UI look
 # see: https://quasar.dev/style/theme-builder
 [colors]
-primary = #0c2f52
-secondary = #AAAFBB
-accent = #9C27B0
-dark = #1d1d1d
-dark-page = #121212
-positive = #21BA45
-negative = #C10015
-info = #31CCEC
-warning = #F2C037
 
 
 # More customization
@@ -93,12 +66,7 @@ warning = #F2C037
 # yt-format     : video format yt-dlp to choose
 #                    ex:  '18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]', Ensure 320p and single stream
 [custom]
-bg-image =
-system-stats = True
-cpu-chart = True
-player = True
-animate-ui = True
-yt-format = 18/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]
+
 
 # presets to load at app startup
 # file name must exist on related folder
@@ -109,20 +77,15 @@ yt-format = 18/bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]
 # cast_media     : cast preset name for Media to apply
 # cast_desktop   : cast preset name for Desktop to apply
 [presets]
-load_at_start = False
-filter_media =
-filter_desktop =
-cast_media =
-cast_desktop =
+
 
 # specific to Desktop Cast
 # multi_thread      :   True or False, if True will use AUTO
-"""
-Which multithreading methods to use.
-Use of FF_THREAD_FRAME will increase decoding delay by one frame per thread,
-so clients which cannot provide future frames should not use it.
-ThreadType Name Meaning in FFmpeg (NONE FRAME SLICE AUTO)
-Decode using both FRAME and SLICE methods if True
-"""
+                    """
+                    Which multithreading methods to use.
+                    Use of FF_THREAD_FRAME will increase decoding delay by one frame per thread,
+                    so clients which cannot provide future frames should not use it.
+                    ThreadType Name Meaning in FFmpeg (NONE FRAME SLICE AUTO)
+                    Decode using both FRAME and SLICE methods if True
+                    """
 [desktop]
-multi_thread = True

@@ -614,6 +614,11 @@ if __name__ == '__main__':
         if str2bool(app_config['keep_yt']) is not True:
             for filename in PathLib("./media/").glob("yt-tmp-*.*"):
                 filename.unlink()
+        # remove image files
+        if str2bool(app_config['keep_image']) is not True:
+            for filename in PathLib("./media/").glob("image_*_*.jpg"):
+                filename.unlink()
+
     except Exception as error:
         logger.error(f'Error to remove tmp files : {error}')
 
