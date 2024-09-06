@@ -626,11 +626,11 @@ class CASTUtils:
         return server_config, app_config, colors_config, custom_config, preset_config
 
     @staticmethod
-    async def download_image(download_path, url, file_name):
+    async def download_image(download_path, url, file_name, timeout: int = 3):
         """ Download an image from an Url """
 
         try:
-            image_content = requests.get(url).content
+            image_content = requests.get(url, timeout=timeout).content
             image_file = io.BytesIO(image_content)
             image = Image.open(image_file)
             image = image.convert('RGB')
@@ -652,11 +652,11 @@ class CASTUtils:
             return False
 
     @staticmethod
-    async def is_image_url(url):
+    async def is_image_url(url, timeout: int = 2):
         """ detect if url contains an image """
 
         try:
-            response = requests.get(url, stream=True)
+            response = requests.get(url, stream=True, timeout=timeout)
             content_type = response.headers.get('Content-Type')
             if content_type and content_type.startswith('image/'):
                 return True
@@ -791,6 +791,7 @@ class LocalFilePicker(ui.dialog):
             self.submit([str(self.path)])
 
     async def _handle_ok(self):
+        await ui.context.client.connected()
         rows = await ui.run_javascript(f'getElement({self.grid.id}).gridOptions.api.getSelectedRows()')
         self.submit([r['path'] for r in rows])
 

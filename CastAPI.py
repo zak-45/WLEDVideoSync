@@ -1247,7 +1247,7 @@ async def video_player_page():
                 .tooltip('Cast Video') \
                 .bind_visibility_from(CastAPI.player)
 
-            cast_number = ui.number(min=-1, max=999, precision=0, placeholder='Repeat')
+            cast_number = ui.number(min=-1, max=9999, precision=0, placeholder='Repeat')
             cast_number.tooltip('Enter number of time you want to re-play Media')
             cast_number.bind_value(Media, 'repeat')
             cast_number.bind_visibility_from(CastAPI.player)

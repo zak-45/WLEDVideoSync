@@ -146,7 +146,7 @@ class CASTMedia:
         self.cast_sleep = False  # instruct cast to wait until all sync
         self.reset_total = False  # reset total number of frame / packets on monitor
         self.preview = True
-        self.repeat = 0  # number of repetition, from -1 to 999,  -1 = infinite
+        self.repeat = 0  # number of repetition, from -1 to 9999,  -1 = infinite
 
     """
     Cast Thread
@@ -322,6 +322,7 @@ class CASTMedia:
         """
         frame = None
         orig_frame = None
+        is_image = False
         self.frame_buffer = []
         self.cast_frame_buffer = []
 
@@ -339,6 +340,7 @@ class CASTMedia:
             frame = media
             orig_frame = frame
             fps = 1
+            is_image = True
         else:
             fps = media.get(cv2.CAP_PROP_FPS)
             media.set(cv2.CAP_PROP_BUFFERSIZE, 1)
@@ -451,12 +453,12 @@ class CASTMedia:
                 else:
 
                     if self.cast_skip_frames != 0:
-                        # this work only for the cast that first read the value
+                        # this work only for the first cast that read the value
                         frame_number = frame_count + self.cast_skip_frames
                         media.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
                         self.cast_skip_frames = 0
                     else:
-                        # this work only for the cast that first read the value
+                        # this work only for the first cast that read the value
                         if self.cast_sync:
                             media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
                             self.cast_sync = False
@@ -664,7 +666,7 @@ class CASTMedia:
                     break
 
                 # looks like we read an image, so out from the loop...
-                if media_length == 1 and fps == 1:
+                if is_image:
                     break
 
             else:
@@ -718,7 +720,7 @@ class CASTMedia:
                 """
                 if media_length != -1:
                     # only if not image
-                    if media_length != 1 and fps != 1:
+                    if not is_image:
                         if frame_count >= media_length or self.frame_index != 0:
                             logger.info(f"{t_name} Reached END ...")
                             break
@@ -837,7 +839,7 @@ class CASTMedia:
             do we need to repeat image
             """
             # check repeat for image
-            if media_length == 1 and fps == 1:
+            if is_image:
                 if t_repeat > 0 or t_repeat < 0:
                     t_repeat -= 1
                     logger.info(f'{t_name} Remaining repeat : {t_repeat}')
@@ -872,7 +874,7 @@ class CASTMedia:
         # close preview
         if t_preview is True:
             # if it's an image, we sleep 2 secs before close preview
-            if media_length == 1 and fps == 1:
+            if is_image:
                 time.sleep(2)
 
             CV2Utils.cv2_win_close(CASTMedia.server_port, 'Media', t_name, t_viinput)
