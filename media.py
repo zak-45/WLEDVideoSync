@@ -146,6 +146,7 @@ class CASTMedia:
         self.cast_sleep = False  # instruct cast to wait until all sync
         self.reset_total = False  # reset total number of frame / packets on monitor
         self.preview = True
+        self.repeat = 0  # number of repetition, from -1 to 999,  -1 = infinite
 
     """
     Cast Thread
@@ -183,6 +184,8 @@ class CASTMedia:
 
         sl_process = None
         sl = None
+
+        t_repeat = self.repeat
 
         """
         Cast devices
@@ -318,6 +321,7 @@ class CASTMedia:
         Second, capture media
         """
         frame = None
+        orig_frame = None
         self.frame_buffer = []
         self.cast_frame_buffer = []
 
@@ -333,6 +337,7 @@ class CASTMedia:
         if media_length == 1:
             media = cv2.imread(str(t_viinput))
             frame = media
+            orig_frame = frame
             fps = 1
         else:
             fps = media.get(cv2.CAP_PROP_FPS)
@@ -357,6 +362,7 @@ class CASTMedia:
 
         CASTMedia.cast_names.append(t_name)
         CASTMedia.count += 1
+
         # Calculate the current time
         current_time = time.time()
         auto_expected_time = current_time
@@ -463,9 +469,29 @@ class CASTMedia:
                 if not success:
                     if frame_count != media_length:
                         logger.warning(f'{t_name} Not all frames have been read')
+                        break
+
                     else:
                         logger.info(f'{t_name} Media reached END')
-                    break
+                        if t_repeat > 0 or t_repeat < 0:
+                            t_repeat -= 1
+                            logger.info(f'{t_name} Remaining repeat : {t_repeat}')
+                            # reset media to start
+                            media.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                            # read one frame
+                            success, frame = media.read()
+                            if not success:
+                                logger.error(f'{t_name} Not able to repeat')
+                                break
+                            frame_count = 0
+                            # reset start time to be able to calculate sleep time to reach requested fps
+                            start_time = time.time()
+                            # Calculate the current time
+                            current_time = time.time()
+                            auto_expected_time = current_time
+
+                        else:
+                            break
 
             # resize to default
             # this will validate media passed to cv2
@@ -691,9 +717,11 @@ class CASTMedia:
                     if we reach end of video or request only one frame from index
                 """
                 if media_length != -1:
-                    if frame_count >= media_length or self.frame_index != 0:
-                        logger.info(f"{t_name} Reached END ...")
-                        break
+                    # only if not image
+                    if media_length != 1 and fps != 1:
+                        if frame_count >= media_length or self.frame_index != 0:
+                            logger.info(f"{t_name} Reached END ...")
+                            break
 
             """
             Manage preview window, depend on the platform
@@ -805,6 +833,28 @@ class CASTMedia:
                 if sleep_time > 0:
                     time.sleep(sleep_time)
 
+            """
+            do we need to repeat image
+            """
+            # check repeat for image
+            if media_length == 1 and fps == 1:
+                if t_repeat > 0 or t_repeat < 0:
+                    t_repeat -= 1
+                    logger.info(f'{t_name} Remaining repeat : {t_repeat}')
+                    frame_count = 0
+                    # reset start time to be able to calculate sleep time to reach requested fps
+                    start_time = time.time()
+                    # Calculate the current time
+                    current_time = time.time()
+                    auto_expected_time = current_time
+                    frame = orig_frame
+
+                else:
+                    break
+
+            """
+            update data
+            """
             frame_count += 1
             CASTMedia.total_frame += 1
 
@@ -821,6 +871,10 @@ class CASTMedia:
 
         # close preview
         if t_preview is True:
+            # if it's an image, we sleep 2 secs before close preview
+            if media_length == 1 and fps == 1:
+                time.sleep(2)
+
             CV2Utils.cv2_win_close(CASTMedia.server_port, 'Media', t_name, t_viinput)
 
         # release media

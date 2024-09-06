@@ -346,14 +346,13 @@ async def player_media_info(player_media):
 
         with ui.card():
             ui.label(player_media)
-            ui.image(player_media)
+            ui.image(player_media).classes('w-32')
 
 
 async def player_url_info(player_url):
     """ Grab YouTube information from an Url """
 
     async def yt_search():
-        await ui.context.client.connected()
         with ui.dialog() as dialog:
             dialog.open()
             editor = ui.json_editor({'content': {'json': await Utils.list_yt_formats(player_url)}}) \
@@ -502,7 +501,7 @@ async def cast_devices_view(class_name):
 
 
 async def player_pick_file(CastAPI) -> None:
-    """ Select file to read for video CastAPI.player"""
+    """ Select file to read for video CastAPI.player """
 
     result = await LocalFilePicker('./', multiple=False)
     ui.notify(f'Selected :  {result}')

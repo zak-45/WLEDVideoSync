@@ -1247,10 +1247,15 @@ async def video_player_page():
                 .tooltip('Cast Video') \
                 .bind_visibility_from(CastAPI.player)
 
+            cast_number = ui.number(min=-1, max=999, precision=0, placeholder='Repeat')
+            cast_number.tooltip('Enter number of time you want to re-play Media')
+            cast_number.bind_value(Media, 'repeat')
+            cast_number.bind_visibility_from(CastAPI.player)
+
             media_info = ui.icon('info', size='sd') \
                 .style("cursor: pointer") \
                 .on('click', lambda: nice.player_media_info(CastAPI.player.source)) \
-                .tooltip('Info') \
+                .tooltip('Media Info') \
                 .bind_visibility_from(CastAPI.player)
 
             video_file = ui.icon('folder', color='orange', size='md') \
@@ -2335,7 +2340,7 @@ async def player_cast(source):
         ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
     else:
         Media.viinput = source
-        Media.rate = int(round(float(media_info[3].split(':')[1].replace(' ', '').replace('"', ''))))
+        Media.rate = int(round(float(media_info[2].split(':')[1].replace(' ', '').replace('"', ''))))
         ui.notify(f'Cast running from : {source}')
         Media.cast(shared_buffer=t_data_buffer)
     CastAPI.player.play()

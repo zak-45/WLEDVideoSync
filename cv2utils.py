@@ -299,24 +299,31 @@ class CV2Utils:
 
     @staticmethod
     def get_media_info(media: str = None):
-        dict_media = ['"File_Name":"{}"'.format(media)]
-        capture = cv2.VideoCapture(media)
+        """ retrieve cv2 info from media """
+        dict_media = []
 
-        # showing values of the properties
-        dict_media.append('"CV_CAP_PROP_FRAME_WIDTH": "{}"'.format(capture.get(cv2.CAP_PROP_FRAME_WIDTH)))
-        dict_media.append('"CV_CAP_PROP_FRAME_HEIGHT" : "{}"'.format(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        dict_media.append('"CAP_PROP_FPS" : "{}"'.format(capture.get(cv2.CAP_PROP_FPS)))
-        dict_media.append('"CAP_PROP_POS_MSEC" : "{}"'.format(capture.get(cv2.CAP_PROP_POS_MSEC)))
-        dict_media.append('"CAP_PROP_FRAME_COUNT" : "{}"'.format(capture.get(cv2.CAP_PROP_FRAME_COUNT)))
-        dict_media.append('"CAP_PROP_BRIGHTNESS" : "{}"'.format(capture.get(cv2.CAP_PROP_BRIGHTNESS)))
-        dict_media.append('"CAP_PROP_CONTRAST" : "{}"'.format(capture.get(cv2.CAP_PROP_CONTRAST)))
-        dict_media.append('"CAP_PROP_SATURATION" : "{}"'.format(capture.get(cv2.CAP_PROP_SATURATION)))
-        dict_media.append('"CAP_PROP_HUE" : "{}"'.format(capture.get(cv2.CAP_PROP_HUE)))
-        dict_media.append('"CAP_PROP_GAIN" : "{}"'.format(capture.get(cv2.CAP_PROP_GAIN)))
-        dict_media.append('"CAP_PROP_CONVERT_RGB" : "{}"'.format(capture.get(cv2.CAP_PROP_CONVERT_RGB)))
+        try:
 
-        # release
-        capture.release()
+            capture = cv2.VideoCapture(media)
+
+            # showing values of the properties
+            dict_media.append('"CV_CAP_PROP_FRAME_WIDTH": "{}"'.format(capture.get(cv2.CAP_PROP_FRAME_WIDTH)))
+            dict_media.append('"CV_CAP_PROP_FRAME_HEIGHT" : "{}"'.format(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            dict_media.append('"CAP_PROP_FPS" : "{}"'.format(capture.get(cv2.CAP_PROP_FPS)))
+            dict_media.append('"CAP_PROP_POS_MSEC" : "{}"'.format(capture.get(cv2.CAP_PROP_POS_MSEC)))
+            dict_media.append('"CAP_PROP_FRAME_COUNT" : "{}"'.format(capture.get(cv2.CAP_PROP_FRAME_COUNT)))
+            dict_media.append('"CAP_PROP_BRIGHTNESS" : "{}"'.format(capture.get(cv2.CAP_PROP_BRIGHTNESS)))
+            dict_media.append('"CAP_PROP_CONTRAST" : "{}"'.format(capture.get(cv2.CAP_PROP_CONTRAST)))
+            dict_media.append('"CAP_PROP_SATURATION" : "{}"'.format(capture.get(cv2.CAP_PROP_SATURATION)))
+            dict_media.append('"CAP_PROP_HUE" : "{}"'.format(capture.get(cv2.CAP_PROP_HUE)))
+            dict_media.append('"CAP_PROP_GAIN" : "{}"'.format(capture.get(cv2.CAP_PROP_GAIN)))
+            dict_media.append('"CAP_PROP_CONVERT_RGB" : "{}"'.format(capture.get(cv2.CAP_PROP_CONVERT_RGB)))
+
+            # release
+            capture.release()
+
+        except Exception as e:
+            logger.error(f'Error to get cv2 info : {e}')
 
         return dict_media
 
