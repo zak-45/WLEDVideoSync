@@ -791,8 +791,7 @@ class LocalFilePicker(ui.dialog):
             self.submit([str(self.path)])
 
     async def _handle_ok(self):
-        await ui.context.client.connected()
-        rows = await ui.run_javascript(f'getElement({self.grid.id}).gridOptions.api.getSelectedRows()')
+        rows = await self.grid.get_selected_rows()
         self.submit([r['path'] for r in rows])
 
 
