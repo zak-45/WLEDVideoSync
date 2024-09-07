@@ -54,7 +54,7 @@ from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
 from cv2utils import ImageUtils
 from cv2utils import CV2Utils
-from utils import LocalFilePicker
+from niceutils import LocalFilePicker
 from utils import ScreenAreaSelection as Sa
 from utils import YtSearch
 from utils import AnimatedElement as Animate

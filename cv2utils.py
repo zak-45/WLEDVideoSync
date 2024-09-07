@@ -653,6 +653,120 @@ class ImageUtils:
         return gamma_table
 
 
+class VideoThumbnailExtractor:
+    """
+
+    extract thumbnail from a video file
+
+# Usage
+video_path = "path/to/your/video.mp4"
+
+extractor = VideoThumbnailExtractor(video_path)
+extractor.extract_thumbnail(time_in_seconds=10)  # Extract thumbnail at 10 seconds
+
+thumbnail_frame = extractor.get_thumbnail_frame()
+
+if thumbnail_frame is not None:
+    # Display the thumbnail using OpenCV
+    cv2.imshow('Thumbnail', thumbnail_frame)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+else:
+    print("No thumbnail extracted.")
+
+"""
+    def __init__(self, media_path, thumbnail_width=160):
+        self.media_path = media_path
+        self.thumbnail_width = thumbnail_width
+        self.thumbnail_frame = None
+
+    def is_image_file(self):
+        # Check if the file extension is an image format
+        image_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']
+        _, ext = os.path.splitext(self.media_path)
+        return ext.lower() in image_extensions
+
+    def is_video_file(self):
+        # Check if the file can be opened as a video
+        cap = cv2.VideoCapture(self.media_path)
+        if not cap.isOpened():
+            return False
+        ret, _ = cap.read()
+        cap.release()
+        return ret
+
+    def extract_thumbnail(self, time_in_seconds=0):
+        if self.is_image_file():
+            self.extract_thumbnail_from_image()
+        elif self.is_video_file():
+            self.extract_thumbnail_from_video(time_in_seconds)
+        else:
+            # Provide a blank frame if the file is not a valid media file
+            self.thumbnail_frame = self.create_blank_frame()
+            logger.warning(f"{self.media_path} is not a valid media file. Generated a blank frame.")
+
+    def extract_thumbnail_from_image(self):
+        image = cv2.imread(self.media_path)
+        if image is not None:
+            # Resize the image to the specified thumbnail width while maintaining aspect ratio
+            height, width, _ = image.shape
+            aspect_ratio = height / width
+            new_height = int(self.thumbnail_width * aspect_ratio)
+            resized_image = cv2.resize(image, (self.thumbnail_width, new_height))
+            self.thumbnail_frame = resized_image
+            logger.debug(f"Thumbnail extracted from image: {self.media_path}")
+        else:
+            self.thumbnail_frame = self.create_blank_frame()
+            logger.error("Failed to read image. Generated a blank frame.")
+
+    def extract_thumbnail_from_video(self, time_in_seconds):
+        cap = cv2.VideoCapture(self.media_path)
+        if not cap.isOpened():
+            logger.error(f"Failed to open video file: {self.media_path}")
+            self.thumbnail_frame = self.create_blank_frame()
+            return
+
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        video_length = cap.get(cv2.CAP_PROP_FRAME_COUNT) / fps
+
+        if time_in_seconds > video_length:
+            logger.warning(f"Specified time {time_in_seconds}s is greater than video length {video_length}s. "
+                           f"Setting time to {video_length}s.")
+            time_in_seconds = video_length
+
+        frame_number = int(time_in_seconds * fps)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+        success, frame = cap.read()
+
+        if success:
+            # Resize the frame to the specified thumbnail width while maintaining aspect ratio
+            height, width, _ = frame.shape
+            aspect_ratio = height / width
+            new_height = int(self.thumbnail_width * aspect_ratio)
+            resized_frame = cv2.resize(frame, (self.thumbnail_width, new_height))
+
+            self.thumbnail_frame = resized_frame
+            logger.info(f"Thumbnail extracted at {time_in_seconds}s.")
+        else:
+            logger.error("Failed to extract frame.")
+            self.thumbnail_frame = self.create_blank_frame()
+
+        self.thumbnail_frame = cv2.cvtColor(self.thumbnail_frame, cv2.COLOR_BGR2RGB)
+
+        cap.release()
+
+    def create_blank_frame(self):
+        # Create a blank frame with the specified thumbnail width and a default height
+        height = int(self.thumbnail_width * 9 / 16)  # Assuming a 16:9 aspect ratio for the blank frame
+        blank_frame = np.random.randint(0, 256, (height, self.thumbnail_width, 3), dtype=np.uint8)
+        # blank_frame = np.zeros((height, self.thumbnail_width, 3), np.uint8)
+        # blank_frame[:] = (255, 255, 255)  # White blank frame
+        return blank_frame
+
+    def get_thumbnail_frame(self):
+        return self.thumbnail_frame
+
+
 """
 When this env var exist, this mean run from the one-file compressed executable.
 Load of the config is not possible, folder config should not exist.
