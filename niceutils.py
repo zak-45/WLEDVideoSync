@@ -349,7 +349,11 @@ async def player_media_info(player_media):
 
         with ui.card():
             ui.label(player_media)
-            ui.image(player_media).classes('w-32')
+            extractor = VideoThumbnailExtractor(player_media)
+            await extractor.extract_thumbnail(time_in_seconds=5)  # Extract thumbnail at 5 seconds
+            thumbnail_frame = extractor.get_thumbnail_frame()
+            img = Image.fromarray(thumbnail_frame)
+            ui.image(img).classes('w-32')
 
 
 async def player_url_info(player_url):
@@ -551,6 +555,9 @@ class LocalFilePicker(ui.dialog):
                 'rowSelection': 'multiple' if multiple else 'single',
             }, html_columns=[0]).classes('w-96').on('cellDoubleClicked', self.handle_double_click)
 
+            # inform on right click
+            self.grid.on('cellClicked', self.click)
+
             # open image or video thumb
             self.grid.on('cellContextMenu', self.right_click)
 
@@ -603,17 +610,22 @@ class LocalFilePicker(ui.dialog):
         rows = await self.grid.get_selected_rows()
         self.submit([r['path'] for r in rows])
 
-    async def right_click(self):
-        ui.notify('Generate thumbnail ...')
-        with ui.dialog() as thumb:
-            thumb.open()
-            with ui.card().classes('w-full'):
-                row = await self.grid.get_selected_row()
-                if row is not None:
-                    extractor = VideoThumbnailExtractor(row['path'])
-                    extractor.extract_thumbnail(time_in_seconds=5)  # Extract thumbnail at 5 seconds
-                    thumbnail_frame = extractor.get_thumbnail_frame()
-                    img = Image.fromarray(thumbnail_frame)
-                    ui.image(img)
-                ui.button('Close', on_click=thumb.close)
+    def click(self, e: events.GenericEventArguments) -> None:
+        self.path = Path(e.args['data']['path'])
+        if not self.path.is_dir():
+            ui.notify('Right-click for Preview', position='top')
 
+    async def right_click(self, e: events.GenericEventArguments) -> None:
+        self.path = Path(e.args['data']['path'])
+        if not self.path.is_dir():
+            with ui.dialog() as thumb:
+                thumb.open()
+                with ui.card().classes('w-full'):
+                    row = await self.grid.get_selected_row()
+                    if row is not None:
+                        extractor = VideoThumbnailExtractor(row['path'])
+                        await extractor.extract_thumbnail(time_in_seconds=5)  # Extract thumbnail at 5 seconds
+                        thumbnail_frame = extractor.get_thumbnail_frame()
+                        img = Image.fromarray(thumbnail_frame)
+                        ui.image(img)
+                    ui.button('Close', on_click=thumb.close)

@@ -657,10 +657,10 @@ class VideoThumbnailExtractor:
     """
 
     extract thumbnail from a video file
+    thumbnail_width=160 by default
 
 # Usage
 video_path = "path/to/your/video.mp4"
-
 extractor = VideoThumbnailExtractor(video_path)
 extractor.extract_thumbnail(time_in_seconds=10)  # Extract thumbnail at 10 seconds
 
@@ -695,11 +695,11 @@ else:
         cap.release()
         return ret
 
-    def extract_thumbnail(self, time_in_seconds=0):
+    async def extract_thumbnail(self, time_in_seconds=0):
         if self.is_image_file():
             self.extract_thumbnail_from_image()
         elif self.is_video_file():
-            self.extract_thumbnail_from_video(time_in_seconds)
+            await self.extract_thumbnail_from_video(time_in_seconds)
         else:
             # Provide a blank frame if the file is not a valid media file
             self.thumbnail_frame = self.create_blank_frame()
@@ -719,7 +719,7 @@ else:
             self.thumbnail_frame = self.create_blank_frame()
             logger.error("Failed to read image. Generated a blank frame.")
 
-    def extract_thumbnail_from_video(self, time_in_seconds):
+    async def extract_thumbnail_from_video(self, time_in_seconds):
         cap = cv2.VideoCapture(self.media_path)
         if not cap.isOpened():
             logger.error(f"Failed to open video file: {self.media_path}")
