@@ -360,12 +360,13 @@ async def player_url_info(player_url):
     """ Grab YouTube information from an Url """
 
     async def yt_search():
+        data = await Utils.list_yt_formats(player_url)
         with ui.dialog() as dialog:
             dialog.open()
-            editor = ui.json_editor({'content': {'json': await Utils.list_yt_formats(player_url)}}) \
+            editor = ui.json_editor({'content': {'json': data}}) \
                 .run_editor_method('updateProps', {'readOnly': True, 'mode': 'tree'})
 
-    ui.notify('Grab info from YT ...')
+    ui.notify('Grab info from Url ...')
     ui.timer(.1, yt_search, once=True)
 
 

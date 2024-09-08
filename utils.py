@@ -150,6 +150,7 @@ class CASTUtils:
 
         ydl_opts = {
             'listformats': True,
+            'socket_timeout': 2,  # timeout try access Url
             'noplaylist': True,  # Do not download playlists
             'ignoreerrors': True,  # Ignore errors, such as unavailable formats
             'quiet': True,  # Suppress unnecessary output

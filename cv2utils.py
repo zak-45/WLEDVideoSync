@@ -655,9 +655,10 @@ class ImageUtils:
 
 class VideoThumbnailExtractor:
     """
-
     extract thumbnail from a video file
-    thumbnail_width=160 by default
+
+    thumbnail_width: 160 by default
+    get_thumbnail_frame: return a numpy array (RGB)
 
 # Usage
 video_path = "path/to/your/video.mp4"
@@ -751,8 +752,6 @@ else:
             logger.error("Failed to extract frame.")
             self.thumbnail_frame = self.create_blank_frame()
 
-        self.thumbnail_frame = cv2.cvtColor(self.thumbnail_frame, cv2.COLOR_BGR2RGB)
-
         cap.release()
 
     def create_blank_frame(self):
@@ -764,6 +763,7 @@ else:
         return blank_frame
 
     def get_thumbnail_frame(self):
+        self.thumbnail_frame = cv2.cvtColor(self.thumbnail_frame, cv2.COLOR_BGR2RGB)
         return self.thumbnail_frame
 
 
