@@ -655,31 +655,32 @@ class ImageUtils:
 
 class VideoThumbnailExtractor:
     """
-    extract thumbnail from a video file
+    Extract thumbnails from a video or image file.
 
     thumbnail_width: 160 by default
-    get_thumbnail_frame: return a numpy array (RGB)
+    get_thumbnails: return a list of numpy arrays (RGB)
 
-# Usage
-video_path = "path/to/your/video.mp4"
-extractor = VideoThumbnailExtractor(video_path)
-extractor.extract_thumbnail(time_in_seconds=10)  # Extract thumbnail at 10 seconds
+    # Usage
+    video_path = "path/to/your/video.mp4"
+    extractor = VideoThumbnailExtractor(video_path)
+    extractor.extract_thumbnails(times_in_seconds=[10, 20, 30])  # Extract thumbnails at specified times
 
-thumbnail_frame = extractor.get_thumbnail_frame()
+    thumbnail_frames = extractor.get_thumbnails()
 
-if thumbnail_frame is not None:
-    # Display the thumbnail using OpenCV
-    cv2.imshow('Thumbnail', thumbnail_frame)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-else:
-    print("No thumbnail extracted.")
+    for i, thumbnail_frame in enumerate(thumbnail_frames):
+        if thumbnail_frame is not None:
+            # Display the thumbnail using OpenCV
+            cv2.imshow(f'Thumbnail {i+1}', thumbnail_frame)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        else:
+            print(f"No thumbnail extracted at time {i}.")
+    """
 
-"""
     def __init__(self, media_path, thumbnail_width=160):
         self.media_path = media_path
         self.thumbnail_width = thumbnail_width
-        self.thumbnail_frame = None
+        self.thumbnail_frames = []
 
     def is_image_file(self):
         # Check if the file extension is an image format
@@ -696,17 +697,19 @@ else:
         cap.release()
         return ret
 
-    async def extract_thumbnail(self, time_in_seconds=0):
+    async def extract_thumbnails(self, times_in_seconds=None):
+        if times_in_seconds is None:
+            times_in_seconds = [5]
         if self.is_image_file():
-            self.extract_thumbnail_from_image()
+            self.extract_thumbnails_from_image()
         elif self.is_video_file():
-            await self.extract_thumbnail_from_video(time_in_seconds)
+            await self.extract_thumbnails_from_video(times_in_seconds)
         else:
-            # Provide a blank frame if the file is not a valid media file
-            self.thumbnail_frame = self.create_blank_frame()
-            logger.warning(f"{self.media_path} is not a valid media file. Generated a blank frame.")
+            # Provide blank frames if the file is not a valid media file
+            self.thumbnail_frames = [self.create_blank_frame() for _ in times_in_seconds]
+            logger.warning(f"{self.media_path} is not a valid media file. Generated blank frames.")
 
-    def extract_thumbnail_from_image(self):
+    def extract_thumbnails_from_image(self):
         image = cv2.imread(self.media_path)
         if image is not None:
             # Resize the image to the specified thumbnail width while maintaining aspect ratio
@@ -714,43 +717,44 @@ else:
             aspect_ratio = height / width
             new_height = int(self.thumbnail_width * aspect_ratio)
             resized_image = cv2.resize(image, (self.thumbnail_width, new_height))
-            self.thumbnail_frame = resized_image
+            self.thumbnail_frames = [resized_image]  # Single thumbnail for images
             logger.debug(f"Thumbnail extracted from image: {self.media_path}")
         else:
-            self.thumbnail_frame = self.create_blank_frame()
+            self.thumbnail_frames = [self.create_blank_frame()]
             logger.error("Failed to read image. Generated a blank frame.")
 
-    async def extract_thumbnail_from_video(self, time_in_seconds):
+    async def extract_thumbnails_from_video(self, times_in_seconds):
         cap = cv2.VideoCapture(self.media_path)
         if not cap.isOpened():
             logger.error(f"Failed to open video file: {self.media_path}")
-            self.thumbnail_frame = self.create_blank_frame()
+            self.thumbnail_frames = [self.create_blank_frame() for _ in times_in_seconds]
             return
 
         fps = cap.get(cv2.CAP_PROP_FPS)
         video_length = cap.get(cv2.CAP_PROP_FRAME_COUNT) / fps
 
-        if time_in_seconds > video_length:
-            logger.warning(f"Specified time {time_in_seconds}s is greater than video length {video_length}s. "
-                           f"Setting time to {video_length}s.")
-            time_in_seconds = video_length
+        for time_in_seconds in times_in_seconds:
+            if time_in_seconds > video_length:
+                logger.warning(f"Specified time {time_in_seconds}s is greater than video length {video_length}s. "
+                               f"Setting time to {video_length}s.")
+                time_in_seconds = video_length
 
-        frame_number = int(time_in_seconds * fps)
-        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
-        success, frame = cap.read()
+            frame_number = int(time_in_seconds * fps)
+            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+            success, frame = cap.read()
 
-        if success:
-            # Resize the frame to the specified thumbnail width while maintaining aspect ratio
-            height, width, _ = frame.shape
-            aspect_ratio = height / width
-            new_height = int(self.thumbnail_width * aspect_ratio)
-            resized_frame = cv2.resize(frame, (self.thumbnail_width, new_height))
+            if success:
+                # Resize the frame to the specified thumbnail width while maintaining aspect ratio
+                height, width, _ = frame.shape
+                aspect_ratio = height / width
+                new_height = int(self.thumbnail_width * aspect_ratio)
+                resized_frame = cv2.resize(frame, (self.thumbnail_width, new_height))
 
-            self.thumbnail_frame = resized_frame
-            logger.info(f"Thumbnail extracted at {time_in_seconds}s.")
-        else:
-            logger.error("Failed to extract frame.")
-            self.thumbnail_frame = self.create_blank_frame()
+                self.thumbnail_frames.append(resized_frame)
+                logger.info(f"Thumbnail extracted at {time_in_seconds}s.")
+            else:
+                logger.error("Failed to extract frame.")
+                self.thumbnail_frames.append(self.create_blank_frame())
 
         cap.release()
 
@@ -762,9 +766,8 @@ else:
         # blank_frame[:] = (255, 255, 255)  # White blank frame
         return blank_frame
 
-    def get_thumbnail_frame(self):
-        self.thumbnail_frame = cv2.cvtColor(self.thumbnail_frame, cv2.COLOR_BGR2RGB)
-        return self.thumbnail_frame
+    def get_thumbnails(self):
+        return [cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) for frame in self.thumbnail_frames]
 
 
 """

@@ -350,9 +350,9 @@ async def player_media_info(player_media):
         with ui.card():
             ui.label(player_media)
             extractor = VideoThumbnailExtractor(player_media)
-            await extractor.extract_thumbnail(time_in_seconds=5)  # Extract thumbnail at 5 seconds
-            thumbnail_frame = extractor.get_thumbnail_frame()
-            img = Image.fromarray(thumbnail_frame)
+            await extractor.extract_thumbnails(times_in_seconds=[5])  # Extract thumbnail at 5 seconds
+            thumbnails_frame = extractor.get_thumbnails()
+            img = Image.fromarray(thumbnails_frame[0])
             ui.image(img).classes('w-32')
 
 
@@ -625,8 +625,8 @@ class LocalFilePicker(ui.dialog):
                     row = await self.grid.get_selected_row()
                     if row is not None:
                         extractor = VideoThumbnailExtractor(row['path'])
-                        await extractor.extract_thumbnail(time_in_seconds=5)  # Extract thumbnail at 5 seconds
-                        thumbnail_frame = extractor.get_thumbnail_frame()
-                        img = Image.fromarray(thumbnail_frame)
+                        await extractor.extract_thumbnails(times_in_seconds=[5])  # Extract thumbnail at 5 seconds
+                        thumbnails_frame = extractor.get_thumbnails()
+                        img = Image.fromarray(thumbnails_frame[0])
                         ui.image(img)
                     ui.button('Close', on_click=thumb.close)
