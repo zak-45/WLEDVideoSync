@@ -198,8 +198,8 @@ async def init_actions():
                 logger.info(f"apply : {preset_config['cast_desktop']} to cast Desktop")
                 await load_cast_preset('Desktop', interactive=False, file_name=preset_config['cast_desktop'])
 
-    except Exception as m_error:
-        logger.error(f"Error on app startup {m_error}")
+    except Exception as e:
+        logger.error(f"Error on app startup {e}")
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
@@ -946,7 +946,7 @@ async def main_page():
             img = ui.image("/assets/favicon.ico").classes('self-center')
             img.on('click', lambda: animate_toggle(img))
             img.style('cursor: pointer')
-            img.tailwind.border_width('8').width('8')
+            img.tailwind.border_width('4').width('8')
         ui.label('MEDIA: Cast Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
 
     """
@@ -1264,20 +1264,20 @@ async def video_player_page():
                 .tooltip('Select audio / video file') \
                 .bind_visibility_from(CastAPI.player)
 
-            video_url = ui.input('Enter video/image Url / Path', placeholder='http://....') \
+            video_img_url = ui.input('Enter video/image Url / Path', placeholder='http://....') \
                 .bind_visibility_from(CastAPI.player)
-            video_url.tooltip('Enter Url, click on icon to download video/image, '
-                              ' hide and show player should refresh data')
-            video_url.on('focus', js_handler='''(event) => {const input = event.target;input.select();}''')
+            video_img_url.tooltip('Enter Url, click on icon to download video/image, '
+                                  ' hide and show player should refresh data')
+            video_img_url.on('focus', js_handler='''(event) => {const input = event.target;input.select();}''')
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
             video_url_icon.tooltip("Download video/image from Url")
-            video_url_icon.on('click', lambda: download_url(video_url.value))
+            video_url_icon.on('click', lambda: download_url(video_img_url.value))
             video_url_icon.bind_visibility_from(CastAPI.player)
             video_url_info = ui.icon('info')
             video_url_info.style("cursor: pointer")
-            video_url_info.tooltip("Youtube information's, including formats etc ...")
-            video_url_info.on('click', lambda: nice.player_url_info(video_url.value))
+            video_url_info.tooltip("Youtube/Url information's, including formats etc ...")
+            video_url_info.on('click', lambda: nice.player_url_info(video_img_url.value))
             video_url_info.bind_visibility_from(CastAPI.player)
 
             # Progress bar
@@ -2808,9 +2808,9 @@ async def bar_get_size():
 
 
 async def download_url(url):
-    """ Download url video/image from Web """
+    """ Download video/image from Web url """
 
-    video_url = url
+    video_img_url = url
     CastAPI.progress_bar.value = 0
     CastAPI.progress_bar.update()
 
@@ -2825,7 +2825,7 @@ async def download_url(url):
 
         # if no error, set local YT file name to video player
         if yt != '':
-            video_url = yt
+            video_img_url = yt
 
     # check if image
     elif await Utils.is_image_url(url):
@@ -2834,20 +2834,20 @@ async def download_url(url):
         # Get the current date and time
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
         # Format the unique name with prefix, date, time, and extension
-        image_name = f"image_{current_time}.jpg"
+        image_name = f"image-tmp_{current_time}.jpg"
 
         result = await Utils.download_image('./media/', url, image_name)
         if result:
-            video_url = './media/' + image_name
+            video_img_url = './media/' + image_name
 
-    ui.notify(f'Video set to : {video_url}')
-    logger.info(f'Video set to : {video_url}')
+    ui.notify(f'Video set to : {video_img_url}')
+    logger.info(f'Video set to : {video_img_url}')
 
     # put max value to progress bar
     CastAPI.progress_bar.value = 1
     CastAPI.progress_bar.update()
     # set video player media
-    CastAPI.player.set_source(video_url)
+    CastAPI.player.set_source(video_img_url)
     CastAPI.player.update()
 
 
@@ -2965,6 +2965,5 @@ if str2bool(app_config['keep_yt']) is not True:
 
 # remove image files
 if str2bool(app_config['keep_image']) is not True:
-    for filename in PathLib("./media/").glob("image_*_*.jpg"):
-        filename.unlink()
-
+    for img_filename in PathLib("./media/").glob("image-tmp_*_*.jpg"):
+        img_filename.unlink()

@@ -112,15 +112,17 @@ class CASTUtils:
     @staticmethod
     def sl_clean(sl, sl_process, t_name):
         """ clean ShareableList """
-
-        if sl_process is not None:
-            logger.info(f'Stopping Child Process for Preview if any : {t_name}')
-            sl_process.kill()
-        if sl is not None:
-            # close the shared memory
-            sl.shm.close()
-            # destroy the shared memory
-            sl.shm.unlink()
+        try:
+            if sl is not None:
+                # close the shared memory
+                sl.shm.close()
+                # destroy the shared memory
+                sl.shm.unlink()
+            if sl_process is not None:
+                logger.info(f'Stopping Child Process for Preview if any : {t_name}')
+                sl_process.kill()
+        except Exception as e:
+            logger.error(f'Error on SL clean : {e}')
 
     @staticmethod
     def list_av_formats():

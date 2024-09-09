@@ -477,7 +477,7 @@ class CASTMedia:
                         logger.info(f'{t_name} Media reached END')
                         if t_repeat > 0 or t_repeat < 0:
                             t_repeat -= 1
-                            logger.info(f'{t_name} Remaining repeat : {t_repeat}')
+                            logger.debug(f'{t_name} Remaining repeat : {t_repeat}')
                             # reset media to start
                             media.set(cv2.CAP_PROP_POS_FRAMES, 0)
                             # read one frame
@@ -732,33 +732,36 @@ class CASTMedia:
             if t_preview:
 
                 if str2bool(app_config['preview_proc']):
-                    # for no win platform, cv2.imshow() need to run into Main thread
+                    # mandatory for no win platform, cv2.imshow() need to run into Main thread
                     # We use ShareableList to share data between this thread and new process
                     if frame_count == 1:
                         # create a shared list, name is thread name
-                        sl = ShareableList(
-                            [
-                                CASTMedia.total_frame,
-                                frame.tobytes(),
-                                self.server_port,
-                                t_viinput,
-                                t_name,
-                                self.preview_top,
-                                t_preview,
-                                self.preview_w,
-                                self.preview_h,
-                                t_todo_stop,
-                                frame_count,
-                                (1 / interval),
-                                str(ip_addresses),
-                                self.text,
-                                self.custom_text,
-                                self.cast_x,
-                                self.cast_y,
-                                grid,
-                                str(frame.shape).replace('(', '').replace(')', '')
-                            ],
-                            name=t_name)
+                        try:
+                            sl = ShareableList(
+                                [
+                                    CASTMedia.total_frame,
+                                    frame.tobytes(),
+                                    self.server_port,
+                                    t_viinput,
+                                    t_name,
+                                    self.preview_top,
+                                    t_preview,
+                                    self.preview_w,
+                                    self.preview_h,
+                                    t_todo_stop,
+                                    frame_count,
+                                    (1 / interval),
+                                    str(ip_addresses),
+                                    self.text,
+                                    self.custom_text,
+                                    self.cast_x,
+                                    self.cast_y,
+                                    grid,
+                                    str(frame.shape).replace('(', '').replace(')', '')
+                                ],
+                                name=t_name)
+                        except Exception as e:
+                            logger.error(f'{t_name} Exception on shared list creation : {e}')
 
                         # run main_preview in another process
                         # create a child process, so cv2.imshow() will run from its own Main Thread
@@ -770,7 +773,7 @@ class CASTMedia:
 
                     # working with the shared list
                     if frame_count > 1:
-                        # what to do from data updated by the child process
+                        # what to do from data updated by the child process (mainly user keystroke on preview)
                         if sl[9] is True or sl[18] == '0,0,0':
                             t_todo_stop = True
                         if sl[6] is False:
@@ -781,6 +784,7 @@ class CASTMedia:
                             self.text = True
                         # Update Data on shared List
                         sl[0] = CASTMedia.total_frame
+                        # 08/09/2024
                         # append not zero value to bytes to solve ShareableList bug
                         # see https://github.com/python/cpython/issues/106939
                         new_frame = frame.tobytes()
@@ -842,7 +846,7 @@ class CASTMedia:
             if is_image:
                 if t_repeat > 0 or t_repeat < 0:
                     t_repeat -= 1
-                    logger.info(f'{t_name} Remaining repeat : {t_repeat}')
+                    logger.debug(f'{t_name} Remaining repeat : {t_repeat}')
                     frame_count = 0
                     # reset start time to be able to calculate sleep time to reach requested fps
                     start_time = time.time()
@@ -884,8 +888,8 @@ class CASTMedia:
             if not isinstance(media, np.ndarray):
                 media.release()
                 logger.info(f'{t_name} Release Media')
-        except Exception as r_error:
-            logger.warning(f'{t_name} Release Media status : {r_error}')
+        except Exception as e:
+            logger.warning(f'{t_name} Release Media status : {e}')
 
         # Clean ShareableList
         Utils.sl_clean(sl, sl_process, t_name)

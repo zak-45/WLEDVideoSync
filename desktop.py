@@ -640,29 +640,32 @@ class CASTDesktop:
                                 # We use ShareableList to share data between this thread and new process
                                 if frame_count == 1:
                                     # create a shared list, name is thread name
-                                    sl = ShareableList(
-                                        [
-                                            CASTDesktop.total_frame,
-                                            frame.tobytes(),
-                                            self.server_port,
-                                            t_viinput,
-                                            t_name,
-                                            self.preview_top,
-                                            t_preview,
-                                            self.preview_w,
-                                            self.preview_h,
-                                            t_todo_stop,
-                                            frame_count,
-                                            frame_interval,
-                                            str(ip_addresses),
-                                            self.text,
-                                            self.custom_text,
-                                            self.cast_x,
-                                            self.cast_y,
-                                            grid,
-                                            str(frame.shape).replace('(', '').replace(')', '')
-                                        ],
-                                        name=t_name)
+                                    try:
+                                        sl = ShareableList(
+                                            [
+                                                CASTDesktop.total_frame,
+                                                frame.tobytes(),
+                                                self.server_port,
+                                                t_viinput,
+                                                t_name,
+                                                self.preview_top,
+                                                t_preview,
+                                                self.preview_w,
+                                                self.preview_h,
+                                                t_todo_stop,
+                                                frame_count,
+                                                frame_interval,
+                                                str(ip_addresses),
+                                                self.text,
+                                                self.custom_text,
+                                                self.cast_x,
+                                                self.cast_y,
+                                                grid,
+                                                str(frame.shape).replace('(', '').replace(')', '')
+                                            ],
+                                            name=t_name)
+                                    except Exception as e:
+                                        logger.error(f'{t_name} Exception on shared list creation : {e}')
 
                                     # run main_preview in another process
                                     # create a child process, so cv2.imshow() will run from its Main Thread
@@ -674,7 +677,7 @@ class CASTDesktop:
 
                                 # working with the shared list
                                 if frame_count > 1:
-                                    # what to do from data updated by the child process
+                                    # what to do from data updated by the child process (keystroke from preview window)
                                     if sl[9] is True or sl[18] == '0,0,0':
                                         t_todo_stop = True
                                     elif sl[6] is False:
@@ -725,9 +728,9 @@ class CASTDesktop:
                                     'Desktop',
                                     grid)
 
-            except Exception as error:
+            except Exception as e:
                 logger.error(traceback.format_exc())
-                logger.error(f'{t_name} An exception occurred: {error}')
+                logger.error(f'{t_name} An exception occurred: {e}')
 
             finally:
                 """
