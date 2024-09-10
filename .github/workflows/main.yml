@@ -28,10 +28,6 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest, windows-2019]
 
-    if: ${{matrix.os}} == 'windows-2019'
-    env:
-      my_arch: x86
-
     runs-on: ${{matrix.os}}
    
     steps:
@@ -54,6 +50,8 @@ jobs:
          
       - name: Setup Python x64
         if: matrix.os != 'windows-2019'
+        env:
+          hw: x64
         uses: actions/setup-python@v5
         with:
           python-version: '3.11' # Version range or exact version of a Python version to use
@@ -64,6 +62,8 @@ jobs:
 
       - name: Setup Python x86
         if: matrix.os == 'windows-2019'
+        env:
+          hw: x86
         uses: actions/setup-python@v5
         with:
           python-version: '3.11' # Version range or exact version of a Python version to use
@@ -97,7 +97,7 @@ jobs:
           macos-create-app-bundle: true
           onefile: true
           onefile-tempdir-spec: ./WLEDVideoSync
-          output-file: WLEDVideoSync-${{runner.os}}
+          output-file: WLEDVideoSync-${{runner.os}}${{env.hw}}
           include-package-data: nicegui
           include-module: |
             CastAPI
@@ -123,7 +123,7 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDVideoSync-${{runner.os}}${{env.my_arch}}**'
+          path: 'build/WLEDVideoSync-${{runner.os}}${{env.hw}}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -131,4 +131,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-${{runner.os}}${{env.my_arch}}**'
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}${{env.hw}}**'
