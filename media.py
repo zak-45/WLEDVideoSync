@@ -359,8 +359,8 @@ class CASTMedia:
 
         # detect if we want specific frame index: only for non-live video (-1) and not image (1)
         if self.frame_index != 0 and media_length > 1:
-            logger.info(f"{t_name} Take frame number {self.frame_index}")
-            media.set(1, self.frame_index - 1)
+            logger.info(f"{t_name} Start at frame number {self.frame_index}")
+            media.set(cv2.CAP_PROP_POS_FRAMES, self.frame_index - 1)
 
         CASTMedia.cast_names.append(t_name)
         CASTMedia.count += 1
@@ -389,83 +389,87 @@ class CASTMedia:
             #  read media
             #
 
-            # media is video
-            if media_length > 1:
-                # Sync all casts to player_time if requested
-                # manage concurrent access to the list by using lock feature
-                # set value if auto sync is true
-                if self.auto_sync is True:
-                    # sync every x seconds
-                    if current_time - auto_expected_time >= self.auto_sync_delay:
-                        time_to_set = self.sync_to_time
-                        self.cast_sync = True
-                        logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
+            # media is video or live
+            if media_length != 1:
+                # only for video
+                if media_length > 1:
+                    # Sync all casts to player_time if requested
+                    # manage concurrent access to the list by using lock feature
+                    # set value if auto sync is true
+                    if self.auto_sync is True:
+                        # sync every x seconds
+                        if current_time - auto_expected_time >= self.auto_sync_delay:
+                            time_to_set = self.sync_to_time
+                            self.cast_sync = True
+                            logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
+
+                            CASTMedia.t_media_lock.acquire()
+                            if self.all_sync is True and len(CASTMedia.cast_name_to_sync) == 0:
+                                # populate cast names to sync
+                                CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
+                                # add additional time, can help if cast number > 0 to try to avoid small decay
+                                time_to_set += self.add_all_sync_delay
+                                logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
+                            CASTMedia.t_media_lock.release()
+
+                            auto_expected_time = current_time
+                            logger.debug(f'{t_name} Auto Sync Cast to time :{time_to_set}')
+
+                    if self.all_sync is True and self.cast_sync is True:
 
                         CASTMedia.t_media_lock.acquire()
-                        if self.all_sync is True and len(CASTMedia.cast_name_to_sync) == 0:
-                            # populate cast names to sync
+
+                        # populate cast names to sync if necessary
+                        if len(CASTMedia.cast_name_to_sync) == 0 and self.auto_sync is False:
                             CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
-                            # add additional time, can help if cast number > 0 to try to avoid small decay
-                            time_to_set += self.add_all_sync_delay
-                            logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
+                            logger.debug(f"{t_name}  Got these to sync  :{CASTMedia.cast_name_to_sync}")
+
+                        # take only cast not already synced
+                        if t_name in CASTMedia.cast_name_to_sync:
+                            self.cast_sleep = True
+                            # remove thread name from cast to sync list
+                            logging.debug(f"{t_name} remove from all sync")
+                            CASTMedia.cast_name_to_sync.remove(t_name)
+                            # sync cast
+                            media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
+                            logger.info(f'{t_name} ALL Sync Cast to time :{self.sync_to_time}')
+
+                            logger.debug(f'{t_name} synced')
+
+                            # if no more, reset all_sync
+                            if len(CASTMedia.cast_name_to_sync) == 0:
+                                if self.auto_sync is False:
+                                    self.all_sync = False
+                                self.cast_sync = False
+                                self.cast_sleep = False
+                                logger.debug(f"{t_name} All sync finished")
+
                         CASTMedia.t_media_lock.release()
 
-                        auto_expected_time = current_time
-                        logger.debug(f'{t_name} Auto Sync Cast to time :{time_to_set}')
+                        logger.debug(f'{t_name} go to sleep if necessary')
+                        while (self.cast_sleep is True and
+                               self.cast_sync is True and
+                               len(CASTMedia.cast_name_to_sync) > 0):
+                            # sleep until all remaining casts sync
+                            time.sleep(.001)
+                        logger.debug(f"{t_name} exit sleep")
 
-                if self.all_sync is True and self.cast_sync is True:
-
-                    CASTMedia.t_media_lock.acquire()
-
-                    # populate cast names to sync if necessary
-                    if len(CASTMedia.cast_name_to_sync) == 0 and self.auto_sync is False:
-                        CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
-                        logger.debug(f"{t_name}  Got these to sync  :{CASTMedia.cast_name_to_sync}")
-
-                    # take only cast not already synced
-                    if t_name in CASTMedia.cast_name_to_sync:
-                        self.cast_sleep = True
-                        # remove thread name from cast to sync list
-                        logging.debug(f"{t_name} remove from all sync")
-                        CASTMedia.cast_name_to_sync.remove(t_name)
-                        # sync cast
-                        media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
-                        logger.info(f'{t_name} ALL Sync Cast to time :{self.sync_to_time}')
-
-                        logger.debug(f'{t_name} synced')
-
-                        # if no more, reset all_sync
-                        if len(CASTMedia.cast_name_to_sync) == 0:
-                            if self.auto_sync is False:
-                                self.all_sync = False
-                            self.cast_sync = False
-                            self.cast_sleep = False
-                            logger.debug(f"{t_name} All sync finished")
-
-                    CASTMedia.t_media_lock.release()
-
-                    logger.debug(f'{t_name} go to sleep if necessary')
-                    while self.cast_sleep is True and self.cast_sync is True and len(CASTMedia.cast_name_to_sync) > 0:
-                        # sleep until all remaining casts sync
-                        time.sleep(.001)
-                    logger.debug(f"{t_name} exit sleep")
-
-                else:
-
-                    if self.cast_skip_frames != 0:
-                        # this work only for the first cast that read the value
-                        frame_number = frame_count + self.cast_skip_frames
-                        media.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
-                        self.cast_skip_frames = 0
                     else:
-                        # this work only for the first cast that read the value
-                        if self.cast_sync:
-                            media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
-                            self.cast_sync = False
-                            logger.info(f'{t_name} Sync Cast to time :{self.sync_to_time}')
+
+                        if self.cast_skip_frames != 0:
+                            # this work only for the first cast that read the value
+                            frame_number = frame_count + self.cast_skip_frames
+                            media.set(cv2.CAP_PROP_POS_FRAMES, frame_number - 1)
+                            self.cast_skip_frames = 0
+                        else:
+                            # this work only for the first cast that read the value
+                            if self.cast_sync:
+                                media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
+                                self.cast_sync = False
+                                logger.info(f'{t_name} Sync Cast to time :{self.sync_to_time}')
 
                 #
-                # read frame
+                # read frame for all
                 #
                 success, frame = media.read()
                 if not success:
@@ -716,12 +720,15 @@ class CASTMedia:
 
                 """
                     stop for non-live video (length not -1)
-                    if we reach end of video or request only one frame from index
+                    if we reach end of video or request only x frames from index
                 """
                 if media_length != -1:
                     # only if not image
                     if not is_image:
-                        if frame_count >= media_length or self.frame_index != 0:
+                        if (frame_count >= media_length or
+                                (self.frame_index != 0 and
+                                 frame_count >= self.frame_max and
+                                 self.put_to_buffer is True)):
                             logger.info(f"{t_name} Reached END ...")
                             break
 
