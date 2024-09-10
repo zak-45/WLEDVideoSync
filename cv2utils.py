@@ -267,6 +267,7 @@ class CV2Utils:
             top = 1
         cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
         key_pressed = cv2.waitKey(1)
+
         if key_pressed == ord("q"):
             try:
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
@@ -277,6 +278,7 @@ class CV2Utils:
             t_preview = False
             t_todo_stop = True
             logger.info(f'Request to stop {t_name}')
+
         elif key_pressed == ord("p"):
             try:
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
@@ -285,6 +287,7 @@ class CV2Utils:
             except:
                 pass
             t_preview = False
+
         elif key_pressed == ord("t"):
             if text:
                 text = False
@@ -751,7 +754,7 @@ class VideoThumbnailExtractor:
                 resized_frame = cv2.resize(frame, (self.thumbnail_width, new_height))
 
                 self.thumbnail_frames.append(resized_frame)
-                logger.info(f"Thumbnail extracted at {time_in_seconds}s.")
+                logger.debug(f"Thumbnail extracted at {time_in_seconds}s.")
             else:
                 logger.error("Failed to extract frame.")
                 self.thumbnail_frames.append(self.create_blank_frame())

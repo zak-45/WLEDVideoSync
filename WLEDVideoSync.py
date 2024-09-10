@@ -21,7 +21,7 @@
 # nuitka-project: --nofollow-import-to=doctest
 
 """
-a: zak-45
+a : zak-45
 d : 07/04/2024
 v : 1.0.0
 

@@ -26,8 +26,11 @@ jobs:
       contents: write
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-        
+        os: [macos-latest, ubuntu-latest, windows-latest, windows-2019]
+    env:
+      if: matrix.os == 'windows-2019'
+      my_arch: 'x86'
+
     runs-on: ${{matrix.os}}
    
     steps:
@@ -48,11 +51,22 @@ jobs:
           brew install portaudio
           brew reinstall libsndfile
          
-      - name: Setup Python
+      - name: Setup Python x64
+        if: matrix.os != 'windows-2019'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11' # Version range or exact version of a Python version to use
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+          cache: 'pip'
+          cache-dependency-path: |
+            **/requirements*.txt
+
+      - name: Setup Python x86
+        if: matrix.os == 'windows-2019'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # Version range or exact version of a Python version to use
+          architecture: 'x86' # optional x64 or x86. Defaults to x64 if not specified
           cache: 'pip'
           cache-dependency-path: |
             **/requirements*.txt
@@ -108,7 +122,7 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDVideoSync-${{runner.os}}**'
+          path: 'build/WLEDVideoSync-${{runner.os}}${{my_arch}}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -116,4 +130,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-${{runner.os}}**'
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}${{my_arch}}**'

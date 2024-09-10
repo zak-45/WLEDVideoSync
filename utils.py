@@ -600,7 +600,7 @@ class CASTUtils:
     @staticmethod
     def setup_logging(config_path='logging_config.ini', handler_name: str = None):
         if os.path.exists(config_path):
-            logging.config.fileConfig(config_path, disable_existing_loggers=False)
+            logging.config.fileConfig(config_path, disable_existing_loggers=True)
             # trick: use the same name for all modules, ui.log will receive message from alls
             config_data = CASTUtils.read_config()
             if str2bool(config_data[1]['log_to_main']):

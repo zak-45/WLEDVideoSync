@@ -389,8 +389,8 @@ class CASTMedia:
             #  read media
             #
 
-            # media is video or live video (usb camera, web url ...)
-            if media_length != 1:
+            # media is video
+            if media_length > 1:
                 # Sync all casts to player_time if requested
                 # manage concurrent access to the list by using lock feature
                 # set value if auto sync is true
