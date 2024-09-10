@@ -29,7 +29,7 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest, windows-2019]
     if: matrix.os == 'windows-2019'
     env:
-      my_arch: 'x86'
+      my_arch: x86
 
     runs-on: ${{matrix.os}}
    
@@ -122,7 +122,7 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDVideoSync-${{runner.os}}${{my_arch}}**'
+          path: 'build/WLEDVideoSync-${{runner.os}}${{env.my_arch}}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -130,4 +130,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-${{runner.os}}${{my_arch}}**'
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}${{env.my_arch}}**'
