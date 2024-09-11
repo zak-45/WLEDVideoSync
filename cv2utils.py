@@ -36,7 +36,7 @@ class CV2Utils:
         """ Close cv2 window created by imshow """
 
         logger.info(f'{t_name} Stop window preview if any')
-        window_name = f"{server_port}-{t_name}-" + str(t_viinput) + str(t_name)
+        window_name = f"{server_port}-{t_name}-" + str(t_viinput)
 
         # check if window run into sub process to instruct it by ShareableList
         config_data = CV2Utils.read_config()
@@ -113,7 +113,7 @@ class CV2Utils:
             # ( w * h * (colors number)) e.g. 640(w) * 360()h * 3(rgb)
             shape_bytes = int(received_shape[0]) * int(received_shape[1]) * int(received_shape[2])
             if shape_bytes == 0:
-                window_name = f"{sl_server_port}-{class_name} Preview input: " + str(sl_t_viinput) + str(sl_t_name)
+                window_name = f"{sl_server_port}-{sl_t_name}-" + str(sl_t_viinput)
                 try:
                     win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                     if not win == 0:
@@ -255,7 +255,7 @@ class CV2Utils:
                                 cv2.LINE_AA)
 
         # Displaying the image
-        window_name = f"{server_port}-{t_name}-" + str(t_viinput) + str(t_name)
+        window_name = f"{server_port}-{t_name}-" + str(t_viinput)
         if grid:
             frame = ImageUtils.grid_on_image(frame, cast_x, cast_y)
 
