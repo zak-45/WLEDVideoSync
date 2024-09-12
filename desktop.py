@@ -614,7 +614,7 @@ class CASTDesktop:
                                 # we send the frame to all cast devices
                                 elif t_multicast is True and t_cast_x == 1 and t_cast_y == 1 and len(ip_addresses) > 1:
 
-                                    t_cast_frame_buffer[0] = frame_to_send
+                                    t_cast_frame_buffer = [frame_to_send]
 
                                     # send, keep synchronized
                                     try:
