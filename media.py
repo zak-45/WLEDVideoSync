@@ -467,7 +467,6 @@ class CASTMedia:
                                 media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
                                 self.cast_sync = False
                                 logger.info(f'{t_name} Sync Cast to time :{self.sync_to_time}')
-
                 #
                 # read frame for all
                 #
@@ -479,6 +478,7 @@ class CASTMedia:
 
                     else:
                         logger.info(f'{t_name} Media reached END')
+                        # manage the repeat feature, if -1 then unlimited
                         if t_repeat > 0 or t_repeat < 0:
                             t_repeat -= 1
                             logger.debug(f'{t_name} Remaining repeat : {t_repeat}')
@@ -685,7 +685,8 @@ class CASTMedia:
                 # DDP run in separate thread to avoid block main loop
                 # here we feed the queue that is read by DDP thread
                 if self.protocol == "ddp":
-                    if len(ip_addresses) == 1 and t_multicast is False:
+                    # take only the first entry
+                    if t_multicast is False:
                         try:
                             if ip_addresses[0] != '127.0.0.1':
                                 # send data to queue
@@ -696,11 +697,11 @@ class CASTMedia:
                             logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
                             break
 
-                        # if multicast and more than one ip address and matrix size 1 * 1
-                        # we send the frame to all cast devices
-                    elif len(ip_addresses) >= 1 and t_multicast is True and t_cast_x == 1 and t_cast_y == 1:
+                    # if multicast and more than one ip address and matrix size 1 * 1
+                    # we send the frame to all cast devices
+                    elif t_multicast is True and t_cast_x == 1 and t_cast_y == 1 and len(ip_addresses) > 1:
 
-                        t_cast_frame_buffer.append(frame_to_send)
+                        t_cast_frame_buffer[0] = frame_to_send
 
                         # send, keep synchronized
                         try:
@@ -711,6 +712,10 @@ class CASTMedia:
                             logger.error(traceback.format_exc())
                             logger.error(f'{t_name} An exception occurred: {error}')
                             break
+                    # if multicast and only one IP
+                    else:
+                        logger.error(f'{t_name} Not enough IP devices defined. Modify Multicast param')
+                        break
 
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:
