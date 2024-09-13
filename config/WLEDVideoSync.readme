@@ -65,6 +65,7 @@
 # animate-ui    : will apply animation on some UI elements, can be disabled to free some resources (True or False)
 # yt-format     : video format yt-dlp to choose
 #                    ex:  '18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]', Ensure 320p and single stream
+# yt-enable     : True / False, display YT buttons on GUI
 [custom]
 
 

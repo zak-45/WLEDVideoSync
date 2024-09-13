@@ -1274,28 +1274,32 @@ async def video_player_page():
             video_url_icon.tooltip("Download video/image from Url")
             video_url_icon.on('click', lambda: download_url(video_img_url.value))
             video_url_icon.bind_visibility_from(CastAPI.player)
-            video_url_info = ui.icon('info')
-            video_url_info.style("cursor: pointer")
-            video_url_info.tooltip("Youtube/Url information's, including formats etc ...")
-            video_url_info.on('click', lambda: nice.player_url_info(video_img_url.value))
-            video_url_info.bind_visibility_from(CastAPI.player)
+            # if yt-enable is True
+            if str2bool(custom_config['yt-enable']):
+                video_url_info = ui.icon('info')
+                video_url_info.style("cursor: pointer")
+                video_url_info.tooltip("Youtube/Url information's, including formats etc ...")
+                video_url_info.on('click', lambda: nice.player_url_info(video_img_url.value))
+                video_url_info.bind_visibility_from(CastAPI.player)
 
             # Progress bar
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
 
-        with ui.row(wrap=True).classes('w-full'):
-            # YT search
-            yt_icon = ui.chip('YT Search',
-                              icon='youtube_searched_for',
-                              color='indigo-3',
-                              on_click=lambda: youtube_search())
-            yt_icon.classes('fade')
-            yt_icon.bind_visibility_from(CastAPI.player)
-            yt_icon = ui.chip('Clear YT Search',
-                              icon='clear',
-                              color='indigo-3',
-                              on_click=lambda: youtube_clear_search())
-            yt_icon.bind_visibility_from(CastAPI.player)
+        # if yt-enable is True
+        if str2bool(custom_config['yt-enable']):
+            with ui.row(wrap=True).classes('w-full'):
+                # YT search
+                yt_icon = ui.chip('YT Search',
+                                  icon='youtube_searched_for',
+                                  color='indigo-3',
+                                  on_click=lambda: youtube_search())
+                yt_icon.classes('fade')
+                yt_icon.bind_visibility_from(CastAPI.player)
+                yt_icon = ui.chip('Clear YT Search',
+                                  icon='clear',
+                                  color='indigo-3',
+                                  on_click=lambda: youtube_clear_search())
+                yt_icon.bind_visibility_from(CastAPI.player)
 
 
 @ui.page('/Desktop')
