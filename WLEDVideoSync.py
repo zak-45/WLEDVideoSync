@@ -5,10 +5,6 @@
 #    nuitka-project: --standalone
 #    nuitka-project: --macos-create-app-bundle
 # nuitka-project-if: {OS} == "Windows":
-#   nuitka-project: --lto=no
-#   nuitka-project: --clang
-#   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
-#   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 #   nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
 # nuitka-project-if: os.getenv("DEBUG_COMPILATION", "no") == "yes":
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
@@ -18,9 +14,9 @@
 #   nuitka-project: --nofollow-import-to=youtubesearchpython
 # nuitka-project-if: os.getenv("YOUTUBE_DISABLE", "no") == "no":
 #   nuitka-project: --include-module=yt_dlp.utils._deprecated
-# nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --lto=no
 #   nuitka-project: --clang
+# nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
 # nuitka-project: --nofollow-import-to=doctest
