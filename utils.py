@@ -10,8 +10,12 @@
 # pywinctl provide a cross-platform window mgt.
 #
 """
-from youtubesearchpython.__future__ import VideosSearch
-from yt_dlp import YoutubeDL
+try:
+    from youtubesearchpython.__future__ import VideosSearch
+    from yt_dlp import YoutubeDL
+except Exception as e:
+    print(f'INFO : this is Not a YT version: {e}')
+
 
 import asyncio
 
