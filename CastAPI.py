@@ -831,9 +831,9 @@ async def websocket_endpoint(websocket: WebSocket):
                 await websocket.send_text('{"result":"error"}')
                 raise Exception
 
-    except Exception as w_error:
+    except Exception as e:
         logger.error(traceback.format_exc())
-        logger.error(f'WEBSOCKET An exception occurred: {w_error}')
+        logger.error(f'WEBSOCKET An exception occurred: {e}')
         await websocket.send_text('{"result":"internal error"}')
         await websocket.close()
 

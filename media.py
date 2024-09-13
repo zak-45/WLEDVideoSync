@@ -618,7 +618,7 @@ class CASTMedia:
                     CASTMedia.t_todo_event.clear()
                 CASTMedia.t_media_lock.release()
 
-            if t_multicast and (t_cast_y != 1 and t_cast_x != 1):
+            if t_multicast and (t_cast_y != 1 or t_cast_x != 1):
                 """
                     multicast manage any number of devices of same configuration
                     matrix need to be more than 1 x 1

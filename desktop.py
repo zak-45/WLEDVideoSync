@@ -48,6 +48,8 @@ from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 
+import av
+
 Process, Queue = Utils.mp_setup()
 
 """
@@ -166,8 +168,6 @@ class CASTDesktop:
             Cast desktop screen or a window content based on the title
         """
 
-        import av
-
         t_name = threading.current_thread().name
         if CASTDesktop.count == 0 or self.reset_total is True:
             CASTDesktop.total_frame = 0
@@ -258,6 +258,7 @@ class CASTDesktop:
         First, check devices 
         """
 
+        ddp_host = None
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
@@ -536,7 +537,7 @@ class CASTDesktop:
                                 CASTDesktop.t_todo_event.clear()
                             CASTDesktop.t_desktop_lock.release()
 
-                        if t_multicast and t_cast_y != 1 and t_cast_x != 1:
+                        if t_multicast and (t_cast_y != 1 or t_cast_x != 1):
                             """
                                 multicast manage any number of devices of same configuration
                                 each device need to drive the same amount of leds, same config
