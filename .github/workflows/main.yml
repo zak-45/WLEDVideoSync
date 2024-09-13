@@ -28,6 +28,10 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
 
+    env:
+      YOUTUBE_DISABLE: yes
+      DEBUG_COMPILATION: no
+
     runs-on: ${{matrix.os}}
    
     steps:
