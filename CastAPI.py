@@ -1274,7 +1274,8 @@ async def video_player_page():
             video_url_icon.tooltip("Download video/image from Url")
             video_url_icon.on('click', lambda: download_url(video_img_url.value))
             video_url_icon.bind_visibility_from(CastAPI.player)
-            # if yt-enable is True
+
+            # if yt-enable is True display YT info icon
             if str2bool(custom_config['yt-enable']):
                 video_url_info = ui.icon('info')
                 video_url_info.style("cursor: pointer")
@@ -1285,7 +1286,7 @@ async def video_player_page():
             # Progress bar
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
 
-        # if yt-enable is True
+        # if yt-enable is True display YT search buttons
         if str2bool(custom_config['yt-enable']):
             with ui.row(wrap=True).classes('w-full'):
                 # YT search
@@ -2946,7 +2947,7 @@ ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',
        host=server_ip,
        port=server_port,
-       fastapi_docs=True,
+       fastapi_docs=str2bool(app_config['fastapi_docs']),
        show=show,
        reconnect_timeout=int(server_config['reconnect_timeout']),
        reload=False,

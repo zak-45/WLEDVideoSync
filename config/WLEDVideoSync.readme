@@ -48,6 +48,7 @@
 #                   True run Uvicorn server on sub process
 #                   False to run from nicegui server (uvicorn implementation)
 #                   on Win32, put to True to have feature like systray
+# fastapi_docs  : True or False, activate /docs FastApi endpoint
 [app]
 
 

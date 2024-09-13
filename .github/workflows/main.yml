@@ -30,7 +30,7 @@ jobs:
 
     env:
       YOUTUBE_DISABLE: yes
-      DEBUG_COMPILATION: no
+      DEBUG_COMPILATION: yes
 
     runs-on: ${{matrix.os}}
    

@@ -94,7 +94,8 @@ async def head_set(name, target, icon):
             ui.button('Desktop Params', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
         if name != 'Media Params':
             ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
-        ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
+        if str2bool(app_config['fastapi_docs']):
+            ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
 
 
 async def sync_button(CastAPI, Media):
