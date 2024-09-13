@@ -1674,9 +1674,9 @@ async def main_page_media():
                             img = CV2Utils.resize_image(Media.cast_frame_buffer[i], 640, 360)
                             img = Image.fromarray(img)
                             await light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
-                    except Exception as m_error:
+                    except Exception as e:
                         logger.error(traceback.format_exc())
-                        logger.error(f'An exception occurred: {m_error}')
+                        logger.error(f'An exception occurred: {e}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')

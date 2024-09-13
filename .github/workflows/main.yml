@@ -91,7 +91,6 @@ jobs:
             pygments.formatters.html
             dbm.dumb
             comtypes.stream
-            yt_dlp.utils._deprecated
           include-data-dir: |
             tmp=tmp
             log=log
