@@ -2166,7 +2166,7 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
         logger.error(f'Unknown Class Name: {class_name}')
         return False
 
-    def apply_preset(preset_data: dict):
+    def apply_preset_filter(preset_data: dict):
         try:
             class_obj = globals()[class_name]
             keys_to_check = [
@@ -2206,45 +2206,14 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
             return False
 
     if interactive:
-        return await _interactive_mode(class_name, 'filter', apply_preset)
+        return await pr_interactive_mode(class_name, 'filter', apply_preset_filter)
     else:
-        return _non_interactive_mode(class_name, 'filter', file_name,  apply_preset)
+        return pr_non_interactive_mode(class_name, 'filter', file_name,  apply_preset_filter)
 
 
 """
 END Filter preset mgr
 """
-
-
-async def _interactive_mode(class_name: str, preset_type: str, apply_preset) -> bool:
-    with ui.dialog() as dialog:
-        dialog.open()
-        with ui.card().classes('self-center'):
-            ui.label(class_name).classes('self-center')
-            ui.separator()
-            ui.button('EXIT', on_click=dialog.close)
-            result = await LocalFilePicker(f'config/presets/{preset_type}/{class_name}', multiple=False)
-            if result is not None:
-                preset_data = cfg.load(result[0]).to_dict()
-                with ui.expansion('See values'):
-                    await ui.json_editor({'content': {'json': preset_data}}).run_editor_method('updateProps', {'readOnly': True})
-                with ui.row():
-                    ui.button('Apply', on_click=lambda: apply_preset(preset_data))
-                return True
-            else:
-                ui.label('No preset selected')
-                return False
-
-def _non_interactive_mode(class_name: str, preset_type: str, file_name: str, apply_preset) -> bool:
-    try:
-        preset_data = cfg.load(f'config/presets/{preset_type}/{class_name}/{file_name}')
-        return apply_preset(preset_data)
-    except Exception as e:
-        logger.error(f'Error loading preset: {e}')
-        return False
-
-def str2bool_ini(value: str) -> bool:
-    return str2bool(value)
 
 
 """
@@ -2333,7 +2302,7 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
         logger.error(f'Unknown Class Name: {class_name}')
         return False
 
-    def apply_preset(preset_data: dict):
+    def apply_preset_cast(preset_data: dict):
         try:
             class_obj = globals()[class_name]
             keys_to_check = [
@@ -2371,12 +2340,50 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
             return False
 
     if interactive:
-        return await _interactive_mode(class_name, 'cast', apply_preset)
+        return await pr_interactive_mode(class_name, 'cast', apply_preset_cast)
     else:
-        return _non_interactive_mode(class_name, 'cast', file_name, apply_preset)
+        return pr_non_interactive_mode(class_name, 'cast', file_name, apply_preset_cast)
 
 """
 END Cast preset mgr
+"""
+
+"""
+Common Preset
+"""
+
+async def pr_interactive_mode(class_name: str, preset_type: str, apply_preset) -> bool:
+    with ui.dialog() as dialog:
+        dialog.open()
+        with ui.card().classes('self-center'):
+            ui.label(class_name).classes('self-center')
+            ui.separator()
+            ui.button('EXIT', on_click=dialog.close)
+            result = await LocalFilePicker(f'config/presets/{preset_type}/{class_name}', multiple=False)
+            if result is not None:
+                preset_data = cfg.load(result[0]).to_dict()
+                with ui.expansion('See values'):
+                    await ui.json_editor({'content': {'json': preset_data}}).run_editor_method('updateProps', {'readOnly': True})
+                with ui.row():
+                    ui.button('Apply', on_click=lambda: apply_preset(preset_data))
+                return True
+            else:
+                ui.label('No preset selected')
+                return False
+
+def pr_non_interactive_mode(class_name: str, preset_type: str, file_name: str, apply_preset) -> bool:
+    try:
+        preset_data = cfg.load(f'config/presets/{preset_type}/{class_name}/{file_name}')
+        return apply_preset(preset_data)
+    except Exception as e:
+        logger.error(f'Error loading preset: {e}')
+        return False
+
+def str2bool_ini(value: str) -> bool:
+    return str2bool(value)
+
+"""
+END Common
 """
 
 
