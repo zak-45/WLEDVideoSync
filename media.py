@@ -133,7 +133,6 @@ class CASTMedia:
         self.cast_y: int = 1
         self.cast_devices: list = []
         self.cast_frame_buffer = []
-        self.ddp_multi_names = []
         self.force_mjpeg = False  # force cv2 to use this format, webcam help on linux
         self.cast_skip_frames: int = 0  # at cast init , number of frame to skip before start read
         self.sync_to_time: float = 0  # time retrieved from the video or slider
@@ -170,6 +169,7 @@ class CASTMedia:
         start_time = time.time()
         t_preview = self.preview
         t_multicast = self.multicast
+        t_ddp_multi_names =[]
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
         t_cast_frame_buffer = []
@@ -225,7 +225,7 @@ class CASTMedia:
             # timeout provided to not have thread waiting infinitely
             if t_send_frame.wait(timeout=.5):
                 # send ddp data, we select DDPDevice based on the IP
-                for dev in self.ddp_multi_names:
+                for dev in t_ddp_multi_names:
                     if ip == dev.name:
                         dev.send_to_queue(image, self.retry_number)
                         CASTMedia.total_packet += dev.frame_count
@@ -310,12 +310,13 @@ class CASTMedia:
                         ip_addresses.append(cast_ip)
                         # create ddp device for each IP if not exist
                         ddp_exist = False
-                        for device in self.ddp_multi_names:
+                        for device in t_ddp_multi_names:
                             if cast_ip == device.name:
+                                logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
                                 ddp_exist = True
                                 break
                         if ddp_exist is not True:
-                            self.ddp_multi_names.append(DDPDevice(cast_ip))
+                            t_ddp_multi_names.append(DDPDevice(cast_ip))
                             logger.info(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
