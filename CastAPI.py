@@ -2199,9 +2199,9 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
                 ui.notify('Preset applied', type='info')
             return True
 
-        except Exception as pr_error:
+        except Exception as e:
             logger.error(traceback.format_exc())
-            logger.error(f'Error applying preset: {pr_error}')
+            logger.error(f'Error applying preset: {e}')
             ui.notify('Error applying preset', type='negative', position='center')
             return False
 
