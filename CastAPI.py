@@ -712,31 +712,47 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
             return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 
-@app.get("/api/config/presets/{file_name}/{class_name}", tags=["presets"])
+@app.get("/api/config/presets/{preset_type}/{file_name}/{class_name}", tags=["presets"])
 async def apply_preset_api(class_name: str = Path(description=f'Class name, should be in: {class_to_test}'),
+                           preset_type: str = None,
                            file_name: str = None):
     """
     Apply preset to Class name from saved one
+    :param preset_type:
     :param class_name:
     :param file_name: preset name
     :return:
     """
+
     if class_name not in class_to_test:
         raise HTTPException(status_code=400,
                             detail=f"Class name: {class_name} not in {class_to_test}")
-    try:
-        class_obj = globals()[class_name]
-    except KeyError:
+    if preset_type not in ['filter', 'cast']:
         raise HTTPException(status_code=400,
-                            detail=f"Invalid class name: {class_name}")
-    try:
-        result = await load_filter_preset(class_name=class_name, interactive=False, file_name=file_name)
-        if result is False:
+                            detail=f"Type preset: {preset_type} unknown")
+
+    if preset_type == 'filter':
+        try:
+            result = await load_filter_preset(class_name=class_name, interactive=False, file_name=file_name)
+            if result is False:
+                raise HTTPException(status_code=400,
+                                    detail=f"Apply preset return value : {result}")
+        except Exception as e:
             raise HTTPException(status_code=400,
-                                detail=f"Apply preset return value : {result}")
-    except Exception as a_error:
+                                detail=f"Not able to apply preset : {e}")
+    elif preset_type == 'cast':
+        try:
+            result = await load_cast_preset(class_name=class_name, interactive=False, file_name=file_name)
+            if result is False:
+                raise HTTPException(status_code=400,
+                                    detail=f"Apply preset return value : {result}")
+        except Exception as e:
+            raise HTTPException(status_code=400,
+                                detail=f"Not able to apply preset : {e}")
+    else:
         raise HTTPException(status_code=400,
-                            detail=f"Not able to apply preset : {a_error}")
+                            detail=f"unknown error in preset API")
+
 
     return {"apply_preset_result": True}
 
@@ -2179,7 +2195,8 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
                 except KeyError:
                     logger.warning(f'Key {section}.{key} does not exist in the preset data')
 
-            ui.notify('Preset applied', type='info')
+            if interactive:
+                ui.notify('Preset applied', type='info')
             return True
 
         except Exception as pr_error:
@@ -2189,9 +2206,9 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
             return False
 
     if interactive:
-        return await _interactive_mode(class_name, apply_preset)
+        return await _interactive_mode(class_name, 'filter', apply_preset)
     else:
-        return _non_interactive_mode(class_name, file_name, apply_preset)
+        return _non_interactive_mode(class_name, 'filter', file_name,  apply_preset)
 
 
 """
@@ -2199,14 +2216,14 @@ END Filter preset mgr
 """
 
 
-async def _interactive_mode(class_name: str, apply_preset) -> bool:
+async def _interactive_mode(class_name: str, preset_type: str, apply_preset) -> bool:
     with ui.dialog() as dialog:
         dialog.open()
         with ui.card().classes('self-center'):
             ui.label(class_name).classes('self-center')
             ui.separator()
             ui.button('EXIT', on_click=dialog.close)
-            result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False)
+            result = await LocalFilePicker(f'config/presets/{preset_type}/{class_name}', multiple=False)
             if result is not None:
                 preset_data = cfg.load(result[0]).to_dict()
                 with ui.expansion('See values'):
@@ -2218,9 +2235,9 @@ async def _interactive_mode(class_name: str, apply_preset) -> bool:
                 ui.label('No preset selected')
                 return False
 
-def _non_interactive_mode(class_name: str, file_name: str, apply_preset) -> bool:
+def _non_interactive_mode(class_name: str, preset_type: str, file_name: str, apply_preset) -> bool:
     try:
-        preset_data = cfg.load(f'config/presets/filter/{class_name}/{file_name}')
+        preset_data = cfg.load(f'config/presets/{preset_type}/{class_name}/{file_name}')
         return apply_preset(preset_data)
     except Exception as e:
         logger.error(f'Error loading preset: {e}')
@@ -2343,19 +2360,20 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 except KeyError:
                     logger.warning(f'Key {section}.{key} does not exist in the preset data')
 
-            ui.notify('Preset applied', type='info')
+            if interactive:
+                ui.notify('Preset applied', type='info')
             return True
 
-        except Exception as pr_error:
+        except Exception as e:
             logger.error(traceback.format_exc())
-            logger.error(f'Error applying preset: {pr_error}')
+            logger.error(f'Error applying preset: {e}')
             ui.notify('Error applying preset', type='negative', position='center')
             return False
 
     if interactive:
-        return await _interactive_mode(class_name, apply_preset)
+        return await _interactive_mode(class_name, 'cast', apply_preset)
     else:
-        return _non_interactive_mode(class_name, file_name, apply_preset)
+        return _non_interactive_mode(class_name, 'cast', file_name, apply_preset)
 
 """
 END Cast preset mgr
