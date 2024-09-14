@@ -256,7 +256,6 @@ async def all_params(class_obj: str = Path(description=f'Class name, should be i
     if class_obj != 'Netdevice':
         del return_data['frame_buffer']
         del return_data['cast_frame_buffer']
-        del return_data['ddp_multi_names']
     return {"all_params": return_data}
 
 
@@ -2342,13 +2341,12 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 ('multicast', 'MULTICAST', 'multicast', str2bool_ini),
                 ('cast_x', 'MULTICAST', 'cast_x', int),
                 ('cast_y', 'MULTICAST', 'cast_y', int),
-                ('cast_devices', 'MULTICAST', 'cast_devices', eval)
+                ('cast_devices', 'MULTICAST', 'cast_devices', str2list_ini)
             ]
 
             for attr, section, key, *conversion in keys_to_check:
                 try:
                     value = preset_cast_data[section][key]
-                    print(str(value), attr)
                     if conversion:
                         value = conversion[0](value)
                     setattr(class_obj, attr, value)
@@ -2412,6 +2410,13 @@ def str2intstr_ini(value: str):
         value = int(value)
     except:
         pass
+    return value
+
+def str2list_ini(value: str):
+    try:
+        value = eval(value)
+    except Exception as e:
+        logger.warning(f'Not able to convert to list: {value} Error : {e}')
     return value
 
 
