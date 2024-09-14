@@ -2216,8 +2216,8 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
                 if result is not None:
                     preset_filter_data = cfg.load(result[0]).to_dict()
                     with ui.expansion('See values'):
-                        await ui.json_editor({'content': {'json': preset_filter_data}}).run_editor_method('updateProps',
-                                                                                                   {'readOnly': True})
+                        await ui.json_editor({'content': {'json': preset_filter_data}}) \
+                            .run_editor_method('updateProps',{'readOnly': True})
                     with ui.row():
                         ui.button('Apply', on_click=lambda: apply_preset_filter(preset_filter_data))
                     return True
@@ -2338,7 +2338,7 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 ('wled', 'GENERAL', 'wled', str2bool_ini),
                 ('wled_live', 'GENERAL', 'wled_live', str2bool_ini),
                 ('host', 'GENERAL', 'host'),
-                ('viinput', 'GENERAL', 'viinput', lambda x: int(x) if x.isdigit() else x),
+                ('viinput', 'GENERAL', 'viinput'),
                 ('multicast', 'MULTICAST', 'multicast', str2bool_ini),
                 ('cast_x', 'MULTICAST', 'cast_x', int),
                 ('cast_y', 'MULTICAST', 'cast_y', int),
@@ -2375,8 +2375,8 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 if result is not None:
                     preset_data = cfg.load(result[0]).to_dict()
                     with ui.expansion('See values'):
-                        await ui.json_editor({'content': {'json': preset_data}}).run_editor_method('updateProps', {
-                            'readOnly': True})
+                        await ui.json_editor({'content': {'json': preset_data}}) \
+                            .run_editor_method('updateProps', {'readOnly': True})
                     with ui.row():
                         ui.button('Apply', on_click=lambda: apply_preset_cast(preset_data))
                     return True
