@@ -2338,7 +2338,7 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 ('wled', 'GENERAL', 'wled', str2bool_ini),
                 ('wled_live', 'GENERAL', 'wled_live', str2bool_ini),
                 ('host', 'GENERAL', 'host'),
-                ('viinput', 'GENERAL', 'viinput'),
+                ('viinput', 'GENERAL', 'viinput', str2intstr_ini),
                 ('multicast', 'MULTICAST', 'multicast', str2bool_ini),
                 ('cast_x', 'MULTICAST', 'cast_x', int),
                 ('cast_y', 'MULTICAST', 'cast_y', int),
@@ -2348,6 +2348,7 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
             for attr, section, key, *conversion in keys_to_check:
                 try:
                     value = preset_cast_data[section][key]
+                    print(str(value), attr)
                     if conversion:
                         value = conversion[0](value)
                     setattr(class_obj, attr, value)
@@ -2401,8 +2402,18 @@ END Cast preset mgr
 Common Preset
 """
 
+
 def str2bool_ini(value: str) -> bool:
     return str2bool(value)
+
+
+def str2intstr_ini(value: str):
+    try:
+        value = int(value)
+    except:
+        pass
+    return value
+
 
 """
 END Common
