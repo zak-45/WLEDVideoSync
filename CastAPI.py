@@ -2122,80 +2122,94 @@ async def save_filter_preset(class_name):
                 ui.button('Cancel', on_click=dialog.close)
 
 
-async def load_filter_preset(class_name, interactive=True, file_name=None):
-    """ load a preset """
+async def load_filter_preset(class_name: str, interactive: bool = True, file_name: str = None) -> bool:
+    """
+    Load and apply a preset configuration for a given class.
 
+    Parameters:
+    - class_name (str): The name of the class to load the preset for. Must be 'Desktop' or 'Media'.
+    - interactive (bool): Whether to run in interactive mode. Default is True.
+    - file_name (str, optional): The name of the preset file to load in non-interactive mode.
+
+    Returns:
+    - bool: True if the preset was applied successfully, False otherwise.
+    """
     if class_name not in ['Desktop', 'Media']:
-        logger.error(f'Unknown Class Name : {class_name}')
+        logger.error(f'Unknown Class Name: {class_name}')
         return False
 
-    def apply_preset():
+    def apply_preset(preset_data: dict):
         try:
             class_obj = globals()[class_name]
-            class_obj.balance_r = int(preset_rgb['balance_r'])
-            class_obj.balance_g = int(preset_rgb['balance_g'])
-            class_obj.balance_b = int(preset_rgb['balance_b'])
-            class_obj.flip = str2bool(preset_flip['flip'])
-            class_obj.flip_vh = int(preset_flip['flip_vh'])
-            class_obj.scale_width = int(preset_scale['scale_width'])
-            class_obj.scale_height = int(preset_scale['scale_height'])
-            class_obj.saturation = int(preset_filters['saturation'])
-            class_obj.brightness = int(preset_filters['brightness'])
-            class_obj.contrast = int(preset_filters['contrast'])
-            class_obj.sharpen = int(preset_filters['sharpen'])
-            class_obj.auto_bright = str2bool(preset_auto['auto_bright'])
-            class_obj.clip_hist_percent = int(preset_auto['clip_hist_percent'])
-            class_obj.gamma = float(preset_gamma['gamma'])
+            keys_to_check = [
+                ('balance_r', 'RGB', 'balance_r', int),
+                ('balance_g', 'RGB', 'balance_g', int),
+                ('balance_b', 'RGB', 'balance_b', int),
+                ('flip', 'FLIP', 'flip', str2bool_ini),
+                ('flip_vh', 'FLIP', 'flip_vh'),
+                ('scale_width', 'SCALE', 'scale_width', int),
+                ('scale_height', 'SCALE', 'scale_height', int),
+                ('saturation', 'FILTERS', 'saturation', int),
+                ('brightness', 'FILTERS', 'brightness', int),
+                ('contrast', 'FILTERS', 'contrast', int),
+                ('sharpen', 'FILTERS', 'sharpen', int),
+                ('auto_bright', 'AUTO', 'auto_bright', str2bool_ini),
+                ('clip_hist_percent', 'AUTO', 'clip_hist_percent', int),
+                ('gamma', 'GAMMA', 'gamma', float)
+            ]
+
+            for attr, section, key, *conversion in keys_to_check:
+                try:
+                    value = preset_data[section][key]
+                    if conversion:
+                        value = conversion[0](value)
+                    setattr(class_obj, attr, value)
+                except KeyError:
+                    logger.warning(f'Key {section}.{key} does not exist in the preset data')
+
             ui.notify('Preset applied', type='info')
+            return True
 
         except Exception as pr_error:
             logger.error(traceback.format_exc())
-            logger.error(f'Error to apply preset : {pr_error}')
-            ui.notify('Error to apply Preset', type='negative', position='center')
+            logger.error(f'Error applying preset: {pr_error}')
+            ui.notify('Error applying preset', type='negative', position='center')
+            return False
 
     if interactive:
-        with ui.dialog() as dialog:
-            dialog.open()
-            with ui.card().classes('self-center'):
-                ui.label(class_name).classes('self-center')
-                ui.separator()
-                ui.button('EXIT', on_click=dialog.close)
-                result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False)
-                editor_data = {}
-                if result is not None:
-                    preset_config_r = cfg.load(result[0])
-                    preset_rgb = preset_config_r.get('RGB')
-                    editor_data.update(preset_rgb)
-                    preset_flip = preset_config_r.get('FLIP')
-                    editor_data.update(preset_flip)
-                    preset_scale = preset_config_r.get('SCALE')
-                    editor_data.update(preset_scale)
-                    preset_filters = preset_config_r.get('FILTERS')
-                    editor_data.update(preset_filters)
-                    preset_auto = preset_config_r.get('AUTO')
-                    editor_data.update(preset_auto)
-                    preset_gamma = preset_config_r.get('GAMMA')
-                    editor_data.update(preset_gamma)
-
-                    with ui.expansion('See values'):
-                        editor = ui.json_editor({'content': {'json': editor_data}}) \
-                            .run_editor_method('updateProps', {'readOnly': True})
-
-                    with ui.row():
-                        ui.button('Apply', on_click=apply_preset)
-                else:
-                    preset_config_r = 'None'
-                ui.label(f'Preset to apply: {preset_config_r}')
+        return await _interactive_mode(class_name, apply_preset)
     else:
-        preset_config_r = cfg.load(f'config/presets/filter/{class_name}/' + file_name)
-        preset_rgb = preset_config_r.get('RGB')
-        preset_flip = preset_config_r.get('FLIP')
-        preset_scale = preset_config_r.get('SCALE')
-        preset_filters = preset_config_r.get('FILTERS')
-        preset_auto = preset_config_r.get('AUTO')
-        preset_gamma = preset_config_r.get('GAMMA')
-        apply_preset()
+        return _non_interactive_mode(class_name, file_name, apply_preset)
 
+async def _interactive_mode(class_name: str, apply_preset) -> bool:
+    with ui.dialog() as dialog:
+        dialog.open()
+        with ui.card().classes('self-center'):
+            ui.label(class_name).classes('self-center')
+            ui.separator()
+            ui.button('EXIT', on_click=dialog.close)
+            result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False)
+            if result is not None:
+                preset_data = cfg.load(result[0]).to_dict()
+                with ui.expansion('See values'):
+                    await ui.json_editor({'content': {'json': preset_data}}).run_editor_method('updateProps', {'readOnly': True})
+                with ui.row():
+                    ui.button('Apply', on_click=lambda: apply_preset(preset_data))
+                return True
+            else:
+                ui.label('No preset selected')
+                return False
+
+def _non_interactive_mode(class_name: str, file_name: str, apply_preset) -> bool:
+    try:
+        preset_data = cfg.load(f'config/presets/filter/{class_name}/{file_name}')
+        return apply_preset(preset_data)
+    except Exception as e:
+        logger.error(f'Error loading preset: {e}')
+        return False
+
+def str2bool_ini(value: str) -> bool:
+    return str2bool(value)
 
 """
 END Filter preset mgr
@@ -2263,73 +2277,62 @@ async def save_cast_preset(class_name):
                 ui.button('Cancel', on_click=dialog.close)
 
 
-async def load_cast_preset(class_name, interactive=True, file_name=None):
-    """ load a preset """
+async def load_cast_preset(class_name: str, interactive: bool = True, file_name: str = None) -> bool:
+    """
+    Load and apply a cast preset configuration for a given class.
 
+    Parameters:
+    - class_name (str): The name of the class to load the preset for. Must be 'Desktop' or 'Media'.
+    - interactive (bool): Whether to run in interactive mode. Default is True.
+    - file_name (str, optional): The name of the preset file to load in non-interactive mode.
+
+    Returns:
+    - bool: True if the preset was applied successfully, False otherwise.
+    """
     if class_name not in ['Desktop', 'Media']:
-        logger.error(f'Unknown Class Name : {class_name}')
+        logger.error(f'Unknown Class Name: {class_name}')
         return False
 
-    def apply_preset():
+    def apply_preset(preset_data: dict):
         try:
             class_obj = globals()[class_name]
-            class_obj.rate = int(preset_general['rate'])
-            class_obj.stopcast = str2bool(preset_general['stopcast'])
-            class_obj.scale_width = int(preset_general['scale_width'])
-            class_obj.scale_height = int(preset_general['scale_height'])
-            class_obj.wled = str2bool(preset_general['wled'])
-            class_obj.wled_live = str2bool(preset_general['wled_live'])
-            class_obj.host = preset_general['host']
+            keys_to_check = [
+                ('rate', 'GENERAL', 'rate', int),
+                ('stopcast', 'GENERAL', 'stopcast', str2bool_ini),
+                ('scale_width', 'GENERAL', 'scale_width', int),
+                ('scale_height', 'GENERAL', 'scale_height', int),
+                ('wled', 'GENERAL', 'wled', str2bool_ini),
+                ('wled_live', 'GENERAL', 'wled_live', str2bool_ini),
+                ('host', 'GENERAL', 'host'),
+                ('viinput', 'GENERAL', 'viinput', lambda x: int(x) if x.isdigit() else x),
+                ('multicast', 'MULTICAST', 'multicast', str2bool_ini),
+                ('cast_x', 'MULTICAST', 'cast_x', int),
+                ('cast_y', 'MULTICAST', 'cast_y', int),
+                ('cast_devices', 'MULTICAST', 'cast_devices', eval)
+            ]
 
-            try:
-                viinput = int(preset_general['viinput'])
-            except ValueError:
-                viinput = str(preset_general['viinput'])
+            for attr, section, key, *conversion in keys_to_check:
+                try:
+                    value = preset_data[section][key]
+                    if conversion:
+                        value = conversion[0](value)
+                    setattr(class_obj, attr, value)
+                except KeyError:
+                    logger.warning(f'Key {section}.{key} does not exist in the preset data')
 
-            class_obj.viinput = viinput
-
-            class_obj.multicast = str2bool(preset_multicast['multicast'])
-            class_obj.cast_x = int(preset_multicast['cast_x'])
-            class_obj.cast_y = int(preset_multicast['cast_y'])
-            class_obj.cast_devices = eval(preset_multicast['cast_devices'])
             ui.notify('Preset applied', type='info')
+            return True
 
         except Exception as pr_error:
             logger.error(traceback.format_exc())
-            logger.error(f'Error to apply preset : {pr_error}')
-            ui.notify('Error to apply Preset', type='negative', position='center')
+            logger.error(f'Error applying preset: {pr_error}')
+            ui.notify('Error applying preset', type='negative', position='center')
+            return False
 
     if interactive:
-        with ui.dialog() as dialog:
-            dialog.open()
-            with ui.card().classes('self-center'):
-                ui.label(class_name).classes('self-center')
-                ui.separator()
-                ui.button('EXIT', on_click=dialog.close)
-                result = await LocalFilePicker(f'config/presets/cast/{class_name}', multiple=False)
-                if result is not None:
-                    editor_data = {}
-                    preset_config_r = cfg.load(result[0])
-                    preset_general = preset_config_r.get('GENERAL')
-                    editor_data.update(preset_general)
-                    preset_multicast = preset_config_r.get('MULTICAST')
-                    editor_data.update(preset_multicast)
-
-                    with ui.expansion('See values'):
-                        editor = ui.json_editor({'content': {'json': editor_data}}) \
-                            .run_editor_method('updateProps', {'readOnly': True})
-
-                    with ui.row():
-                        ui.button('Apply', on_click=apply_preset)
-                else:
-                    preset_config_r = 'None'
-                ui.label(f'Preset to apply: {preset_config_r}')
+        return await _interactive_mode(class_name, apply_preset)
     else:
-        preset_config_r = cfg.load(f'config/presets/cast/{class_name}/' + file_name)
-        preset_general = preset_config_r.get('GENERAL')
-        preset_multicast = preset_config_r.get('MULTICAST')
-        apply_preset()
-
+        return _non_interactive_mode(class_name, file_name, apply_preset)
 
 """
 END Cast preset mgr
