@@ -2414,7 +2414,7 @@ def str2intstr_ini(value: str):
 
 def str2list_ini(value: str):
     try:
-        value = eval(value)
+        value = ast.literal_eval(value)
     except Exception as e:
         logger.warning(f'Not able to convert to list: {value} Error : {e}')
     return value
