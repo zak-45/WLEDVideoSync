@@ -216,10 +216,10 @@ class CASTDesktop:
             # timeout provided to not have thread waiting infinitely
             if t_send_frame.wait(timeout=.5):
                 # send ddp data, we select DDPDevice based on the IP
-                for device in self.ddp_multi_names:
-                    if ip == device.name:
-                        device.send_to_queue(image, self.retry_number)
-                        CASTDesktop.total_packet += device.frame_count
+                for dev in self.ddp_multi_names:
+                    if ip == dev.name:
+                        dev.send_to_queue(image, self.retry_number)
+                        CASTDesktop.total_packet += dev.frame_count
                         break
             else:
                 logger.warning(f'{t_name} Multicast frame dropped')
@@ -299,9 +299,15 @@ class CASTDesktop:
                                 return False
 
                         ip_addresses.append(cast_ip)
-                        # create ddp device for each IP
-                        self.ddp_multi_names.append(DDPDevice(cast_ip))
-                        logger.info(f'{t_name} IP : {cast_ip} as device number {i}')
+                        # create ddp device for each IP if not exist
+                        ddp_exist = False
+                        for device in self.ddp_multi_names:
+                            if cast_ip == device.name:
+                                ddp_exist = True
+                                break
+                        if ddp_exist is not True:
+                            self.ddp_multi_names.append(DDPDevice(cast_ip))
+                            logger.info(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
         else:
