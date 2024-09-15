@@ -2211,7 +2211,7 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
                 ui.label(class_name).classes('self-center')
                 ui.separator()
                 ui.button('EXIT', on_click=dialog.close)
-                result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False)
+                result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False, thumbs=False)
                 if result is not None:
                     preset_filter_data = cfg.load(result[0]).to_dict()
                     with ui.expansion('See values'):
@@ -2370,7 +2370,7 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 ui.label(class_name).classes('self-center')
                 ui.separator()
                 ui.button('EXIT', on_click=dialog.close)
-                result = await LocalFilePicker(f'config/presets/cast/{class_name}', multiple=False)
+                result = await LocalFilePicker(f'config/presets/cast/{class_name}', multiple=False, thumbs=False)
                 if result is not None:
                     preset_data = cfg.load(result[0]).to_dict()
                     with ui.expansion('See values'):
