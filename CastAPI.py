@@ -186,16 +186,16 @@ async def init_actions():
     try:
         if str2bool(preset_config['load_at_start']):
             if preset_config['filter_media'] != '':
-                logger.info(f"apply : {preset_config['filter_media']} to filter Media")
+                logger.debug(f"apply : {preset_config['filter_media']} to filter Media")
                 await load_filter_preset('Media', interactive=False, file_name=preset_config['filter_media'])
             if preset_config['filter_desktop'] != '':
-                logger.info(f"apply : {preset_config['filter_desktop']} to filter Desktop")
+                logger.debug(f"apply : {preset_config['filter_desktop']} to filter Desktop")
                 await load_filter_preset('Desktop', interactive=False, file_name=preset_config['filter_desktop'])
             if preset_config['cast_media'] != '':
-                logger.info(f"apply : {preset_config['cast_media']} to cast Media")
+                logger.debug(f"apply : {preset_config['cast_media']} to cast Media")
                 await load_cast_preset('Media', interactive=False, file_name=preset_config['cast_media'])
             if preset_config['cast_desktop'] != '':
-                logger.info(f"apply : {preset_config['cast_desktop']} to cast Desktop")
+                logger.debug(f"apply : {preset_config['cast_desktop']} to cast Desktop")
                 await load_cast_preset('Desktop', interactive=False, file_name=preset_config['cast_desktop'])
 
     except Exception as e:
@@ -314,7 +314,7 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
         try:
             value = int(value)
         except ValueError:
-            logger.info("viinput act as string only")
+            logger.debug("viinput act as string only")
 
     # append title if needed
     if class_name == 'Desktop' and param == 'viinput' and sys.platform == 'win32':
@@ -492,10 +492,10 @@ async def util_download_yt(yt_url: str):
 
             await Utils.youtube_download(yt_url=yt_url, interactive=False)
 
-        except Exception as y_error:
-            logger.info(f'youtube error: {y_error}')
+        except Exception as e:
+            logger.error(f'youtube error: {e}')
             raise HTTPException(status_code=400,
-                                detail=f"Not able to retrieve video from : {yt_url} {y_error}")
+                                detail=f"Not able to retrieve video from : {yt_url} {e}")
     else:
         raise HTTPException(status_code=400,
                             detail=f"Looks like not YT url : {yt_url} ")
@@ -893,14 +893,14 @@ async def cast_image(image_number,
     elif buffer_name.lower() == 'multicast':
         images_buffer = class_obj.cast_frame_buffer
 
-    logger.info('Cast one image from buffer')
-    logger.info(f"image number: {image_number}")
-    logger.info(f"device number: {device_number}")
-    logger.info(f"FPS: {fps_number}")
-    logger.info(f"Duration (in ms):  {duration_number}")
-    logger.info(f"retry frame number:  {retry_number}")
-    logger.info(f"class name: {class_name}")
-    logger.info(f"Image from buffer: {buffer_name}")
+    logger.debug('Cast one image from buffer')
+    logger.debug(f"image number: {image_number}")
+    logger.debug(f"device number: {device_number}")
+    logger.debug(f"FPS: {fps_number}")
+    logger.debug(f"Duration (in ms):  {duration_number}")
+    logger.debug(f"retry frame number:  {retry_number}")
+    logger.debug(f"class name: {class_name}")
+    logger.debug(f"Image from buffer: {buffer_name}")
 
     ddp = DDPDevice(ip)
 
@@ -1034,7 +1034,7 @@ async def main_page():
                 with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
                     if str2bool(custom_config['system-stats']):
                         with ui.row().classes('self-center'):
-                            frame_count = ui.number(prefix='F.').bind_value_from(CastAPI, 'total_frame')
+                            frame_count = ui.number(prefix='F:').bind_value_from(CastAPI, 'total_frame')
                             frame_count.tooltip('TOTAL Frames')
                             frame_count.classes("w-20")
                             frame_count.props(remove='type=number', add='borderless')
@@ -1043,9 +1043,9 @@ async def main_page():
                             total_reset_icon.style("cursor: pointer")
                             total_reset_icon.on('click', lambda: reset_total())
 
-                            packet_count = ui.number(prefix='P.').bind_value_from(CastAPI, 'total_packet')
+                            packet_count = ui.number(prefix='P:').bind_value_from(CastAPI, 'total_packet')
                             packet_count.tooltip('TOTAL DDP Packets')
-                            packet_count.classes("w-20")
+                            packet_count.classes("w-25")
                             packet_count.props(remove='type=number', add='borderless')
 
                         ui.separator()
@@ -1835,7 +1835,7 @@ async def animate_toggle(img):
         img.classes('animate__animated animate__rubberBand')
 
     ui.notify(f'Animate :{custom_config["animate-ui"]}')
-    logger.info(f'Animate :{custom_config["animate-ui"]}')
+    logger.debug(f'Animate :{custom_config["animate-ui"]}')
 
 
 async def youtube_search():
@@ -1910,9 +1910,9 @@ async def select_sc_area():
     # For Calculate crop parameters
     Desktop.screen_coordinates = Sa.screen_coordinates
     #
-    logger.info(f'Monitor infos: {Sa.monitors}')
-    logger.info(f'Area Coordinates: {Sa.coordinates} from monitor {monitor}')
-    logger.info(f'Area screen Coordinates: {Sa.screen_coordinates} from monitor {monitor}')
+    logger.debug(f'Monitor infos: {Sa.monitors}')
+    logger.debug(f'Area Coordinates: {Sa.coordinates} from monitor {monitor}')
+    logger.debug(f'Area screen Coordinates: {Sa.screen_coordinates} from monitor {monitor}')
 
 
 async def player_sync():
@@ -2035,7 +2035,7 @@ def dev_stats_info_page():
     Popen(["devstats"] + dev_ip + ips_list + dark,
           executable=select_chart_exe())
 
-    logger.info('Run Device(s) Charts')
+    logger.debug('Run Device(s) Charts')
     CastAPI.charts_row.set_visibility(False)
 
 
@@ -2050,7 +2050,7 @@ def net_stats_info_page():
           executable=select_chart_exe())
 
     CastAPI.charts_row.set_visibility(False)
-    logger.info('Run Network Chart')
+    logger.debug('Run Network Chart')
 
 
 def sys_stats_info_page():
@@ -2064,7 +2064,7 @@ def sys_stats_info_page():
           executable=select_chart_exe())
 
     CastAPI.charts_row.set_visibility(False)
-    logger.info('Run System Charts')
+    logger.debug('Run System Charts')
 
 
 def select_chart_exe():
@@ -2786,7 +2786,7 @@ async def save_image(class_obj, buffer, image_number, ascii_art=False, interacti
     if interactive:
         ui.notify(f"Image saved to {t_filename}")
 
-    logger.info(f"Image saved to {t_filename}")
+    logger.debug(f"Image saved to {t_filename}")
 
 
 async def discovery_net_notify():
@@ -2820,7 +2820,7 @@ async def init_cast(class_obj, clog_ui=None):
     """
     class_obj.cast(shared_buffer=t_data_buffer)
     await nice.cast_manage(CastAPI, Desktop, Media)
-    logger.info(f'Run Cast for {str(class_obj)}')
+    logger.debug(f'Run Cast for {str(class_obj)}')
     ui.notify(f'Cast initiated for :{str(class_obj)}')
 
 
@@ -2830,7 +2830,7 @@ async def cast_stop(class_obj):
     class_obj.stopcast = True
     ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
     await nice.cast_manage(CastAPI, Desktop, Media)
-    logger.info(f' Stop Cast for {str(class_obj)}')
+    logger.debug(f' Stop Cast for {str(class_obj)}')
 
 
 async def auth_cast(class_obj):
@@ -2839,7 +2839,7 @@ async def auth_cast(class_obj):
     class_obj.stopcast = False
     ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
     await nice.cast_manage(CastAPI, Desktop, Media)
-    logger.info(f' Cast auth. for {str(class_obj)}')
+    logger.debug(f' Cast auth. for {str(class_obj)}')
 
 
 async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
@@ -2935,7 +2935,7 @@ async def download_url(url):
             video_img_url = './media/' + image_name
 
     ui.notify(f'Video set to : {video_img_url}')
-    logger.info(f'Video set to : {video_img_url}')
+    logger.debug(f'Video set to : {video_img_url}')
 
     # put max value to progress bar
     CastAPI.progress_bar.value = 1
@@ -3041,14 +3041,15 @@ ui.run(title='WLEDVideoSync',
        reconnect_timeout=int(server_config['reconnect_timeout']),
        reload=False,
        native=native_ui,
-       window_size=native_ui_size)
+       window_size=native_ui_size,
+       access_log=False)
 
 """
 END
 """
 
 # some cleaning
-logger.info('Remove tmp files')
+logger.debug('Remove tmp files')
 for tmp_filename in PathLib("./tmp/").glob("*_file.*"):
     tmp_filename.unlink()
 

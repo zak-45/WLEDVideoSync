@@ -306,7 +306,7 @@ def dialog_stop_server(my_window):
 
     else:
 
-        logger.info('Server stop Canceled')
+        logger.debug('Server stop Canceled')
 
     my_window.destroy()
 
@@ -564,6 +564,7 @@ if __name__ == '__main__':
                         port=server_port,
                         workers=int(server_config['workers']),
                         log_level=server_config['log_level'],
+                        access_log=False,
                         reload=False,
                         timeout_keep_alive=10,
                         timeout_graceful_shutdown=3)
@@ -576,7 +577,7 @@ if __name__ == '__main__':
 
         # start server
         instance.start()
-        logger.info('WLEDVideoSync Started...Server run in separate process')
+        logger.debug('WLEDVideoSync Started...Server run in separate process')
 
         """
         systray and webview only if OS win32
@@ -587,7 +588,7 @@ if __name__ == '__main__':
             # start pywebview process
             # this will start native OS window and block main thread
             if show_window:
-                logger.info('Starting webview loop...')
+                logger.debug('Starting webview loop...')
                 start_webview_process()
             else:
                 start_webview_process('Main')
@@ -595,7 +596,7 @@ if __name__ == '__main__':
             # start pystray Icon
             # main infinite loop on systray if requested
             if put_on_systray:
-                logger.info('Starting systray loop...')
+                logger.debug('Starting systray loop...')
                 WLEDVideoSync_icon.run()
 
     else:
@@ -609,7 +610,7 @@ if __name__ == '__main__':
 
     # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     proc_file.close()
-    logger.info('Remove tmp files')
+    logger.debug('Remove tmp files')
 
     try:
         if os.path.isfile(tmp_file + ".dat"):

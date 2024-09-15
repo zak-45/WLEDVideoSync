@@ -172,7 +172,7 @@ class CASTDesktop:
             CASTDesktop.total_frame = 0
             CASTDesktop.total_packet = 0
 
-        logger.info(f'Child thread: {t_name}')
+        logger.debug(f'Child thread: {t_name}')
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
 
@@ -262,7 +262,7 @@ class CASTDesktop:
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
-                logger.info(f'{t_name} We work with this IP {self.host} as first device: number 0')
+                logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
             else:
                 logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
                 return False
@@ -308,7 +308,7 @@ class CASTDesktop:
                                 break
                         if ddp_exist is not True:
                             t_ddp_multi_names.append(DDPDevice(cast_ip))
-                            logger.info(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
+                            logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
         else:
@@ -402,7 +402,7 @@ class CASTDesktop:
             try:
 
                 logger.info(f"{t_name} Capture from {t_viinput}")
-                logger.info(f"{t_name} Stopcast value : {self.stopcast}")
+                logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
 
                 for frame in input_container.decode(input_stream):
 
@@ -687,7 +687,7 @@ class CASTDesktop:
                                     # start the child process
                                     # small delay occur, OS take some time to initiate the new process
                                     sl_process.start()
-                                    logger.info(f'Starting Child Process for Preview : {t_name}')
+                                    logger.debug(f'Starting Child Process for Preview : {t_name}')
 
                                 # working with the shared list
                                 if frame_count > 1:
@@ -772,10 +772,10 @@ class CASTDesktop:
         # Clean ShareableList
         Utils.sl_clean(sl, sl_process, t_name)
 
-        logger.info("_" * 50)
-        logger.info(f'Cast {t_name} end using this input: {t_viinput}')
-        logger.info(f'Using these devices: {str(ip_addresses)}')
-        logger.info("_" * 50)
+        logger.debug("_" * 50)
+        logger.debug(f'Cast {t_name} end using this input: {t_viinput}')
+        logger.debug(f'Using these devices: {str(ip_addresses)}')
+        logger.debug("_" * 50)
 
         logger.info(f'{t_name} Cast closed')
 
@@ -793,4 +793,4 @@ class CASTDesktop:
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
-        logger.info('Child Desktop cast initiated')
+        logger.debug('Child Desktop cast initiated')

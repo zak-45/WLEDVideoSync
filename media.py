@@ -162,7 +162,7 @@ class CASTMedia:
             CASTMedia.total_frame = 0
             CASTMedia.total_packet = 0
 
-        logger.info(f'Child thread: {t_name}')
+        logger.debug(f'Child thread: {t_name}')
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
 
@@ -271,7 +271,7 @@ class CASTMedia:
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
-                logger.info(f'{t_name} We work with this IP {self.host} as first device: number 0')
+                logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
             else:
                 logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
                 return False
@@ -317,7 +317,7 @@ class CASTMedia:
                                 break
                         if ddp_exist is not True:
                             t_ddp_multi_names.append(DDPDevice(cast_ip))
-                            logger.info(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
+                            logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
         else:
@@ -362,11 +362,11 @@ class CASTMedia:
             return False
 
         logger.info(f"{t_name} Playing media {t_viinput} of length {media_length} at {fps} FPS")
-        logger.info(f"{t_name} Stopcast value : {self.stopcast}")
+        logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
 
         # detect if we want specific frame index: only for non-live video (-1) and not image (1)
         if self.frame_index != 0 and media_length > 1:
-            logger.info(f"{t_name} Start at frame number {self.frame_index}")
+            logger.debug(f"{t_name} Start at frame number {self.frame_index}")
             media.set(cv2.CAP_PROP_POS_FRAMES, self.frame_index - 1)
 
         CASTMedia.cast_names.append(t_name)
@@ -376,7 +376,7 @@ class CASTMedia:
         current_time = time.time()
         auto_expected_time = current_time
 
-        logger.info(f'{t_name} Cast running ...')
+        logger.debug(f'{t_name} Cast running ...')
 
         """
             Media Loop
@@ -439,7 +439,7 @@ class CASTMedia:
                             CASTMedia.cast_name_to_sync.remove(t_name)
                             # sync cast
                             media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
-                            logger.info(f'{t_name} ALL Sync Cast to time :{self.sync_to_time}')
+                            logger.debug(f'{t_name} ALL Sync Cast to time :{self.sync_to_time}')
 
                             logger.debug(f'{t_name} synced')
 
@@ -473,7 +473,7 @@ class CASTMedia:
                             if self.cast_sync:
                                 media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
                                 self.cast_sync = False
-                                logger.info(f'{t_name} Sync Cast to time :{self.sync_to_time}')
+                                logger.debug(f'{t_name} Sync Cast to time :{self.sync_to_time}')
                 #
                 # read frame for all
                 #
@@ -484,7 +484,7 @@ class CASTMedia:
                         break
 
                     else:
-                        logger.info(f'{t_name} Media reached END')
+                        logger.debug(f'{t_name} Media reached END')
                         # manage the repeat feature, if -1 then unlimited
                         if t_repeat > 0 or t_repeat < 0:
                             t_repeat -= 1
@@ -741,7 +741,7 @@ class CASTMedia:
                                 (self.frame_index != 0 and
                                  frame_count >= self.frame_max and
                                  self.put_to_buffer is True)):
-                            logger.info(f"{t_name} Reached END ...")
+                            logger.debug(f"{t_name} Reached END ...")
                             break
 
             """
@@ -788,7 +788,7 @@ class CASTMedia:
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
                         sl_process.start()
-                        logger.info(f'Starting Child Process for Preview : {t_name}')
+                        logger.debug(f'Starting Child Process for Preview : {t_name}')
 
                     # working with the shared list
                     if frame_count > 1:
@@ -906,17 +906,17 @@ class CASTMedia:
         try:
             if not isinstance(media, np.ndarray):
                 media.release()
-                logger.info(f'{t_name} Release Media')
+                logger.debug(f'{t_name} Release Media')
         except Exception as e:
             logger.warning(f'{t_name} Release Media status : {e}')
 
         # Clean ShareableList
         Utils.sl_clean(sl, sl_process, t_name)
 
-        logger.info("_" * 50)
-        logger.info(f'Cast {t_name} end using this media: {t_viinput}')
-        logger.info(f'Using these devices: {str(ip_addresses)}')
-        logger.info("_" * 50)
+        logger.debug("_" * 50)
+        logger.debug(f'Cast {t_name} end using this media: {t_viinput}')
+        logger.debug(f'Using these devices: {str(ip_addresses)}')
+        logger.debug("_" * 50)
 
         logger.info(f"{t_name} Cast closed")
 
@@ -934,4 +934,4 @@ class CASTMedia:
         thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
-        logger.info('Child Media cast initiated')
+        logger.debug('Child Media cast initiated')

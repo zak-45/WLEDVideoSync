@@ -35,7 +35,7 @@ class CV2Utils:
     def cv2_win_close(server_port, class_name, t_name, t_viinput):
         """ Close cv2 window created by imshow """
 
-        logger.info(f'{t_name} Stop window preview if any')
+        logger.debug(f'{t_name} Stop window preview if any')
         window_name = f"{server_port}-{t_name}-" + str(t_viinput)
 
         # check if window run into sub process to instruct it by ShareableList
@@ -159,13 +159,13 @@ class CV2Utils:
             # Stop if requested
             if sl[9] is True:
                 sl[18] = '0,0,0'
-                logger.info(f'STOP Cast for : {sl_t_name}')
+                logger.debug(f'SL STOP Cast for : {sl_t_name}')
                 break
             elif sl[6] is False:
-                logger.info(f'END Preview for : {sl_t_name}')
+                logger.debug(f'SL END Preview for : {sl_t_name}')
                 break
 
-        logger.info(f'Child process exit for : {sl_t_name}')
+        logger.debug(f'Child process exit for : {sl_t_name}')
 
     @staticmethod
     def cv2_preview_window(total_frame,
@@ -277,7 +277,7 @@ class CV2Utils:
                 pass
             t_preview = False
             t_todo_stop = True
-            logger.info(f'Request to stop {t_name}')
+            logger.debug(f'Request to stop {t_name}')
 
         elif key_pressed == ord("p"):
             try:

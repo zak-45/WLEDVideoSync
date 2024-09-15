@@ -92,9 +92,9 @@ class CASTUtils:
             config.write(configfile)
 
         try:
-            logger.info(f"Updated '{key}' to '{new_value}' in section '{section}'.")
+            logger.debug(f"Updated '{key}' to '{new_value}' in section '{section}'.")
         except NameError:
-            print(f"Updated '{key}' to '{new_value}' in section '{section}'.")
+            print(f"Key ERROR to Update '{key}' to '{new_value}' in section '{section}'.")
 
     @staticmethod
     def mp_setup():
@@ -123,7 +123,7 @@ class CASTUtils:
                 # destroy the shared memory
                 sl.shm.unlink()
             if sl_process is not None:
-                logger.info(f'Stopping Child Process for Preview if any : {t_name}')
+                logger.debug(f'Stopping Child Process for Preview if any : {t_name}')
                 sl_process.kill()
         except Exception as e:
             logger.error(f'Error on SL clean : {e}')
@@ -180,7 +180,7 @@ class CASTUtils:
                 final_filename = d.get('info_dict').get('_filename')
                 CASTUtils.yt_file_name = final_filename
                 CASTUtils.yt_file_size_remain_bytes = 0
-                logger.info(f"Finished Post Process {final_filename}")
+                logger.debug(f"Finished Post Process {final_filename}")
 
         if interactive:
             if log_ui is not None:
@@ -195,11 +195,11 @@ class CASTUtils:
                         CASTUtils.yt_file_size_bytes = d['total_bytes']
                         CASTUtils.yt_file_size_remain_bytes = d['total_bytes'] - d['downloaded_bytes']
 
-                    logger.info(f"Downloading: {d['_percent_str']} of "
+                    logger.debug(f"Downloading: {d['_percent_str']} of "
                                 f"{d['_total_bytes_str']} at {d['_speed_str']} ETA {d['_eta_str']}")
 
                 elif d['status'] == 'finished':
-                    logger.info(f"Finished downloading {d['filename']}")
+                    logger.debug(f"Finished downloading {d['filename']}")
 
             ydl_opts = {
                 f'format': f'{download_format}',  # choose format to download
@@ -233,9 +233,9 @@ class CASTUtils:
             ydl = YoutubeDL(ydl_opts)
             await run.io_bound(ydl.download, url_list=yt_url)
 
-        except Exception as error:
+        except Exception as err:
             CASTUtils.yt_file_name = ''
-            logger.info(f'Youtube error : {error}')
+            logger.error(f'Youtube error : {err}')
 
         return CASTUtils.yt_file_name
 
@@ -272,7 +272,7 @@ class CASTUtils:
                 # Get WLED info's
                 response = await wled.request("/json/info")
                 matrix = response["leds"]["matrix"]
-                logger.info(f'WLED matrix : {str(matrix["w"])} x {str(matrix["h"])}')
+                logger.debug(f'WLED matrix : {str(matrix["w"])} x {str(matrix["h"])}')
             await wled.close()
         except Exception as error:
             logger.error(traceback.format_exc())
@@ -611,7 +611,7 @@ class CASTUtils:
                 v_logger = logging.getLogger('WLEDLogger')
             else:
                 v_logger = logging.getLogger(handler_name)
-            v_logger.info(f"Logging configured using {config_path} for {handler_name}")
+            v_logger.debug(f"Logging configured using {config_path} for {handler_name}")
         else:
             logging.basicConfig(level=logging.INFO)
             v_logger = logging.getLogger(handler_name)
@@ -644,12 +644,12 @@ class CASTUtils:
             file_path = download_path + file_name
 
             if os.path.isfile(file_path):
-                logger.info(f'Image already exist : {file_path}')
+                logger.error(f'Image already exist : {file_path}')
             else:
                 with open(file_path, "wb") as f:
                     image.save(f, "JPEG")
 
-                logger.info(f'Image saved to : {file_path}')
+                logger.debug(f'Image saved to : {file_path}')
 
             return True
 
@@ -699,10 +699,10 @@ class HTTPDiscovery:
     def discover(self):
         zeroconf = Zeroconf()
         ServiceBrowser(zeroconf, "_http._tcp.local.", self)
-        logger.info('Scanning network devices ...')
+        logger.debug('Scanning network devices ...')
         time.sleep(self.duration)
         zeroconf.close()
-        logger.info('Scanning network devices ... Done')
+        logger.debug('Scanning network devices ... Done')
 
 
 class LogElementHandler(logging.Handler):
@@ -805,7 +805,7 @@ class ScreenAreaSelection:
         # Change the monitor index as needed
         monitor_index = monitor_number  # Change this to the desired monitor index (0 for first , 1 for second, etc.)
         if monitor_index >= len(monitors):
-            logger.info(f"Monitor index {monitor_index} is out of range. Using the first monitor instead.")
+            logger.warning(f"Monitor index {monitor_index} is out of range. Using the first monitor instead.")
             monitor_index = 0
         # monitor obj
         monitor = monitors[monitor_index]

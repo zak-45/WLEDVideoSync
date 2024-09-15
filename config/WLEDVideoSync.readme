@@ -17,6 +17,7 @@
 #                       or hostname of the running computer
 # log_level 	    : Set the log level of the server. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'
 # workers 	        : Uvicorn also has an option to start and run several worker processes
+#                       on 03/09/2024: niceGUI do not manage it, let to 1
 # reconnect_timeout : maximum time the server waits for the browser to reconnect (default: 3.0 seconds)
 [server]
 
