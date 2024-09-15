@@ -94,7 +94,8 @@ class CASTUtils:
         try:
             logger.debug(f"Updated '{key}' to '{new_value}' in section '{section}'.")
         except NameError:
-            print(f"Key ERROR to Update '{key}' to '{new_value}' in section '{section}'.")
+            # this will be print only during init app as logger is not yet defined (NameError)
+            print(f"INIT Update '{key}' to '{new_value}' in section '{section}'.")
 
     @staticmethod
     def mp_setup():
@@ -653,8 +654,8 @@ class CASTUtils:
 
             return True
 
-        except Exception as e:
-            logger.error(f'Error to save image from {url} :  {e}')
+        except Exception as err:
+            logger.error(f'Error to save image from {url} :  {err}')
 
             return False
 
@@ -668,8 +669,8 @@ class CASTUtils:
             if content_type and content_type.startswith('image/'):
                 return True
             return False
-        except requests.RequestException as e:
-            logger.error(f"Error checking URL: {e}")
+        except requests.RequestException as err:
+            logger.error(f"Error checking URL: {err}")
             return False
 
 
@@ -949,7 +950,7 @@ class AnimatedElement:
     Add animation to UI Element, in / out
         In for create element
         Out for delete element
-    Following is necessary as its based on Animate.css
+    Following is necessary as it's based on Animate.css
     # Add Animate.css to the HTML head
     ui.add_head_html(""
     <link rel="stylesheet" href="./assets/css/animate.min.css"/>
