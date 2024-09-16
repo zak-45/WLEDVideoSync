@@ -132,7 +132,7 @@ class CASTDesktop:
         self.preview_h: int = 360
         self.text = cfg_text
         self.custom_text: str = ""
-        self.voformat: str = 'h264'
+        self.voformat: str = 'mpeg'
         self.vooutput: str = 'udp://127.0.0.1:12345?pkt_size=1316'
         self.put_to_buffer: bool = False
         self.frame_buffer: list = []
@@ -342,12 +342,19 @@ class CASTDesktop:
 
             input_options |= area_options
 
-        if 'window_id:' in self.viinput and sys.platform.lower() == 'linux':
-            # specific window for linux
-            win_id = self.viinput.lower().replace('window_id:','')
-            window_options = {'window_id': str(win_id)}
+        elif self.viinput.lower().startswith('win='):
+            # specific window content
+            # append title (win) if needed
+            if sys.platform.lower() == 'win32':
+                self.viinput = 'title=' + self.viinput[3:-1]
+            # retrieve window ID
+            elif sys.platform.lower() == 'linux':
+                win_id = self.viinput.lower()[3:-1]
+                window_options = {'window_id': str(win_id)}
 
-            input_options |= window_options
+                input_options |= window_options
+
+        logger.debug(f'Options passed to av: {input_options}')
 
         input_format = self.viformat
 
@@ -361,9 +368,7 @@ class CASTDesktop:
 
         if self.viinput in ['desktop', 'area'] and sys.platform.lower() == 'win32':
             t_viinput = 'desktop'
-        elif self.viinput in ['area'] and sys.platform.lower() == 'linux':
-            t_viinput = os.getenv('DISPLAY')
-        elif 'window_id:' in self.viinput.lower() and sys.platform.lower() == 'linux':
+        elif (self.viinput in ['area'] or self.viinput.lower().startswith('win=')) and sys.platform.lower() == 'linux':
             t_viinput = os.getenv('DISPLAY')
         else:
             t_viinput = self.viinput
@@ -393,7 +398,8 @@ class CASTDesktop:
 
                 output_container = av.open(output_filename, 'w', format=output_format)
                 output_stream = output_container.add_stream('h264', rate=self.rate, options=output_options)
-                output_stream.thread_type = "AUTO"
+                if str2bool(desktop_config['multi_thread']) is True:
+                    output_stream.thread_type = "AUTO"
 
             except Exception as error:
                 logger.error(traceback.format_exc())

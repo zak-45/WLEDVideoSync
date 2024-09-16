@@ -316,11 +316,6 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
         except ValueError:
             logger.debug("viinput act as string only")
 
-    # append title (win) if needed
-    if class_name == 'Desktop' and param == 'viinput' and sys.platform == 'win32':
-        if value not in ['desktop', 'area'] and 'http' not in value:
-            value = 'title=' + value
-
     # check valid IP
     if param == 'host':
         is_valid = Utils.validate_ip_address(value)
@@ -1472,6 +1467,10 @@ async def main_page_desktop():
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Desktop', 'cast_devices', new_cast_devices.value))
                 ui.button('Manage', on_click=lambda: nice.cast_device_manage(Desktop, Netdevice))
+
+            with ui.card():
+                new_protocol = ui.select(['ddp','other'], label='Protocol').bind_value(Desktop,'protocol')
+                new_protocol.classes('w-40')
 
     ui.separator().classes('mt-6')
 
