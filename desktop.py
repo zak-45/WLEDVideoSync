@@ -346,10 +346,10 @@ class CASTDesktop:
             # specific window content
             # append title (win) if needed
             if sys.platform.lower() == 'win32':
-                self.viinput = 'title=' + self.viinput[3:-1]
+                self.viinput = 'title=' + self.viinput[4:]
             # retrieve window ID
             elif sys.platform.lower() == 'linux':
-                win_id = self.viinput.lower()[3:-1]
+                win_id = self.viinput.lower()[4:]
                 window_options = {'window_id': str(win_id)}
 
                 input_options |= window_options
