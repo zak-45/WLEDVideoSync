@@ -1352,10 +1352,11 @@ async def main_page_desktop():
     ]
     columns_c = [
         {'name': 'viinput', 'label': 'Input', 'field': 'viinput', 'align': 'left'},
-        {'name': 'viformat', 'label': 'Method', 'field': 'viformat'}
+        {'name': 'viformat', 'label': 'Method', 'field': 'viformat'},
+        {'name': 'preview', 'label': 'Preview', 'field': 'preview'}
     ]
     rows_c = [
-        {'id': 0, 'viinput': Desktop.viinput, 'viformat': Desktop.viformat}
+        {'id': 0, 'viinput': Desktop.viinput, 'viformat': Desktop.viformat, 'preview': Desktop.preview}
     ]
     columns_d = [
         {'name': 'vooutput', 'label': 'Output', 'field': 'vooutput', 'align': 'left'},
@@ -1432,6 +1433,8 @@ async def main_page_desktop():
             with ui.card():
                 new_viinput = ui.input('Input', value=str(Desktop.viinput))
                 new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', new_viinput.value))
+                new_preview = ui.input('Preview', value=Desktop.preview)
+                new_preview.bind_value_to(Desktop, 'preview', lambda value: str2bool(value))
                 new_viformat = ui.input('Method', value=Desktop.viformat)
                 new_viformat.bind_value_to(Desktop, 'viformat')
                 ui.button('formats', on_click=nice.display_formats)
