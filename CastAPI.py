@@ -316,14 +316,10 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
         except ValueError:
             logger.debug("viinput act as string only")
 
-    # append title (win) or window_id (linux) if needed
+    # append title (win) if needed
     if class_name == 'Desktop' and param == 'viinput' and sys.platform == 'win32':
         if value not in ['desktop', 'area'] and 'http' not in value:
             value = 'title=' + value
-    elif class_name == 'Desktop' and param == 'viinput' and sys.platform == 'linux':
-        if 'window_id:' in value.lower():
-            value = os.getenv('DISPLAY') + ' -window_id ' + value.replace('window_id:', '')
-
 
     # check valid IP
     if param == 'host':

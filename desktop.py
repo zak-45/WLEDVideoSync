@@ -342,6 +342,13 @@ class CASTDesktop:
 
             input_options |= area_options
 
+        if 'window_id:' in self.viinput and sys.platform.lower() == 'linux':
+            # specific window for linux
+            win_id = self.viinput.lower().replace('window_id:','')
+            window_options = {'window_id': str(win_id)}
+
+            input_options |= window_options
+
         input_format = self.viformat
 
         """
@@ -355,6 +362,8 @@ class CASTDesktop:
         if self.viinput in ['desktop', 'area'] and sys.platform.lower() == 'win32':
             t_viinput = 'desktop'
         elif self.viinput in ['area'] and sys.platform.lower() == 'linux':
+            t_viinput = os.getenv('DISPLAY')
+        elif 'window_id:' in self.viinput.lower() and sys.platform.lower() == 'linux':
             t_viinput = os.getenv('DISPLAY')
         else:
             t_viinput = self.viinput
