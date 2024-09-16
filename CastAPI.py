@@ -316,10 +316,14 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
         except ValueError:
             logger.debug("viinput act as string only")
 
-    # append title if needed
+    # append title (win) or window_id (linux) if needed
     if class_name == 'Desktop' and param == 'viinput' and sys.platform == 'win32':
-        if value not in ['desktop', 'area']:
+        if value not in ['desktop', 'area'] and 'http' not in value:
             value = 'title=' + value
+    elif class_name == 'Desktop' and param == 'viinput' and sys.platform == 'linux':
+        if 'window_id:' in value.lower():
+            value = os.getenv('DISPLAY') + ' -window_id ' + value.replace('window_id:', '')
+
 
     # check valid IP
     if param == 'host':
@@ -1077,7 +1081,7 @@ async def main_page():
             logger.setLevel(app_config['log_level'].upper())
             # handler
             handler = LogElementHandler(log_ui)
-            ui.context.client.on_connect(lambda: logger.addHandler(handler))
+            logger.addHandler(handler)
             ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
             # clear / load log file
             with ui.row().classes('w-full'):
@@ -1433,7 +1437,7 @@ async def main_page_desktop():
             with ui.card():
                 new_viinput = ui.input('Input', value=str(Desktop.viinput))
                 new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', new_viinput.value))
-                new_preview = ui.input('Preview', value=Desktop.preview)
+                new_preview = ui.input('Preview', value=str(Desktop.preview))
                 new_preview.bind_value_to(Desktop, 'preview', lambda value: str2bool(value))
                 new_viformat = ui.input('Method', value=Desktop.viformat)
                 new_viformat.bind_value_to(Desktop, 'viformat')

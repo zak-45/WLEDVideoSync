@@ -37,6 +37,7 @@ import traceback
 import time
 
 import cfg_load as cfg
+from fontTools.ttLib.tables.S_V_G_ import table_S_V_G_
 from str2bool import str2bool
 
 import threading
@@ -346,7 +347,8 @@ class CASTDesktop:
         """
         viinput can be:
                     desktop : to stream full screen or a part of the screen
-                    title=<window name> : to stream only window content                    
+                    title=<window name> : to stream only window content for win
+                    window_id : to stream only window content for win            
                     or str
         """
 
