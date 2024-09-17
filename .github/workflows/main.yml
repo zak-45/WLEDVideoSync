@@ -32,7 +32,7 @@ jobs:
       YOUTUBE_DISABLE: yes
       DEBUG_COMPILATION: yes
       COMP_VERSION: ${{github.event.inputs.mytag}}
-      COMP_DATE: $(date +'%Y-%m-%dT%H:%M:%S')
+      # COMP_DATE: $(date +'%Y-%m-%dT%H:%M:%S')
 
     runs-on: ${{matrix.os}}
    
