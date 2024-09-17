@@ -31,7 +31,6 @@ jobs:
       YOUTUBE_DISABLE: yes
       DEBUG_COMPILATION: yes
       COMP_VERSION: ${{github.event.inputs.mytag}}
-      COMP_DATE: $(date +'%Y-%m-%dT%H:%M:%S')
 
     runs-on: ${{matrix.os}}
    
@@ -76,7 +75,8 @@ jobs:
         env:
           GitRun: ${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
         run: |
-            echo "{\"version\": \"$COMP_VERSION\",\"gitrun\": \"$GitRun\", \"date\": \"$COMP_DATE\"}" > ./assets/version.json
+            echo "COMP_DATE=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+            echo "{\"version\": \"${{env.COMP_VERSION}}\",\"gitrun\": \"${{env.GitRun}}\", \"date\": \"${{env.COMP_DATE}}\"}" > ./assets/version.json
 
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.1
