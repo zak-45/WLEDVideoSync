@@ -75,7 +75,7 @@ jobs:
       - name: Add version info to json file
         env:
           GitRun: ${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
-          run: |
+        run: |
             echo "{\"version\": \"$COMP_VERSION\",\"gitrun\": \"$GitRun\", \"date\": \"$COMP_DATE\"}" > ./assets/version.json
 
       - name: Build Executable for ${{runner.os}}
