@@ -1,0 +1,11 @@
+{
+	"version": "0.0.6.3",
+	"gitrun": "10907610283.8.1",
+	"date": "2024-09-17T16:59:16.690Z",
+	"name": "Server2022",
+	"platform": "win32",
+	"release": "21H2",
+	"python": "C:hostedtoolcachewindowsPython3.11.9x64",
+	"youtube_disable": "yes",
+	"debug_compilation": "yes"
+}

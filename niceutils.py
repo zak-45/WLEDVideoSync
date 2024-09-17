@@ -96,6 +96,18 @@ async def head_set(name, target, icon):
             ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
         if str2bool(app_config['fastapi_docs']):
             ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
+        ui.icon('info',size='sm').on('click', lambda: app_info()).style('cursor:pointer')
+
+
+def app_info():
+    """ display app , compile version """
+
+    with open('./assets/info.json', 'r') as file:
+        info = file.read()
+    with ui.dialog() as dialog:
+        dialog.open()
+        editor = ui.json_editor({'content': {'json': info}}) \
+            .run_editor_method('updateProps', {'readOnly': True})
 
 
 async def sync_button(CastAPI, Media):
