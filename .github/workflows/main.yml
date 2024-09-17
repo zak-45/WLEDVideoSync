@@ -31,6 +31,7 @@ jobs:
     env:
       YOUTUBE_DISABLE: yes
       DEBUG_COMPILATION: yes
+      COMP_VERSION: ${{github.event.inputs.mytag}}
 
     runs-on: ${{matrix.os}}
    
@@ -70,6 +71,14 @@ jobs:
       - name: Install Dependencies for All
         run: |
           pip install -r requirements.txt
+
+      - name: Add version info to json file
+        env:
+          Version: ${{github.event.inputs.mytag}}
+          GitRun: ${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
+          run: |
+            echo "{\"version\": \"$Version\"}" > /assets/version.json          
+            echo "{\"gitrun\": \"$GitRun\"}" >> /assets/version.json
 
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.1
