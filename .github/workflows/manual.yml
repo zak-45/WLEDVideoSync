@@ -35,6 +35,13 @@ jobs:
     runs-on: ${{matrix.os}}
    
     steps:
+      - name: Get current time
+        uses: josStorer/get-current-time@v2
+        id: current-time
+        with:
+          format: YYYYMMDD-HH
+          utcOffset: "+02:00"
+
       - name: Check-out repository
         uses: actions/checkout@v4
 
@@ -76,7 +83,7 @@ jobs:
           GitRun: ${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
         run: |
             echo "COMP_DATE=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
-            echo "{\"version\": \"${{env.COMP_VERSION}}\",\"gitrun\": \"${{env.GitRun}}\", \"date\": \"${{env.COMP_DATE}}\"}" > ./assets/version.json
+            echo "{\"version\": \"${{env.COMP_VERSION}}\",\"gitrun\": \"${{env.GitRun}}\", \"date\": \"${{ steps.current-time.outputs.time }}\"}" > ./assets/version.json
 
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.1
