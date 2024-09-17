@@ -37,7 +37,6 @@ import traceback
 import time
 
 import cfg_load as cfg
-from fontTools.ttLib.tables.S_V_G_ import table_S_V_G_
 from str2bool import str2bool
 
 import threading
@@ -442,6 +441,8 @@ class CASTDesktop:
                         packets = output_stream.encode(frame)
                         # Mux the encoded packet
                         for packet in packets:
+                            if packet.dts is None:
+                                continue
                             output_container.mux(packet)
 
                     else:
