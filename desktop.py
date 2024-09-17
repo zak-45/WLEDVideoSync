@@ -131,7 +131,7 @@ class CASTDesktop:
         self.preview_h: int = 360
         self.text = cfg_text
         self.custom_text: str = ""
-        self.voformat: str = 'mpeg'
+        self.voformat: str = 'matroska'
         self.vooutput: str = 'udp://127.0.0.1:12345?pkt_size=1316'
         self.put_to_buffer: bool = False
         self.frame_buffer: list = []

@@ -237,10 +237,12 @@ FastAPI
 @app.get("/api", tags=["root"])
 async def read_api_root():
     """
-        Status: see if WLEDVideoSync is running
+        Status: provide WLEDVideoSync info
     """
+    with open('./assets/info.json', 'r') as file:
+        info = file.read()
 
-    return {"Status": "WLEDVideoSync is Running ..."}
+    return {f'"Status": {info}'}
 
 
 @app.get("/api/{class_obj}/params", tags=["params"])
@@ -1355,7 +1357,7 @@ async def main_page_desktop():
     ]
     columns_d = [
         {'name': 'vooutput', 'label': 'Output', 'field': 'vooutput', 'align': 'left'},
-        {'name': 'voformat', 'label': 'Codec', 'field': 'voformat'}
+        {'name': 'voformat', 'label': 'Format', 'field': 'voformat'}
     ]
     rows_d = [
         {'id': 0, 'vooutput': Desktop.vooutput, 'voformat': Desktop.voformat}
@@ -1430,9 +1432,8 @@ async def main_page_desktop():
                 new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', new_viinput.value))
                 new_preview = ui.input('Preview', value=str(Desktop.preview))
                 new_preview.bind_value_to(Desktop, 'preview', lambda value: str2bool(value))
-                new_viformat = ui.input('Method', value=Desktop.viformat)
+                new_viformat = ui.input('Format', value=Desktop.viformat)
                 new_viformat.bind_value_to(Desktop, 'viformat')
-                ui.button('formats', on_click=nice.display_formats)
                 with ui.row():
                     ui.number('', value=Desktop.monitor_number, min=0, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number') \
@@ -1443,8 +1444,9 @@ async def main_page_desktop():
             with ui.card():
                 new_vooutput = ui.input('Output', value=str(Desktop.vooutput))
                 new_vooutput.bind_value_to(Desktop, 'vooutput')
-                new_voformat = ui.input('Codec', value=Desktop.voformat)
+                new_voformat = ui.input('Format', value=Desktop.voformat)
                 new_voformat.bind_value_to(Desktop, 'voformat')
+                ui.button('formats', on_click=nice.display_formats)
                 ui.button('Codecs', on_click=nice.display_codecs)
 
             with ui.card():
