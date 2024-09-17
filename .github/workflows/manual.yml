@@ -52,15 +52,7 @@ jobs:
         env:
           GitRun: ${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
         run: |
-            echo "{\"version\": \"${{env.COMP_VERSION}}\",
-          \"gitrun\": \"${{env.GitRun}}\", 
-          \"date\": \"${{ steps.current-time.outputs.time }}\",
-          \"name\": \"${{ steps.system-info.outputs.name }}\",
-          \"platform\": \"${{ steps.system-info.outputs.platform }}\",
-          \"release\": \"${{ steps.system-info.outputs.release }}\",          
-          \"python\":\"${{env.Python_ROOT_DIR}}\", 
-          \"youtube_disable\":\"${{env.YOUTUBE_DISABLE}}\", 
-          \"debug_compilation\":\"${{env.DEBUG_COMPILATION}}\"}" > ./assets/version.json
+            echo "{\"version\": \"${{env.COMP_VERSION}}\",\"gitrun\": \"${{env.GitRun}}\",\"date\": \"${{ steps.current-time.outputs.time }}\",\"name\": \"${{ steps.system-info.outputs.name }}\",\"platform\": \"${{ steps.system-info.outputs.platform }}\",\"release\": \"${{ steps.system-info.outputs.release }}\",\"python\":\"${{env.Python_ROOT_DIR}}\",\"youtube_disable\":\"${{env.YOUTUBE_DISABLE}}\",\"debug_compilation\":\"${{env.DEBUG_COMPILATION}}\"}" > ./assets/version.json
 
       - name: Ubuntu specific
         if: matrix.os == 'ubuntu-latest'
