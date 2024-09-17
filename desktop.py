@@ -440,6 +440,8 @@ class CASTDesktop:
                         # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
                         # Encode the frame
                         packet = output_stream.encode(frame)
+                        if frame.dts is None:
+                            continue
                         # Mux the encoded packet
                         output_container.mux(packet)
 
