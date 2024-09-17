@@ -27,7 +27,6 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-
     env:
       YOUTUBE_DISABLE: yes
       DEBUG_COMPILATION: yes
