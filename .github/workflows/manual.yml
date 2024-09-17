@@ -83,7 +83,7 @@ jobs:
           GitRun: ${{ github.run_id }}.${{ github.run_number }}.${{ github.run_attempt }}
         run: |
             echo "COMP_DATE=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
-            echo "{\"version\": \"${{env.COMP_VERSION}}\",\"gitrun\": \"${{env.GitRun}}\", \"date\": \"${{ steps.current-time.outputs.time }}\"}" > ./assets/version.json
+            echo "{\"version\": \"${{env.COMP_VERSION}}\",\"gitrun\": \"${{env.GitRun}}\", \"date\": \"${{ steps.current-time.outputs.time }}\", \"python\":\"${{env.Python_ROOT_DIR}}\", \"youtube_disable\":\"${{env.YOUTUBE_DISABLE}}\", \"debug_compilation\":\"${{env.DEBUG_COMPILATION}}\"}" > ./assets/version.json
 
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@v1.1
