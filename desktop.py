@@ -439,11 +439,10 @@ class CASTDesktop:
                     if output_container:
                         # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
                         # Encode the frame
-                        packet = output_stream.encode(frame)
-                        if frame.dts is None:
-                            continue
+                        packets = output_stream.encode(frame)
                         # Mux the encoded packet
-                        output_container.mux(packet)
+                        for packet in packets:
+                            output_container.mux(packet)
 
                     else:
 
@@ -773,6 +772,9 @@ class CASTDesktop:
                 input_container.close()
                 # close av output if any
                 if output_container:
+                    # Pass None to the encoder at the end - flush last packets
+                    for packet in output_stream.encode(None):
+                        output_container.mux(packet)
                     output_container.close()
                 if t_preview is True:
                     CV2Utils.cv2_win_close(CASTDesktop.server_port, 'Desktop', t_name, t_viinput)
