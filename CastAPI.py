@@ -239,10 +239,8 @@ async def read_api_root():
     """
         Status: provide WLEDVideoSync info
     """
-    with open('./assets/info.json', 'r') as file:
-        info = file.read()
 
-    return {f'"Status": {info}'}
+    return {f'"Version": {Utils.compile_info()}'}
 
 
 @app.get("/api/{class_obj}/params", tags=["params"])
@@ -258,6 +256,7 @@ async def all_params(class_obj: str = Path(description=f'Class name, should be i
     if class_obj != 'Netdevice':
         del return_data['frame_buffer']
         del return_data['cast_frame_buffer']
+
     return {"all_params": return_data}
 
 
@@ -455,7 +454,7 @@ async def util_win_titles():
     """
         Retrieve all titles from windows
     """
-    return {"windows_titles": Utils.windows_titles()}
+    return {"windows_titles": await Utils.windows_titles()}
 
 
 @app.get("/api/util/device_list", tags=["media"])
@@ -1357,10 +1356,11 @@ async def main_page_desktop():
     ]
     columns_d = [
         {'name': 'vooutput', 'label': 'Output', 'field': 'vooutput', 'align': 'left'},
-        {'name': 'voformat', 'label': 'Format', 'field': 'voformat'}
+        {'name': 'voformat', 'label': 'Format', 'field': 'voformat'},
+        {'name': 'vo_code', 'label': 'Codec', 'field': 'vo_codec'}
     ]
     rows_d = [
-        {'id': 0, 'vooutput': Desktop.vooutput, 'voformat': Desktop.voformat}
+        {'id': 0, 'vooutput': Desktop.vooutput, 'voformat': Desktop.voformat, 'vo_codec': Desktop.vo_codec}
     ]
 
     columns_e = [
@@ -1434,6 +1434,8 @@ async def main_page_desktop():
                 new_preview.bind_value_to(Desktop, 'preview', lambda value: str2bool(value))
                 new_viformat = ui.input('Format', value=Desktop.viformat)
                 new_viformat.bind_value_to(Desktop, 'viformat')
+                new_vi_codec = ui.input('Codec', value=Desktop.vi_codec)
+                new_vi_codec.bind_value_to(Desktop, 'vi_codec')
                 with ui.row():
                     ui.number('', value=Desktop.monitor_number, min=0, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number') \
@@ -1447,6 +1449,8 @@ async def main_page_desktop():
                 new_voformat = ui.input('Format', value=Desktop.voformat)
                 new_voformat.bind_value_to(Desktop, 'voformat')
                 ui.button('formats', on_click=nice.display_formats)
+                new_vo_codec = ui.input('Codec', value=Desktop.vo_codec)
+                new_vo_codec.bind_value_to(Desktop, 'vo_codec')
                 ui.button('Codecs', on_click=nice.display_codecs)
 
             with ui.card():
@@ -1526,7 +1530,7 @@ async def main_page_desktop():
         await net_view_page()
 
         with ui.dialog() as dialog, ui.card():
-            win_title = Utils.windows_titles()
+            win_title = await Utils.windows_titles()
             editor = ui.json_editor({'content': {'json': win_title}}) \
                 .run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog.close, color='red')

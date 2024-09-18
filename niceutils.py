@@ -15,6 +15,7 @@ from nicegui import ui, events
 import psutil
 from datetime import datetime
 from str2bool import str2bool
+
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils
 from cv2utils import VideoThumbnailExtractor
@@ -102,11 +103,9 @@ async def head_set(name, target, icon):
 def app_info():
     """ display app , compile version """
 
-    with open('./assets/info.json', 'r') as file:
-        info = file.read()
     with ui.dialog() as dialog:
         dialog.open()
-        editor = ui.json_editor({'content': {'json': info}}) \
+        editor = ui.json_editor({'content': {'json': Utils.compile_info()}}) \
             .run_editor_method('updateProps', {'readOnly': True})
 
 

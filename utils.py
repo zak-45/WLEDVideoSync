@@ -69,6 +69,15 @@ class CASTUtils:
         pass
 
     @staticmethod
+    def compile_info():
+        """ read version info file """
+
+        with open(f'./assets/version-{sys.platform.lower()}.json', 'r') as file:
+            info = file.read()
+
+        return info
+
+    @staticmethod
     def update_ini_key(file_path, section, key, new_value):
         # Create a ConfigParser object
         config = configparser.ConfigParser()
@@ -336,7 +345,7 @@ class CASTUtils:
         return pwc.getActiveWindow().title
 
     @staticmethod
-    def windows_titles():
+    async def windows_titles():
         """ Provide a list of all window titles / hWnd by applications """
 
         try:

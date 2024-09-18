@@ -132,6 +132,7 @@ class CASTDesktop:
         self.text = cfg_text
         self.custom_text: str = ""
         self.voformat: str = 'matroska'
+        self.vo_codec: str = 'h264'
         self.vooutput: str = 'udp://127.0.0.1:12345?pkt_size=1316'
         self.put_to_buffer: bool = False
         self.frame_buffer: list = []
@@ -161,6 +162,8 @@ class CASTDesktop:
         else:
             self.viinput = ''
             self.viformat = ''
+
+        self.vi_codec: str = 'libx264rgb'
 
     def t_desktop_cast(self, shared_buffer=None):
         """
@@ -324,7 +327,7 @@ class CASTDesktop:
         frame_interval = self.rate
 
         # Open video device (desktop / window)
-        input_options = {'c:v': 'libx264rgb', 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
+        input_options = {'c:v': self.vi_codec, 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
                          'framerate': str(frame_interval), 'probesize': '100M'}
 
         if self.viinput == 'area':
@@ -358,8 +361,6 @@ class CASTDesktop:
 
         logger.debug(f'Options passed to av: {input_options}')
 
-        input_format = self.viformat
-
         """
         viinput can be:
                     desktop : to stream full screen or a part of the screen
@@ -378,7 +379,7 @@ class CASTDesktop:
         # Open av input container in read mode
         try:
 
-            input_container = av.open(t_viinput, 'r', format=input_format, options=input_options)
+            input_container = av.open(t_viinput, 'r', format=self.viformat, options=input_options)
 
         except Exception as error:
             logger.error(traceback.format_exc())
@@ -395,11 +396,8 @@ class CASTDesktop:
 
                 # Output video in case of UDP or other
                 output_options = {}
-                output_format = self.voformat
-                output_filename = self.vooutput
-
-                output_container = av.open(output_filename, 'w', format=output_format)
-                output_stream = output_container.add_stream('h264', rate=self.rate, options=output_options)
+                output_container = av.open(self.vooutput, 'w', format=self.voformat)
+                output_stream = output_container.add_stream(self.vo_codec, rate=self.rate, options=output_options)
                 if str2bool(desktop_config['multi_thread']) is True:
                     output_stream.thread_type = "AUTO"
 
