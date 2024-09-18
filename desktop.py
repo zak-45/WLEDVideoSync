@@ -348,10 +348,13 @@ class CASTDesktop:
                 self.viinput = 'title=' + self.viinput[4:]
             # retrieve window ID
             elif sys.platform.lower() == 'linux':
-                win_id = self.viinput.lower()[4:]
-                window_options = {'window_id': str(win_id)}
-
-                input_options |= window_options
+                try:
+                    win_id = hex(int(self.viinput.lower()[4:]))
+                    window_options = {'window_id': str(win_id)}
+                    input_options |= window_options
+                except Exception as e:
+                    logger.error(f'Window ID (hWnd) need to be a number : {e}')
+                    return False
 
         logger.debug(f'Options passed to av: {input_options}')
 
