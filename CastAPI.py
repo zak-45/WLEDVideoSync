@@ -764,6 +764,8 @@ async def websocket_endpoint(websocket: WebSocket):
     """
     WS image Cast (we use Websocket to minimize delay)
     Main logic: check action name, extract params, execute func, return ws status
+    see page ws/docs for help
+    {"action":{"type":"cast_image", "param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}
     :param websocket:
     :return:
     """
@@ -829,10 +831,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     buffer_name = json_data["action"]["param"]["buffer_name"]
                     params["buffer_name"] = buffer_name
 
-                # execute action with params
-                # response = await run.io_bound(requests.get, URL, timeout=3)
-                # result = await run.io_bound(globals()[action], **params,)
-                await globals()[action](**params)
+                # execute action with params: use run_in_threadpool so no block main
+                await run_in_threadpool(globals()[action],**params)
                 # send back if no problem
                 await websocket.send_text('{"result":"success"}')
 
@@ -849,7 +849,7 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.close()
 
 
-async def cast_image(image_number,
+def cast_image(image_number,
                      device_number,
                      class_name,
                      fps_number=25,
@@ -870,33 +870,33 @@ async def cast_image(image_number,
     """
     images_buffer = []
     class_obj = globals()[class_name]
-    print(class_obj)
 
     """
     on 10/04/2024: device_number come from list entry order (0...n)
     """
-    if device_number == -1:  # instruct to use IP from the class.host
-        ip = socket.gethostbyname(class_obj.host)
-    else:
-        ip = socket.gethostbyname(class_obj.cast_devices[device_number][1])
-
-    if ip == '127.0.0.1':
-        logger.warning('Nothing to do for localhost 127.0.0.1')
-        return
-
-    if buffer_name.lower() == 'buffer':
-        images_buffer = class_obj.frame_buffer
-    elif buffer_name.lower() == 'multicast':
-        images_buffer = class_obj.cast_frame_buffer
 
     logger.debug('Cast one image from buffer')
     logger.debug(f"image number: {image_number}")
     logger.debug(f"device number: {device_number}")
     logger.debug(f"FPS: {fps_number}")
     logger.debug(f"Duration (in ms):  {duration_number}")
-    logger.debug(f"retry frame number:  {retry_number}")
+    logger.debug(f"retry packet number:  {retry_number}")
     logger.debug(f"class name: {class_name}")
     logger.debug(f"Image from buffer: {buffer_name}")
+
+    if device_number == -1:  # instruct to use IP from the class.host
+        ip = socket.gethostbyname(class_obj.host)
+    else:
+        ip = socket.gethostbyname(class_obj.cast_devices[device_number][1])
+
+    if ip == '127.0.0.1':
+        logger.warning('WEBSOCKET: Nothing to do for localhost 127.0.0.1')
+        return
+
+    if buffer_name.lower() == 'buffer':
+        images_buffer = class_obj.frame_buffer
+    elif buffer_name.lower() == 'multicast':
+        images_buffer = class_obj.cast_frame_buffer
 
     ddp = DDPDevice(ip)
 
