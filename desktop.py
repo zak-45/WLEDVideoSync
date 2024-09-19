@@ -363,9 +363,9 @@ class CASTDesktop:
 
         """
         viinput can be:
-                    desktop : to stream full screen or a part of the screen
+                    desktop or :0 ...  : to stream full screen or a part of the screen
                     title=<window name> : to stream only window content for win
-                    window_id : to stream only window content for win            
+                    window_id : to stream only window content for Linux            
                     or str
         """
 
@@ -782,7 +782,7 @@ class CASTDesktop:
                     CV2Utils.cv2_win_close(CASTDesktop.server_port, 'Desktop', t_name, t_viinput)
         else:
 
-            logger.warning(f'{t_name} av input_container not defined')
+            logger.error(f'{t_name} av input_container not defined')
 
         """
         END +

@@ -1255,11 +1255,11 @@ async def video_player_page():
             cast_player = ui.icon('cast', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda: player_cast(CastAPI.player.source)) \
-                .tooltip('Cast Video') \
+                .tooltip('Play/Cast Video') \
                 .bind_visibility_from(CastAPI.player)
 
             cast_number = ui.number(min=-1, max=9999, precision=0, placeholder='Repeat')
-            cast_number.tooltip('Enter number of time you want to re-play Media')
+            cast_number.tooltip('Enter number of time you want to re-cast Media')
             cast_number.bind_value(Media, 'repeat')
             cast_number.bind_visibility_from(CastAPI.player)
 
