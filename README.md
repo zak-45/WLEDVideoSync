@@ -1,6 +1,12 @@
-Early stage .....
+
 Cast video / image / desktop / window to ddp device e.g. WLED. All tests done on the Win version.
 
+`
+19/09/2024
+This is a BETA release. Tested on Win & Linux. All main features there. 
+No python installation required. Can run with GUI (made with NiceGUI) or without so act as service.
+Portable version give you flexibility and nothing installed into your OS.
+`
 ## WLEDVideoSync
 
 WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with video content. This project enables users to create immersive lighting experiences that complement their video playback.
