@@ -38,7 +38,6 @@ import time
 import sys
 import os
 import socket
-import json
 import cv2
 import configparser
 from pathlib import Path as PathLib
@@ -113,6 +112,8 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     color_config = cast_config[2]  # colors key
     custom_config = cast_config[3]  # custom key
     preset_config = cast_config[4]  # presets key
+    desktop_config = cast_config[5]  # desktop key
+    ws_config = cast_config[6]  # websocket key
 
     # load optional modules
     if str2bool(custom_config['player']) or str2bool(custom_config['system-stats']):
@@ -235,12 +236,12 @@ FastAPI
 
 
 @app.get("/api", tags=["root"])
-async def read_api_root():
+def read_api_root():
     """
         Status: provide WLEDVideoSync info
     """
 
-    return {f'"Version": {Utils.compile_info()}'}
+    return {"info": Utils.compile_info()}
 
 
 @app.get("/api/{class_obj}/params", tags=["params"])
@@ -770,7 +771,7 @@ async def websocket_endpoint(websocket: WebSocket):
     :return:
     """
     # list of managed actions
-    allowed_actions = ['cast_image']
+    allowed_actions = ws_config['allowed-actions']
 
     # Main WS
     try:
@@ -778,74 +779,77 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.accept()
 
         while True:
-            # wait for data (need to be in json format)
-            data = await websocket.receive_text()
 
-            # once received, decode json
-            json_data = json.loads(data)
+            # wait for data (need to be in json format)
+            data = await websocket.receive_json()
 
             # validate data format received
-            if not Utils.validate_ws_json_input(json_data):
-                logger.error('WEBSOCKET: received data not compliant with expected format')
-                await websocket.send_text('{"result":"error"}')
+            if not Utils.validate_ws_json_input(data):
+                logger.error('WEBSOCKET: received data not compliant with expected format({"action":{"type":"","param":{}}})')
+                await websocket.send_json({"result":"error"})
                 raise Exception
 
             # select action to do
-            action = json_data["action"]["type"]
+            action = data["action"]["type"]
 
             # creating parameter list programmatically
-            params = json_data["action"]["param"]  # param dict
+            params = data["action"]["param"]  # param dict
+
+            # check if managed action
             if action in allowed_actions:
-                # get all params
 
-                # these are required
-                image_number = json_data["action"]["param"]["image_number"]
-                params["image_number"] = image_number
-                device_number = json_data["action"]["param"]["device_number"]
-                params["device_number"] = device_number
-                class_name = json_data["action"]["param"]["class_name"]
-                params["class_name"] = class_name
+                # specific to cast_image
+                if action == 'cast_image':
 
-                # these are optionals
-                if "fps_number" in json_data:
-                    fps_number = json_data["action"]["param"]["fps_number"]
-                    if fps_number > 60:
-                        fps_number = 60
-                    elif fps_number < 0:
-                        # 0 here is allowed for action cast_image
-                        fps_number = 0
-                    params["fps_number"] = fps_number
-                if "duration_number" in json_data:
-                    duration_number = json_data["action"]["param"]["duration_number"]
-                    if duration_number < 0:
-                        duration_number = 0
-                    params["duration_number"] = duration_number
-                if "retry_number" in json_data:
-                    retry_number = json_data["action"]["param"]["retry_number"]
-                    if retry_number > 10:
-                        retry_number = 10
-                    elif retry_number < 0:
-                        retry_number = 0
-                    params["retry_number"] = retry_number
-                if "buffer_name" in json_data:
-                    buffer_name = json_data["action"]["param"]["buffer_name"]
-                    params["buffer_name"] = buffer_name
+                    # these are required
+                    image_number = data["action"]["param"]["image_number"]
+                    params["image_number"] = image_number
+                    device_number = data["action"]["param"]["device_number"]
+                    params["device_number"] = device_number
+                    class_name = data["action"]["param"]["class_name"]
+                    params["class_name"] = class_name
+
+                    # these are optionals
+                    if "fps_number" in data:
+                        fps_number = data["action"]["param"]["fps_number"]
+                        if fps_number > 60:
+                            fps_number = 60
+                        elif fps_number < 0:
+                            # 0 here is allowed for action cast_image
+                            fps_number = 0
+                        params["fps_number"] = fps_number
+                    if "duration_number" in data:
+                        duration_number = data["action"]["param"]["duration_number"]
+                        if duration_number < 0:
+                            duration_number = 0
+                        params["duration_number"] = duration_number
+                    if "retry_number" in data:
+                        retry_number = data["action"]["param"]["retry_number"]
+                        if retry_number > 10:
+                            retry_number = 10
+                        elif retry_number < 0:
+                            retry_number = 0
+                        params["retry_number"] = retry_number
+                    if "buffer_name" in data:
+                        buffer_name = data["action"]["param"]["buffer_name"]
+                        params["buffer_name"] = buffer_name
 
                 # execute action with params: use run_in_threadpool so no block main
-                await run_in_threadpool(globals()[action],**params)
+                result = await run_in_threadpool(globals()[action],**params)
+
                 # send back if no problem
-                await websocket.send_text('{"result":"success"}')
+                await websocket.send_json({"result":"success", "data": result})
 
             else:
 
                 logger.error('WEBSOCKET: received data contain unexpected action')
-                await websocket.send_text('{"result":"error"}')
+                await websocket.send_json({"result":"error"})
                 raise Exception
 
     except Exception as e:
         logger.error(traceback.format_exc())
         logger.error(f'WEBSOCKET An exception occurred: {e}')
-        await websocket.send_text('{"result":"internal error"}')
+        await websocket.send_json({"result":"internal error"})
         await websocket.close()
 
 

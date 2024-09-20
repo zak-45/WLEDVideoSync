@@ -16,7 +16,7 @@ try:
 except Exception as e:
     print(f'INFO : this is Not a YT version: {e}')
 
-
+import json
 import asyncio
 
 import logging
@@ -57,6 +57,7 @@ import io
 from PIL import Image
 
 
+
 class CASTUtils:
     dev_list: list = []
     matrix_x: int = 0
@@ -73,9 +74,9 @@ class CASTUtils:
         """ read version info file """
 
         with open(f'./assets/version-{sys.platform.lower()}.json', 'r') as file:
-            info = file.read()
+            json_info = json.loads(file.read())
 
-        return info
+        return json_info
 
     @staticmethod
     def update_ini_key(file_path, section, key, new_value):
@@ -490,7 +491,7 @@ class CASTUtils:
         """
 
         if not isinstance(input_data, dict):
-            logger.error('WEBSOCKET: need Json')
+            logger.error('WEBSOCKET: input not valid format--> need dict')
             return False
 
         if "action" not in input_data:
@@ -499,7 +500,7 @@ class CASTUtils:
 
         action = input_data["action"]
         if not isinstance(action, dict):
-            logger.error('WEBSOCKET: need Json')
+            logger.error('WEBSOCKET: input not valid format--> need dict')
             return False
 
         if "type" not in action or not isinstance(action["type"], str):
@@ -507,21 +508,8 @@ class CASTUtils:
             return False
 
         if "param" not in action or not isinstance(action["param"], dict):
-            logger.error('WEBSOCKET: param Json')
+            logger.error('WEBSOCKET: missing "param" or wrong type')
             return False
-
-        # Define mandatory parameters and their expected types
-        mandatory_params = {
-            "image_number": int,
-            "device_number": int,
-            "class_name": str
-        }
-
-        # Check for mandatory parameters
-        for param, param_type in mandatory_params.items():
-            if param not in action["param"] or not isinstance(action["param"][param], param_type):
-                logger.error('WEBSOCKET: mandatory params missing or type not adequate')
-                return False
 
         return True
 
@@ -658,8 +646,10 @@ class CASTUtils:
         colors_config = cast_config.get('colors')
         custom_config = cast_config.get('custom')
         preset_config = cast_config.get('presets')
+        desktop_config = cast_config.get('desktop')
+        ws_config = cast_config.get('ws')
 
-        return server_config, app_config, colors_config, custom_config, preset_config
+        return server_config, app_config, colors_config, custom_config, preset_config, desktop_config, ws_config
 
     @staticmethod
     async def download_image(download_path, url, file_name, timeout: int = 3):
