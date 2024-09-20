@@ -497,7 +497,7 @@ async def util_download_yt(yt_url: str):
         raise HTTPException(status_code=400,
                             detail=f"Looks like not YT url : {yt_url} ")
 
-    return {"youtube": 'ok'}
+    return {"youtube": "ok"}
 
 
 @app.get("/api/util/device_net_scan", tags=["network"])
@@ -507,7 +507,7 @@ async def util_device_net_scan():
     """
     # run in non-blocking mode
     await run_in_threadpool(Netdevice.discover)
-    return {"net_device_list": 'done'}
+    return {"net_device_list": "done"}
 
 
 @app.get("/api/util/blackout", tags=["utility"])
@@ -532,7 +532,7 @@ async def util_blackout():
     if Media.wled:
         await wled_off(Media)
 
-    return {"blackout": 'done'}
+    return {"blackout": "done"}
 
 
 @app.get("/api/util/casts_info", tags=["casts"])
@@ -770,8 +770,11 @@ async def websocket_endpoint(websocket: WebSocket):
     :param websocket:
     :return:
     """
+
+    ws_msg = None
+
     # list of managed actions
-    allowed_actions = ws_config['allowed-actions']
+    allowed_actions = ws_config['allowed-actions'].split(',')
 
     # Main WS
     try:
@@ -785,8 +788,8 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # validate data format received
             if not Utils.validate_ws_json_input(data):
-                logger.error('WEBSOCKET: received data not compliant with expected format({"action":{"type":"","param":{}}})')
-                await websocket.send_json({"result":"error"})
+                ws_msg = 'WEBSOCKET: received data not compliant with expected format({"action":{"type":"","param":{}}})'
+                logger.error(ws_msg)
                 raise Exception
 
             # select action to do
@@ -842,14 +845,14 @@ async def websocket_endpoint(websocket: WebSocket):
 
             else:
 
-                logger.error('WEBSOCKET: received data contain unexpected action')
-                await websocket.send_json({"result":"error"})
+                ws_msg = 'WEBSOCKET: received data contain unexpected action'
+                logger.error(ws_msg)
                 raise Exception
 
     except Exception as e:
         logger.error(traceback.format_exc())
         logger.error(f'WEBSOCKET An exception occurred: {e}')
-        await websocket.send_json({"result":"internal error"})
+        await websocket.send_json({"result":"internal error","data":ws_msg})
         await websocket.close()
 
 
@@ -2739,7 +2742,7 @@ async def cast_to_wled(class_obj, image_number):
             buffer_name = 'buffer'
 
         # send image
-        await cast_image(
+        cast_image(
             image_number=image_number,
             device_number=-1,
             class_name=class_name,
