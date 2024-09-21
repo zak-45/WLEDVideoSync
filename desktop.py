@@ -49,6 +49,7 @@ from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 
 import av
+av.logging.set_level(av.logging.VERBOSE)
 
 Process, Queue = Utils.mp_setup()
 
@@ -131,7 +132,7 @@ class CASTDesktop:
         self.preview_h: int = 360
         self.text = cfg_text
         self.custom_text: str = ""
-        self.voformat: str = 'matroska'
+        self.voformat: str = 'mpeg'
         self.vo_codec: str = 'h264'
         self.vooutput: str = 'udp://127.0.0.1:12345?pkt_size=1316'
         self.put_to_buffer: bool = False
@@ -398,6 +399,10 @@ class CASTDesktop:
                 output_options = {}
                 output_container = av.open(self.vooutput, 'w', format=self.voformat)
                 output_stream = output_container.add_stream(self.vo_codec, rate=self.rate, options=output_options)
+                output_stream.width = self.scale_width
+                output_stream.height = self.scale_height
+                output_stream.pix_fmt = 'yuv420p'
+
                 if str2bool(desktop_config['multi_thread']) is True:
                     output_stream.thread_type = "AUTO"
 
@@ -438,12 +443,12 @@ class CASTDesktop:
 
                     if output_container:
                         # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
+                        # Convert the frame to YUV format
+                        frame_yuv = frame.reformat(width=output_stream.width, height=output_stream.height,
+                                                   format='yuv420p')
+
                         # Encode the frame
-                        packets = output_stream.encode(frame)
-                        # Mux the encoded packet
-                        for packet in packets:
-                            if packet.dts is None:
-                                continue
+                        for packet in output_stream.encode(frame_yuv):
                             output_container.mux(packet)
 
                     else:
@@ -778,6 +783,7 @@ class CASTDesktop:
                     for packet in output_stream.encode(None):
                         output_container.mux(packet)
                     output_container.close()
+                # close preview
                 if t_preview is True:
                     CV2Utils.cv2_win_close(CASTDesktop.server_port, 'Desktop', t_name, t_viinput)
         else:

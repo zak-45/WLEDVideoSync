@@ -1,4 +1,4 @@
-# INI file for WLEDVideoSync Configuration
+# Readme for INI file WLEDVideoSync Configuration
 #
 # Config parsers do not guess datatypes of values in configuration files, always storing them internally as strings.
 # This means that if you need other datatypes, you should convert on your own
@@ -92,3 +92,8 @@
                     Decode using both FRAME and SLICE methods if True
                     """
 [desktop]
+
+# Websocket
+# allowed-actions   : list of actions executed from websocket connection, e.g.: cast_image,read_api_root...
+#                       /ws is the websocket endpoint
+[ws]
