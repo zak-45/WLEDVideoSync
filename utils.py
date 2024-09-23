@@ -74,7 +74,7 @@ class CASTUtils:
         """ read version info file """
 
         with open(f'./assets/version-{sys.platform.lower()}.json', 'r') as file:
-            json_info = json.loads(file.read())
+            json_info = json.loads(file.read().replace("\\", "\\\\"))
 
         return json_info
 
