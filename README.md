@@ -109,10 +109,38 @@ All of this could be configured later, for the moment focus on default.
 ![manage](docs/img/manage.png)
      
     - available actions:  Cancel cast, to stop this cast
-                          Snapshot, take a picture from running cast
+                          Snapshot, take a picture from running cast. Image will be stored into cast BUFFER
                           Stop Preview, close preview window
 
 - DESKTOP PARAMS:
-  - Manage DESKTOP parameters
+  - Manage DESKTOP parameters. Screen to manage DESKTOP parameters, see images into BUFFER and MULTICAST information.
+
+![img.png](docs/img/desktop.png)
+
+- Params info:
+    
+        FPS: enter frame par second desired for the cast stream
+
+        Scale width: cast x size in pixels  
+        Scale height: cast y size in pixels
+          These values should match Matrix 2D settings of your DDP device 
+        
+        wled: True or False, if true the DDP device act as WLED and app will try to retreive x,y values from it.
+        IP: ip address of the DDP device
+
+        Input: input type to cast
+            To cast entire desktop:
+                'desktop': for Win OS
+                ':0' or other ... for Linux (should be the DISPLAY env)
+            To cast only an area:
+                'area' --> see SCREENAREA
+            To cast a spcific window content:
+                'win=xxxxxxxxx'  where xxxxxx should be for Win the window title and for Linux window ID
+        Preview: True or False, if True a cast preview window will be displayed
+        Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop
+        Codec: PyAV codec used, let it to 'libx264rgb' for now
+        Screenarea / monitor number: select monitor number and click to SCREENAREA button to make area selection 
+                             
+
 - MEDIA PARAMS:
   - Manage MEDIA parameters
