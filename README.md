@@ -73,3 +73,19 @@ MIT
 ![image](https://github.com/zak-45/WLEDVideoSync/assets/121941293/b383d1ab-bfd8-43a7-98ac-6fd72206bc16)
 
 
+## USER Guide
+
+### Installation
+
+- Download the corresponding release to your OS : [Get software](https://github.com/zak-45/WLEDVideoSync/releases).
+  - Double-click on it to extract WLEDVideoSync folder
+- Go into and click on `WLEDVideoSync-{OS}`(exe/bin) to execute the main program.
+  - If you are on Win system, this should open native windows
+
+
+![img.png](img.png)
+
+   - On Mac/Linux, you should see the app into your default browser
+
+
+![img_1.png](img_1.png)
