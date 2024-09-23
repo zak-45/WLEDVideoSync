@@ -49,7 +49,6 @@ from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 
 import av
-av.logging.set_level(av.logging.VERBOSE)
 
 Process, Queue = Utils.mp_setup()
 
