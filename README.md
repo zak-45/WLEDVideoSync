@@ -79,6 +79,10 @@ MIT
 
 - Download the corresponding release to your OS : [Get software](https://github.com/zak-45/WLEDVideoSync/releases).
   - Double-click on it to extract WLEDVideoSync folder
+  - Once extraction finished, you should see this screen:
+![extracted](docs/extracted.png)
+  
+
 - Go into and click on `WLEDVideoSync-{OS}`(exe/bin) to execute the main program.
   - If you are on Win system, this should open native windows
 
@@ -89,3 +93,6 @@ MIT
 
 
 ![img_1.png](docs/img_1.png)
+
+All of this could be configured later, for the moment focus on default.
+
