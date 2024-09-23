@@ -1,8 +1,6 @@
 
-Cast video / image / desktop / window to ddp device e.g. WLED. All tests done on the Win version.
-
-**Cross-Platform (Win / Linux / MacOS) Portable Application**
-
+<p style="text-align:center;">Cast video / image / desktop / window to DDP device e.g. WLED. All tests done on the Win version.</p>
+<p style="text-align:center;">Cross-Platform (Win / Linux / MacOS) Portable Application</p>
 
 `
 19/09/2024
@@ -20,7 +18,7 @@ WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with 
 - Support for various video sources: image, video or WebUrl (even Youtube)
 - Support for desktop / desktop area, window content
 - Customizable LED effects
-- Complete API to integrate with third party application
+- API to integrate with third party application
 - Websocket for image cast if necessary
 - GUI: native, browser: can be accessed remotely, or even "headless": can be used as service
 
