@@ -53,6 +53,7 @@ WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with 
 **Troubleshooting:**
 - Ensure your WLED device is properly connected and configured
 - Check network connectivity between the application and WLED
+- For optimal performance, be sure to be on the same VLAN as your DDP devices
 - Verify video source compatibility
 - On linux, wayland do not work, use X11
 
