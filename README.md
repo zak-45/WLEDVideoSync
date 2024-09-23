@@ -77,7 +77,7 @@ MIT
 
 ### Installation
 
-- Download the corresponding release to your OS : [Get software](https://github.com/zak-45/WLEDVideoSync/releases).
+- Download the corresponding release to your OS : [Get software](https://github.com/zak-45/WLEDVideoSync/releases)
   - Double-click on it to extract WLEDVideoSync folder
   - Once extraction finished, you should see this screen:
 ![extracted](docs/img/extracted.png)
@@ -96,3 +96,23 @@ MIT
 
 All of this could be configured later, for the moment focus on default.
 
+
+### MAIN Interface
+
+#### Header MENU
+
+![menu](docs/img/header_menu.png)
+
+- MANAGE:
+  - Screen to manage running DESKTOP / MEDIA Casts. From here you will be able to see all running casts spilt by type.
+
+![manage](docs/img/manage.png)
+     
+    - available actions:  Cancel cast, to stop this cast
+                          Snapshot, take a picture from running cast
+                          Stop Preview, close preview window
+
+- DESKTOP PARAMS:
+  - Manage DESKTOP parameters
+- MEDIA PARAMS:
+  - Manage MEDIA parameters
