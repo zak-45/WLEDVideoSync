@@ -1,5 +1,5 @@
 
-<div align=center>Cast video / image / desktop / window to DDP device e.g. WLED. All tests done on the Win version.
+<div align=center>Cast video / image / desktop / window to DDP device e.g. WLED. All tests done on the Win version.<br>
 Cross-Platform (Win / Linux / MacOS) Portable Application
 </div>
 
