@@ -80,19 +80,19 @@ MIT
 - Download the corresponding release to your OS : [Get software](https://github.com/zak-45/WLEDVideoSync/releases).
   - Double-click on it to extract WLEDVideoSync folder
   - Once extraction finished, you should see this screen:
-![extracted](docs/extracted.png)
-  
+![extracted](docs/img/extracted.png)
+
 
 - Go into and click on `WLEDVideoSync-{OS}`(exe/bin) to execute the main program.
-  - If you are on Win system, this should open native windows
+  - If you are on Win system, this should open "native" windows
 
 
-![img.png](docs/img.png)
+![native](docs/img/native.png)
 
    - On Mac/Linux, you should see the app into your default browser
 
 
-![img_1.png](docs/img_1.png)
+![browser](docs/img/browser.png)
 
 All of this could be configured later, for the moment focus on default.
 
