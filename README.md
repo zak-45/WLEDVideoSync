@@ -83,9 +83,9 @@ MIT
   - If you are on Win system, this should open native windows
 
 
-![img.png](img.png)
+![img.png](docs/img.png)
 
    - On Mac/Linux, you should see the app into your default browser
 
 
-![img_1.png](img_1.png)
+![img_1.png](docs/img_1.png)
