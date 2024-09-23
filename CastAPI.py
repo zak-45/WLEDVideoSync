@@ -837,8 +837,17 @@ async def websocket_endpoint(websocket: WebSocket):
                         buffer_name = data["action"]["param"]["buffer_name"]
                         params["buffer_name"] = buffer_name
 
-                # execute action with params: use run_in_threadpool so no block main
-                result = await run_in_threadpool(globals()[action],**params)
+                if action.startswith('Utils'):
+                    all_func = globals()['Utils']
+                    my_func = getattr(all_func,action.replace('Utils.', ''))
+
+                    # execute action with params: use run_in_threadpool so no block main
+                    result = await run_in_threadpool(my_func, **params)
+
+                else:
+
+                    # execute action with params: use run_in_threadpool so no block main
+                    result = await run_in_threadpool(globals()[action],**params)
 
                 # send back if no problem
                 await websocket.send_json({"result":"success", "data": result})
