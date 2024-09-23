@@ -1,6 +1,7 @@
 
-<div style="text-align:center;">Cast video / image / desktop / window to DDP device e.g. WLED. All tests done on the Win version.</div>
-<div style="text-align:center;">Cross-Platform (Win / Linux / MacOS) Portable Application</div>
+<div align=center>Cast video / image / desktop / window to DDP device e.g. WLED. All tests done on the Win version.
+Cross-Platform (Win / Linux / MacOS) Portable Application
+</div>
 
 `
 19/09/2024
