@@ -82,6 +82,8 @@ MIT
   - Once extraction finished, you should see this screen:
 ![extracted](docs/img/extracted.png)
 
+      ``WLEDVideoSync folder can be copied, moved where you want, so keep organized``
+  
 
 - Go into and click on `WLEDVideoSync-{OS}`(exe/bin) to execute the main program.
   - If you are on Win system, this should open "native" windows
@@ -115,12 +117,11 @@ All of this could be configured later, for the moment focus on default.
 - DESKTOP PARAMS:
   - Manage DESKTOP parameters. Screen to manage DESKTOP parameters, see images into BUFFER and MULTICAST information.
 
-![img.png](docs/img/desktop.png)
+![desktop](docs/img/desktop.png)
 
-- Params info:
+    - Params info:
     
         FPS: enter frame per second desired for the cast stream
-
         Scale width: cast x size in pixels  
         Scale height: cast y size in pixels
           These values should match Matrix 2D settings of your DDP device 
@@ -139,8 +140,67 @@ All of this could be configured later, for the moment focus on default.
         Preview: True or False, if True a cast preview window will be displayed
         Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop
         Codec: PyAV codec used, let it to 'libx264rgb' for now
-        Screenarea / monitor number: select monitor number and click to SCREENAREA button to make area selection 
-                             
+        Screenarea / monitor number: select monitor number and click to SCREENAREA button to make area selection
+        
+        Output: give file name or rtsp, udp etc ... to stream input. For future use.-->*Protocol
+        format: Pyav format
+        Codec: Pyav codec 
+
+        Capture Frame: True or False, True will capture frames from input
+        Number: number of frames to capture, frames will be stored under BUFFER
+        
+        Multicast: True or False, if True and Matrix (x,y) = 1 then cast will stream to all IP into 'Cast Devices'
+                   for Matrix <> 1, this will split the cast stream into multiple images to create a Big virtual Matrix
+                   All DDP devices need to have the same 2D Matrix configuration                
+        Matrix X: number of DDP devices on X axis
+        Matrix Y: number of DDP devices on Y axis
+                      e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
+                      ==> this require 6 devices to set into 'Cast Devices' list                         
+                          (tuple of: device index(0...n) , IP address) 
+                          This will create 6 images to send and provide big image of 3x16 leds for x and 2x16 for y
+
+        Cast Devices: number and IP address of each DDP device. Number not yet managed
+                      device order come from entry order 
+
 
 - MEDIA PARAMS:
-  - Manage MEDIA parameters
+  - Manage MEDIA parameters: Screen to manage MEDIA parameters, see images into BUFFER and MULTICAST information.
+
+![media](docs/img/media.png)
+
+    - Params info:
+    
+        FPS: enter frame per second desired for the cast stream
+        Scale width: cast x size in pixels  
+        Scale height: cast y size in pixels
+          These values should match Matrix 2D settings of your DDP device 
+        
+        wled: True or False, if true the DDP device act as WLED and app will try to retreive x,y values from it.
+        IP: ip address of the DDP device
+
+        Input: input type to cast
+               - 0, 1 or ...: this will cast your capture device number (e.g: USB Webcam)
+               - enter full path of any of your media files, image or video
+        Preview: True or False, if True a cast preview window will be displayed
+        Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop
+        Codec: PyAV codec used, let it to 'libx264rgb' for now
+        Screenarea / monitor number: select monitor number and click to SCREENAREA button to make area selection
+        
+        Capture Frame: True or False, True will capture frames from input
+        Number: number of frames to capture, frames will be stored under BUFFER
+        Seek to Frame N: start read at this position, do not work for real time media.
+        
+        Multicast: True or False, if True and Matrix (x,y) = 1 then cast will stream to all IP into 'Cast Devices'
+                   for Matrix <> 1, this will split the cast stream into multiple images to create a Big virtual Matrix
+                   All DDP devices need to have the same 2D Matrix configuration                
+        Matrix X: number of DDP devices on X axis
+        Matrix Y: number of DDP devices on Y axis
+                      e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
+                      ==> this require 6 devices to set into 'Cast Devices' list                         
+                          (tuple of: device index(0...n) , IP address) 
+                          This will create 6 images to send and provide big image of 3x16 leds for x and 2x16 for y
+
+        Cast Devices: number and IP address of each DDP device. Number not yet managed
+                      device order come from entry order 
+
+

@@ -1131,7 +1131,7 @@ async def main_page():
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \
                 .classes('text-white')
-            ui.link('On-Line Help', 'https://github.com/zak-45/WLEDVideoSync', new_tab=True) \
+            ui.link('On-Line Help', 'https://github.com/zak-45/WLEDVideoSync?tab=readme-ov-file#user-guide', new_tab=True) \
                 .tooltip('Go to documentation').classes('text-white')
 
     with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
