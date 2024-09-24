@@ -204,3 +204,6 @@ All of this could be configured later, for the moment focus on default.
                       device order come from entry order 
 
 
+- API: Redirect to API docs/endpoint.
+
+![API](docs/img/api.png)
