@@ -119,7 +119,7 @@ All of this could be configured later, for the moment focus on default.
 
 - Params info:
     
-        FPS: enter frame par second desired for the cast stream
+        FPS: enter frame per second desired for the cast stream
 
         Scale width: cast x size in pixels  
         Scale height: cast y size in pixels
@@ -134,7 +134,7 @@ All of this could be configured later, for the moment focus on default.
                 ':0' or other ... for Linux (should be the DISPLAY env)
             To cast only an area:
                 'area' --> see SCREENAREA
-            To cast a spcific window content:
+            To cast a specific window content:
                 'win=xxxxxxxxx'  where xxxxxx should be for Win the window title and for Linux window ID
         Preview: True or False, if True a cast preview window will be displayed
         Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop

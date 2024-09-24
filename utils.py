@@ -350,23 +350,34 @@ class CASTUtils:
         """ Provide a list of all window titles / hWnd by applications """
 
         try:
-            apps_windows = pwc.getAllAppsWindowsTitles()  # Get all applications and their window titles
+            # Assuming these are your custom classes
+            class Point:
+                def __init__(self, x, y):
+                    self.x = x
+                    self.y = y
+
+            class Size:
+                def __init__(self, width, height):
+                    self.width = width
+                    self.height = height
+
+            # Define a function to serialize custom objects
+            def custom_serializer(obj):
+                if isinstance(obj, Point):
+                    return {"x": obj.x, "y": obj.y}
+                elif isinstance(obj, Size):
+                    return {"width": obj.width, "height": obj.height}
+                raise TypeError(f"Type {type(obj)} not serializable")
+
+            # Your dictionary
+            data = pwc.getAllWindowsDict()
+            # Convert dictionary to JSON
+            windows_all = json.dumps(data, default=custom_serializer, ensure_ascii=False, indent=4)
+            windows_by_app = json.loads(windows_all)
+
         except Exception as er:
             logger.error(f"Error retrieving windows: {er}")
             return {}
-
-        windows_by_app = {}
-
-        for app, windows in apps_windows.items():
-            windows_by_app[app] = []
-            for title in windows:
-                if title != '':
-                    try:
-                        window = pwc.getWindowsWithTitle(title)[0]  # Get window object by title
-                        hWnd = window._hWnd  # Get the window handle
-                        windows_by_app[app].append({'title': title, 'hWnd': hWnd})
-                    except IndexError:
-                        continue  # Skip if no window object found with the title
 
         return windows_by_app
 
