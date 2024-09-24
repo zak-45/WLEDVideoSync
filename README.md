@@ -249,9 +249,10 @@ All of this could be configured later, for the moment focus on default.
 #### Filters/Effects
 ![filters](docs/img/filters.png)
 
-- DESKTOP or MEDIA, this work on the same way and give different parameters to set and apply to the casts for custom effects
+- DESKTOP or MEDIA, this work on the same way, got different parameters to set and apply to the casts for custom effects
   - Flip: when checked this will flip the image depend on the type value (right/left, top/bottom)
-  - W / H:  Scale width in pixels /  Scale height in pixels, the same as for DESKTOP/MEDIA PARAMS. Usually not to be changed     
+  - W / H:  Scale width in pixels /  Scale height in pixels, the same as for DESKTOP/MEDIA PARAMS. Usually not to be changed
+    - if you do, the preview window content will sync to them 
   - gamma: change gamma value
   -  R G B : adjust Red/Green/Blue Colors
   - saturation / brightness / contrast / sharpen : self-explanatory
@@ -262,3 +263,29 @@ All of this could be configured later, for the moment focus on default.
 
 ``On preview window, you will see effects in real time``
 ``All of these values can be saved into Preset to be reloaded``
+
+### Configuration
+The main App configuration file is: ``WLEDVideoSync/config/WLEDVideoSync.ini``
+See ``WLEDVideoSync/config/WLEDVideoSync.readme`` for in-deep information.
+
+
+The logging configuration file is : ``WLEDVideoSync/config/logging.ini``. Logs can be found under ``log/`` folder.
+
+Default behaviour:
+  - Win OS: app will start on "native" windows mode with a 'selection' window and uvicorn server on different process.
+    - Closing App will put it on 'systray', terminate it need to be done from : ``Exit - server:xxx``
+  
+  - Mac/Linux: app will start on 'default' browser, no systray options.
+    - "native" mode has not been deeply tested on these platforms, so may provide some trouble.
+    
+
+### WebSocket
+endpoint : ``/ws`` e.g: 127.0.0.1:8000/ws
+
+``/ws/docs`` : some online documentation
+
+Websocket has been implemented mainly to cast only image & small delay. The image need to be stored into BUFFER.
+Communication data use Json format for in / out. 
+
+action/type/param are required keys.
+e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}``
