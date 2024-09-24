@@ -164,6 +164,8 @@ All of this could be configured later, for the moment focus on default.
         
         Protocol: ddp or other, if 'other' will use the 'Output' entry, let it to ddp for now
 
+``Main of these values can be saved into Preset to be reloaded``
+
 - MEDIA PARAMS:
   - Manage MEDIA parameters: Screen to manage MEDIA parameters, see images into BUFFER and MULTICAST information.
 
@@ -204,6 +206,8 @@ All of this could be configured later, for the moment focus on default.
         Cast Devices: number and IP address of each DDP device. Number not yet managed
                       device order come from entry order 
 
+``All of these values can be saved into Preset to be reloaded``
+
 
 - API: Redirect to API docs/endpoint.
 
@@ -241,3 +245,21 @@ All of this could be configured later, for the moment focus on default.
     - once result displayed clicked on the link provided to copy it so you can paste into Url/Path field
   - Clear YT Search: will clear all YT Search area
 
+
+#### Filters/Effects
+![filters](docs/img/filters.png)
+
+- DESKTOP or MEDIA, this work on the same way and give different parameters to set and apply to the casts for custom effects
+  - Flip: when checked this will flip the image depend on the type value (right/left, top/bottom)
+  - W / H:  Scale width in pixels /  Scale height in pixels, the same as for MEDIA PARAMS
+    -if preview window, you will see how this will affect next cast 
+  - gamma: change gamma value
+  -  R G B : adjust Red/Green/Color
+  - saturation / brightness / contrast / sharpen : self-explanatory
+  - auto: when check, this will auto adapt brightness/contrast depend on slider
+  - Cast Icon: Yellow, cast not allowed, Green allowed, Red running
+      - when yellow and click on it, will allow cast
+  - Red Icon: stop all running casts
+
+``On preview window, you will see effects in real time``
+``All of these values can be saved into Preset to be reloaded``
