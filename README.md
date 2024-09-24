@@ -251,13 +251,12 @@ All of this could be configured later, for the moment focus on default.
 
 - DESKTOP or MEDIA, this work on the same way and give different parameters to set and apply to the casts for custom effects
   - Flip: when checked this will flip the image depend on the type value (right/left, top/bottom)
-  - W / H:  Scale width in pixels /  Scale height in pixels, the same as for MEDIA PARAMS
-    -if preview window, you will see how this will affect next cast 
+  - W / H:  Scale width in pixels /  Scale height in pixels, the same as for DESKTOP/MEDIA PARAMS. Usually not to be changed     
   - gamma: change gamma value
-  -  R G B : adjust Red/Green/Color
+  -  R G B : adjust Red/Green/Blue Colors
   - saturation / brightness / contrast / sharpen : self-explanatory
-  - auto: when check, this will auto adapt brightness/contrast depend on slider
-  - Cast Icon: Yellow, cast not allowed, Green allowed, Red running
+  - auto: when checked, this will auto adapt brightness/contrast depend on slider
+  - Cast Icon: Yellow, cast not allowed, Green, allowed, Red, running
       - when yellow and click on it, will allow cast
   - Red Icon: stop all running casts
 
