@@ -132,7 +132,7 @@ All of this could be configured later, for the moment focus on default.
         Input: input type to cast
             To cast entire desktop:
                 'desktop': for Win OS
-                ':0' or other ... for Linux (should be the DISPLAY env)
+                ':0' or ':0.0' or other ... for Linux (should be the DISPLAY env)
             To cast only an area:
                 'area' --> see SCREENAREA
             To cast a specific window content:
@@ -161,7 +161,8 @@ All of this could be configured later, for the moment focus on default.
 
         Cast Devices: number and IP address of each DDP device. Number not yet managed
                       device order come from entry order 
-
+        
+        Protocol: ddp or other, if 'other' will use the 'Output' entry, let it to ddp for now
 
 - MEDIA PARAMS:
   - Manage MEDIA parameters: Screen to manage MEDIA parameters, see images into BUFFER and MULTICAST information.
@@ -226,9 +227,9 @@ All of this could be configured later, for the moment focus on default.
   - Add Delay in ms: additional time to add to All Sync action
   - Sync All: if more than one cast, this will sync them to the timer selected
   - Play/Cast: if video format managed by the player, this will initiate in same time, play and cast otherwise only cast
-  - Re-cast: number of time you want to cast the MEDIA, -1 for infinite, max 9999
+  - Re-cast: number of additional time you want to cast the MEDIA, -1 for infinite, max 9999
   - Url/Path field: enter local media name or WebUrl link, even YouTube
-  - Download Icon: click on it to initiate required action depend on previous entry
+  - Download Icon: click on it to initiate required action depend on previous Url/Path entry
     - if local path, this will set the player to it (video/image)
       - player had limited codec capacity, preview could not work but cast yes
     - if video WebUrl, try to directly manage it by the player
