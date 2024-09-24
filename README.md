@@ -206,7 +206,7 @@ All of this could be configured later, for the moment focus on default.
         Cast Devices: number and IP address of each DDP device. Number not yet managed
                       device order come from entry order 
 
-``All of these values can be saved into Preset to be reloaded``
+``Main of these values can be saved into Preset to be reloaded``
 
 
 - API: Redirect to API docs/endpoint.
@@ -222,23 +222,27 @@ All of this could be configured later, for the moment focus on default.
   - Back/Forward some frames
   - VSYNC: sync cast(s) to video player time: video timer
   - TSYNC: sync cast(s) to time slider: slider timer
-  - Delay before AUTO SYNC
+  - Delay before AUTO SYNC: seconds 
   - AUTO SYNC: Cast will automatically sync to the last timer selected (Player or Slider)
       - if more than one cast, that's the first one that take the information, totally random
       - if timer come from Slider, this will make a loop of n seconds (previous param)
       - if timer come from Player and the player is set to Pause, this will make a loop of n seconds (previous param)
       - if timer come from Player and the player continue, this will make automatic sync every n seconds (previous param)
   - Add Delay in ms: additional time to add to All Sync action
-  - Sync All: if more than one cast, this will sync them to the timer selected
-  - Play/Cast: if video format managed by the player, this will initiate in same time, play and cast otherwise only cast
+  - Sync All: if more than one cast, this will sync them to the selected timer
+  - Play/Cast: if video format managed by the player, this will initiate on same time, play and cast, otherwise only cast
   - Re-cast: number of additional time you want to cast the MEDIA, -1 for infinite, max 9999
   - Url/Path field: enter local media name or WebUrl link, even YouTube
   - Download Icon: click on it to initiate required action depend on previous Url/Path entry
     - if local path, this will set the player to it (video/image)
-      - player had limited codec capacity, preview could not work but cast yes
+    
+          player had limited codec capacity, preview could not work but cast yes
+    
     - if video WebUrl, try to directly manage it by the player
-    - if YouTube, this will download the video and put it into the app tmp folder
-    - if this is an image, this will download it and put it into the app tmp folder
+    - if YouTube, this will download the video and put it into the app media/ folder
+    - if this is an image, this will download it and put it into the app media/ folder
+      
+          if you want to keep downloaded video/image see configuration file
     
   - YT Search: click on it to open YouTube search area, more than one possible
     - just enter some keywords to search for
