@@ -177,18 +177,15 @@ All of this could be configured later, for the moment focus on default.
         Scale width: cast x size in pixels  
         Scale height: cast y size in pixels
           These values should match Matrix 2D settings of your DDP device 
-        
-        wled: True or False, if true the DDP device act as WLED and app will try to retreive x,y values from it.
-        IP: ip address of the DDP device
 
         Input: input type to cast
                - 0, 1 or ...: this will cast your capture device number (e.g: USB Webcam)
                - enter full path of any of your media files, image or video
         Preview: True or False, if True a cast preview window will be displayed
-        Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop
-        Codec: PyAV codec used, let it to 'libx264rgb' for now
-        Screenarea / monitor number: select monitor number and click to SCREENAREA button to make area selection
-        
+ 
+        wled: True or False, if true the DDP device act as WLED and app will try to retreive x,y values from it.
+        IP: ip address of the DDP device
+
         Capture Frame: True or False, True will capture frames from input
         Number: number of frames to capture, frames will be stored under BUFFER
         Seek to Frame N: start read at this position, do not work for real time media.
