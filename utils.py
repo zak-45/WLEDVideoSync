@@ -10,12 +10,16 @@
 # pywinctl provide a cross-platform window mgt.
 #
 """
+from yt_dlp.utils import function_with_repr
+
 try:
     from youtubesearchpython.__future__ import VideosSearch
     from yt_dlp import YoutubeDL
 except Exception as e:
     print(f'INFO : this is Not a YT version: {e}')
 
+import inspect
+import ast
 import json
 import asyncio
 
@@ -346,7 +350,7 @@ class CASTUtils:
         return pwc.getActiveWindow().title
 
     @staticmethod
-    async def windows_titles():
+    def windows_titles():
         """ Provide a list of all window titles / hWnd by applications """
 
         try:
@@ -701,6 +705,31 @@ class CASTUtils:
         except requests.RequestException as err:
             logger.error(f"Error checking URL: {err}")
             return False
+
+    @staticmethod
+    def func_info(module_name=None):
+        """ provide functions infos defined into a module """
+
+        func_with_params = []
+
+        # get all functions inside module
+        all_functions = inspect.getmembers(module_name, inspect.isfunction)
+        # Get info from each function
+        for func in all_functions:
+            func_data = {
+                "name": func[0],
+                "async": inspect.iscoroutinefunction(func[1]),
+                "params": str(inspect.signature(func[1])),
+                "info": (func[1].__doc__ or "None")
+            }
+
+            func_with_params.append(func_data)
+
+        # Convert the list of dictionaries to a JSON string
+        json_output = json.dumps(func_with_params)
+        json_data = json.loads(json_output)
+
+        return json_data
 
 
 class HTTPDiscovery:

@@ -455,7 +455,7 @@ async def util_win_titles():
     """
         Retrieve all titles from windows
     """
-    return {"windows_titles": await Utils.windows_titles()}
+    return {"windows_titles": Utils.windows_titles()}
 
 
 @app.get("/api/util/device_list", tags=["media"])
@@ -766,12 +766,14 @@ async def websocket_endpoint(websocket: WebSocket):
     WS image Cast (we use Websocket to minimize delay)
     Main logic: check action name, extract params, execute func, return ws status
     see page ws/docs for help
+    usage example:
     {"action":{"type":"cast_image", "param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}
     :param websocket:
     :return:
     """
 
-    ws_msg = None
+    ws_msg = ''
+    action = ''
 
     # list of managed actions
     allowed_actions = ws_config['allowed-actions'].split(',')
@@ -837,20 +839,26 @@ async def websocket_endpoint(websocket: WebSocket):
                         buffer_name = data["action"]["param"]["buffer_name"]
                         params["buffer_name"] = buffer_name
 
-                if action.startswith('Utils'):
-                    all_func = globals()['Utils']
-                    my_func = getattr(all_func,action.replace('Utils.', ''))
+                func_name  = action.split('.')
+
+                if len(func_name) == 2:
+                    all_func = globals()[func_name[0]]
+                    my_func = getattr(all_func,func_name[1])
 
                     # execute action with params: use run_in_threadpool so no block main
                     result = await run_in_threadpool(my_func, **params)
 
-                else:
+                elif len(func_name) == 1:
 
                     # execute action with params: use run_in_threadpool so no block main
-                    result = await run_in_threadpool(globals()[action],**params)
+                    result = await run_in_threadpool(globals()[action], **params)
+
+                else:
+                    ws_msg = f'WEBSOCKET: error into function name : {func_name}'
+                    raise Exception
 
                 # send back if no problem
-                await websocket.send_json({"result":"success", "data": result})
+                await websocket.send_json({"action":action,"result":"success","data": result})
 
             else:
 
@@ -861,7 +869,7 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(traceback.format_exc())
         logger.error(f'WEBSOCKET An exception occurred: {e}')
-        await websocket.send_json({"result":"internal error","data":ws_msg})
+        await websocket.send_json({"action":action,"result":"internal error","error":str(e),"data":ws_msg})
         await websocket.close()
 
 
@@ -1546,7 +1554,7 @@ async def main_page_desktop():
         await net_view_page()
 
         with ui.dialog() as dialog, ui.card():
-            win_title = await Utils.windows_titles()
+            win_title = Utils.windows_titles()
             editor = ui.json_editor({'content': {'json': win_title}}) \
                 .run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog.close, color='red')
@@ -1763,20 +1771,38 @@ async def ws_page():
     """
     ui.label('WEBSOCKETS Doc').classes('self-center')
     doc_txt = ui.textarea('WE endpoints').style('width: 50%')
-    doc_txt.value = ('Use cast_image:x:z:f:d:r:c:i \n to send image number x (Media.buffer[x]) \n'
-                     ' to cast device z (Media.cast_devices[z]) \n'
-                     'image_number = int \n'
-                     'device_number = int if -1 take host from Media\n'
-                     'class_name = str (Desktop or Media) \n'
-                     'fps_number = int max 60 \n'
-                     'duration_number = int \n'
-                     'retry_number = int if < 0 set to 0 \n'
-                     'buffer_name = BUFFER or  MULTICAST \n'
-                     'example: \n\n'
+    doc_txt.value = ( '/ws: e.g: ws://localhost:8000/ws \n'
+                      '/ws/docs: e.g: http://localhost:8000/ws/docs \n'
+                      'communication type : Json for in/out \n'
+                      'format : {"action":{"type":"xxx","param":{"yyy":"zzz"...}}} \n'
+                      'example: \n'
                      '{"action":'
                      '{"type":"cast_image", '
                      '"param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}'
                      )
+
+    ws_modules=['Utils','Net','ImageUtils','CV2Utils']
+    func_rows = ui.row()
+    with func_rows:
+        item_exp = ui.expansion('local', icon='info') \
+            .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
+        with item_exp:
+            with ui.dialog() as dialog, ui.card():
+
+                editor = ui.json_editor({'content': {'json': Utils.func_info(sys.modules[__name__])}}) \
+                    .run_editor_method('updateProps', {'readOnly': True})
+                ui.button('Close', on_click=dialog.close, color='red')
+            ui.button('Functions', on_click=dialog.open, color='bg-red-800').tooltip('View func info')
+
+        for item_th in ws_modules:
+            item_exp = ui.expansion(item_th, icon='info') \
+                .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
+            with item_exp:
+                with ui.dialog() as dialog, ui.card():
+                    editor = ui.json_editor({'content': {'json': Utils.func_info(globals()[item_th])}}) \
+                        .run_editor_method('updateProps', {'readOnly': True})
+                    ui.button('Close', on_click=dialog.close, color='red')
+                ui.button('Functions', on_click=dialog.open, color='bg-red-800').tooltip('View func info')
 
 
 @ui.page('/info')
