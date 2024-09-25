@@ -10,8 +10,6 @@
 # pywinctl provide a cross-platform window mgt.
 #
 """
-from yt_dlp.utils import function_with_repr
-
 try:
     from youtubesearchpython.__future__ import VideosSearch
     from yt_dlp import YoutubeDL
@@ -19,13 +17,12 @@ except Exception as e:
     print(f'INFO : this is Not a YT version: {e}')
 
 import inspect
-import ast
+
 import json
-import asyncio
+from asyncio import create_task
 
 import logging
 import logging.config
-import concurrent_log_handler
 import traceback
 
 import re
@@ -43,10 +40,7 @@ import socket
 import ipaddress
 import requests
 
-from pathlib import Path
-from typing import Optional
-
-from nicegui import events, ui, run
+from nicegui import ui, run
 
 import tkinter as tk
 from screeninfo import get_monitors
@@ -59,7 +53,6 @@ import configparser
 
 import io
 from PIL import Image
-
 
 
 class CASTUtils:
@@ -926,7 +919,7 @@ class YtSearch:
         """ Run Search YT from input """
 
         def run_search():
-            asyncio.create_task(self.py_search(self.my_search.value))
+            create_task(self.py_search(self.my_search.value))
 
         # await ui.context.client.connected()
 

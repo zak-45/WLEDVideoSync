@@ -15,16 +15,13 @@
 import cv2
 from multiprocessing.shared_memory import ShareableList
 import numpy as np
-import logging
-import logging.config
-import concurrent_log_handler
 from PIL import Image
 import io
 import base64
 import os
-import cfg_load as cfg
+from datetime import datetime
 from str2bool import str2bool
-
+from utils import CASTUtils as Utils
 
 class CV2Utils:
 
@@ -39,7 +36,7 @@ class CV2Utils:
         window_name = f"{server_port}-{t_name}-" + str(t_viinput)
 
         # check if window run into sub process to instruct it by ShareableList
-        config_data = CV2Utils.read_config()
+        config_data = Utils.read_config()
         preview_proc = str2bool(config_data[1]['preview_proc'])
 
         # for window into sub process
@@ -417,35 +414,52 @@ class CV2Utils:
         return pixelart_img
 
     @staticmethod
-    def setup_logging(config_path='logging_config.ini', handler_name: str = None):
-        if os.path.exists(config_path):
-            logging.config.fileConfig(config_path, disable_existing_loggers=False)
-            # trick: use the same name for all modules, ui.log will receive message from alls
-            config_data = CV2Utils.read_config()
-            if str2bool(config_data[1]['log_to_main']):
-                v_logger = logging.getLogger('WLEDLogger')
-            else:
-                v_logger = logging.getLogger(handler_name)
-            v_logger.info(f"Logging configured using {config_path} for {handler_name}")
+    async def save_image(class_obj, buffer, image_number, ascii_art=False):
+        """
+        Save image from Buffer
+        used on the buffer images
+        """
+        folder = app_config['img_folder']
+        if folder[-1] == '/':
+            pass
         else:
-            logging.basicConfig(level=logging.INFO)
-            v_logger = logging.getLogger(handler_name)
-            v_logger.warning(f"Logging config file {config_path} not found. Using basic configuration.")
+            logger.error("The last character of the folder name is not '/'.")
+            return
 
-        return v_logger
+        # Get the absolute path of the folder relative to the current working directory
+        absolute_img_folder = os.path.abspath(folder)
+        if os.path.isdir(absolute_img_folder):
+            pass
+        else:
+            logger.error(f"The folder {absolute_img_folder} does not exist.")
+            return
 
-    @staticmethod
-    def read_config():
-        # load config file
-        cast_config = cfg.load('config/WLEDVideoSync.ini')
-        # config keys
-        server_config = cast_config.get('server')
-        app_config = cast_config.get('app')
-        colors_config = cast_config.get('colors')
-        custom_config = cast_config.get('custom')
-        preset_config = cast_config.get('presets')
+        # select buffer
+        if buffer == 'frame_buffer':
+            buffer = class_obj.frame_buffer
+        else:
+            buffer = class_obj.cast_frame_buffer
 
-        return server_config, app_config, colors_config, custom_config, preset_config
+        w, h = buffer[image_number].shape[:2]
+        date_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+        class_name = class_obj.__module__
+
+        if ascii_art:
+            img = buffer[image_number]
+            img = Image.fromarray(img)
+            img = ImageUtils.image_to_ascii(img)
+            t_filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
+                h) + "_" + date_time + ".txt"
+            with open(t_filename, 'w') as ascii_file:
+                ascii_file.write(img)
+
+        else:
+            t_filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
+                h) + "_" + date_time + ".jpg"
+            img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
+            cv2.imwrite(t_filename, img)
+
+        logger.debug(f"Image saved to {t_filename}")
 
 
 class ImageUtils:
@@ -783,4 +797,16 @@ Expected way to work.
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     # create logger
-    logger = CV2Utils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
+    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
+    # load config file
+    cast_config = Utils.read_config()
+
+    # config keys
+    server_config = cast_config[0]  # server key
+    app_config = cast_config[1]  # app key
+    color_config = cast_config[2]  # colors key
+    custom_config = cast_config[3]  # custom key
+    preset_config = cast_config[4]  # presets key
+    desktop_config = cast_config[5]  # desktop key
+    ws_config = cast_config[6]  # websocket key
+

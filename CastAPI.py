@@ -23,12 +23,12 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
-import logging
-import logging.config
+
 import concurrent_log_handler
-import threading
+
+from threading import current_thread
 import traceback
-import asyncio
+from asyncio import set_event_loop_policy,WindowsSelectorEventLoopPolicy,sleep,create_task
 
 from subprocess import Popen
 
@@ -37,8 +37,8 @@ from ddp_queue import DDPDevice
 import time
 import sys
 import os
-import socket
-import cv2
+from socket import gethostbyname
+
 import configparser
 from pathlib import Path as PathLib
 
@@ -77,7 +77,7 @@ Media = media.CASTMedia()
 Netdevice = Net()
 
 if sys.platform.lower() == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    set_event_loop_policy(WindowsSelectorEventLoopPolicy())
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview', 'reset']
@@ -144,7 +144,7 @@ Actions to do at application initialization
 async def init_actions():
     """ Done at start of app and before GUI available """
 
-    logger.info(f'Main running {threading.current_thread().name}')
+    logger.info(f'Main running {current_thread().name}')
 
     # Apply some default params only once
     if str2bool(app_config['init_config_done']) is not True:
@@ -392,7 +392,7 @@ async def buffer_image_save(class_obj: str = Path(description=f'Class name, shou
         raise HTTPException(status_code=400, detail=f"Image number : {number} not exist for Class name: {class_obj} ")
 
     try:
-        await save_image(class_name, 'frame_buffer', number)
+        await CV2Utils.save_image(class_name, 'frame_buffer', number)
     except Exception as b_error:
         raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {b_error}")
 
@@ -417,7 +417,7 @@ async def buffer_image_save_ascii(class_obj: str = Path(description=f'Class name
         raise HTTPException(status_code=400, detail=f"Image number : {number} not exist for Class name: {class_obj} ")
 
     try:
-        await save_image(class_name, 'frame_buffer', number, ascii_art=True)
+        await CV2Utils.save_image(class_name, 'frame_buffer', number, ascii_art=True)
     except Exception as b_error:
         raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {b_error}")
 
@@ -909,9 +909,9 @@ def cast_image(image_number,
     logger.debug(f"Image from buffer: {buffer_name}")
 
     if device_number == -1:  # instruct to use IP from the class.host
-        ip = socket.gethostbyname(class_obj.host)
+        ip = gethostbyname(class_obj.host)
     else:
-        ip = socket.gethostbyname(class_obj.cast_devices[device_number][1])
+        ip = gethostbyname(class_obj.cast_devices[device_number][1])
 
     if ip == '127.0.0.1':
         logger.warning('WEBSOCKET: Nothing to do for localhost 127.0.0.1')
@@ -2788,57 +2788,6 @@ async def cast_to_wled(class_obj, image_number):
         )
 
 
-async def save_image(class_obj, buffer, image_number, ascii_art=False, interactive=False):
-    """
-    Save image from Buffer
-    used on the buffer images
-    """
-    folder = app_config['img_folder']
-    if folder[-1] == '/':
-        pass
-    else:
-        logger.error("The last character of the folder name is not '/'.")
-        return
-
-    # Get the absolute path of the folder relative to the current working directory
-    absolute_img_folder = os.path.abspath(folder)
-    if os.path.isdir(absolute_img_folder):
-        pass
-    else:
-        logger.error(f"The folder {absolute_img_folder} does not exist.")
-        return
-
-    # select buffer
-    if buffer == 'frame_buffer':
-        buffer = class_obj.frame_buffer
-    else:
-        buffer = class_obj.cast_frame_buffer
-
-    w, h = buffer[image_number].shape[:2]
-    date_time = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-    class_name = class_obj.__module__
-
-    if ascii_art:
-        img = buffer[image_number]
-        img = Image.fromarray(img)
-        img = ImageUtils.image_to_ascii(img)
-        t_filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
-            h) + "_" + date_time + ".txt"
-        with open(t_filename, 'w') as ascii_file:
-            ascii_file.write(img)
-
-    else:
-        t_filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
-            h) + "_" + date_time + ".jpg"
-        img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
-        cv2.imwrite(t_filename, img)
-
-    if interactive:
-        ui.notify(f"Image saved to {t_filename}")
-
-    logger.debug(f"Image saved to {t_filename}")
-
-
 async def discovery_net_notify():
     """ Call Run zero conf net discovery """
 
@@ -2920,10 +2869,10 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
                         ui.button(on_click=lambda: cast_to_wled(class_obj, index), icon='cast') \
                             .props('flat fab color=white') \
                             .tooltip('Cast to WLED')
-                        ui.button(on_click=lambda: save_image(class_obj, buffer, index, False, True), icon='save') \
+                        ui.button(on_click=lambda: CV2Utils.save_image(class_obj, buffer, index, False), icon='save') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image')
-                        ui.button(on_click=lambda: save_image(class_obj, buffer, index, True, True),
+                        ui.button(on_click=lambda: CV2Utils.save_image(class_obj, buffer, index, True),
                                   icon='text_format') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image as Ascii ART')
@@ -2948,7 +2897,7 @@ async def bar_get_size():
 
             CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
             CastAPI.progress_bar.update()
-            await asyncio.sleep(.1)
+            await sleep(.1)
 
 
 async def download_url(url):
@@ -2962,7 +2911,7 @@ async def download_url(url):
     if 'https://www.youtu' in url:
 
         # this will run async loop in background and continue...
-        run_get_size = asyncio.create_task(bar_get_size())
+        run_get_size = create_task(bar_get_size())
 
         # wait YT download finished
         yt = await Utils.youtube_download(url, interactive=True)

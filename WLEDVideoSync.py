@@ -37,10 +37,7 @@ Webview : provide native OS window
 pystray : put on systray if requested
 
 """
-
-import logging
-import logging.config
-import pkgutil
+from pkgutil import find_loader
 
 import concurrent_log_handler
 
@@ -473,7 +470,7 @@ if __name__ == '__main__':
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
 
         # Apply YouTube settings if yt_dlp not imported
-        if not pkgutil.find_loader('yt_dlp'):
+        if not find_loader('yt_dlp'):
             Utils.update_ini_key(config_file, 'custom', 'yt-enable', 'False')
 
         # global

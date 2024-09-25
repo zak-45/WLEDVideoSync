@@ -30,7 +30,7 @@ import os
 import cv2
 import logging
 import logging.config
-import concurrent_log_handler
+
 from multiprocessing.shared_memory import ShareableList
 import traceback
 
@@ -41,7 +41,7 @@ from str2bool import str2bool
 
 import threading
 
-import asyncio
+from asyncio import run
 import concurrent.futures
 
 from ddp_queue import DDPDevice
@@ -274,9 +274,9 @@ class CASTDesktop:
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
-            status = asyncio.run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
+            status = run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
             if status:
-                self.scale_width, self.scale_height = asyncio.run(Utils.get_wled_matrix_dimensions(self.host))
+                self.scale_width, self.scale_height = run(Utils.get_wled_matrix_dimensions(self.host))
             else:
                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return False
@@ -296,7 +296,7 @@ class CASTDesktop:
                     valid_ip = Utils.check_ip_alive(cast_ip, port=80, timeout=2)
                     if valid_ip:
                         if self.wled:
-                            status = asyncio.run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
+                            status = run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
                                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                                 return False
