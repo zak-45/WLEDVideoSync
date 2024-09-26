@@ -1502,6 +1502,11 @@ async def main_page_desktop():
                 new_protocol = ui.select(['ddp','other'], label='Protocol').bind_value(Desktop,'protocol')
                 new_protocol.classes('w-40')
 
+            with ui.card():
+                new_record = ui.checkbox(text='Record', value=False).bind_value(Desktop,'record')
+                new_filename = ui.input('File name').bind_value(Desktop,'output_file')
+
+
     ui.separator().classes('mt-6')
 
     with ui.expansion('BUFFER', icon='grid_view', on_value_change=lambda: exp_edit_param.close()) \

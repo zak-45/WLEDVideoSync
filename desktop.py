@@ -27,6 +27,8 @@
 import sys
 import os
 
+import imageio.v3 as iio
+
 import cv2
 import logging
 import logging.config
@@ -37,6 +39,7 @@ import traceback
 import time
 
 import cfg_load as cfg
+from numpy.core.records import record
 from str2bool import str2bool
 
 import threading
@@ -146,6 +149,8 @@ class CASTDesktop:
         self.screen_coordinates = []
         self.reset_total = False
         self.preview = True
+        self.record = False  # put True to record to file
+        self.output_file = "" # Name of the file to save video recording
 
         if sys.platform.lower() == 'win32':
             self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>' or 'area' for portion of screen
@@ -410,6 +415,17 @@ class CASTDesktop:
                 logger.error(f'{t_name} An exception occurred: {error}')
                 return False
 
+        """
+        Record
+        """
+        if self.record:
+            out_file = iio.imopen(self.output_file, "w", plugin="pyav")
+            out_file.init_video_stream("h264", fps=frame_interval)
+
+        """
+        End Record
+        """
+
         CASTDesktop.cast_names.append(t_name)
         CASTDesktop.count += 1
 
@@ -449,6 +465,10 @@ class CASTDesktop:
                         # Encode the frame
                         for packet in output_stream.encode(frame_yuv):
                             output_container.mux(packet)
+                            if self.record:
+                                # convert frame to np array
+                                frame_np = frame.to_ndarray(format="rgb24")
+                                out_file.write_frame(frame_np)
 
                     else:
 
@@ -667,6 +687,9 @@ class CASTDesktop:
                             if self.put_to_buffer and frame_count <= self.frame_max:
                                 self.frame_buffer.append(frame)
 
+                        if self.record:
+                            out_file.write_frame(frame)
+
                         """
                         Manage preview window, depend on the platform
                         """
@@ -781,6 +804,12 @@ class CASTDesktop:
                     # Pass None to the encoder at the end - flush last packets
                     for packet in output_stream.encode(None):
                         output_container.mux(packet)
+                        """
+                        if self.record:
+                            # convert frame to np array
+                            frame_np = packet.to_ndarray(format="rgb24")
+                            out_file.write_frame(frame_np)
+                        """
                     output_container.close()
                 # close preview
                 if t_preview is True:
