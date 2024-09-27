@@ -2564,6 +2564,8 @@ async def cast_manage_page():
 
 
 async def tabs_info_page():
+    """ generate action/info page split by classes and show all running casts """
+
     # grab data
     info_data = await util_casts_info()
     # take only info data key
@@ -2595,13 +2597,16 @@ async def tabs_info_page():
     with tabs:
         p_desktop = ui.tab('Desktop', icon='computer').classes('bg-slate-400')
         p_media = ui.tab('Media', icon='image').classes('bg-slate-400')
+
         if Desktop.count > Media.count:
             tab_to_show = p_desktop
         elif Desktop.count < Media.count:
             tab_to_show = p_media
         else:
             tab_to_show = ''
+
     with (ui.tab_panels(tabs, value=tab_to_show).classes('w-full')):
+
         with ui.tab_panel(p_desktop):
             if not desktop_threads:
                 ui.label('No CAST').classes('animate-pulse') \
@@ -2638,19 +2643,44 @@ async def tabs_info_page():
                         ''')
                     await nice.generate_actions_to_cast('Media', media_threads, action_to_casts, info_data)
 
-def action_to_casts(class_name, cast_name, action, params, clear, execute, exp_item=None):
-    action_to_thread(class_name, cast_name, action, params, clear, execute)
-    if action == 'stop':
-        exp_item.close()
-        ui.notification(f'Stopping {cast_name}...', type='warning', position='center', timeout=1)
-        exp_item.delete()
-    elif action == 'shot':
-        ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=1)
-    elif action == 'close_preview':
-        ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=1)
+
+async def action_to_casts(class_name, cast_name, action, params, clear, execute, exp_item=None):
+    """ execute action from icon click and display a message """
+
+    def valid_ip():
+        if new_ip.value == '127.0.0.1' or Utils.check_ip_alive(new_ip.value):
+            action_to_thread(class_name, cast_name, action, new_ip.value, clear, execute)
+            ui.notification('IP address applied', type='positive', position='center', timeout=2)
+        else:
+            ui.notification('Bad IP address or not reachable', type='negative', position='center', timeout=2)
+
+    if action == 'host':
+        with ui.dialog() as dialog, ui.card() as ip_card:
+            dialog.open()
+            ip_card.classes('w-full')
+            with ui.row():
+                new_ip = ui.input('IP',placeholder='Enter new IP address')
+            ui.button('OK', on_click=valid_ip)
+
+        ui.notification(f'Change IP address for  {cast_name}...', type='info', position='top', timeout=2)
+
+    else:
+
+        action_to_thread(class_name, cast_name, action, params, clear, execute)
+
+        if action == 'stop':
+            exp_item.close()
+            ui.notification(f'Stopping {cast_name}...', type='warning', position='center', timeout=1)
+            exp_item.delete()
+        elif action == 'shot':
+            ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=1)
+        elif action == 'close_preview':
+            ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=1)
 
 
 async def show_thread_info():
+    """ show all info from running cats """
+
     dialog = ui.dialog().props(add='transition-show="slide-down" transition-hide="slide-up"')
     with dialog, ui.card():
         cast_info = await util_casts_info()

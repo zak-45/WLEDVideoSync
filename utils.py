@@ -17,7 +17,7 @@ except Exception as e:
     print(f'INFO : this is Not a YT version: {e}')
 
 import inspect
-# import concurrent_log_handler
+import concurrent_log_handler
 
 import json
 from asyncio import create_task

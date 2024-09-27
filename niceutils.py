@@ -27,6 +27,9 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+if sys.platform.lower() == 'win32':
+    import win32api
+
 """
 When this env var exist, this mean run from the one-file compressed executable.
 Load of the config is not possible, folder config should not exist yet.
@@ -575,27 +578,36 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                                                                   clear=False,
                                                                                   execute=True)
                                   ).classes('shadow-lg').tooltip('Stop Preview')
+                    ui.button(icon='settings_ethernet',
+                              on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
+                                                                              cast_name=item_v,
+                                                                              action='host',
+                                                                              params='',
+                                                                              clear=False,
+                                                                              execute=True)
+                              ).classes('shadow-lg').tooltip('Change IP devices')
 
                 editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
                     .run_editor_method('updateProps', {'readOnly': True})
 
 
 class LocalFilePicker(ui.dialog):
+    """Local File Picker
+
+    This is  simple file picker that allows you to select a file from the local filesystem where NiceGUI is running.
+    Right-click on a file will display image if available.
+
+    :param directory: The directory to start in.
+    :param upper_limit: The directory to stop at (None: no limit, default: same as the starting directory).
+    :param multiple: Whether to allow multiple files to be selected.
+    :param show_hidden_files: Whether to show hidden files.
+    :param thumbs : generate thumbnails
+    """
 
     def __init__(self, directory: str, *,
                  upper_limit: Optional[str] = ...,
                  multiple: bool = False, show_hidden_files: bool = False, thumbs: bool = True) -> None:
-        """Local File Picker
 
-        This is  simple file picker that allows you to select a file from the local filesystem where NiceGUI is running.
-        Right-click on a file will display image if available.
-
-        :param directory: The directory to start in.
-        :param upper_limit: The directory to stop at (None: no limit, default: same as the starting directory).
-        :param multiple: Whether to allow multiple files to be selected.
-        :param show_hidden_files: Whether to show hidden files.
-        :param thumbs : generate thumbnails
-        """
         super().__init__()
 
         self.drives_toggle = None
@@ -629,7 +641,6 @@ class LocalFilePicker(ui.dialog):
 
     def add_drives_toggle(self):
         if sys.platform.lower() == 'win32':
-            import win32api
             drives = win32api.GetLogicalDriveStrings().split('\000')[:-1]
             self.drives_toggle = ui.toggle(drives, value=drives[0], on_change=self.update_drive)
 

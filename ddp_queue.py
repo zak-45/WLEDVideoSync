@@ -41,7 +41,6 @@ class DDPDevice:
 
     def __init__(self, dest, port=4048):
         self._online = None
-        self.name = dest
         self.frame_count = 0
         self.retry_number = 0
         self.connection_warning = False
@@ -80,12 +79,12 @@ class DDPDevice:
                 retry_number=self.retry_number
             )
             if self.connection_warning:
-                logger.warning(f"DDP connection reestablished to {self.name}")
+                logger.warning(f"DDP connection reestablished to {self._destination}")
                 self.connection_warning = False
                 self._online = True
         except OSError as error:
             if not self.connection_warning:
-                logger.error(f"Error in DDP connection to {self.name}: {error}")
+                logger.error(f"Error in DDP connection to {self._destination}: {error}")
                 self.connection_warning = True
                 self._online = False
 

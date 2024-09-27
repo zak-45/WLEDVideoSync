@@ -620,7 +620,9 @@ class CASTMedia:
 
                             elif "host" in action:
                                 ip_addresses[0] = params
-                                if params != '127.0.0.1':
+                                if ddp_host is not None:
+                                    ddp_host._destination = params
+                                else:
                                     ddp_host = DDPDevice(params)
 
                         except Exception as error:
