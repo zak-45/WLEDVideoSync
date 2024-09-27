@@ -80,7 +80,7 @@ if sys.platform.lower() == 'win32':
     set_event_loop_policy(WindowsSelectorEventLoopPolicy())
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
-action_to_test = ['stop', 'shot', 'info', 'close_preview', 'open_preview', 'reset']
+action_to_test = ['stop', 'shot', 'info', 'close_preview', 'host', 'open_preview', 'reset']
 
 app.debug = False
 log_ui = None
@@ -548,10 +548,10 @@ async def util_casts_info():
 
     for item in Desktop.cast_names:
         child_list.append(item)
-        Desktop.cast_name_todo.append(str(item) + '||' + 'info' + '||' + str(time.time()))
+        Desktop.cast_name_todo.append(str(item) + '||' + 'info' + '||' + '' + '||' + str(time.time()))
     for item in Media.cast_names:
         child_list.append(item)
-        Media.cast_name_todo.append(str(item) + '||' + 'info' + '||' + str(time.time()))
+        Media.cast_name_todo.append(str(item) + '||' + 'info' + '||' + '' + '||' + str(time.time()))
 
     # request info from threads
     Desktop.t_todo_event.set()
@@ -606,14 +606,16 @@ async def list_todo_actions(class_name: str = Path(description=f'Class name, sho
 
 
 @app.put("/api/{class_name}/cast_actions", tags=["casts"])
-async def action_to_thread(class_name: str = Path(description=f'Class name, should be in: {class_to_test}'),
+def action_to_thread(class_name: str = Path(description=f'Class name, should be in: {class_to_test}'),
                            cast_name: str = None,
                            action: str = None,
+                           params: str = 'None',
                            clear: bool = False,
                            execute: bool = False):
     """
     Add action to cast_name_todo for a specific Cast
     If clear, remove all to do
+    :param params: params to pass to the action
     :param execute: instruct casts to execute action in to do list
     :param clear: Remove all actions from to do list
     :param class_name:
@@ -668,7 +670,7 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
             raise HTTPException(status_code=400,
                                 detail=f"Invalid Cast/Thread name or action not set")
         else:
-            class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
+            class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||'  + str(params) + '||' + str(time.time()))
             if class_name == 'Desktop':
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
@@ -685,20 +687,20 @@ async def action_to_thread(class_name: str = Path(description=f'Class name, shou
                 class_obj.t_media_lock.release()
             class_obj.t_todo_event.set()
             logger.debug(f"Actions in queue will be executed")
-            return {"message": f"Actions in queue will be executed"}
+            return {"message": "Actions in queue will be executed"}
 
         elif cast_name is None or action is None:
             if class_name == 'Desktop':
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            logger.error(f"Invalid Cast/Thread name or action not set")
+            logger.error("Invalid Cast/Thread name or action not set")
             raise HTTPException(status_code=400,
-                                detail=f"Invalid Cast/Thread name or action not set")
+                                detail="Invalid Cast/Thread name or action not set")
 
         else:
 
-            class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(time.time()))
+            class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||' + str(params) + '||' + str(time.time()))
             if class_name == 'Desktop':
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
@@ -1936,7 +1938,7 @@ async def reset_total():
     Desktop.reset_total = True
     #  instruct first cast to reset values
     if len(Media.cast_names) != 0:
-        result = await action_to_thread(class_name='Media',
+        result = action_to_thread(class_name='Media',
                                         cast_name=Media.cast_names[0],
                                         action='reset',
                                         clear=False,
@@ -1945,7 +1947,7 @@ async def reset_total():
         ui.notify(result)
 
     if len(Desktop.cast_names) != 0:
-        result = await action_to_thread(class_name='Desktop',
+        result = action_to_thread(class_name='Desktop',
                                         cast_name=Desktop.cast_names[0],
                                         action='reset',
                                         clear=False,
@@ -2497,7 +2499,7 @@ async def player_cast(source):
 
 async def cast_manage_page():
     """
-    Cast parameters on the root page '/'
+    Cast parameters on the root page /
     :return:
     """
 
@@ -2593,7 +2595,13 @@ async def tabs_info_page():
     with tabs:
         p_desktop = ui.tab('Desktop', icon='computer').classes('bg-slate-400')
         p_media = ui.tab('Media', icon='image').classes('bg-slate-400')
-    with (ui.tab_panels(tabs, value=p_desktop).classes('w-full')):
+        if Desktop.count > Media.count:
+            tab_to_show = p_desktop
+        elif Desktop.count < Media.count:
+            tab_to_show = p_media
+        else:
+            tab_to_show = ''
+    with (ui.tab_panels(tabs, value=tab_to_show).classes('w-full')):
         with ui.tab_panel(p_desktop):
             if not desktop_threads:
                 ui.label('No CAST').classes('animate-pulse') \
@@ -2610,40 +2618,7 @@ async def tabs_info_page():
                         ui.mermaid('''
                         graph LR;''' + graph_data + '''
                         ''')
-                    casts_row = ui.row()
-                    with casts_row:
-                        for item_th in desktop_threads:
-                            item_exp = ui.expansion(item_th, icon='cast') \
-                                .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
-                            with item_exp:
-                                with ui.row():
-                                    ui.button(icon='delete_forever',
-                                              on_click=lambda item_v=item_th, item_exp_v=item_exp: action_to_casts(
-                                                  class_name='Desktop',
-                                                  cast_name=item_v,
-                                                  action='stop',
-                                                  clear=False,
-                                                  execute=True,
-                                                  exp_item=item_exp_v)
-                                              ).classes('shadow-lg').tooltip('Cancel Cast')
-                                    ui.button(icon='add_photo_alternate',
-                                              on_click=lambda item_v=item_th: action_to_casts(class_name='Desktop',
-                                                                                              cast_name=item_v,
-                                                                                              action='shot',
-                                                                                              clear=False,
-                                                                                              execute=True)
-                                              ).classes('shadow-lg').tooltip('Capture picture')
-                                    if info_data[item_th]["data"]["preview"]:
-                                        ui.button(icon='cancel_presentation',
-                                                  on_click=lambda item_v=item_th: action_to_casts(class_name='Desktop',
-                                                                                                  cast_name=item_v,
-                                                                                                  action='close_preview',
-                                                                                                  clear=False,
-                                                                                                  execute=True)
-                                                  ).classes('shadow-lg').tooltip('Stop Preview')
-
-                                editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
-                                    .run_editor_method('updateProps', {'readOnly': True})
+                    await nice.generate_actions_to_cast('Desktop', desktop_threads, action_to_casts, info_data)
 
         with ui.tab_panel(p_media):
             if not media_threads:
@@ -2661,44 +2636,10 @@ async def tabs_info_page():
                         ui.mermaid('''
                         graph LR;''' + graph_data + '''
                         ''')
-                    with ui.row():
-                        for item_th in media_threads:
-                            item_exp = ui.expansion(item_th, icon='cast') \
-                                .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
-                            with item_exp:
-                                with ui.row():
-                                    ui.button(icon='delete_forever',
-                                              on_click=lambda item_v=item_th, item_exp_v=item_exp: action_to_casts(
-                                                  class_name='Media',
-                                                  cast_name=item_v,
-                                                  action='stop',
-                                                  clear=False,
-                                                  execute=True,
-                                                  exp_item=item_exp_v)
-                                              ).classes('shadow-lg').tooltip('Cancel Cast')
-                                    ui.button(icon='add_photo_alternate',
-                                              on_click=lambda item_v=item_th: action_to_casts(class_name='Media',
-                                                                                              cast_name=item_v,
-                                                                                              action='shot',
-                                                                                              clear=False,
-                                                                                              execute=True)) \
-                                        .classes('shadow-lg').tooltip('Capture picture')
-                                    if info_data[item_th]["data"]["preview"]:
-                                        ui.button(icon='cancel_presentation',
-                                                  on_click=lambda item_v=item_th:
-                                                  action_to_casts(class_name='Media',
-                                                                  cast_name=item_v,
-                                                                  action='close_preview',
-                                                                  clear=False,
-                                                                  execute=True)) \
-                                            .classes('shadow-lg').tooltip('Stop Preview')
+                    await nice.generate_actions_to_cast('Media', media_threads, action_to_casts, info_data)
 
-                                editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
-                                    .run_editor_method('updateProps', {'readOnly': True})
-
-
-async def action_to_casts(class_name, cast_name, action, clear, execute, exp_item=None):
-    await action_to_thread(class_name, cast_name, action, clear, execute)
+def action_to_casts(class_name, cast_name, action, params, clear, execute, exp_item=None):
+    action_to_thread(class_name, cast_name, action, params, clear, execute)
     if action == 'stop':
         exp_item.close()
         ui.notification(f'Stopping {cast_name}...', type='warning', position='center', timeout=1)

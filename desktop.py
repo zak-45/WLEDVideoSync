@@ -443,6 +443,8 @@ class CASTDesktop:
         """
         Record
         """
+        out_file = None
+
         if self.record:
             out_file = iio.imopen(self.output_file, "w", plugin="pyav")
             out_file.init_video_stream(self.vo_codec, fps=frame_interval)
@@ -467,6 +469,10 @@ class CASTDesktop:
                 logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
 
                 for frame in input_container.decode(input_stream):
+
+                    if self.record and out_file is None:
+                        out_file = iio.imopen(self.output_file, "w", plugin="pyav")
+                        out_file.init_video_stream(self.vo_codec, fps=frame_interval)
 
                     frame_count += 1
                     CASTDesktop.total_frame += 1
@@ -493,7 +499,7 @@ class CASTDesktop:
                             """
                             Record
                             """
-                            if self.record:
+                            if self.record and out_file is not None:
                                 # convert frame to np array
                                 frame_np = frame.to_ndarray(format="rgb24")
                                 out_file.write_frame(frame_np)
@@ -549,7 +555,7 @@ class CASTDesktop:
                             CASTDesktop.t_desktop_lock.acquire()
                             #  take thread name from cast to do list
                             for item in CASTDesktop.cast_name_todo:
-                                name, action, added_time = item.split("||")
+                                name, action, params, added_time = item.split("||")
 
                                 if name not in CASTDesktop.cast_names:
                                     CASTDesktop.cast_name_todo.remove(item)
@@ -605,6 +611,11 @@ class CASTDesktop:
                                             CASTDesktop.total_frame = 0
                                             CASTDesktop.total_packet = 0
                                             self.reset_total = False
+
+                                        elif "host" in action:
+                                            ip_addresses[0] = params
+                                            if params != '127.0.0.1':
+                                                ddp_host = DDPDevice(params)
 
                                     except Exception as error:
                                         logger.error(traceback.format_exc())
@@ -718,7 +729,7 @@ class CASTDesktop:
                         """
                         Record
                         """
-                        if self.record:
+                        if self.record and out_file is not None:
                             out_file.write_frame(frame)
 
                         """

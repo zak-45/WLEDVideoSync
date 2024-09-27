@@ -21,6 +21,7 @@
 
 import logging
 import logging.config
+import concurrent_log_handler
 
 from multiprocessing.shared_memory import ShareableList
 import traceback
@@ -562,11 +563,12 @@ class CASTMedia:
                 CASTMedia.t_media_lock.acquire()
                 #  take thread name from cast to do list
                 for item in CASTMedia.cast_name_todo:
-                    name, action, added_time = item.split('||')
+                    name, action, params, added_time = item.split('||')
 
                     if name not in CASTMedia.cast_names:
                         CASTMedia.cast_name_todo.remove(item)
 
+                    # action is for this thread
                     elif name == t_name:
                         logging.debug(f'To do: {action} for :{t_name}')
 
@@ -574,6 +576,7 @@ class CASTMedia:
                         try:
                             if 'stop' in action:
                                 t_todo_stop = True
+
                             elif 'shot' in action:
                                 add_frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
                                 add_frame = CV2Utils.resize_image(add_frame, self.scale_width, self.scale_height)
@@ -614,6 +617,11 @@ class CASTMedia:
                                 CASTMedia.total_frame = 0
                                 CASTMedia.total_packet = 0
                                 self.reset_total = False
+
+                            elif "host" in action:
+                                ip_addresses[0] = params
+                                if params != '127.0.0.1':
+                                    ddp_host = DDPDevice(params)
 
                         except Exception as error:
                             logger.error(traceback.format_exc())

@@ -10,6 +10,7 @@
 # used by CastAPI mainly
 #
 """
+import concurrent_log_handler
 
 from nicegui import ui, events
 import psutil
@@ -535,6 +536,48 @@ async def player_pick_file(CastAPI) -> None:
 
         CastAPI.player.set_source(result)
         CastAPI.player.update()
+
+
+async def generate_actions_to_cast(class_name, class_threads, action_to_casts, info_data):
+    """ Generate expansion for each cast with icon/action """
+
+    casts_row = ui.row()
+    with casts_row:
+        for item_th in class_threads:
+            item_exp = ui.expansion(item_th, icon='cast') \
+                .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
+            with item_exp:
+                with ui.row():
+                    ui.button(icon='delete_forever',
+                              on_click=lambda item_v=item_th, item_exp_v=item_exp: action_to_casts(
+                                  class_name=class_name,
+                                  cast_name=item_v,
+                                  action='stop',
+                                  params = '',
+                                  clear=False,
+                                  execute=True,
+                                  exp_item=item_exp_v)
+                              ).classes('shadow-lg').tooltip('Cancel Cast')
+                    ui.button(icon='add_photo_alternate',
+                              on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
+                                                                              cast_name=item_v,
+                                                                              action='shot',
+                                                                              params = '',
+                                                                              clear=False,
+                                                                              execute=True)
+                              ).classes('shadow-lg').tooltip('Capture picture')
+                    if info_data[item_th]["data"]["preview"]:
+                        ui.button(icon='cancel_presentation',
+                                  on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
+                                                                                  cast_name=item_v,
+                                                                                  action='close_preview',
+                                                                                  params = '',
+                                                                                  clear=False,
+                                                                                  execute=True)
+                                  ).classes('shadow-lg').tooltip('Stop Preview')
+
+                editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
+                    .run_editor_method('updateProps', {'readOnly': True})
 
 
 class LocalFilePicker(ui.dialog):
