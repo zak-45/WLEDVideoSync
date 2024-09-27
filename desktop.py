@@ -32,6 +32,7 @@ import imageio.v3 as iio
 import cv2
 import logging
 import logging.config
+import concurrent_log_handler
 
 from multiprocessing.shared_memory import ShareableList
 import traceback
@@ -39,7 +40,6 @@ import traceback
 import time
 
 import cfg_load as cfg
-from numpy.core.records import record
 from str2bool import str2bool
 
 import threading
@@ -169,6 +169,8 @@ class CASTDesktop:
             self.viformat = ''
 
         self.vi_codec: str = 'libx264rgb'
+        self.all_windows_titles = Utils.windows_titles()
+
 
     def t_desktop_cast(self, shared_buffer=None):
         """
@@ -357,11 +359,34 @@ class CASTDesktop:
             # retrieve window ID
             elif sys.platform.lower() == 'linux':
                 try:
-                    win_id = hex(int(self.viinput.lower()[4:]))
-                    window_options = {'window_id': str(win_id)}
+                    # list all id for a title name (should be only one ...)
+                    window_ids = []
+                    # Iterate through each process
+                    for process_name, process_details in self.all_windows_titles.items():
+                        # Get the windows dictionary
+                        windows = process_details.get("windows", {})
+                        # Iterate through each window in the windows dictionary
+                        for window_name, window_details in windows.items():
+                            # Check if the window name matches the title
+                            if window_name == self.viinput[4:]:
+                                window_ids.append(window_details["id"])
+                    # if no title found, we consider user pass ID by himself
+                    if len(window_ids) == 0:
+                        win_id = hex(int(self.viinput.lower()[4:]))
+                        window_options = {'window_id': str(win_id)}
+                    # if found only one, that's cool
+                    elif len(window_ids) == 1:
+                        win_id = hex(int(window_ids[0]))
+                        window_options = {'window_id': str(win_id)}
+                    # more than one, do not know what to do
+                    else:
+                        logger.warning(f'More than one hWnd (ID) returned, you need to put it by yourself: {window_ids}')
+                        raise Exception
+
                     input_options |= window_options
+
                 except Exception as e:
-                    logger.error(f'Window ID (hWnd) need to be a number : {e}')
+                    logger.error(f'Not able to retrieve Window ID (hWnd) : {e}')
                     return False
 
         logger.debug(f'Options passed to av: {input_options}')
@@ -420,7 +445,7 @@ class CASTDesktop:
         """
         if self.record:
             out_file = iio.imopen(self.output_file, "w", plugin="pyav")
-            out_file.init_video_stream("h264", fps=frame_interval)
+            out_file.init_video_stream(self.vo_codec, fps=frame_interval)
 
         """
         End Record
@@ -459,12 +484,15 @@ class CASTDesktop:
                     if output_container:
                         # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
                         # Convert the frame to YUV format
-                        frame_yuv = frame.reformat(width=output_stream.width, height=output_stream.height,
-                                                   format='yuv420p')
+                        frame_rgb = frame.reformat(width=output_stream.width, height=output_stream.height,
+                                                   format='rgb24')
 
                         # Encode the frame
-                        for packet in output_stream.encode(frame_yuv):
+                        for packet in output_stream.encode(frame_rgb):
                             output_container.mux(packet)
+                            """
+                            Record
+                            """
                             if self.record:
                                 # convert frame to np array
                                 frame_np = frame.to_ndarray(format="rgb24")
@@ -473,7 +501,7 @@ class CASTDesktop:
                     else:
 
                         # resize to default size
-                        frame = frame.reformat(640, 360)
+                        frame = frame.reformat(self.scale_width, self.scale_height)
 
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
@@ -687,6 +715,9 @@ class CASTDesktop:
                             if self.put_to_buffer and frame_count <= self.frame_max:
                                 self.frame_buffer.append(frame)
 
+                        """
+                        Record
+                        """
                         if self.record:
                             out_file.write_frame(frame)
 
@@ -840,6 +871,7 @@ class CASTDesktop:
         """
             this will run the cast into another thread
             avoiding blocking the main one
+            this will also populate windows titles in case of
             shared_buffer: if used need to be a queue
             log_ui : logger to send data to main logger on root page
         """
@@ -850,4 +882,8 @@ class CASTDesktop:
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
+        self.all_windows_titles = Utils.windows_titles()
         logger.debug('Child Desktop cast initiated')
+
+
+
