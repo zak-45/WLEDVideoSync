@@ -137,7 +137,7 @@ All of this could be configured later, for the moment focus on default.
             To cast only an area:
                 'area' --> see SCREENAREA
             To cast a specific window content:
-                'win=xxxxxxxxx'  where xxxxxx should be for Win the window title and for Linux window ID
+                'win=xxxxxxxxx'  where xxxxxx should be for Win the window title and for Linux window ID/or window title
         Preview: True or False, if True a cast preview window will be displayed
         Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop
         Codec: PyAV codec used, let it to 'libx264rgb' for now
