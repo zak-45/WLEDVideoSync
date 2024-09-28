@@ -277,7 +277,8 @@ Default behaviour:
   - Win OS: app will start on "native" windows mode with a 'selection' window and uvicorn server on different process.
     - Closing App will put it on 'systray', terminate it need to be done from : ``Exit - server:xxx``
   
-  - Mac/Linux: app will start on 'default' browser, no systray options.
+- Mac/Linux: app will start on 'default' browser, no systray options.
+    -  use SHUTDOWN in footer to stop application
     - "native" mode has not been deeply tested on these platforms, so may provide some trouble.
     
 
