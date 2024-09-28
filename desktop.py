@@ -586,6 +586,7 @@ class CASTDesktop:
                                         elif 'info' in action:
                                             t_info = {t_name: {"type": "info",
                                                                "data": {"start": start_time,
+                                                                        "cast_type": 'Desktop',
                                                                         "tid": threading.current_thread().native_id,
                                                                         "viinput": str(t_viinput),
                                                                         "preview": t_preview,

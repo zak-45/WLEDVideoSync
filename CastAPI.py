@@ -2644,12 +2644,24 @@ async def tabs_info_page():
                     await nice.generate_actions_to_cast('Media', media_threads, action_to_casts, info_data)
 
 
-async def action_to_casts(class_name, cast_name, action, params, clear, execute, exp_item=None):
+async def action_to_casts(class_name, cast_name, action, params, clear, execute, data=None, exp_item=None):
     """ execute action from icon click and display a message """
 
     def valid_ip():
         if new_ip.value == '127.0.0.1' or Utils.check_ip_alive(new_ip.value):
-            action_to_thread(class_name, cast_name, action, new_ip.value, clear, execute)
+            # put to loopback if cast(s) with same IP already exist, and we do not want multi
+            if multi.value is False:
+                for thread_name, thread_info in data.items():
+                    cast_type = thread_info['data'].get('cast_type', 'unknown')  # Default to 'unknown' if not specified
+                    devices = thread_info['data'].get('devices', [])
+                    multicast = thread_info['data'].get('multicast', True)  # Default to True if not specified
+                    # put new IP and wait
+                    if new_ip.value in devices and not multicast:
+                        data[thread_name]['data']['devices'][0] = '127.0.0.1'
+                        action_to_thread(cast_type, thread_name, action, '127.0.0.1', clear, execute=False)
+            # put new IP and execute
+            data[cast_name]['data']['devices'][0] = new_ip.value
+            action_to_thread(class_name, cast_name, action, new_ip.value, clear, execute=True)
             ui.notification('IP address applied', type='positive', position='center', timeout=2)
         else:
             ui.notification('Bad IP address or not reachable', type='negative', position='center', timeout=2)
@@ -2660,6 +2672,8 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
             ip_card.classes('w-full')
             with ui.row():
                 new_ip = ui.input('IP',placeholder='Enter new IP address')
+                multi = ui.checkbox('allow multiple', value=False)
+                multi.tooltip('Check to let Cast(s) with same Device/IP to continue stream')
             ui.button('OK', on_click=valid_ip)
 
         ui.notification(f'Change IP address for  {cast_name}...', type='info', position='top', timeout=2)

@@ -584,7 +584,8 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                                                               action='host',
                                                                               params='',
                                                                               clear=False,
-                                                                              execute=True)
+                                                                              execute=True,
+                                                                              data=info_data)
                               ).classes('shadow-lg').tooltip('Change IP devices')
 
                 editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
