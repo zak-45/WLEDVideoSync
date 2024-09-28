@@ -229,7 +229,7 @@ class CASTMedia:
             if t_send_frame.wait(timeout=.5):
                 # send ddp data, we select DDPDevice based on the IP
                 for dev in t_ddp_multi_names:
-                    if ip == dev.name:
+                    if ip == dev._destination:
                         dev.send_to_queue(image, self.retry_number)
                         CASTMedia.total_packet += dev.frame_count
                         break

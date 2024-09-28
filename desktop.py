@@ -230,7 +230,7 @@ class CASTDesktop:
             if t_send_frame.wait(timeout=.5):
                 # send ddp data, we select DDPDevice based on the IP
                 for dev in t_ddp_multi_names:
-                    if ip == dev.name:
+                    if ip == dev._destination:
                         dev.send_to_queue(image, self.retry_number)
                         CASTDesktop.total_packet += dev.frame_count
                         break
@@ -927,6 +927,3 @@ class CASTDesktop:
         thread.start()
         self.all_windows_titles = Utils.windows_titles()
         logger.debug('Child Desktop cast initiated')
-
-
-
