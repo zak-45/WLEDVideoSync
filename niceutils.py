@@ -27,9 +27,6 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-if sys.platform.lower() == 'win32':
-    import win32api
-
 """
 When this env var exist, this mean run from the one-file compressed executable.
 Load of the config is not possible, folder config should not exist yet.
@@ -642,6 +639,7 @@ class LocalFilePicker(ui.dialog):
 
     def add_drives_toggle(self):
         if sys.platform.lower() == 'win32':
+            import win32api
             drives = win32api.GetLogicalDriveStrings().split('\000')[:-1]
             self.drives_toggle = ui.toggle(drives, value=drives[0], on_change=self.update_drive)
 
