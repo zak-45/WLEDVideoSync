@@ -113,6 +113,7 @@ All of this could be configured later, for the moment focus on default.
     - available actions:  Cancel cast, to stop this cast
                           Snapshot, take a picture from running cast. Image will be stored into cast BUFFER
                           Stop Preview, close preview window
+                          Change IP address, stream to a different DDP device and if set to 127.0.0.1: suspend stream
 
 - DESKTOP PARAMS:
   - Manage DESKTOP parameters. Screen to manage DESKTOP parameters, see images into BUFFER and MULTICAST information.
