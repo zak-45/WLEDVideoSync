@@ -556,6 +556,7 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                   params = '',
                                   clear=False,
                                   execute=True,
+                                  data=info_data,
                                   exp_item=item_exp_v)
                               ).classes('shadow-lg').tooltip('Cancel Cast')
                     ui.button(icon='add_photo_alternate',
@@ -575,6 +576,15 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                                                                   clear=False,
                                                                                   execute=True)
                                   ).classes('shadow-lg').tooltip('Stop Preview')
+                    if info_data[item_th]["data"]["preview"] is not True:
+                        ui.button(icon='preview',
+                                  on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
+                                                                                  cast_name=item_v,
+                                                                                  action='open_preview',
+                                                                                  params = '',
+                                                                                  clear=False,
+                                                                                  execute=True)
+                                  ).classes('shadow-lg').tooltip('Open Preview Window')
                     ui.button(icon='settings_ethernet',
                               on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
                                                                               cast_name=item_v,
@@ -584,6 +594,15 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                                                               execute=True,
                                                                               data=info_data)
                               ).classes('shadow-lg').tooltip('Change IP devices')
+                    ui.button(icon='grid_view',
+                              on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
+                                                                              cast_name=item_v,
+                                                                              action='multicast',
+                                                                              params='',
+                                                                              clear=False,
+                                                                              execute=True)
+                              ).classes('shadow-lg').tooltip('Multicast Effects')
+
 
                 editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
                     .run_editor_method('updateProps', {'readOnly': True})

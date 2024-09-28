@@ -43,6 +43,8 @@ from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 
+from multicast import IPSwapper
+
 Process, Queue = Utils.mp_setup()
 
 """
@@ -269,6 +271,8 @@ class CASTMedia:
         """
 
         ddp_host = None
+        swapper = None
+
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
@@ -312,7 +316,7 @@ class CASTMedia:
                         # create ddp device for each IP if not exist
                         ddp_exist = False
                         for device in t_ddp_multi_names:
-                            if cast_ip == device.name:
+                            if cast_ip == device._destination:
                                 logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
                                 ddp_exist = True
                                 break
@@ -321,6 +325,10 @@ class CASTMedia:
                             logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
+
+                # initiate IPSwapper
+                swapper = IPSwapper(ip_addresses)
+
         else:
 
             ip_addresses.append(self.host)
@@ -626,9 +634,27 @@ class CASTMedia:
                                 else:
                                     ddp_host = DDPDevice(params)
 
+                            elif "multicast" in action:
+                                if t_multicast:
+                                    action_arg, delay_arg = params.split(',')
+                                    delay_arg = int(delay_arg)
+                                    if swapper.running:
+                                        logger.warning(f'{t_name} Already a running effect')
+                                    else:
+                                        if action_arg == 'circular':
+                                            swapper.start_circular_swap(delay_arg)
+                                        elif action_arg == 'reverse':
+                                            swapper.start_reverse_swap(delay_arg)
+                                        elif action_arg == 'random':
+                                            swapper.start_random_order(delay_arg)
+                                        else:
+                                            logger.error(f'{t_name} Unknown Multicast action e.g random,1000 : {params}')
+                                else:
+                                    logger.error(f'{t_name} Not multicast cast')
+
                         except Exception as error:
-                            logger.error(traceback.format_exc())
-                            logger.error(f'Action {action} in ERROR from {t_name} : {error}')
+                                logger.error(traceback.format_exc())
+                                logger.error(f'Action {action} in ERROR from {t_name} : {error}')
 
                         CASTMedia.cast_name_todo.remove(item)
 

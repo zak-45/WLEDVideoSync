@@ -32,6 +32,8 @@ from asyncio import set_event_loop_policy,WindowsSelectorEventLoopPolicy,sleep,c
 
 from subprocess import Popen
 
+from sympy.logic.inference import valid
+
 from ddp_queue import DDPDevice
 
 import time
@@ -80,7 +82,7 @@ if sys.platform.lower() == 'win32':
     set_event_loop_policy(WindowsSelectorEventLoopPolicy())
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
-action_to_test = ['stop', 'shot', 'info', 'close_preview', 'host', 'open_preview', 'reset']
+action_to_test = ['stop', 'shot', 'info', 'close_preview', 'host', 'open_preview', 'reset', 'multicast']
 
 app.debug = False
 log_ui = None
@@ -2647,6 +2649,28 @@ async def tabs_info_page():
 async def action_to_casts(class_name, cast_name, action, params, clear, execute, data=None, exp_item=None):
     """ execute action from icon click and display a message """
 
+    def valid_check():
+        if circular.value:
+            reverse.value= False
+            random.value = False
+            return 'circular'
+        elif reverse.value:
+            circular.value = False
+            random.value = False
+            return 'reverse'
+        elif random.value:
+            circular.value = False
+            reverse.value = False
+            return 'random'
+
+    def valid_swap():
+            type_effect = valid_check()
+            if type_effect is None:
+                # stop effects
+                action_to_thread(class_name, cast_name, action, 'stop', clear, execute=True)
+            else:
+                action_to_thread(class_name, cast_name, action, type_effect + ',' + str(int(new_delay.value)), clear, execute=True)
+
     def valid_ip():
         if new_ip.value == '127.0.0.1' or Utils.check_ip_alive(new_ip.value):
             # put to loopback if cast(s) with same IP already exist, and we do not want multi
@@ -2671,12 +2695,33 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
             dialog.open()
             ip_card.classes('w-full')
             with ui.row():
-                new_ip = ui.input('IP',placeholder='Enter new IP address')
+                new_ip = ui.input('IP',placeholder='Enter new IP address', value='127.0.0.1')
                 multi = ui.checkbox('allow multiple', value=False)
                 multi.tooltip('Check to let Cast(s) with same Device/IP to continue stream')
             ui.button('OK', on_click=valid_ip)
 
         ui.notification(f'Change IP address for  {cast_name}...', type='info', position='top', timeout=2)
+
+    elif action == 'multicast':
+        with ui.dialog() as dialog, ui.card() as ip_card:
+            dialog.open()
+            ip_card.classes('w-full')
+            with ui.row():
+                new_delay = ui.number('Delay',
+                                      placeholder='Delay in ms',
+                                      value=1000,
+                                      min=1,
+                                      max=100000,
+                                      precision=0)
+                new_delay.tooltip('how long between swapping')
+                circular = ui.checkbox('circular', value=False, on_change=valid_check)
+                circular.tooltip('Swap IP one by one (circular)')
+                reverse = ui.checkbox('reverse', value=False, on_change=valid_check)
+                reverse.tooltip('Swap IP one by one in reverse order (reverse)')
+                random = ui.checkbox('random', value=False, on_change=valid_check)
+                random.tooltip('Swap IP randomly (random)')
+
+            ui.button('OK', on_click=valid_swap).tooltip('Validate, if nothing checked stop and set IP to initial')
 
     else:
 
@@ -2686,6 +2731,7 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
             exp_item.close()
             ui.notification(f'Stopping {cast_name}...', type='warning', position='center', timeout=1)
             exp_item.delete()
+            del data[cast_name]
         elif action == 'shot':
             ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=1)
         elif action == 'close_preview':
