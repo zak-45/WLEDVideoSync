@@ -228,6 +228,7 @@ class CastAPI:
     ram = 0
     cpu = 0
     w_image = None
+    windows_titles = {}
 
 
 """
@@ -455,7 +456,7 @@ async def util_win_titles():
     """
         Retrieve all titles from windows
     """
-    return {"windows_titles": await Utils.windows_titles()}
+    return {"windows_titles": Utils.windows_titles()}
 
 
 @app.get("/api/util/device_list", tags=["media"])
@@ -1560,17 +1561,20 @@ async def main_page_desktop():
 
         await net_view_page()
 
-        async def grab_windows():
+        async def display_windows():
             with ui.dialog() as dialog, ui.card():
                 dialog.open()
-                win_titles =  await Utils.windows_titles()
-                editor = ui.json_editor({'content': {'json': win_titles}}) \
+                editor = ui.json_editor({'content': {'json': CastAPI.windows_titles}}) \
                     .run_editor_method('updateProps', {'readOnly': True})
                 ui.button('Close', on_click=dialog.close, color='red')
 
-        ui.button('Win TITLES', on_click=grab_windows, color='bg-red-800').tooltip('View windows titles')
+        ui.button('Win TITLES', on_click=display_windows, color='bg-red-800').tooltip('View windows titles')
+        ui.button('Fetch Win TITLES', on_click=grab_windows, color='bg-red-800').tooltip('Retrieve windows titles')
 
 
+async def grab_windows():
+    ui.notification('Retrieved all windows information', close_button=True, timeout=3)
+    CastAPI.windows_titles = Utils.windows_titles()
 
 
 @ui.page('/Media')
@@ -1873,7 +1877,7 @@ async def net_view_page():
 @ui.refreshable
 async def media_dev_view_page():
     """
-    Display network devices into the Json Editor
+    Display media devices into the Json Editor
     :return:
     """
     def fetch_dev():

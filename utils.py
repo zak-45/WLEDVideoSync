@@ -344,7 +344,7 @@ class CASTUtils:
         return pwc.getActiveWindow().title
 
     @staticmethod
-    async def windows_titles():
+    def windows_titles():
         """ Provide a list of all window titles / hWnd by applications """
 
         try:
