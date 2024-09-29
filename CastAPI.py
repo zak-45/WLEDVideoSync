@@ -149,7 +149,7 @@ async def init_actions():
     # Apply some default params only once
     if str2bool(app_config['init_config_done']) is not True:
 
-        import FreeSimpleGUI as sg  # Part 1 - The import
+        import FreeSimpleGUI as Sg  # Part 1 - The import
 
         # Apply default GUI / param , depend on platform
         """
@@ -173,12 +173,12 @@ async def init_actions():
 
         # Define the window's contents
         info = "Some Params has changed.... restart your app"
-        layout = [[sg.Text(info)],  # Part 2 - The Layout
-                  [sg.Button('Ok')]]
+        layout = [[Sg.Text(info)],  # Part 2 - The Layout
+                  [Sg.Button('Ok')]]
         # Create the window
-        window = sg.Window('WLEDVideoSync', layout)  # Part 3 - Window Definition
+        window = Sg.Window('WLEDVideoSync', layout)  # Part 3 - Window Definition
         # Display and interact with the Window
-        event, values = window.read()  # Part 4 - Event loop or Window.read call
+        window.read()  # Part 4 - Event loop or Window.read call
         # Finish up by removing from the screen
         window.close()  # Part 5 - Close the Window
         sys.exit()
@@ -559,11 +559,11 @@ async def util_casts_info():
     Media.t_todo_event.set()
 
     # use to stop the loop in case of
-    start_time = time.time()
+    # start_time = time.time()
     logger.debug(f'Need to receive info from : {child_list}')
 
     # iterate through all Cast Names
-    for item in child_list:
+    for _ in child_list:
         # wait and get info dict from a thread
         try:
             data = t_data_buffer.get(timeout=3)
@@ -1187,7 +1187,7 @@ async def run_video_player_page():
         ui.add_head_html("""
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
         """)
-    player_timer = ui.timer(int(app_config['timer']), callback=player_timer_action)
+    ui.timer(int(app_config['timer']), callback=player_timer_action)
     await video_player_page()
 
 
@@ -1223,10 +1223,10 @@ async def video_player_page():
             .bind_visibility_from(CastAPI.player)
 
         with ui.row().classes('self-center'):
-            media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray') \
-                .bind_value(Media, 'cast_skip_frames') \
-                .tooltip('+ / - frames to CAST') \
-                .bind_visibility_from(CastAPI.player)
+            media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray')
+            media_frame.bind_value(Media, 'cast_skip_frames')
+            media_frame.tooltip('+ / - frames to CAST')
+            media_frame.bind_visibility_from(CastAPI.player)
 
             CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync, color='green') \
                 .tooltip('Sync Cast with Video Player Time') \
@@ -1246,10 +1246,10 @@ async def video_player_page():
                 .tooltip('Sync Cast with Slider Time') \
                 .bind_visibility_from(CastAPI.player)
 
-            media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray') \
-                .bind_value(Media, 'auto_sync_delay') \
-                .tooltip('Interval in sec to auto sync') \
-                .bind_visibility_from(CastAPI.player)
+            media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray')
+            media_sync_delay.bind_value(Media, 'auto_sync_delay')
+            media_sync_delay.tooltip('Interval in sec to auto sync')
+            media_sync_delay.bind_visibility_from(CastAPI.player)
 
             media_auto_sync = ui.checkbox('Auto Sync') \
                 .bind_value(Media, 'auto_sync') \
@@ -1506,8 +1506,8 @@ async def main_page_desktop():
                 new_protocol.classes('w-40')
 
             with ui.card():
-                new_record = ui.checkbox(text='Record', value=False).bind_value(Desktop,'record')
-                new_filename = ui.input('File name').bind_value(Desktop,'output_file')
+                ui.checkbox(text='Record', value=False).bind_value(Desktop,'record')
+                ui.input('File name').bind_value(Desktop,'output_file')
 
 
     ui.separator().classes('mt-6')
@@ -1834,7 +1834,7 @@ async def info_page():
         ui.add_head_html("""
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
         """)
-    info_timer = ui.timer(int(app_config['timer']), callback=info_timer_action)
+    ui.timer(int(app_config['timer']), callback=info_timer_action)
     await cast_manage_page()
 
 
@@ -1891,9 +1891,6 @@ async def net_view_page():
             ui.button('Close', on_click=dialog.close, color='red')
 
     ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
-
-
-
 
 async def animate_toggle(img):
     """ toggle animation """
@@ -2207,8 +2204,8 @@ async def save_filter_preset(class_name: str) -> None:
                 'gamma': str(class_obj.gamma)
             }
 
-            with open(f_name, 'w') as configfile:
-                preset.write(configfile)
+            with open(f_name, 'w') as conf:
+                preset.write(conf)
 
             dialog.close()
             ui.notify(f'Preset saved for {class_name} as {f_name}', type='info')
@@ -2275,9 +2272,9 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
                 ui.notify('Preset applied', type='info')
             return True
 
-        except Exception as e:
+        except Exception as er:
             logger.error(traceback.format_exc())
-            logger.error(f'Error applying preset: {e}')
+            logger.error(f'Error applying preset: {er}')
             ui.notify('Error applying preset', type='negative', position='center')
             return False
 
@@ -2434,9 +2431,9 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 ui.notify('Preset applied', type='info')
             return True
 
-        except Exception as e:
+        except Exception as er:
             logger.error(traceback.format_exc())
-            logger.error(f'Error applying preset: {e}')
+            logger.error(f'Error applying preset: {er}')
             ui.notify('Error applying preset', type='negative', position='center')
             return False
 
@@ -2534,7 +2531,7 @@ async def cast_manage_page():
                     my_col = 'green'
                 CastAPI.desktop_cast = ui.icon('cast', size='xl', color=my_col)
                 CastAPI.desktop_cast.on('click', lambda: auth_cast(Desktop))
-                CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop, log_ui)) \
+                CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop)) \
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
                     .tooltip('Initiate Desktop Cast')
@@ -2575,7 +2572,7 @@ async def cast_manage_page():
                     my_col = 'green'
                 CastAPI.media_cast = ui.icon('cast', size='xl', color=my_col)
                 CastAPI.media_cast.on('click', lambda: auth_cast(Media))
-                CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media, log_ui)) \
+                CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media)) \
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
                     .tooltip('Initiate Media Cast')
@@ -2784,7 +2781,7 @@ async def show_thread_info():
 
 async def root_timer_action():
     """
-    timer action occur only when root page is active '/'
+    timer action occur only when root page is active /
     :return:
     """
 
@@ -2877,11 +2874,10 @@ async def discovery_media_notify():
     Utils.dev_list_update()
 
 
-async def init_cast(class_obj, clog_ui=None):
+async def init_cast(class_obj):
     """
     Run the cast and refresh the cast view
     :param class_obj:
-    :param clog_ui:
     :return:
     """
     class_obj.cast(shared_buffer=t_data_buffer)
@@ -2978,7 +2974,7 @@ async def download_url(url):
     if 'https://www.youtu' in url:
 
         # this will run async loop in background and continue...
-        run_get_size = create_task(bar_get_size())
+        create_task(bar_get_size())
 
         # wait YT download finished
         yt = await Utils.youtube_download(url, interactive=True)
