@@ -55,7 +55,6 @@ import av
 
 from multicast import IPSwapper
 
-
 Process, Queue = Utils.mp_setup()
 
 """
@@ -172,7 +171,7 @@ class CASTDesktop:
             self.viformat = ''
 
         self.vi_codec: str = 'libx264rgb'
-        self.all_windows_titles = Utils.windows_titles()
+        self.all_windows_titles = []
 
 
     def t_desktop_cast(self, shared_buffer=None):
