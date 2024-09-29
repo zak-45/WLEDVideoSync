@@ -643,6 +643,8 @@ class CASTDesktop:
                                                             swapper.start_reverse_swap(delay_arg)
                                                         elif action_arg == 'random':
                                                             swapper.start_random_order(delay_arg)
+                                                        elif action_arg == 'pause':
+                                                            swapper.start_random_replace(delay_arg)
                                                         else:
                                                             logger.error(f'{t_name} Unknown Multicast action e.g random,1000 : {params}')
                                             else:
@@ -924,5 +926,4 @@ class CASTDesktop:
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
-        self.all_windows_titles = Utils.windows_titles()
         logger.debug('Child Desktop cast initiated')

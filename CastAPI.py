@@ -2667,22 +2667,32 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
         if circular.value:
             reverse.value= False
             random.value = False
+            pause.value = False
             return 'circular'
-        elif reverse.value:
+        if reverse.value:
             circular.value = False
             random.value = False
+            pause.value = False
             return 'reverse'
-        elif random.value:
+        if random.value:
             circular.value = False
             reverse.value = False
+            pause.value = False
             return 'random'
+        if pause.value:
+            circular.value = False
+            reverse.value = False
+            random.value = False
+            return 'pause'
 
     def valid_swap():
             type_effect = valid_check()
             if type_effect is None:
                 # stop effects
                 action_to_thread(class_name, cast_name, action, 'stop', clear, execute=True)
+                ui.notify('Effect stop & Reset to initial')
             else:
+                ui.notify(f'Initiate effect: {type_effect}')
                 action_to_thread(class_name, cast_name, action, type_effect + ',' + str(int(new_delay.value)), clear, execute=True)
 
     def valid_ip():
@@ -2734,6 +2744,8 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
                 reverse.tooltip('Swap IP one by one in reverse order (reverse)')
                 random = ui.checkbox('random', value=False, on_change=valid_check)
                 random.tooltip('Swap IP randomly (random)')
+                pause = ui.checkbox('Pause random', value=False, on_change=valid_check)
+                pause.tooltip('Pause Cast/IP randomly (pause)')
 
             ui.button('OK', on_click=valid_swap).tooltip('Validate, if nothing checked stop and set IP to initial')
 
@@ -2750,6 +2762,8 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
             ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=1)
         elif action == 'close_preview':
             ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=1)
+        else:
+            ui.notification(f'Initiate {action} with params {params} for {cast_name}...', type='info', timeout=1)
 
 
 async def show_thread_info():
