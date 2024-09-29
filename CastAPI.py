@@ -32,8 +32,6 @@ from asyncio import set_event_loop_policy,WindowsSelectorEventLoopPolicy,sleep,c
 
 from subprocess import Popen
 
-from sympy.logic.inference import valid
-
 from ddp_queue import DDPDevice
 
 import time

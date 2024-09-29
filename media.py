@@ -331,7 +331,7 @@ class CASTMedia:
 
         else:
 
-            ip_addresses.append(self.host)
+            ip_addresses=[self.host]
 
         """
         Second, capture media
@@ -352,6 +352,7 @@ class CASTMedia:
         # retrieve frame count, if 1 we assume image (should be no?)
         media_length = int(media.get(cv2.CAP_PROP_FRAME_COUNT))
         if media_length == 1:
+            media.release()
             media = cv2.imread(str(t_viinput))
             frame = media
             orig_frame = frame
@@ -520,7 +521,7 @@ class CASTMedia:
             # common part for image media_length = 1 or live video = -1 or video > 1
             # break in case of failure
             try:
-                frame = CV2Utils.resize_image(frame, 640, 360)
+                frame = CV2Utils.resize_image(frame, self.scale_width, self.scale_height)
             except Exception as im_error:
                 logger.error(f'Error to resize image : {im_error}')
                 break
@@ -713,7 +714,7 @@ class CASTMedia:
                     logger.error(f'{t_name} An exception occurred: {error}')
                     break
 
-                # looks like we read an image, so out from the loop...
+                # looks like we read an image, go out from the loop...
                 if is_image:
                     break
 

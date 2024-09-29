@@ -331,7 +331,7 @@ class CASTDesktop:
 
         else:
 
-            ip_addresses.append(self.host)
+            ip_addresses=[self.host]
 
         """
         Second, capture media
