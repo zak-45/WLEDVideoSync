@@ -1560,12 +1560,17 @@ async def main_page_desktop():
 
         await net_view_page()
 
-        with ui.dialog() as dialog, ui.card():
-            win_title = await Utils.windows_titles()
-            editor = ui.json_editor({'content': {'json': win_title}}) \
-                .run_editor_method('updateProps', {'readOnly': True})
-            ui.button('Close', on_click=dialog.close, color='red')
-        ui.button('Win TITLES', on_click=dialog.open, color='bg-red-800').tooltip('View windows titles')
+        async def grab_windows():
+            with ui.dialog() as dialog, ui.card():
+                dialog.open()
+                win_titles =  await Utils.windows_titles()
+                editor = ui.json_editor({'content': {'json': win_titles}}) \
+                    .run_editor_method('updateProps', {'readOnly': True})
+                ui.button('Close', on_click=dialog.close, color='red')
+
+        ui.button('Win TITLES', on_click=grab_windows, color='bg-red-800').tooltip('View windows titles')
+
+
 
 
 @ui.page('/Media')
@@ -1790,26 +1795,31 @@ async def ws_page():
 
     ws_modules=['Utils','Net','ImageUtils','CV2Utils']
     func_rows = ui.row()
+
+    def fetch_main_module():
+        with ui.dialog() as dialog_m, ui.card():
+            dialog_m.open()
+            ui.json_editor({'content': {'json': Utils.func_info(sys.modules[__name__])}}) \
+                .run_editor_method('updateProps', {'readOnly': True})
+            ui.button('Close', on_click=dialog_m.close, color='red')
+
+    def fetch_all_modules():
+        with ui.dialog() as dialog_a, ui.card():
+            dialog_a.open()
+            ui.json_editor({'content': {'json': Utils.func_info(globals()[item_th])}}) \
+                    .run_editor_method('updateProps', {'readOnly': True})
+            ui.button('Close', on_click=dialog_a.close, color='red')
+
     with func_rows:
         item_exp = ui.expansion('local', icon='info') \
             .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
         with item_exp:
-            with ui.dialog() as dialog, ui.card():
-
-                editor = ui.json_editor({'content': {'json': Utils.func_info(sys.modules[__name__])}}) \
-                    .run_editor_method('updateProps', {'readOnly': True})
-                ui.button('Close', on_click=dialog.close, color='red')
-            ui.button('Functions', on_click=dialog.open, color='bg-red-800').tooltip('View func info')
-
+            ui.button('Functions', on_click=fetch_main_module, color='bg-red-800').tooltip('View func info')
         for item_th in ws_modules:
             item_exp = ui.expansion(item_th, icon='info') \
                 .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
             with item_exp:
-                with ui.dialog() as dialog, ui.card():
-                    editor = ui.json_editor({'content': {'json': Utils.func_info(globals()[item_th])}}) \
-                        .run_editor_method('updateProps', {'readOnly': True})
-                    ui.button('Close', on_click=dialog.close, color='red')
-                ui.button('Functions', on_click=dialog.open, color='bg-red-800').tooltip('View func info')
+                ui.button('Functions', on_click=fetch_all_modules, color='bg-red-800').tooltip('View func info')
 
 
 @ui.page('/info')
@@ -1850,11 +1860,14 @@ async def net_view_page():
     Display network devices into the Json Editor
     :return:
     """
-    with ui.dialog() as dialog, ui.card():
-        editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
-            .run_editor_method('updateProps', {'readOnly': True})
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('Net devices', on_click=dialog.open, color='bg-red-800').tooltip('View network devices')
+    def fetch_net():
+        with ui.dialog() as dialog, ui.card():
+            dialog.open()
+            editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
+                .run_editor_method('updateProps', {'readOnly': True})
+            ui.button('Close', on_click=dialog.close, color='red')
+
+    ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
 
 
 @ui.refreshable
@@ -1863,11 +1876,14 @@ async def media_dev_view_page():
     Display network devices into the Json Editor
     :return:
     """
-    with ui.dialog() as dialog, ui.card():
-        editor = ui.json_editor({'content': {'json': Utils.dev_list}}) \
-            .run_editor_method('updateProps', {'readOnly': True})
-        ui.button('Close', on_click=dialog.close, color='red')
-    ui.button('Media devices', on_click=dialog.open, color='bg-red-800').tooltip('View Media devices')
+    def fetch_dev():
+        with ui.dialog() as dialog, ui.card():
+            dialog.open()
+            editor = ui.json_editor({'content': {'json': Utils.dev_list}}) \
+                .run_editor_method('updateProps', {'readOnly': True})
+            ui.button('Close', on_click=dialog.close, color='red')
+
+    ui.button('Media devices', on_click=fetch_dev, color='bg-red-800').tooltip('View Media devices')
 
 
 """
