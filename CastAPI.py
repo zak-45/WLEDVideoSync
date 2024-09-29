@@ -962,7 +962,7 @@ async def main_page():
     """
     timer created on main page run to refresh datas
     """
-    main_timer = ui.timer(int(app_config['timer']), callback=root_timer_action)
+    ui.timer(int(app_config['timer']), callback=root_timer_action)
 
     """
     Header with button menu
@@ -1858,23 +1858,11 @@ async def manage_charts_page():
             ui.button('System', on_click=sys_stats_info_page)
 
 
-@ui.refreshable
-async def net_view_page():
-    """
-    Display network devices into the Json Editor
-    :return:
-    """
-    def fetch_net():
-        with ui.dialog() as dialog, ui.card():
-            dialog.open()
-            editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
-                .run_editor_method('updateProps', {'readOnly': True})
-            ui.button('Close', on_click=dialog.close, color='red')
 
-    ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
+"""
+helpers /Commons
+"""
 
-
-@ui.refreshable
 async def media_dev_view_page():
     """
     Display media devices into the Json Editor
@@ -1890,9 +1878,21 @@ async def media_dev_view_page():
     ui.button('Media devices', on_click=fetch_dev, color='bg-red-800').tooltip('View Media devices')
 
 
-"""
-helpers /Commons
-"""
+async def net_view_page():
+    """
+    Display network devices into the Json Editor
+    :return:
+    """
+    def fetch_net():
+        with ui.dialog() as dialog, ui.card():
+            dialog.open()
+            editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
+                .run_editor_method('updateProps', {'readOnly': True})
+            ui.button('Close', on_click=dialog.close, color='red')
+
+    ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
+
+
 
 
 async def animate_toggle(img):
@@ -2864,7 +2864,7 @@ async def discovery_net_notify():
                     type='warning',
                     timeout=6)
     await run_in_threadpool(Netdevice.discover)
-    net_view_page.refresh()
+    # net_view_page.refresh()
 
 
 async def discovery_media_notify():
@@ -2874,8 +2874,7 @@ async def discovery_media_notify():
                     close_button=True,
                     type='warning',
                     timeout=3)
-    await util_device_list_update()
-    media_dev_view_page.refresh()
+    Utils.dev_list_update()
 
 
 async def init_cast(class_obj, clog_ui=None):
