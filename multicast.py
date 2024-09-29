@@ -31,8 +31,9 @@ class IPSwapper:
 
     def start_circular_swap(self, delay_ms):
         self.running = True
-        thread = threading.Thread(target=self._circular_swap, args=(delay_ms,)).start()
+        thread = threading.Thread(target=self._circular_swap, args=(delay_ms,))
         thread.daemon = True
+        thread.start()
 
     def _circular_swap(self, delay_ms):
         while self.running:
@@ -42,8 +43,9 @@ class IPSwapper:
 
     def start_reverse_swap(self, delay_ms):
         self.running = True
-        thread = threading.Thread(target=self._reverse_swap, args=(delay_ms,)).start()
+        thread = threading.Thread(target=self._reverse_swap, args=(delay_ms,))
         thread.daemon = True
+        thread.start()
 
     def _reverse_swap(self, delay_ms):
         while self.running:
@@ -53,8 +55,9 @@ class IPSwapper:
 
     def start_random_order(self, delay_ms):
         self.running = True
-        thread = threading.Thread(target=self._random_order, args=(delay_ms,)).start()
+        thread = threading.Thread(target=self._random_order, args=(delay_ms,))
         thread.daemon = True
+        thread.start()
 
     def _random_order(self, delay_ms):
         while self.running:

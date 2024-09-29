@@ -98,7 +98,7 @@ async def head_set(name, target, icon):
             ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
         if str2bool(app_config['fastapi_docs']):
             ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
-        ui.icon('info',size='sm').on('click', lambda: app_info()).style('cursor:pointer')
+        ui.icon('info', size='sm').on('click', lambda: app_info()).style('cursor:pointer')
 
 
 def app_info():
@@ -542,7 +542,7 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
     """ Generate expansion for each cast with icon/action """
 
     casts_row = ui.row()
-    with casts_row:
+    with (casts_row):
         for item_th in class_threads:
             item_exp = ui.expansion(item_th, icon='cast') \
                 .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
@@ -553,7 +553,7 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                   class_name=class_name,
                                   cast_name=item_v,
                                   action='stop',
-                                  params = '',
+                                  params='',
                                   clear=False,
                                   execute=True,
                                   data=info_data,
@@ -563,28 +563,26 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                               on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
                                                                               cast_name=item_v,
                                                                               action='shot',
-                                                                              params = '',
+                                                                              params='',
                                                                               clear=False,
                                                                               execute=True)
                               ).classes('shadow-lg').tooltip('Capture picture')
-                    if info_data[item_th]["data"]["preview"]:
-                        ui.button(icon='cancel_presentation',
-                                  on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
-                                                                                  cast_name=item_v,
-                                                                                  action='close_preview',
-                                                                                  params = '',
-                                                                                  clear=False,
-                                                                                  execute=True)
-                                  ).classes('shadow-lg').tooltip('Stop Preview')
-                    if info_data[item_th]["data"]["preview"] is not True:
-                        ui.button(icon='preview',
-                                  on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
-                                                                                  cast_name=item_v,
-                                                                                  action='open_preview',
-                                                                                  params = '',
-                                                                                  clear=False,
-                                                                                  execute=True)
-                                  ).classes('shadow-lg').tooltip('Open Preview Window')
+                    ui.button(icon='cancel_presentation',
+                              on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
+                                                                              cast_name=item_v,
+                                                                              action='close_preview',
+                                                                              params='',
+                                                                              clear=False,
+                                                                              execute=True)
+                              ).classes('shadow-lg').tooltip('Stop Preview')
+                    ui.button(icon='preview',
+                              on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
+                                                                              cast_name=item_v,
+                                                                              action='open_preview',
+                                                                              params='',
+                                                                              clear=False,
+                                                                              execute=True)
+                              ).classes('shadow-lg').tooltip('Open Preview Window')
                     ui.button(icon='settings_ethernet',
                               on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
                                                                               cast_name=item_v,
@@ -602,7 +600,6 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                                                               clear=False,
                                                                               execute=True)
                               ).classes('shadow-lg').tooltip('Multicast Effects')
-
 
                 editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
                     .run_editor_method('updateProps', {'readOnly': True})
