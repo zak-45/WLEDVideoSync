@@ -455,7 +455,7 @@ async def util_win_titles():
     """
         Retrieve all titles from windows
     """
-    return {"windows_titles": Utils.windows_titles()}
+    return {"windows_titles": await Utils.windows_titles()}
 
 
 @app.get("/api/util/device_list", tags=["media"])
@@ -1561,7 +1561,7 @@ async def main_page_desktop():
         await net_view_page()
 
         with ui.dialog() as dialog, ui.card():
-            win_title = Utils.windows_titles()
+            win_title = await Utils.windows_titles()
             editor = ui.json_editor({'content': {'json': win_title}}) \
                 .run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog.close, color='red')
