@@ -54,6 +54,7 @@ from cv2utils import CV2Utils, ImageUtils
 import av
 
 from multicast import IPSwapper
+import actionutils
 
 Process, Queue = Utils.mp_setup()
 
@@ -190,12 +191,15 @@ class CASTDesktop:
 
         start_time = time.time()
         t_preview = self.preview
+        t_scale_width = self.scale_width
+        t_scale_height = self.scale_height
         t_multicast = self.multicast
         t_ddp_multi_names =[]
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
         t_cast_frame_buffer = []
-
+        media_length = -1
+        interval = self.rate
         frame_count = 0
 
         t_todo_stop = False
@@ -270,8 +274,8 @@ class CASTDesktop:
         First, check devices 
         """
 
-        ddp_host = None
         swapper = None
+
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
@@ -280,13 +284,13 @@ class CASTDesktop:
                 logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
                 return False
 
-            ddp_host = DDPDevice(self.host)  # init here as queue thread not necessary if 127.0.0.1
+        ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
             status = run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
             if status:
-                self.scale_width, self.scale_height = run(Utils.get_wled_matrix_dimensions(self.host))
+                t_scale_width, t_scale_height = run(Utils.get_wled_matrix_dimensions(self.host))
             else:
                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return False
@@ -299,7 +303,7 @@ class CASTDesktop:
                 return False
             else:
                 logger.info(f'{t_name} Virtual Matrix size is : \
-                            {str(self.scale_width * t_cast_x)}x{str(self.scale_height * t_cast_y)}')
+                            {str(t_scale_width * t_cast_x)}x{str(t_scale_height * t_cast_y)}')
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
@@ -435,8 +439,8 @@ class CASTDesktop:
                 output_options = {}
                 output_container = av.open(self.vooutput, 'w', format=self.voformat)
                 output_stream = output_container.add_stream(self.vo_codec, rate=self.rate, options=output_options)
-                output_stream.width = self.scale_width
-                output_stream.height = self.scale_height
+                output_stream.width = t_scale_width
+                output_stream.height = t_scale_height
                 output_stream.pix_fmt = 'yuv420p'
 
                 if str2bool(desktop_config['multi_thread']) is True:
@@ -514,7 +518,7 @@ class CASTDesktop:
                     else:
 
                         # resize to default size
-                        frame = frame.reformat(self.scale_width, self.scale_height)
+                        frame = frame.reformat(t_scale_width, t_scale_height)
 
                         # convert frame to np array
                         frame = frame.to_ndarray(format="rgb24")
@@ -558,107 +562,39 @@ class CASTDesktop:
                         """
 
                         if CASTDesktop.t_todo_event.is_set():
-                            logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
                             CASTDesktop.t_desktop_lock.acquire()
-                            #  take thread name from cast to do list
-                            for item in CASTDesktop.cast_name_todo:
-                                name, action, params, added_time = item.split("||")
+                            logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
 
-                                if name not in CASTDesktop.cast_names:
-                                    CASTDesktop.cast_name_todo.remove(item)
-
-                                elif name == t_name:
-                                    logging.debug(f'To do: {action} for :{t_name}')
-
-                                    # use try to capture any failure
-                                    try:
-                                        if 'stop' in action:
-                                            t_todo_stop = True
-                                        elif 'shot' in action:
-                                            add_frame = CV2Utils.pixelart_image(frame,
-                                                                                self.scale_width,
-                                                                                self.scale_height)
-                                            add_frame = CV2Utils.resize_image(add_frame,
-                                                                              self.scale_width,
-                                                                              self.scale_height)
-                                            self.frame_buffer.append(add_frame)
-                                            if t_multicast:
-                                                # resize frame to virtual matrix size
-                                                add_frame = CV2Utils.resize_image(frame,
-                                                                                  self.scale_width * t_cast_x,
-                                                                                  self.scale_height * t_cast_y)
-
-                                                self.cast_frame_buffer = Utils.split_image_to_matrix(add_frame,
-                                                                                                     t_cast_x, t_cast_y)
-                                        elif 'info' in action:
-                                            t_info = {t_name: {"type": "info",
-                                                               "data": {"start": start_time,
-                                                                        "cast_type": 'Desktop',
-                                                                        "tid": threading.current_thread().native_id,
-                                                                        "viinput": str(t_viinput),
-                                                                        "preview": t_preview,
-                                                                        "multicast": t_multicast,
-                                                                        "devices": ip_addresses,
-                                                                        "fps": frame_interval,
-                                                                        "frames": frame_count
-                                                                        }
-                                                               }
-                                                      }
-                                            # this wait until queue access is free
-                                            shared_buffer.put(t_info)
-                                            logger.debug(f"{t_name} we have put on the queue")
-
-                                        elif "close_preview" in action:
-                                            CV2Utils.cv2_win_close(CASTDesktop.server_port, 'Desktop', t_name, t_viinput)
-                                            t_preview = False
-
-                                        elif "open_preview" in action:
-                                            t_preview = True
-
-                                        elif "reset" in action:
-                                            CASTDesktop.total_frame = 0
-                                            CASTDesktop.total_packet = 0
-                                            self.reset_total = False
-
-                                        elif "host" in action:
-                                            ip_addresses[0] = params
-                                            if ddp_host is not None:
-                                                ddp_host._destination = params
-                                            else:
-                                                ddp_host=DDPDevice(params)
-
-                                        elif "multicast" in action:
-                                            if t_multicast:
-                                                if params == 'stop':
-                                                    swapper.stop()
-                                                else:
-                                                    action_arg, delay_arg = params.split(',')
-                                                    delay_arg = int(delay_arg)
-                                                    if swapper.running:
-                                                        logger.warning(f'{t_name} Already a running effect')
-                                                    else:
-                                                        if action_arg == 'circular':
-                                                            swapper.start_circular_swap(delay_arg)
-                                                        elif action_arg == 'reverse':
-                                                            swapper.start_reverse_swap(delay_arg)
-                                                        elif action_arg == 'random':
-                                                            swapper.start_random_order(delay_arg)
-                                                        elif action_arg == 'pause':
-                                                            swapper.start_random_replace(delay_arg)
-                                                        else:
-                                                            logger.error(f'{t_name} Unknown Multicast action e.g random,1000 : {params}')
-                                            else:
-                                                logger.error(f'{t_name} Not multicast cast')
-
-                                    except Exception as error:
-                                        logger.error(traceback.format_exc())
-                                        logger.error(f'{t_name} Action {action} in ERROR from {t_name}: {error}')
-
-                                    CASTDesktop.cast_name_todo.remove(item)
+                            t_todo_stop, t_preview = actionutils.execute_actions(CASTDesktop,
+                                                                                 frame,
+                                                                                 t_name,
+                                                                                 t_viinput,
+                                                                                 t_scale_width,
+                                                                                 t_scale_height,
+                                                                                 t_multicast,
+                                                                                 ip_addresses,
+                                                                                 ddp_host,
+                                                                                 t_cast_x,
+                                                                                 t_cast_y,
+                                                                                 start_time,
+                                                                                 t_todo_stop,
+                                                                                 t_preview,
+                                                                                 interval,
+                                                                                 frame_count,
+                                                                                 media_length,
+                                                                                 swapper,
+                                                                                 shared_buffer,
+                                                                                 self.frame_buffer,
+                                                                                 self.cast_frame_buffer,
+                                                                                 logger)
 
                             if len(CASTDesktop.cast_name_todo) == 0:
                                 CASTDesktop.t_todo_event.clear()
                             CASTDesktop.t_desktop_lock.release()
+
+                        """
+                        End To do
+                        """
 
                         if t_multicast and (t_cast_y != 1 or t_cast_x != 1):
                             """
@@ -676,10 +612,10 @@ class CASTDesktop:
                             grid = True
 
                             # resize frame to virtual matrix size
-                            frame_art = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                            frame_art = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
                             frame = CV2Utils.resize_image(frame,
-                                                          self.scale_width * t_cast_x,
-                                                          self.scale_height * t_cast_y)
+                                                          t_scale_width * t_cast_x,
+                                                          t_scale_height * t_cast_y)
 
                             if frame_count > 1:
                                 # split to matrix
@@ -715,9 +651,9 @@ class CASTDesktop:
                             grid = False
 
                             # resize frame for sending to ddp device
-                            frame_to_send = CV2Utils.resize_image(frame, self.scale_width, self.scale_height)
+                            frame_to_send = CV2Utils.resize_image(frame, t_scale_width, t_scale_height)
                             # resize frame to pixelart
-                            frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                            frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
 
                             # DDP run in separate thread to avoid block main loop
                             # here we feed the queue that is read by DDP thread

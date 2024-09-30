@@ -922,8 +922,6 @@ class YtSearch:
         def run_search():
             create_task(self.py_search(self.my_search.value))
 
-        # await ui.context.client.connected()
-
         self.search_button.props('loading')
         self.search_result.clear()
         ui.timer(.5, run_search, once=True)

@@ -44,6 +44,7 @@ from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 
 from multicast import IPSwapper
+import actionutils
 
 Process, Queue = Utils.mp_setup()
 
@@ -76,7 +77,6 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
 """
 Class definition
 """
-
 
 class CASTMedia:
     """ Cast Media to DDP """
@@ -171,6 +171,8 @@ class CASTMedia:
 
         start_time = time.time()
         t_preview = self.preview
+        t_scale_width = self.scale_width
+        t_scale_height = self.scale_height
         t_multicast = self.multicast
         t_ddp_multi_names =[]
         t_cast_x = self.cast_x
@@ -270,7 +272,6 @@ class CASTMedia:
         First, check devices 
         """
 
-        ddp_host = None
         swapper = None
 
         # check IP
@@ -281,13 +282,13 @@ class CASTMedia:
                 logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
                 return False
 
-            ddp_host = DDPDevice(self.host)  # init here as queue thread not necessary if 127.0.0.1
+        ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
             status = run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
             if status is True:
-                self.scale_width, self.scale_height = run(Utils.get_wled_matrix_dimensions(self.host))
+                t_scale_width, t_scale_height = run(Utils.get_wled_matrix_dimensions(self.host))
             else:
                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return False
@@ -300,7 +301,7 @@ class CASTMedia:
                 return False
             else:
                 logger.info(f'{t_name} Virtual Matrix size is :' +
-                            str(self.scale_width * t_cast_x) + 'x' + str(self.scale_height * t_cast_y))
+                            str(t_scale_width * t_cast_x) + 'x' + str(t_scale_height * t_cast_y))
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
@@ -521,7 +522,7 @@ class CASTMedia:
             # common part for image media_length = 1 or live video = -1 or video > 1
             # break in case of failure
             try:
-                frame = CV2Utils.resize_image(frame, self.scale_width, self.scale_height)
+                frame = CV2Utils.resize_image(frame, t_scale_width, t_scale_height)
             except Exception as im_error:
                 logger.error(f'Error to resize image : {im_error}')
                 break
@@ -568,102 +569,39 @@ class CASTMedia:
             """
 
             if CASTMedia.t_todo_event.is_set():
-                logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
                 CASTMedia.t_media_lock.acquire()
-                #  take thread name from cast to do list
-                for item in CASTMedia.cast_name_todo:
-                    name, action, params, added_time = item.split('||')
+                logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
 
-                    if name not in CASTMedia.cast_names:
-                        CASTMedia.cast_name_todo.remove(item)
-
-                    # action is for this thread
-                    elif name == t_name:
-                        logging.debug(f'To do: {action} for :{t_name}')
-
-                        # use try to capture any failure
-                        try:
-                            if 'stop' in action:
-                                t_todo_stop = True
-
-                            elif 'shot' in action:
-                                add_frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                                add_frame = CV2Utils.resize_image(add_frame, self.scale_width, self.scale_height)
-                                self.frame_buffer.append(add_frame)
-                                if t_multicast:
-                                    # resize frame to virtual matrix size
-                                    add_frame = CV2Utils.resize_image(frame,
-                                                                      self.scale_width * t_cast_x,
-                                                                      self.scale_height * t_cast_y)
-
-                                    self.cast_frame_buffer = Utils.split_image_to_matrix(add_frame,
-                                                                                         t_cast_x, t_cast_y)
-                            elif 'info' in action:
-                                t_info = {t_name: {"type": "info", "data": {"start": start_time,
-                                                                            "cast_type": 'Media',
-                                                                            "tid": threading.current_thread().native_id,
-                                                                            "viinput": str(t_viinput),
-                                                                            "preview": t_preview,
-                                                                            "multicast": t_multicast,
-                                                                            "devices": ip_addresses,
-                                                                            "fps": 1 / interval,
-                                                                            "frames": frame_count,
-                                                                            "length": media_length
-                                                                            }
-                                                   }
-                                          }
-                                # this wait until queue access is free
-                                shared_buffer.put(t_info)
-                                logger.debug(f'{t_name} we have put')
-
-                            elif 'close_preview' in action:
-                                CV2Utils.cv2_win_close(str(CASTMedia.server_port), 'Media', t_name, t_viinput)
-                                t_preview = False
-
-                            elif 'open_preview' in action:
-                                t_preview = True
-
-                            elif "reset" in action:
-                                CASTMedia.total_frame = 0
-                                CASTMedia.total_packet = 0
-                                self.reset_total = False
-
-                            elif "host" in action:
-                                ip_addresses[0] = params
-                                if ddp_host is not None:
-                                    ddp_host._destination = params
-                                else:
-                                    ddp_host = DDPDevice(params)
-
-                            elif "multicast" in action:
-                                if t_multicast:
-                                    action_arg, delay_arg = params.split(',')
-                                    delay_arg = int(delay_arg)
-                                    if swapper.running:
-                                        logger.warning(f'{t_name} Already a running effect')
-                                    else:
-                                        if action_arg == 'circular':
-                                            swapper.start_circular_swap(delay_arg)
-                                        elif action_arg == 'reverse':
-                                            swapper.start_reverse_swap(delay_arg)
-                                        elif action_arg == 'random':
-                                            swapper.start_random_order(delay_arg)
-                                        elif action_arg == 'pause':
-                                            swapper.start_random_replace(delay_arg)
-                                        else:
-                                            logger.error(f'{t_name} Unknown Multicast action e.g random,1000 : {params}')
-                                else:
-                                    logger.error(f'{t_name} Not multicast cast')
-
-                        except Exception as error:
-                                logger.error(traceback.format_exc())
-                                logger.error(f'Action {action} in ERROR from {t_name} : {error}')
-
-                        CASTMedia.cast_name_todo.remove(item)
+                t_todo_stop, t_preview = actionutils.execute_actions(CASTMedia,
+                                                                     frame,
+                                                                     t_name,
+                                                                     t_viinput,
+                                                                     t_scale_width,
+                                                                     t_scale_height,
+                                                                     t_multicast,
+                                                                     ip_addresses,
+                                                                     ddp_host,
+                                                                     t_cast_x,
+                                                                     t_cast_y,
+                                                                     start_time,
+                                                                     t_todo_stop,
+                                                                     t_preview,
+                                                                     interval,
+                                                                     frame_count,
+                                                                     media_length,
+                                                                     swapper,
+                                                                     shared_buffer,
+                                                                     self.frame_buffer,
+                                                                     self.cast_frame_buffer,
+                                                                     logger)
 
                 if len(CASTMedia.cast_name_todo) == 0:
                     CASTMedia.t_todo_event.clear()
                 CASTMedia.t_media_lock.release()
+
+            """
+            End To do
+            """
 
             if t_multicast and (t_cast_y != 1 or t_cast_x != 1):
                 """
@@ -682,8 +620,8 @@ class CASTMedia:
                 grid = True
 
                 # resize frame to virtual matrix size
-                # frame_art = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                frame = CV2Utils.resize_image(frame, self.scale_width * t_cast_x, self.scale_height * t_cast_y)
+                # frame_art = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
+                frame = CV2Utils.resize_image(frame, t_scale_width * t_cast_x, t_scale_height * t_cast_y)
 
                 #
                 if frame_count > 1:
@@ -692,8 +630,8 @@ class CASTMedia:
                     # put frame to np buffer (so can be used after by the main)
                     # new cast overwrite, only the last can be seen from GUI
                     if self.put_to_buffer and frame_count <= self.frame_max:
-                        add_frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                        add_frame = CV2Utils.resize_image(add_frame, self.scale_width, self.scale_height)
+                        add_frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
+                        add_frame = CV2Utils.resize_image(add_frame, t_scale_width, t_scale_height)
                         self.frame_buffer.append(add_frame)
 
                 else:
@@ -725,9 +663,9 @@ class CASTMedia:
                 grid = False
 
                 # resize frame for sending to ddp device
-                frame_to_send = CV2Utils.resize_image(frame, self.scale_width, self.scale_height)
+                frame_to_send = CV2Utils.resize_image(frame, t_scale_width, t_scale_height)
                 # resize frame to pixelart
-                frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
+                frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
 
                 # DDP run in separate thread to avoid block main loop
                 # here we feed the queue that is read by DDP thread
@@ -766,8 +704,8 @@ class CASTMedia:
 
                 # put frame to np buffer (so can be used after by the main)
                 if self.put_to_buffer and frame_count <= self.frame_max:
-                    add_frame = CV2Utils.pixelart_image(frame, self.scale_width, self.scale_height)
-                    add_frame = CV2Utils.resize_image(add_frame, self.scale_width, self.scale_height)
+                    add_frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
+                    add_frame = CV2Utils.resize_image(add_frame, t_scale_width, t_scale_height)
                     self.frame_buffer.append(add_frame)
 
                 """

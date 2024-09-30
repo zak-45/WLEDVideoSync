@@ -537,7 +537,7 @@ async def util_blackout():
 
 
 @app.get("/api/util/casts_info", tags=["casts"])
-async def util_casts_info():
+async def util_casts_info(img: bool = False):
     """
         Get info from all Cast Threads
     """
@@ -546,13 +546,14 @@ async def util_casts_info():
     # clear
     child_info_data = {}
     child_list = []
+    params = True if img else False
 
     for item in Desktop.cast_names:
         child_list.append(item)
-        Desktop.cast_name_todo.append(str(item) + '||' + 'info' + '||' + '' + '||' + str(time.time()))
+        Desktop.cast_name_todo.append(str(item) + '||' + 'info' + '||' + str(params) + '||' + str(time.time()))
     for item in Media.cast_names:
         child_list.append(item)
-        Media.cast_name_todo.append(str(item) + '||' + 'info' + '||' + '' + '||' + str(time.time()))
+        Media.cast_name_todo.append(str(item) + '||' + 'info' + '||' + str(params) + '||' + str(time.time()))
 
     # request info from threads
     Desktop.t_todo_event.set()
@@ -2584,7 +2585,7 @@ async def tabs_info_page():
     """ generate action/info page split by classes and show all running casts """
 
     # grab data
-    info_data = await util_casts_info()
+    info_data = await util_casts_info(img=True)
     # take only info data key
     info_data = info_data['t_info']
     # split desktop / media by using content of thread name
@@ -2700,15 +2701,20 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
         if new_ip.value == '127.0.0.1' or Utils.check_ip_alive(new_ip.value):
             # put to loopback if cast(s) with same IP already exist, and we do not want multi
             if multi.value is False:
+                name = None
                 for thread_name, thread_info in data.items():
                     cast_type = thread_info['data'].get('cast_type', 'unknown')  # Default to 'unknown' if not specified
+                    if cast_type == 'CASTDesktop':
+                        name = 'Desktop'
+                    elif cast_type == 'CASTMedia':
+                        name = 'Media'
                     devices = thread_info['data'].get('devices', [])
                     multicast = thread_info['data'].get('multicast', True)  # Default to True if not specified
-                    # put new IP and wait
+                    # put new IP and action in wait mode
                     if new_ip.value in devices and not multicast:
                         data[thread_name]['data']['devices'][0] = '127.0.0.1'
-                        action_to_thread(cast_type, thread_name, action, '127.0.0.1', clear, execute=False)
-            # put new IP and execute
+                        action_to_thread(name, thread_name, action, '127.0.0.1', clear, execute=False)
+            # put new IP and execute action
             data[cast_name]['data']['devices'][0] = new_ip.value
             action_to_thread(class_name, cast_name, action, new_ip.value, clear, execute=True)
             ui.notification('IP address applied', type='positive', position='center', timeout=2)

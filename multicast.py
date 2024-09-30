@@ -6,7 +6,7 @@ import threading
 class IPSwapper:
     """
     Update IP list, provide some basic effects to multicast
-    This will update the IP List passed as argument
+    This will update the IP List passed as argument (list is mutable)
 
     Example usage
     ip_addresses = ['192.168.1.31', '127.0.0.1', '192.168.1.32', '10.0.0.1']

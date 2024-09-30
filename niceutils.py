@@ -37,7 +37,7 @@ Expected way to work.
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     # create logger
-    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.api')
+    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
 
     # load config file
     cast_config = Utils.read_config()
@@ -542,12 +542,12 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
     """ Generate expansion for each cast with icon/action """
 
     casts_row = ui.row()
-    with (casts_row):
+    with casts_row:
         for item_th in class_threads:
             item_exp = ui.expansion(item_th, icon='cast') \
-                .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
+                .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] w-96')
             with item_exp:
-                with ui.row():
+                with ui.row().classes('m-auto'):
                     ui.button(icon='delete_forever',
                               on_click=lambda item_v=item_th, item_exp_v=item_exp: action_to_casts(
                                   class_name=class_name,
@@ -601,8 +601,15 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                                                               execute=True)
                               ).classes('shadow-lg').tooltip('Multicast Effects')
 
-                editor = ui.json_editor({'content': {'json': info_data[item_th]["data"]}}) \
-                    .run_editor_method('updateProps', {'readOnly': True})
+
+                base64 = 'data:image/png;base64,' + info_data[item_th]["data"]['img']
+                ui.image(base64).classes('w-84 m-auto animate__animated animate__fadeInDown').tailwind.border_width('8')
+                def show_details(item_v):
+                    with ui.dialog() as dialog:
+                        dialog.open()
+                        editor = ui.json_editor({'content': {'json': info_data[item_v]["data"]}}) \
+                         .run_editor_method('updateProps', {'readOnly': True})
+                ui.button('Details', on_click=lambda item_v=item_th: show_details(item_v))
 
 
 class LocalFilePicker(ui.dialog):
