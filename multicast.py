@@ -1,3 +1,14 @@
+"""
+# a: zak-45
+# d: 01/10/2024
+# v: 1.0.0
+#
+# Multicast Utility
+# Class to apply some IP swapping from a List
+# this run in another thread to avoid blocking
+#
+"""
+
 import time
 import random
 import threading

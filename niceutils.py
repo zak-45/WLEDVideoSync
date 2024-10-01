@@ -570,7 +570,7 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                     ui.button(icon='cancel_presentation',
                               on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
                                                                               cast_name=item_v,
-                                                                              action='close_preview',
+                                                                              action='close-preview',
                                                                               params='',
                                                                               clear=False,
                                                                               execute=True)
@@ -578,7 +578,7 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                     ui.button(icon='preview',
                               on_click=lambda item_v=item_th: action_to_casts(class_name=class_name,
                                                                               cast_name=item_v,
-                                                                              action='open_preview',
+                                                                              action='open-preview',
                                                                               params='',
                                                                               clear=False,
                                                                               execute=True)
@@ -600,7 +600,6 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                                                               clear=False,
                                                                               execute=True)
                               ).classes('shadow-lg').tooltip('Multicast Effects')
-
 
                 base64 = 'data:image/png;base64,' + info_data[item_th]["data"]['img']
                 ui.image(base64).classes('w-84 m-auto animate__animated animate__fadeInDown').tailwind.border_width('8')

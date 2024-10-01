@@ -80,7 +80,7 @@ if sys.platform.lower() == 'win32':
     set_event_loop_policy(WindowsSelectorEventLoopPolicy())
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
-action_to_test = ['stop', 'shot', 'info', 'close_preview', 'host', 'open_preview', 'reset', 'multicast']
+action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview', 'reset', 'multicast']
 
 app.debug = False
 log_ui = None
@@ -655,7 +655,7 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
     if action not in action_to_test and action is not None:
         logger.error(f"Invalid action name. Allowed : " + str(action_to_test))
         raise HTTPException(status_code=400,
-                            detail=f"Invalid action name. Allowed : " + str(action_to_test))
+                            detail=f"Invalid action name {action}. Allowed : " + str(action_to_test))
 
     if class_name == 'Desktop':
         class_obj.t_desktop_lock.acquire()
@@ -1204,11 +1204,13 @@ async def video_player_page():
 
     center_card.classes('self-center w-2/3 bg-gray-500')
     with center_card:
+
         CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
         CastAPI.player.on('timeupdate', lambda: get_player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
         CastAPI.player.set_visibility(True)
+
         with ui.row(wrap=False).classes('self-center'):
             ui.label() \
                 .bind_text_from(Media, 'sync_to_time') \
@@ -2767,7 +2769,7 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
             del data[cast_name]
         elif action == 'shot':
             ui.notification(f'Saving image to buffer for  {cast_name}...', type='positive', timeout=1)
-        elif action == 'close_preview':
+        elif action == 'close-preview':
             ui.notification(f'Preview window terminated for  {cast_name}...', type='info', timeout=1)
         else:
             ui.notification(f'Initiate {action} with params {params} for {cast_name}...', type='info', timeout=1)

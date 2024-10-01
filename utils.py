@@ -193,7 +193,9 @@ class CASTUtils:
 
         if interactive:
             if log_ui is not None:
-                logger.addHandler(LogElementHandler(log_ui))
+                handler = LogElementHandler(log_ui)
+                logger.addHandler(handler)
+                ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
 
             def progress_hook(d):
                 if d['status'] == 'downloading':
@@ -466,7 +468,9 @@ class CASTUtils:
         """
          Split the image (np array) into equal parts
          sub_images = split_image_to_matrix(image_np, num_matrices_x, num_matrices_y)
-         Now you have a list of NumPy arrays, each containing a part of the image
+
+         Now you have a List of NumPy arrays, each containing a part of the image
+
          You can further process them as needed
 
          ---
@@ -762,12 +766,13 @@ class LogElementHandler(logging.Handler):
     """ A logging handler that emits messages to a log element."""
 
     def __init__(self, element: ui.log, level: int = logging.NOTSET) -> None:
-        super().__init__(level)
         self.element = element
+        super().__init__(level)
         # define format for the LogRecord
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         # set format
         self.setFormatter(formatter)
+
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
