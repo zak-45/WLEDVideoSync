@@ -10,6 +10,8 @@
 # used by CastAPI mainly
 #
 """
+from math import gamma
+
 import concurrent_log_handler
 
 from nicegui import ui, events
@@ -49,6 +51,26 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     custom_config = cast_config[3]  # custom key
     preset_config = cast_config[4]  # presets key
 
+
+# Define a factory function to create a wheel event handler for a given slider
+def create_wheel_handler(slider):
+
+    # Define a function to round values based on the slider's step size
+    def round_to_step(value, step):
+        return round(value / step) * step
+
+    def on_wheel(event):
+        # Adjust the slider value based on the wheel movement and step size
+        delta = event.args.get('deltaY', 0)
+        step = slider.props['step']
+        new_value = slider.value + (-step if delta > 0 else step)  # Adjusting direction as per deltaY value
+        # Round the new value to the nearest step
+        new_value = round_to_step(new_value, step)
+        # Ensure the new value is within the slider's range
+        min_value = slider.props['min']
+        max_value = slider.props['max']
+        slider.value = max(min_value, min(max_value, new_value))
+    return on_wheel
 
 async def system_stats(CastAPI, Desktop, Media):
     CastAPI.cpu = psutil.cpu_percent(interval=1, percpu=False)
@@ -214,9 +236,10 @@ async def media_filters(Media):
             ui.number('H').classes('w-20').bind_value(Media, 'scale_height', forward=lambda value: int(value or 8))
             with ui.row().classes('w-44').style('justify-content: flex-end'):
                 ui.label('gamma')
-                ui.slider(min=0.01, max=4, step=0.01) \
-                    .props('label-always') \
-                    .bind_value(Media, 'gamma')
+                gamma_slider = ui.slider(min=0.01, max=4, step=0.01).props('label-always')
+                gamma_slider.on('wheel', create_wheel_handler(gamma_slider))
+                gamma_slider.bind_value(Media, 'gamma')
+
             with ui.column(wrap=True):
                 with ui.row():
                     with ui.column():
@@ -236,27 +259,31 @@ async def media_filters(Media):
     with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
         with ui.row().classes('w-20').style('justify-content: flex-end'):
             ui.label('saturation')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Media, 'saturation')
+            saturation_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
+            saturation_slider.on('wheel', create_wheel_handler(saturation_slider))
+            saturation_slider.bind_value(Media, 'saturation')
+
             ui.label('brightness').classes('text-right')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Media, 'brightness')
+            brightness_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
+            brightness_slider.on('wheel', create_wheel_handler(brightness_slider))
+            brightness_slider.bind_value(Media, 'brightness')
+
             ui.label('contrast')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Media, 'contrast')
+            contrast_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
+            contrast_slider.on('wheel', create_wheel_handler(contrast_slider))
+            contrast_slider.bind_value(Media, 'contrast')
+
             ui.label('sharpen')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Media, 'sharpen')
+            sharpen_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
+            sharpen_slider.on('wheel', create_wheel_handler(sharpen_slider))
+            sharpen_slider.bind_value(Media, 'sharpen')
+
             ui.checkbox('auto') \
                 .bind_value(Media, 'auto_bright', forward=lambda value: value) \
                 .tooltip('Auto bri/contrast')
-            ui.slider(min=0, max=100, step=1) \
-                .props('label-always') \
-                .bind_value(Media, 'clip_hist_percent')
+            clip_hist_percent_slider = ui.slider(min=0, max=100, step=1).props('label-always')
+            clip_hist_percent_slider.on('wheel', create_wheel_handler(clip_hist_percent_slider))
+            clip_hist_percent_slider.bind_value(Media, 'clip_hist_percent')
 
 
 async def desktop_filters(Desktop):
@@ -272,13 +299,13 @@ async def desktop_filters(Desktop):
                 .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0)) \
                 .classes('w-20')
             ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 8))
-            ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height',
-                                                      forward=lambda value: int(value or 8))
+            ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height', forward=lambda value: int(value or 8))
             with ui.row().classes('w-44').style('justify-content: flex-end'):
                 ui.label('gamma')
-                ui.slider(min=0.01, max=4, step=0.01) \
-                    .props('label-always') \
-                    .bind_value(Desktop, 'gamma')
+                gamma_slider = ui.slider(min=0.01, max=4, step=0.01).props('label-always')
+                gamma_slider.on('wheel', create_wheel_handler(gamma_slider))
+                gamma_slider.bind_value(Desktop, 'gamma')
+
             with ui.column(wrap=True):
                 with ui.row():
                     with ui.column():
@@ -298,27 +325,31 @@ async def desktop_filters(Desktop):
     with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
         with ui.row().classes('w-20').style('justify-content: flex-end'):
             ui.label('saturation')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Desktop, 'saturation')
-            ui.label('brightness')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Desktop, 'brightness')
+            saturation_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
+            saturation_slider.on('wheel', create_wheel_handler(saturation_slider))
+            saturation_slider.bind_value(Desktop, 'saturation')
+
+            ui.label('brightness').classes('text-right')
+            brightness_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
+            brightness_slider.on('wheel', create_wheel_handler(brightness_slider))
+            brightness_slider.bind_value(Desktop, 'brightness')
+
             ui.label('contrast')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Desktop, 'contrast')
+            contrast_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
+            contrast_slider.on('wheel', create_wheel_handler(contrast_slider))
+            contrast_slider.bind_value(Desktop, 'contrast')
+
             ui.label('sharpen')
-            ui.slider(min=0, max=100, step=1, value=0) \
-                .props('label-always') \
-                .bind_value(Desktop, 'sharpen')
+            sharpen_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
+            sharpen_slider.on('wheel', create_wheel_handler(sharpen_slider))
+            sharpen_slider.bind_value(Desktop, 'sharpen')
+
             ui.checkbox('auto') \
                 .bind_value(Desktop, 'auto_bright', forward=lambda value: value) \
                 .tooltip('Auto bri/contrast')
-            ui.slider(min=0, max=100, step=1) \
-                .props('label-always') \
-                .bind_value(Desktop, 'clip_hist_percent')
+            clip_hist_percent_slider = ui.slider(min=0, max=100, step=1).props('label-always')
+            clip_hist_percent_slider.on('wheel', create_wheel_handler(clip_hist_percent_slider))
+            clip_hist_percent_slider.bind_value(Desktop, 'clip_hist_percent')
 
 
 async def create_cpu_chart(CastAPI):
