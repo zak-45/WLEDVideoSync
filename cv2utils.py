@@ -95,16 +95,18 @@ class CV2Utils:
             sl_t_preview = sl[6]
             sl_preview_w = sl[7]
             sl_preview_h = sl[8]
-            sl_t_todo_stop = sl[9]
-            sl_frame_count = sl[10]
-            sl_fps = sl[11]
-            sl_ip_addresses = sl[12]
-            sl_text = sl[13]
-            sl_custom_text = sl[14]
-            sl_cast_x = sl[15]
-            sl_cast_y = sl[16]
-            sl_grid = sl[17]
-            received_shape = sl[18].split(',')
+            sl_pixel_w = sl[9]
+            sl_pixel_h = sl[10]
+            sl_t_todo_stop = sl[11]
+            sl_frame_count = sl[12]
+            sl_fps = sl[13]
+            sl_ip_addresses = sl[14]
+            sl_text = sl[15]
+            sl_custom_text = sl[16]
+            sl_cast_x = sl[17]
+            sl_cast_y = sl[18]
+            sl_grid = sl[19]
+            received_shape = sl[20].split(',')
 
             # calculate new shape value, if 0 then stop preview
             # ( w * h * (colors number)) e.g. 640(w) * 360()h * 3(rgb)
@@ -132,7 +134,7 @@ class CV2Utils:
                 logger.debug(received_shape, shape_bytes, sl_frame.nbytes)
                 received_frame = sl_img
 
-            sl[6], sl[9], sl[13] = CV2Utils.cv2_preview_window(
+            sl[6], sl[11], sl[15] = CV2Utils.cv2_preview_window(
                 sl_total_frame,
                 received_frame,
                 sl_server_port,
@@ -142,6 +144,8 @@ class CV2Utils:
                 sl_t_preview,
                 sl_preview_w,
                 sl_preview_h,
+                sl_pixel_w,
+                sl_pixel_h,
                 sl_t_todo_stop,
                 sl_frame_count,
                 sl_fps,
@@ -154,8 +158,8 @@ class CV2Utils:
                 sl_grid)
 
             # Stop if requested
-            if sl[9] is True:
-                sl[18] = '0,0,0'
+            if sl[11] is True:
+                sl[20] = '0,0,0'
                 logger.debug(f'SL STOP Cast for : {sl_t_name}')
                 break
             elif sl[6] is False:
@@ -174,6 +178,8 @@ class CV2Utils:
                            t_preview,
                            preview_w,
                            preview_h,
+                           pixel_w,
+                           pixel_h,
                            t_todo_stop,
                            frame_count,
                            fps,
@@ -188,9 +194,9 @@ class CV2Utils:
         CV2 preview window
         Main logic for imshow() and waitKey()
         """
-
         frame = cv2.resize(frame, (preview_w, preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        frame = CV2Utils.pixelart_image(frame, pixel_w, pixel_h)
 
         # put text on the image
         if text:

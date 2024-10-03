@@ -114,6 +114,8 @@ class CASTDesktop:
         self.stopcast: bool = True
         self.scale_width: int = 128
         self.scale_height: int = 128
+        self.pixel_w = 8
+        self.pixel_h = 8
         self.flip_vh: int = 0
         self.flip: bool = False
         self.saturation = 0
@@ -340,6 +342,11 @@ class CASTDesktop:
         Second, capture media
         """
 
+        self.pixel_w = t_scale_height
+        self.pixel_h = t_scale_height
+        self.scale_width = t_scale_width
+        self.scale_height = t_scale_height
+
         self.frame_buffer = []
         self.cast_frame_buffer = []
         frame_interval = self.rate
@@ -517,7 +524,7 @@ class CASTDesktop:
 
                     else:
 
-                        # resize to default size
+                        # resize to requested size
                         frame = frame.reformat(t_scale_width, t_scale_height)
 
                         # convert frame to np array
@@ -724,6 +731,8 @@ class CASTDesktop:
                                                 t_preview,
                                                 self.preview_w,
                                                 self.preview_h,
+                                                self.pixel_w,
+                                                self.pixel_h,
                                                 t_todo_stop,
                                                 frame_count,
                                                 frame_interval,
@@ -750,12 +759,12 @@ class CASTDesktop:
                                 # working with the shared list
                                 if frame_count > 1:
                                     # what to do from data updated by the child process (keystroke from preview window)
-                                    if sl[9] is True or sl[18] == '0,0,0':
+                                    if sl[11] is True or sl[20] == '0,0,0':
                                         t_todo_stop = True
                                     elif sl[6] is False:
                                         t_preview = False
                                     else:
-                                        if sl[13] is False:
+                                        if sl[15] is False:
                                             self.text = False
                                         else:
                                             self.text = True
@@ -772,9 +781,11 @@ class CASTDesktop:
                                         sl[5] = self.preview_top
                                         sl[7] = self.preview_w
                                         sl[8] = self.preview_h
-                                        sl[10] = frame_count
-                                        sl[13] = self.text
-                                        sl[18] = str(frame.shape).replace('(', '').replace(')', '')
+                                        sl[9] = self.pixel_w
+                                        sl[10] = self.pixel_h
+                                        sl[12] = frame_count
+                                        sl[15] = self.text
+                                        sl[20] = str(frame.shape).replace('(', '').replace(')', '')
 
                             else:
 
@@ -789,6 +800,8 @@ class CASTDesktop:
                                     t_preview,
                                     self.preview_w,
                                     self.preview_h,
+                                    self.pixel_w,
+                                    self.pixel_h,
                                     t_todo_stop,
                                     frame_count,
                                     frame_interval,

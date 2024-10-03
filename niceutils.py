@@ -232,8 +232,8 @@ async def media_filters(Media):
             ui.number('type', min=0, max=1) \
                 .bind_value(Media, 'flip_vh', forward=lambda value: int(value or 0)) \
                 .classes('w-20')
-            ui.number('W').classes('w-20').bind_value(Media, 'scale_width', forward=lambda value: int(value or 8))
-            ui.number('H').classes('w-20').bind_value(Media, 'scale_height', forward=lambda value: int(value or 8))
+            ui.number('W', min=1, max=1920).classes('w-20').bind_value(Media, 'pixel_w', forward=lambda value: int(value or 8))
+            ui.number('H', min=1, max=1080).classes('w-20').bind_value(Media, 'pixel_h', forward=lambda value: int(value or 8))
             with ui.row().classes('w-44').style('justify-content: flex-end'):
                 ui.label('gamma')
                 gamma_slider = ui.slider(min=0.01, max=4, step=0.01).props('label-always')
@@ -298,8 +298,8 @@ async def desktop_filters(Desktop):
             ui.number('type', min=0, max=1) \
                 .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0)) \
                 .classes('w-20')
-            ui.number('W').classes('w-20').bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 8))
-            ui.number('H').classes('w-20').bind_value(Desktop, 'scale_height', forward=lambda value: int(value or 8))
+            ui.number('W', min=1, max=1920).classes('w-20').bind_value(Desktop, 'pixel_w', forward=lambda value: int(value or 8))
+            ui.number('H', min=1, max=1080).classes('w-20').bind_value(Desktop, 'pixel_h', forward=lambda value: int(value or 8))
             with ui.row().classes('w-44').style('justify-content: flex-end'):
                 ui.label('gamma')
                 gamma_slider = ui.slider(min=0.01, max=4, step=0.01).props('label-always')

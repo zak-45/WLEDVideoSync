@@ -36,7 +36,7 @@ from str2bool import str2bool
 
 import threading
 
-from asyncio import run
+from asyncio import run as as_run
 import concurrent.futures
 
 from ddp_queue import DDPDevice
@@ -105,6 +105,8 @@ class CASTMedia:
         self.preview_h: int = 360
         self.scale_width: int = 128
         self.scale_height: int = 128
+        self.pixel_w = 8
+        self.pixel_h = 8
         self.wled: bool = False
         self.wled_live = False
         self.host: str = "127.0.0.1"
@@ -286,9 +288,9 @@ class CASTMedia:
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
-            status = run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
+            status = as_run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
             if status is True:
-                t_scale_width, t_scale_height = run(Utils.get_wled_matrix_dimensions(self.host))
+                t_scale_width, t_scale_height = as_run(Utils.get_wled_matrix_dimensions(self.host))
             else:
                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return False
@@ -308,7 +310,7 @@ class CASTMedia:
                     valid_ip = Utils.check_ip_alive(cast_ip, port=80, timeout=2)
                     if valid_ip:
                         if self.wled:
-                            status = run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
+                            status = as_run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
                                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                                 return False
@@ -337,6 +339,11 @@ class CASTMedia:
         """
         Second, capture media
         """
+        self.pixel_w = t_scale_height
+        self.pixel_h = t_scale_height
+        self.scale_width = t_scale_width
+        self.scale_height = t_scale_height
+
         frame = None
         orig_frame = None
         is_image = False
@@ -517,7 +524,7 @@ class CASTMedia:
                         else:
                             break
 
-            # resize to default
+            # resize to requested size
             # this will validate media passed to cv2
             # common part for image media_length = 1 or live video = -1 or video > 1
             # break in case of failure
@@ -745,6 +752,8 @@ class CASTMedia:
                                     t_preview,
                                     self.preview_w,
                                     self.preview_h,
+                                    self.pixel_w,
+                                    self.pixel_h,
                                     t_todo_stop,
                                     frame_count,
                                     (1 / interval),
@@ -771,11 +780,11 @@ class CASTMedia:
                     # working with the shared list
                     if frame_count > 1:
                         # what to do from data updated by the child process (mainly user keystroke on preview)
-                        if sl[9] is True or sl[18] == '0,0,0':
+                        if sl[11] is True or sl[20] == '0,0,0':
                             t_todo_stop = True
                         if sl[6] is False:
                             t_preview = False
-                        if sl[13] is False:
+                        if sl[15] is False:
                             self.text = False
                         else:
                             self.text = True
@@ -793,9 +802,11 @@ class CASTMedia:
                         sl[5] = self.preview_top
                         sl[7] = self.preview_w
                         sl[8] = self.preview_h
-                        sl[10] = frame_count
-                        sl[13] = self.text
-                        sl[18] = str(frame.shape).replace('(', '').replace(')', '')
+                        sl[9] = self.pixel_w
+                        sl[10] = self.pixel_h
+                        sl[12] = frame_count
+                        sl[15] = self.text
+                        sl[20] = str(frame.shape).replace('(', '').replace(')', '')
 
                 else:
 
@@ -810,6 +821,8 @@ class CASTMedia:
                         t_preview,
                         self.preview_w,
                         self.preview_h,
+                        self.pixel_w,
+                        self.pixel_h,
                         t_todo_stop,
                         frame_count,
                         (1 / interval),

@@ -255,8 +255,8 @@ All of this could be configured later, for the moment focus on default.
 
 - DESKTOP or MEDIA, this work on the same way, got different parameters to set and apply to the casts for custom effects
   - Flip: when checked this will flip the image depend on the type value (right/left, top/bottom)
-  - W / H:  Scale width in pixels /  Scale height in pixels, the same as for DESKTOP/MEDIA PARAMS. Usually not to be changed
-    - if you do, the preview window content will sync to them 
+  - W / H:  pixel_art width in pixels /  pixel_art height in pixels, init to the same as for DESKTOP/MEDIA PARAMS.
+    - you can change them, preview image will adapt pixel art to this new size but cast remain the same
   - gamma: change gamma value
   -  R G B : adjust Red/Green/Blue Colors
   - saturation / brightness / contrast / sharpen : self-explanatory
