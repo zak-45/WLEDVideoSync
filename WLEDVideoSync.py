@@ -62,9 +62,10 @@ Linux Specific Configuration:
 
 Includes modules for GTK and Qt (graphical interfaces).
 General Exclusions and Error Handling:
-
 Excludes the doctest module.
+
 Sets a default error mode for missing includes.
+
 Python Code
 The Python script is a comprehensive application setup, particularly for a project named WLEDVideoSync. It includes:
 

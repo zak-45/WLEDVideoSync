@@ -1568,7 +1568,7 @@ async def main_page_desktop():
             with ui.dialog() as dialog, ui.card():
                 dialog.open()
                 editor = ui.json_editor({'content': {'json': CastAPI.windows_titles}}) \
-                    .run_editor_method('updateProps', {'readOnly': True})
+                    .run_editor_method('updateProps', {'readOnly': False})
                 ui.button('Close', on_click=dialog.close, color='red')
 
         ui.button('Win TITLES', on_click=display_windows, color='bg-red-800').tooltip('View windows titles')
