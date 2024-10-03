@@ -56,7 +56,7 @@ def execute_actions(class_obj,
     :param start_time: Start time
     :param t_todo_stop: Stop flag
     :param t_preview: Preview flag
-    :param interval: Time interval
+    :param interval: FPS
     :param frame_count: Frame count
     :param media_length: Length of the media
     :param swapper: Swapper instance
@@ -91,7 +91,7 @@ def execute_actions(class_obj,
                     "W": t_scale_width,
                     "H": t_scale_height
                 },
-                "fps": 1 / interval,
+                "fps": interval,
                 "frames": frame_count,
                 "length": media_length,
                 "img": img

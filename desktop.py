@@ -586,7 +586,7 @@ class CASTDesktop:
                                                                                  start_time,
                                                                                  t_todo_stop,
                                                                                  t_preview,
-                                                                                 interval,
+                                                                                 frame_interval,
                                                                                  frame_count,
                                                                                  media_length,
                                                                                  swapper,

@@ -375,6 +375,7 @@ class CASTMedia:
         # Calculate the interval between frames in seconds (fps)
         if self.rate != 0:
             interval: float = 1.0 / self.rate
+            frame_interval = self.rate
         else:
             logger.error(f'{t_name} Rate could not be zero')
             return False
@@ -593,7 +594,7 @@ class CASTMedia:
                                                                      start_time,
                                                                      t_todo_stop,
                                                                      t_preview,
-                                                                     interval,
+                                                                     frame_interval,
                                                                      frame_count,
                                                                      media_length,
                                                                      swapper,
@@ -756,7 +757,7 @@ class CASTMedia:
                                     self.pixel_h,
                                     t_todo_stop,
                                     frame_count,
-                                    (1 / interval),
+                                    frame_interval,
                                     str(ip_addresses),
                                     self.text,
                                     self.custom_text,
@@ -825,7 +826,7 @@ class CASTMedia:
                         self.pixel_h,
                         t_todo_stop,
                         frame_count,
-                        (1 / interval),
+                        frame_interval,
                         ip_addresses,
                         self.text,
                         self.custom_text,
