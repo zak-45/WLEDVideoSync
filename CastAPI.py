@@ -1445,27 +1445,36 @@ async def main_page_desktop():
 
             with ui.card():
                 new_rate = ui.number('FPS', value=Desktop.rate, min=1, max=60, precision=0)
-                new_rate.bind_value_to(Desktop, 'rate', lambda value: int(value or 1))
+                new_rate.tooltip('Desired Frame Per Second, max = 60')
+                new_rate.bind_value(Desktop, 'rate', forward=lambda value: int(value or 1))
                 new_scale_width = ui.number('Scale Width', value=Desktop.scale_width, min=8, max=1920, precision=0)
-                new_scale_width.bind_value_to(Desktop, 'scale_width', lambda value: int(value or 8))
+                new_scale_width.tooltip('Cast Width')
+                new_scale_width.bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 8))
                 new_scale_height = (ui.number('Scale Height', value=Desktop.scale_height, min=8, max=1080, precision=0))
-                new_scale_height.bind_value_to(Desktop, 'scale_height', lambda value: int(value or 8))
+                new_scale_height.tooltip('Cast Height')
+                new_scale_height.bind_value(Desktop, 'scale_height', forward=lambda value: int(value or 8))
+
 
             with ui.card():
-                new_wled = ui.input('wled', value=str(Desktop.wled))
-                new_wled.bind_value_to(Desktop, 'wled', lambda value: str2bool(value))
+                new_wled = ui.checkbox('wled')
+                new_wled.bind_value(Desktop, 'wled')
+                new_wled.tooltip('Is That a WLED Device ?')
                 new_host = ui.input('IP', value=Desktop.host)
+                new_host.tooltip('IP address of the device')
                 new_host.on('focusout', lambda: update_attribute_by_name('Desktop', 'host', new_host.value))
+
 
             with ui.card():
                 new_viinput = ui.input('Input', value=str(Desktop.viinput))
+                new_viinput.tooltip('Enter type of data to capture, "area" for screen selection, "win=xxxxx" for win title')
                 new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', new_viinput.value))
-                new_preview = ui.input('Preview', value=str(Desktop.preview))
-                new_preview.bind_value_to(Desktop, 'preview', lambda value: str2bool(value))
+                new_preview = ui.checkbox('Preview')
+                new_preview.bind_value(Desktop, 'preview')
+                new_preview.tooltip('Show preview window')
                 new_viformat = ui.input('Format', value=Desktop.viformat)
-                new_viformat.bind_value_to(Desktop, 'viformat')
+                new_viformat.bind_value(Desktop, 'viformat')
                 new_vi_codec = ui.input('Codec', value=Desktop.vi_codec)
-                new_vi_codec.bind_value_to(Desktop, 'vi_codec')
+                new_vi_codec.bind_value(Desktop, 'vi_codec')
                 with ui.row():
                     ui.number('', value=Desktop.monitor_number, min=0, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number', forward=lambda value: int(value or 0)) \
@@ -1475,31 +1484,37 @@ async def main_page_desktop():
 
             with ui.card():
                 new_vooutput = ui.input('Output', value=str(Desktop.vooutput))
-                new_vooutput.bind_value_to(Desktop, 'vooutput')
+                new_vooutput.bind_value(Desktop, 'vooutput')
+                new_vooutput.tooltip('Experimental feature: enter udp:// rtsp:// etc...')
                 new_voformat = ui.input('Format', value=Desktop.voformat)
-                new_voformat.bind_value_to(Desktop, 'voformat')
+                new_voformat.bind_value(Desktop, 'voformat')
                 ui.button('formats', on_click=nice.display_formats)
                 new_vo_codec = ui.input('Codec', value=Desktop.vo_codec)
-                new_vo_codec.bind_value_to(Desktop, 'vo_codec')
+                new_vo_codec.bind_value(Desktop, 'vo_codec')
                 ui.button('Codecs', on_click=nice.display_codecs)
 
             with ui.card():
-                new_put_to_buffer = ui.input('Capture Frame', value=str(Desktop.put_to_buffer))
-                new_put_to_buffer.bind_value_to(Desktop, 'put_to_buffer', lambda value: str2bool(value))
+                new_put_to_buffer = ui.checkbox('Capture Frame')
+                new_put_to_buffer.bind_value(Desktop, 'put_to_buffer')
+                new_put_to_buffer.tooltip('Select if you want to capture images')
                 new_frame_max = ui.number('Number to Capture', value=Desktop.frame_max, min=1, max=30, precision=0)
                 new_frame_max.tooltip('Max number of frame to capture')
-                new_frame_max.bind_value_to(Desktop, 'frame_max', lambda value: int(value or 0))
+                new_frame_max.bind_value(Desktop, 'frame_max', forward=lambda value: int(value or 0))
 
             with ui.card():
-                new_multicast = ui.input('Multicast', value=str(Desktop.multicast))
-                new_multicast.bind_value_to(Desktop, 'multicast', lambda value: str2bool(value))
+                new_multicast = ui.checkbox('Multicast')
+                new_multicast.tooltip('Select if you want Multicast feature')
+                new_multicast.bind_value(Desktop, 'multicast')
                 new_cast_x = ui.number('Matrix X', value=Desktop.cast_x, min=1, max=1920, precision=0)
-                new_cast_x.bind_value_to(Desktop, 'cast_x', lambda value: int(value or 1))
+                new_cast_x.tooltip('Increase Matrix * X')
+                new_cast_x.bind_value(Desktop, 'cast_x', forward=lambda value: int(value or 1))
                 new_cast_y = ui.number('Matrix Y', value=Desktop.cast_y, min=1, max=1080, precision=0)
-                new_cast_y.bind_value_to(Desktop, 'cast_y', lambda value: int(value or 1))
+                new_cast_y.tooltip('Increase Matrix * Y')
+                new_cast_y.bind_value(Desktop, 'cast_y', forward=lambda value: int(value or 1))
 
             with ui.card():
                 new_cast_devices = ui.input('Cast Devices', value=str(Desktop.cast_devices))
+                new_cast_devices.tooltip('Click on MANAGE to enter devices for Multicast')
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Desktop', 'cast_devices', new_cast_devices.value))
                 ui.button('Manage', on_click=lambda: nice.cast_device_manage(Desktop, Netdevice))
@@ -1507,10 +1522,13 @@ async def main_page_desktop():
             with ui.card():
                 new_protocol = ui.select(['ddp','other'], label='Protocol').bind_value(Desktop,'protocol')
                 new_protocol.classes('w-40')
+                new_protocol.tooltip('Select other to test experimental feature ....')
 
             with ui.card():
-                ui.checkbox(text='Record', value=False).bind_value(Desktop,'record')
-                ui.input('File name').bind_value(Desktop,'output_file')
+                new_record = ui.checkbox(text='Record', value=False).bind_value(Desktop,'record')
+                new_record.tooltip('Select if want to record cast')
+                new_record_file = ui.input('File name').bind_value(Desktop,'output_file')
+                new_record_file.tooltip('Provide file name for record, extension determine format eg: file.mp4')
 
 
     ui.separator().classes('mt-6')
@@ -1669,43 +1687,56 @@ async def main_page_media():
 
             with ui.card():
                 new_rate = ui.number('FPS', value=Media.rate, min=1, max=60, precision=0)
-                new_rate.bind_value_to(Media, 'rate', lambda value: int(value or 1))
+                new_rate.tooltip('Desired Frame Per Second, max = 60')
+                new_rate.bind_value(Media, 'rate', forward=lambda value: int(value or 1))
                 new_scale_width = ui.number('Scale Width', value=Media.scale_width, min=8, max=1920, precision=0)
-                new_scale_width.bind_value_to(Media, 'scale_width', lambda value: int(value or 8))
+                new_scale_width.tooltip('Cast Width')
+                new_scale_width.bind_value(Media, 'scale_width', forward=lambda value: int(value or 8))
                 new_scale_height = (ui.number('Scale Height', value=Media.scale_height, min=8, max=1080, precision=0))
-                new_scale_height.bind_value_to(Media, 'scale_height', lambda value: int(value or 8))
+                new_scale_height.tooltip('Cast Height')
+                new_scale_height.bind_value(Media, 'scale_height', forward=lambda value: int(value or 8))
 
             with ui.card():
                 new_viinput = ui.input('Input', value=str(Media.viinput))
                 new_viinput.on('focusout', lambda: update_attribute_by_name('Media', 'viinput', new_viinput.value))
-                new_preview = ui.input('Preview', value=str(Media.preview))
-                new_preview.bind_value_to(Media, 'preview', lambda value: str2bool(value))
+                new_viinput.tooltip('Enter desired input : e.g 0..n / file name  etc ...')
+                new_preview = ui.checkbox('Preview')
+                new_preview.bind_value(Media, 'preview')
+                new_preview.tooltip('Show preview window')
 
             with ui.card():
-                new_wled = ui.input('wled', value=str(Media.wled))
-                new_wled.bind_value_to(Media, 'wled', lambda value: str2bool(value))
+                new_wled = ui.checkbox('wled')
+                new_wled.bind_value(Media, 'wled')
+                new_wled.tooltip('Is That a WLED Device ?')
                 new_host = ui.input('IP', value=Media.host)
+                new_host.tooltip('IP address of the device')
                 new_host.on('focusout', lambda: update_attribute_by_name('Media', 'host', new_host.value))
 
             with ui.card():
-                new_put_to_buffer = ui.input('Capture Frame', value=str(Media.put_to_buffer))
-                new_put_to_buffer.bind_value_to(Media, 'put_to_buffer', lambda value: str2bool(value))
+                new_put_to_buffer = ui.checkbox('Capture Frame')
+                new_put_to_buffer.tooltip('Select if you want to capture images')
+                new_put_to_buffer.bind_value(Media, 'put_to_buffer')
                 new_frame_max = ui.number('Number to Capture', value=Media.frame_max, min=1, max=30, precision=0)
                 new_frame_max.tooltip('Max number of frame to capture')
-                new_frame_max.bind_value_to(Media, 'frame_max', lambda value: int(value or 0))
+                new_frame_max.bind_value(Media, 'frame_max', forward=lambda value: int(value or 0))
                 new_frame_index = ui.number('Seek to frame N°', value=Media.frame_index, min=0, precision=0)
-                new_frame_index.bind_value_to(Media, 'frame_index', lambda value: int(value or 0))
+                new_frame_index.tooltip('Position media to frame number')
+                new_frame_index.bind_value(Media, 'frame_index', forward=lambda value: int(value or 0))
 
             with ui.card():
-                new_multicast = ui.input('Multicast', value=str(Media.multicast))
-                new_multicast.bind_value_to(Media, 'multicast', lambda value: str2bool(value))
+                new_multicast = ui.checkbox('Multicast')
+                new_multicast.tooltip('Select if you want Multicast feature')
+                new_multicast.bind_value(Media, 'multicast')
                 new_cast_x = ui.number('Matrix X', value=Media.cast_x, min=1, max=1920, precision=0)
-                new_cast_x.bind_value_to(Media, 'cast_x', lambda value: int(value or 1))
+                new_cast_x.tooltip('Increase Matrix * X')
+                new_cast_x.bind_value(Media, 'cast_x', forward=lambda value: int(value or 1))
                 new_cast_y = ui.number('Matrix Y', value=Media.cast_y, min=1, max=1080, precision=0)
-                new_cast_y.bind_value_to(Media, 'cast_y', lambda value: int(value or 1))
+                new_cast_y.tooltip('Increase Matrix * Y')
+                new_cast_y.bind_value(Media, 'cast_y', forward=lambda value: int(value or 1))
 
             with ui.card():
                 new_cast_devices = ui.input('Cast Devices', value=str(Media.cast_devices))
+                new_cast_devices.tooltip('Click on MANAGE to enter devices for Multicast')
                 new_cast_devices.on('focusout',
                                     lambda: update_attribute_by_name('Media', 'cast_devices', new_cast_devices.value))
                 ui.button('Manage', on_click=lambda: nice.cast_device_manage(Media, Netdevice))
@@ -2435,6 +2466,7 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 keys_to_check.append(('screen_coordinates', 'AREA', 'screen_coordinates', str2list_ini))
 
             # apply new value and only warn if not exist
+            # conversion is done if necessary
             for attr, section, key, *conversion in keys_to_check:
                 try:
                     value = preset_cast_data[section][key]
