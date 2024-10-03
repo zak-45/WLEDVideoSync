@@ -2429,6 +2429,12 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 ('screen_coordinates', 'AREA', 'screen_coordinates', str2list_ini)
             ]
 
+            # specific keys for Desktop
+            if class_name == 'Desktop':
+                keys_to_check.append(('monitor', 'AREA', 'monitor', int))
+                keys_to_check.append(('screen_coordinates', 'AREA', 'screen_coordinates', str2list_ini))
+
+            # apply new value and only warn if not exist
             for attr, section, key, *conversion in keys_to_check:
                 try:
                     value = preset_cast_data[section][key]
