@@ -271,7 +271,7 @@ def start_webview_process(window_name='Splash'):
         main_window = webview.create_window(title=f'MAIN WLEDVideoSync {server_port}',
                                             url=f'http://{server_ip}:{server_port}',
                                             width=1200,
-                                            height=720)
+                                            height=720, text_select=False)
 
     elif window_name == 'Info':
         # Info window : cast
@@ -328,7 +328,7 @@ def start_webview_process(window_name='Splash'):
 
     # start webview
     # To change a default renderer set PYWEBVIEW_GUI environment variable: cef, qt, gtk ...
-    webview.start(menu=menu_items)
+    webview.start(menu=menu_items, debug=False)
 
 
 def keep_running():

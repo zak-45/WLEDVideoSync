@@ -1468,7 +1468,7 @@ async def main_page_desktop():
                 new_vi_codec.bind_value_to(Desktop, 'vi_codec')
                 with ui.row():
                     ui.number('', value=Desktop.monitor_number, min=0, max=1).classes('w-10') \
-                        .bind_value(Desktop, 'monitor_number') \
+                        .bind_value(Desktop, 'monitor_number', forward=lambda value: int(value or 0)) \
                         .tooltip('Enter monitor number')
                     ui.button('ScreenArea', on_click=select_sc_area) \
                         .tooltip('Select area from monitor')
@@ -2052,7 +2052,7 @@ async def get_player_time():
     Set player time for Cast to Sync
     """
     await ui.context.client.connected()
-    if CastAPI.type_sync == 'player' or CastAPI.last_type_sync == 'player':
+    if CastAPI.type_sync == 'player':
         current_time = round(await ui.run_javascript("document.querySelector('video').currentTime", timeout=2))
         Media.sync_to_time = current_time * 1000
 
@@ -2367,6 +2367,12 @@ async def save_cast_preset(class_name: str) -> None:
                 'cast_devices': str(class_obj.cast_devices)
             }
 
+            if class_name == 'Desktop':
+                preset['AREA'] = {
+                    'monitor': str(class_obj.monitor_number),
+                    'screen_coordinates': str(class_obj.screen_coordinates)
+                }
+
             with open(f_name, 'w') as configfile:
                 preset.write(configfile)
 
@@ -2418,7 +2424,9 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 ('multicast', 'MULTICAST', 'multicast', str2bool_ini),
                 ('cast_x', 'MULTICAST', 'cast_x', int),
                 ('cast_y', 'MULTICAST', 'cast_y', int),
-                ('cast_devices', 'MULTICAST', 'cast_devices', str2list_ini)
+                ('cast_devices', 'MULTICAST', 'cast_devices', str2list_ini),
+                ('monitor', 'AREA', 'monitor', int),
+                ('screen_coordinates', 'AREA', 'screen_coordinates', str2list_ini)
             ]
 
             for attr, section, key, *conversion in keys_to_check:

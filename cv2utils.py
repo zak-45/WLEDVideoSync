@@ -196,7 +196,8 @@ class CV2Utils:
         """
         frame = cv2.resize(frame, (preview_w, preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        frame = CV2Utils.pixelart_image(frame, pixel_w, pixel_h)
+        if str2bool(custom_config['pixel-art']):
+            frame = CV2Utils.pixelart_image(frame, pixel_w, pixel_h)
 
         # put text on the image
         if text:
