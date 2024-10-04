@@ -10,22 +10,18 @@
 # used by CastAPI mainly
 #
 """
-from math import gamma
-
+import os
+import sys
 import concurrent_log_handler
+import psutil
 
 from nicegui import ui, events
-import psutil
 from datetime import datetime
 from str2bool import str2bool
-
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils
 from cv2utils import VideoThumbnailExtractor
 from PIL import Image
-import os
-import sys
-
 from pathlib import Path
 from typing import Optional
 

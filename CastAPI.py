@@ -23,32 +23,25 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
-
-import concurrent_log_handler
-
-from threading import current_thread
-import traceback
-from asyncio import set_event_loop_policy,WindowsSelectorEventLoopPolicy,sleep,create_task
-
-from subprocess import Popen
-
-from ddp_queue import DDPDevice
-
 import time
 import sys
 import os
-from socket import gethostbyname
-
+import concurrent_log_handler
+import traceback
 import configparser
-from pathlib import Path as PathLib
-
 import queue
-
 import cfg_load as cfg
-
 import desktop
 import media
+import niceutils as nice
+import ast
 
+from asyncio import set_event_loop_policy,WindowsSelectorEventLoopPolicy,sleep,create_task
+from threading import current_thread
+from subprocess import Popen
+from ddp_queue import DDPDevice
+from socket import gethostbyname
+from pathlib import Path as PathLib
 from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
 from cv2utils import ImageUtils
@@ -57,19 +50,12 @@ from niceutils import LocalFilePicker
 from utils import ScreenAreaSelection as Sa
 from utils import YtSearch
 from utils import AnimatedElement as Animate
-import niceutils as nice
-
-import ast
-
 from datetime import datetime
 from str2bool import str2bool
-
 from PIL import Image
-
 from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
-
 from nicegui import app, ui, native, run
 
 Desktop = desktop.CASTDesktop()
@@ -84,7 +70,6 @@ action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview
 
 app.debug = False
 log_ui = None
-
 logger = None
 app_config = None
 server_config = None
@@ -1325,7 +1310,7 @@ async def video_player_page():
                 video_url_info.bind_visibility_from(CastAPI.player)
 
             # Progress bar
-            CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False)
+            CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False, size='8px')
 
         # if yt-enable is True display YT search buttons
         if str2bool(custom_config['yt-enable']):
@@ -1465,9 +1450,14 @@ async def main_page_desktop():
 
 
             with ui.card():
-                new_viinput = ui.input('Input', value=str(Desktop.viinput))
+                input_options=['area','win=']
+                if sys.platform.lower() == 'win32':
+                    input_options.insert(0,'desktop')
+                elif sys.platform.lower() == 'linux':
+                    input_options.insert(0,os.getenv('DISPLAY'))
+                new_viinput = ui.select(options=input_options,label='Input', new_value_mode='add-unique', value=input_options[0])
                 new_viinput.tooltip('Enter type of data to capture, "area" for screen selection, "win=xxxxx" for win title')
-                new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', new_viinput.value))
+                new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', str(new_viinput.value)))
                 new_preview = ui.checkbox('Preview')
                 new_preview.bind_value(Desktop, 'preview')
                 new_preview.tooltip('Show preview window')

@@ -23,38 +23,29 @@
 # 27/05/2024: cv2.imshow with import av  freeze on not win OS
 # to fix it, cv2.imshow can run from its own process with cost of additional overhead: set preview_proc = True
 #
-
 import sys
 import os
-
+import time
 import imageio.v3 as iio
-
+import concurrent.futures
+import threading
 import cv2
 import logging
 import logging.config
 import concurrent_log_handler
+import traceback
+import cfg_load as cfg
+import av
+import actionutils
 
 from multiprocessing.shared_memory import ShareableList
-import traceback
-
-import time
-
-import cfg_load as cfg
 from str2bool import str2bool
-
-import threading
-
 from asyncio import run
-import concurrent.futures
-
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
-
-import av
-
 from multicast import IPSwapper
-import actionutils
+
 
 Process, Queue = Utils.mp_setup()
 

@@ -17,34 +17,26 @@
 # camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 # 27/05/2024: cv2.imshow with import av  freeze
 #
-
-
 import logging
 import logging.config
 import concurrent_log_handler
-
-from multiprocessing.shared_memory import ShareableList
+import threading
+import concurrent.futures
 import traceback
 import numpy as np
-
 import cv2
 import time
 import os
-
 import cfg_load as cfg
+import actionutils
+
 from str2bool import str2bool
-
-import threading
-
 from asyncio import run as as_run
-import concurrent.futures
-
+from multiprocessing.shared_memory import ShareableList
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
-
 from multicast import IPSwapper
-import actionutils
 
 Process, Queue = Utils.mp_setup()
 

@@ -9,11 +9,11 @@
 #
 #
 """
-from cv2utils import CV2Utils
-from ddp_queue import DDPDevice
 import threading
 import traceback
-from cv2utils import ImageUtils
+
+from cv2utils import CV2Utils, ImageUtils
+from ddp_queue import DDPDevice
 from str2bool import str2bool
 
 

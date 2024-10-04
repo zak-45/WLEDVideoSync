@@ -16,43 +16,34 @@ try:
 except Exception as e:
     print(f'INFO : this is Not a YT version: {e}')
 
-import inspect
-import concurrent_log_handler
-
-import json
-from asyncio import create_task
-
-import logging
-import logging.config
-import traceback
-
-import re
-import platform
-import pywinctl as pwc
-from wled import WLED
-
 import time
 import shelve
 import os
 import sys
-
-from zeroconf import ServiceBrowser, Zeroconf
+import inspect
+import logging
+import logging.config
+import traceback
+import concurrent_log_handler
+import json
+import re
+import platform
+import multiprocessing
+import configparser
+import io
+import pywinctl as pwc
+import tkinter as tk
 import socket
 import ipaddress
 import requests
-
-from nicegui import ui, run
-
-import tkinter as tk
-from screeninfo import get_monitors
-
 import cfg_load as cfg
+
+from asyncio import create_task
+from wled import WLED
+from zeroconf import ServiceBrowser, Zeroconf
+from nicegui import ui, run
+from screeninfo import get_monitors
 from str2bool import str2bool
-
-import multiprocessing
-import configparser
-
-import io
 from PIL import Image
 
 

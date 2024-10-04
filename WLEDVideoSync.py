@@ -110,32 +110,25 @@ It ensures proper handling of configurations, logging, and cleanup to maintain a
 and usability across different platforms.
 
 """
-from pkgutil import find_loader
-
 import concurrent_log_handler
-
-from multiprocessing import active_children
 import sys
-from pathlib import Path as PathLib
+import shelve
+import webview
+import webview.menu as wm
 import os
 import webbrowser
 
 from utils import CASTUtils as Utils
-
-import webview
-import webview.menu as wm
-
+from pathlib import Path as PathLib
+from multiprocessing import active_children
 from PIL import Image
+from pkgutil import find_loader
+from uvicorn import Config, Server
+from nicegui import native
+from str2bool import str2bool
 
 if sys.platform.lower() == 'win32':
     from pystray import Icon, Menu, MenuItem
-
-from uvicorn import Config, Server
-from nicegui import native
-
-from str2bool import str2bool
-
-import shelve
 
 Process, Queue = Utils.mp_setup()
 
