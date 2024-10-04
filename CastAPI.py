@@ -1227,7 +1227,7 @@ async def video_player_page():
             media_reset_icon.bind_visibility_from(CastAPI.player)
 
             """ Refreshable """
-            await nice.sync_button(CastAPI, Media)
+            nice.sync_button(CastAPI, Media)
             """ End Refresh """
 
             CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync, color='green') \
@@ -2829,9 +2829,9 @@ async def root_timer_action():
     :return:
     """
 
-    await nice.sync_button(CastAPI, Media)
+    nice.sync_button(CastAPI, Media)
 
-    await nice.cast_manage(CastAPI, Desktop, Media)
+    nice.cast_manage(CastAPI, Desktop, Media)
 
     if str2bool(custom_config['system-stats']):
         await nice.system_stats(CastAPI, Desktop, Media)
@@ -2843,7 +2843,7 @@ async def info_timer_action():
     :return:
     """
 
-    await nice.cast_manage(CastAPI, Desktop, Media)
+    nice.cast_manage(CastAPI, Desktop, Media)
 
 
 async def player_timer_action():
@@ -2851,7 +2851,7 @@ async def player_timer_action():
     timer action occur when player is displayed
     :return:
     """
-    await nice.sync_button(CastAPI, Media)
+    nice.sync_button(CastAPI, Media)
 
 
 async def cast_to_wled(class_obj, image_number):
@@ -2925,7 +2925,7 @@ async def init_cast(class_obj):
     :return:
     """
     class_obj.cast(shared_buffer=t_data_buffer)
-    await nice.cast_manage(CastAPI, Desktop, Media)
+    nice.cast_manage(CastAPI, Desktop, Media)
     logger.debug(f'Run Cast for {str(class_obj)}')
     ui.notify(f'Cast initiated for :{str(class_obj)}')
 
@@ -2935,7 +2935,7 @@ async def cast_stop(class_obj):
 
     class_obj.stopcast = True
     ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
-    await nice.cast_manage(CastAPI, Desktop, Media)
+    nice.cast_manage(CastAPI, Desktop, Media)
     logger.debug(f' Stop Cast for {str(class_obj)}')
 
 
@@ -2944,7 +2944,7 @@ async def auth_cast(class_obj):
 
     class_obj.stopcast = False
     ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
-    await nice.cast_manage(CastAPI, Desktop, Media)
+    nice.cast_manage(CastAPI, Desktop, Media)
     logger.debug(f' Cast auth. for {str(class_obj)}')
 
 

@@ -267,8 +267,6 @@ class CASTDesktop:
         First, check devices 
         """
 
-        swapper = None
-
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
@@ -287,6 +285,8 @@ class CASTDesktop:
             else:
                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return False
+
+        swapper = None
 
         # specifics for Multicast
         if t_multicast:
@@ -498,7 +498,7 @@ class CASTDesktop:
 
                     if output_container:
                         # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
-                        # Convert the frame to YUV format
+                        # Convert the frame to rgb format
                         frame_rgb = frame.reformat(width=output_stream.width, height=output_stream.height,
                                                    format='rgb24')
 
@@ -656,7 +656,7 @@ class CASTDesktop:
                             # DDP run in separate thread to avoid block main loop
                             # here we feed the queue that is read by DDP thread
                             if self.protocol == "ddp":
-                                # take only the first
+                                # take only the first IP from list
                                 if t_multicast is False:
                                     try:
                                         if ip_addresses[0] != '127.0.0.1':
@@ -855,7 +855,6 @@ class CASTDesktop:
         """
             this will run the cast into another thread
             avoiding blocking the main one
-            this will also populate windows titles in case of
             shared_buffer: if used need to be a queue
             log_ui : logger to send data to main logger on root page
         """

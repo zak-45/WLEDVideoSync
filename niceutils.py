@@ -128,7 +128,7 @@ def app_info():
             .run_editor_method('updateProps', {'readOnly': True})
 
 
-async def sync_button(CastAPI, Media):
+def sync_button(CastAPI, Media):
     """ Sync Buttons """
 
     if Media.cast_sync is True:
@@ -157,9 +157,9 @@ async def sync_button(CastAPI, Media):
         CastAPI.type_sync = 'none'
 
 
-async def cast_manage(CastAPI, Desktop, Media):
+def cast_manage(CastAPI, Desktop, Media):
     """
-    refresh cast parameters  on the root page '/'
+    refresh cast parameters  on the root page /
     :return:
     """
 

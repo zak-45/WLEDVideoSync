@@ -266,8 +266,6 @@ class CASTMedia:
         First, check devices 
         """
 
-        swapper = None
-
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
@@ -286,6 +284,8 @@ class CASTMedia:
             else:
                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return False
+
+        swapper = None
 
         # specifics to Multicast
         if t_multicast:
