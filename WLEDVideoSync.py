@@ -22,7 +22,9 @@
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
 # nuitka-project: --nofollow-import-to=doctest
+# nuitka-project: --noinclude-default-mode=pydoc:warning
 # nuitka-project: --noinclude-default-mode=error
+
 
 """
 a : zak-45
