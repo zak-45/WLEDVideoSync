@@ -93,9 +93,10 @@ jobs:
           nuitka-version: main
           script-name: WLEDVideoSync.py
           company-name: zak-45
+          product-version: ${{github.event.inputs.mytag}}
           file-version: ${{github.event.inputs.mytag}}
           enable-plugins: tk-inter
-          disable-console: True
+          windows-console-mode: disable
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico

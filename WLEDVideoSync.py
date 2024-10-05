@@ -21,6 +21,7 @@
 # nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
+# nuitka-project: --include-module=pkg_resources
 # nuitka-project: --nofollow-import-to=doctest
 # nuitka-project: --nofollow-import-to=pydoc
 # nuitka-project: --noinclude-default-mode=error
