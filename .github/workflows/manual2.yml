@@ -33,7 +33,7 @@ jobs:
       COMP_VERSION: ${{github.event.inputs.mytag}}
 
     runs-on: ${{matrix.os}}
-   
+
     steps:
       - uses: kenchan0130/actions-system-info@master
         id: system-info
