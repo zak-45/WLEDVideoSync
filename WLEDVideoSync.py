@@ -23,7 +23,6 @@
 #   nuitka-project: --include-module=qtpy
 # nuitka-project: --nofollow-import-to=doctest
 # nuitka-project: --noinclude-default-mode=error
-
 """
 a : zak-45
 d : 07/04/2024
