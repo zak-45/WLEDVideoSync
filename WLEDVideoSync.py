@@ -21,7 +21,6 @@
 # nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
-# nuitka-project: --include-module=pkgutil
 # nuitka-project: --nofollow-import-to=doctest
 # nuitka-project: --nofollow-import-to=pydoc
 # nuitka-project: --noinclude-default-mode=error
@@ -124,7 +123,6 @@ from utils import CASTUtils as Utils
 from pathlib import Path as PathLib
 from multiprocessing import active_children
 from PIL import Image
-from pkgutil import find_loader
 from uvicorn import Config, Server
 from nicegui import native
 from str2bool import str2bool
@@ -538,7 +536,7 @@ if __name__ == '__main__':
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
 
         # Apply YouTube settings if yt_dlp not imported
-        if not find_loader('yt_dlp'):
+        if 'yt_dlp' not in sys.modules:
             Utils.update_ini_key(config_file, 'custom', 'yt-enable', 'False')
 
         # global
