@@ -16,7 +16,6 @@ starlette==0.36.3
 pystray==0.19.5
 uvicorn[standard]==0.30.6
 psutil==6.0.0
-FreeSimpleGUI==5.1.1
 requests==2.32.3
 screeninfo==0.8.1
 av==13.0.0

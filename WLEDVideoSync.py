@@ -22,7 +22,6 @@
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
 # nuitka-project: --nofollow-import-to=doctest
-# nuitka-project: --nofollow-import-to=pydoc
 # nuitka-project: --noinclude-default-mode=error
 
 """
@@ -118,6 +117,7 @@ import webview
 import webview.menu as wm
 import os
 import webbrowser
+import tkinter as tk
 
 from utils import CASTUtils as Utils
 from pathlib import Path as PathLib
@@ -507,9 +507,17 @@ if __name__ == '__main__':
 
     # test to see if executed from compressed version
     # instruct user to go to WLEDVideoSync folder to execute program
-    if "NUITKA_ONEFILE_PARENT" in os.environ:
+    if "NUITKA_ONEFILE_PARENT"  in os.environ:
 
-        import FreeSimpleGUI as sg  # Part 1 - The import
+        def on_ok_click():
+            # Close the window when OK button is clicked
+            root.destroy()
+
+        # Create the main window
+        root = tk.Tk()
+        root.title("WLEDVideoSync Information")
+        root.geometry("820x460")  # Set the size of the window
+        root.configure(bg='#657B83')  # Set the background color
 
         # Apply some default params only once
         # Apply default GUI / param , depend on platform
@@ -522,7 +530,8 @@ if __name__ == '__main__':
         abs_pth = os.path.abspath(sys.argv[0])
         work_dir = os.path.dirname(abs_pth).replace('\\', '/')
 
-        config_file = work_dir + "/WLEDVideoSync/config/WLEDVideoSync.ini"
+        # config_file = work_dir + "/WLEDVideoSync/config/WLEDVideoSync.ini"
+        config_file = work_dir + "/config/WLEDVideoSync.ini"
 
         if sys.platform.lower() == 'win32':
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'False')
@@ -543,7 +552,7 @@ if __name__ == '__main__':
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
 
         # Define the window's contents
-        info = ("Extracted executable to WLEDVideoSync folder.....\n\n \
+        info_text = ("Extracted executable to WLEDVideoSync folder.....\n\n \
         You can safely delete this file after extraction finished to save some space.\n \
         (the same for WLEDVideoSync.out.txt and err.txt if there ...)\n\n \
         Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file\n \
@@ -557,14 +566,17 @@ if __name__ == '__main__':
         DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n \
         OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n \
         -------------------------------------------------------------------------------------------------\n ")
-        layout = [[sg.Text(info)],  # Part 2 - The Layout
-                  [sg.Button('Ok')]]
-        # Create the window
-        window = sg.Window('WLEDVideoSync', layout)  # Part 3 - Window Definition
-        # Display and interact with the Window
-        event, values = window.read()  # Part 4 - Event loop or Window.read call
-        # Finish up by removing from the screen
-        window.close()  # Part 5 - Close the Window
+
+        info_label = tk.Label(root, text=info_text, bg='#657B83', fg='white', justify=tk.LEFT)
+        info_label.pack(padx=10, pady=10)
+
+        # Create the OK button
+        ok_button = tk.Button(root, text="Ok", command=on_ok_click, bg='gray', fg='white')
+        ok_button.pack(pady=10)
+
+        # Start the Tkinter event loop
+        root.mainloop()
+
         sys.exit()
 
     """
