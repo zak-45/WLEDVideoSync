@@ -530,8 +530,7 @@ if __name__ == '__main__':
         abs_pth = os.path.abspath(sys.argv[0])
         work_dir = os.path.dirname(abs_pth).replace('\\', '/')
 
-        # config_file = work_dir + "/WLEDVideoSync/config/WLEDVideoSync.ini"
-        config_file = work_dir + "/config/WLEDVideoSync.ini"
+        config_file = work_dir + "/WLEDVideoSync/config/WLEDVideoSync.ini"
 
         if sys.platform.lower() == 'win32':
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'False')
