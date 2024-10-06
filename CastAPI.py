@@ -2227,6 +2227,12 @@ async def save_filter_preset(class_name: str) -> None:
             preset['GAMMA'] = {
                 'gamma': str(class_obj.gamma)
             }
+            preset['PREVIEW'] = {
+                'preview_top': str(class_obj.preview_top),
+                'preview_w': str(class_obj.preview_w),
+                'preview_h': str(class_obj.preview_h)
+            }
+
 
             with open(f_name, 'w') as conf:
                 preset.write(conf)
@@ -2271,7 +2277,7 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
                 ('balance_g', 'RGB', 'balance_g', int),
                 ('balance_b', 'RGB', 'balance_b', int),
                 ('flip', 'FLIP', 'flip', str2bool_ini),
-                ('flip_vh', 'FLIP', 'flip_vh'),
+                ('flip_vh', 'FLIP', 'flip_vh', int),
                 ('scale_width', 'SCALE', 'scale_width', int),
                 ('scale_height', 'SCALE', 'scale_height', int),
                 ('saturation', 'FILTERS', 'saturation', int),
@@ -2280,7 +2286,10 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
                 ('sharpen', 'FILTERS', 'sharpen', int),
                 ('auto_bright', 'AUTO', 'auto_bright', str2bool_ini),
                 ('clip_hist_percent', 'AUTO', 'clip_hist_percent', int),
-                ('gamma', 'GAMMA', 'gamma', float)
+                ('gamma', 'GAMMA', 'gamma', float),
+                ('preview_top', 'PREVIEW', 'preview_top', str2bool_ini),
+                ('preview_w', 'PREVIEW', 'preview_w', int),
+                ('preview_h', 'PREVIEW', 'preview_h', int)
             ]
 
             for attr, section, key, *conversion in keys_to_check:
