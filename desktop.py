@@ -40,7 +40,7 @@ import actionutils
 
 from multiprocessing.shared_memory import ShareableList
 from str2bool import str2bool
-from asyncio import run
+from asyncio import run as as_run
 from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
@@ -279,9 +279,9 @@ class CASTDesktop:
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
-            status = run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
+            status = as_run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
             if status:
-                t_scale_width, t_scale_height = run(Utils.get_wled_matrix_dimensions(self.host))
+                t_scale_width, t_scale_height = as_run(Utils.get_wled_matrix_dimensions(self.host))
             else:
                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return False
@@ -303,7 +303,7 @@ class CASTDesktop:
                     valid_ip = Utils.check_ip_alive(cast_ip, port=80, timeout=2)
                     if valid_ip:
                         if self.wled:
-                            status = run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
+                            status = as_run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
                                 logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                                 return False
@@ -462,6 +462,7 @@ class CASTDesktop:
         End Record
         """
 
+        # List to keep all running cast objects
         CASTDesktop.cast_names.append(t_name)
         CASTDesktop.count += 1
 
@@ -560,9 +561,10 @@ class CASTDesktop:
                         """
 
                         if CASTDesktop.t_todo_event.is_set():
+                            # only one running cast at time will take care of that
                             CASTDesktop.t_desktop_lock.acquire()
                             logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
-
+                            # will read cast_name_todo list and see if something to do
                             t_todo_stop, t_preview = actionutils.execute_actions(CASTDesktop,
                                                                                  frame,
                                                                                  t_name,
@@ -585,9 +587,10 @@ class CASTDesktop:
                                                                                  self.frame_buffer,
                                                                                  self.cast_frame_buffer,
                                                                                  logger)
-
+                            # if list is empty, no more for any cast
                             if len(CASTDesktop.cast_name_todo) == 0:
                                 CASTDesktop.t_todo_event.clear()
+                            # release once task finished for this cast
                             CASTDesktop.t_desktop_lock.release()
 
                         """
@@ -706,7 +709,7 @@ class CASTDesktop:
                         if t_preview:
 
                             if str2bool(app_config['preview_proc']):
-                                # for no win platform, cv2.imshow() need to run into Main thread
+                                # for non-win platform mainly, cv2.imshow() need to run into Main thread
                                 # We use ShareableList to share data between this thread and new process
                                 if frame_count == 1:
                                     # create a shared list, name is thread name
@@ -743,7 +746,7 @@ class CASTDesktop:
                                     # create a child process, so cv2.imshow() will run from its Main Thread
                                     sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Desktop',))
                                     # start the child process
-                                    # small delay occur, OS take some time to initiate the new process
+                                    # small delay should occur, OS take some time to initiate the new process
                                     sl_process.start()
                                     logger.debug(f'Starting Child Process for Preview : {t_name}')
 

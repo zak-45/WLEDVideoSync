@@ -380,6 +380,7 @@ class CASTMedia:
             logger.debug(f"{t_name} Start at frame number {self.frame_index}")
             media.set(cv2.CAP_PROP_POS_FRAMES, self.frame_index - 1)
 
+        # List to keep all running cast objects
         CASTMedia.cast_names.append(t_name)
         CASTMedia.count += 1
 
@@ -569,9 +570,10 @@ class CASTMedia:
             """
 
             if CASTMedia.t_todo_event.is_set():
+                # only one running cast at time will take care of that
                 CASTMedia.t_media_lock.acquire()
                 logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
-
+                # will read cast_name_todo list and see if something to do
                 t_todo_stop, t_preview = actionutils.execute_actions(CASTMedia,
                                                                      frame,
                                                                      t_name,
@@ -594,9 +596,10 @@ class CASTMedia:
                                                                      self.frame_buffer,
                                                                      self.cast_frame_buffer,
                                                                      logger)
-
+                # if list is empty, no more for any cast
                 if len(CASTMedia.cast_name_todo) == 0:
                     CASTMedia.t_todo_event.clear()
+                # release once task finished for this cast
                 CASTMedia.t_media_lock.release()
 
             """
