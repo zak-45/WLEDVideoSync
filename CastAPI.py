@@ -1590,7 +1590,7 @@ async def main_page_desktop():
         async def display_windows():
             with ui.dialog() as dialog, ui.card():
                 dialog.open()
-                editor = ui.json_editor({'content': {'json': CastAPI.windows_titles}}) \
+                editor = ui.json_editor({'content': {'json': Desktop.windows_titles}}) \
                     .run_editor_method('updateProps', {'readOnly': False})
                 ui.button('Close', on_click=dialog.close, color='red')
 
@@ -1600,7 +1600,7 @@ async def main_page_desktop():
 
 async def grab_windows():
     ui.notification('Retrieved all windows information', close_button=True, timeout=3)
-    CastAPI.windows_titles = Utils.windows_titles()
+    Desktop.windows_titles = Utils.windows_titles()
 
 
 @ui.page('/Media')

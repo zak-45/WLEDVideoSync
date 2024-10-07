@@ -165,7 +165,7 @@ class CASTDesktop:
             self.viformat = ''
 
         self.vi_codec: str = 'libx264rgb'
-        self.all_windows_titles = []
+        self.windows_titles = {}
 
 
     def t_desktop_cast(self, shared_buffer=None):
@@ -371,7 +371,7 @@ class CASTDesktop:
                     # list all id for a title name (should be only one ...)
                     window_ids = []
                     # Iterate through each process
-                    for process_name, process_details in self.all_windows_titles.items():
+                    for process_name, process_details in self.windows_titles.items():
                         # Get the windows dictionary
                         windows = process_details.get("windows", {})
                         # Iterate through each window in the windows dictionary
