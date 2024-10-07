@@ -69,6 +69,10 @@ class CASTUtils:
 
     @staticmethod
     def update_ini_key(file_path, section, key, new_value):
+        """
+        Update an ini key
+
+        """
         # Create a ConfigParser object
         config = configparser.ConfigParser()
 

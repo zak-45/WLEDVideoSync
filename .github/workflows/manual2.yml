@@ -28,7 +28,7 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
     env:
-      YOUTUBE_DISABLE: yes
+      YOUTUBE_DISABLE: no
       DEBUG_COMPILATION: yes
       COMP_VERSION: ${{github.event.inputs.mytag}}
 
