@@ -35,6 +35,7 @@ import desktop
 import media
 import niceutils as nice
 import ast
+import tkinter as tk
 
 from asyncio import set_event_loop_policy,WindowsSelectorEventLoopPolicy,sleep,create_task
 from threading import current_thread
@@ -134,7 +135,15 @@ async def init_actions():
     # Apply some default params only once
     if str2bool(app_config['init_config_done']) is not True:
 
-        import FreeSimpleGUI as Sg  # Part 1 - The import
+        def on_ok_click():
+            # Close the window when OK button is clicked
+            root.destroy()
+
+        # Create the main window
+        root = tk.Tk()
+        root.title("WLEDVideoSync Information")
+        root.geometry("820x460")  # Set the size of the window
+        root.configure(bg='#657B83')  # Set the background color
 
         # Apply default GUI / param , depend on platform
         """
@@ -157,15 +166,17 @@ async def init_actions():
         Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
 
         # Define the window's contents
-        info = "Some Params has changed.... restart your app"
-        layout = [[Sg.Text(info)],  # Part 2 - The Layout
-                  [Sg.Button('Ok')]]
-        # Create the window
-        window = Sg.Window('WLEDVideoSync', layout)  # Part 3 - Window Definition
-        # Display and interact with the Window
-        window.read()  # Part 4 - Event loop or Window.read call
-        # Finish up by removing from the screen
-        window.close()  # Part 5 - Close the Window
+        info_text = "Some Params has changed.... restart your app"
+        info_label = tk.Label(root, text=info_text, bg='#657B83', fg='white', justify=tk.LEFT)
+        info_label.pack(padx=10, pady=10)
+
+        # Create the OK button
+        ok_button = tk.Button(root, text="Ok", command=on_ok_click, bg='gray', fg='white')
+        ok_button.pack(pady=10)
+
+        # Start the Tkinter event loop
+        root.mainloop()
+
         sys.exit()
 
     # Apply presets
@@ -230,17 +241,17 @@ def read_api_root():
     return {"info": Utils.compile_info()}
 
 
-@app.get("/api/{class_obj}/params", tags=["params"])
-async def all_params(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}')):
+@app.get("/api/{class_name}/params", tags=["params"])
+async def all_params(class_name: str = Path(description=f'Class name, should be in: {class_to_test}')):
     """
         Retrieve all 'params/attributes' from a class
     """
-    if class_obj not in class_to_test:
-        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} not in {class_to_test}")
-    class_params = vars(globals()[class_obj])
+    if class_name not in class_to_test:
+        raise HTTPException(status_code=400, detail=f"Class name: {class_name} not in {class_to_test}")
+    class_params = vars(globals()[class_name])
     # to avoid delete param from the class, need to copy to another dict
     return_data = {k: v for k, v in class_params.items()}
-    if class_obj != 'Netdevice':
+    if class_name != 'Netdevice':
         del return_data['frame_buffer']
         del return_data['cast_frame_buffer']
 
@@ -525,6 +536,8 @@ async def util_blackout():
 async def util_casts_info(img: bool = False):
     """
         Get info from all Cast Threads
+        Generate image for preview if requested
+    :param: img : False/true
     """
     logger.debug('Request Cast(s) info')
 
@@ -533,6 +546,7 @@ async def util_casts_info(img: bool = False):
     child_list = []
     params = True if img else False
 
+    # create casts lists
     for item in Desktop.cast_names:
         child_list.append(item)
         Desktop.cast_name_todo.append(str(item) + '||' + 'info' + '||' + str(params) + '||' + str(time.time()))
@@ -995,7 +1009,7 @@ async def main_page():
     # filters for Desktop / Media
     with ui.row().classes('self-center'):
 
-        await nice.desktop_filters(Desktop)
+        await nice.filters_data(Desktop)
 
         with ui.card().tight().classes('w-42'):
             with ui.column():
@@ -1071,7 +1085,7 @@ async def main_page():
                     if str2bool(custom_config['cpu-chart']):
                         await nice.create_cpu_chart(CastAPI)
 
-        await nice.media_filters(Media)
+        await nice.filters_data(Media)
 
     ui.separator().classes('mt-6')
 
@@ -1424,7 +1438,7 @@ async def main_page_desktop():
 
     with exp_edit_param:
         with ui.row():
-            ui.icon('restore_page', color='blue', size='sm') \
+            ui.icon('restore_page', color='blue', size='md') \
                 .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
                 .on('click', lambda: ui.navigate.to('/Desktop'))
 
@@ -1455,7 +1469,7 @@ async def main_page_desktop():
                     input_options.insert(0,'desktop')
                 elif sys.platform.lower() == 'linux':
                     input_options.insert(0,os.getenv('DISPLAY'))
-                new_viinput = ui.select(options=input_options,label='Input', new_value_mode='add-unique', value=input_options[0])
+                new_viinput = ui.select(options=input_options,label='Input', new_value_mode='add-unique')
                 new_viinput.tooltip('Enter type of data to capture, "area" for screen selection, "win=xxxxx" for win title')
                 new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', str(new_viinput.value)))
                 new_preview = ui.checkbox('Preview')
@@ -1671,7 +1685,7 @@ async def main_page_media():
 
     with media_exp_edit_param:
         with ui.row():
-            ui.icon('restore_page', color='blue', size='sm') \
+            ui.icon('restore_page', color='blue', size='md') \
                 .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
                 .on('click', lambda: ui.navigate.to('/Media'))
 
@@ -2315,12 +2329,13 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
         with ui.dialog() as dialog:
             dialog.open()
             with ui.card().classes('self-center'):
-                ui.label(class_name).classes('self-center')
+                ui.label(f'{class_name} Preset').classes('self-center')
                 ui.separator()
                 ui.button('EXIT', on_click=dialog.close)
                 result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False, thumbs=False)
                 if result is not None:
                     preset_filter_data = cfg.load(result[0]).to_dict()
+                    ui.label(f'Preset name: {result}')
                     with ui.expansion('See values'):
                         await ui.json_editor({'content': {'json': preset_filter_data}}) \
                             .run_editor_method('updateProps',{'readOnly': True})
@@ -2489,12 +2504,13 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
         with ui.dialog() as dialog:
             dialog.open()
             with ui.card().classes('self-center'):
-                ui.label(class_name).classes('self-center')
+                ui.label(f'{class_name} Preset').classes('self-center')
                 ui.separator()
                 ui.button('EXIT', on_click=dialog.close)
                 result = await LocalFilePicker(f'config/presets/cast/{class_name}', multiple=False, thumbs=False)
                 if result is not None:
                     preset_data = cfg.load(result[0]).to_dict()
+                    ui.label(f'Preset name: {result}')
                     with ui.expansion('See values'):
                         await ui.json_editor({'content': {'json': preset_data}}) \
                             .run_editor_method('updateProps', {'readOnly': True})

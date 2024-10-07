@@ -217,135 +217,78 @@ async def cast_icon(class_obj):
         .classes('animate-pulse')
 
 
-async def media_filters(Media):
-    #  Filters for Media
-    with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-        ui.label('Filters/Effects Media')
+async def filters_data(class_obj):
+    """
+    Create filters fields for Desktop / Media
+    :param class_obj:
+    :return:
+    """
+    #  Filters for Media/Desktop
+    with (ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700')):
+        ui.label(f'Filters/Effects {type(class_obj).__name__}')
         with ui.row().classes('w-44'):
-            ui.checkbox('Flip') \
-                .bind_value(Media, 'flip') \
-                .classes('w-20')
-            ui.number('type', min=0, max=1) \
-                .bind_value(Media, 'flip_vh', forward=lambda value: int(value or 0)) \
-                .classes('w-20')
-            ui.number('W', min=1, max=1920).classes('w-20').bind_value(Media, 'pixel_w', forward=lambda value: int(value or 8))
-            ui.number('H', min=1, max=1080).classes('w-20').bind_value(Media, 'pixel_h', forward=lambda value: int(value or 8))
+            flip_img = ui.checkbox('Flip')
+            flip_img.bind_value(class_obj, 'flip').classes('w-20')
+            flip_img.tooltip('Flip Cast image')
+            flip_number = ui.number('type', min=0, max=1).classes('w-20')
+            flip_number.bind_value(class_obj, 'flip_vh', forward=lambda value: int(value or 0))
+            flip_number.tooltip('Flip Type 0:H / 1:V ')
+            px_w = ui.number('W', min=1, max=1920).classes('w-20')
+            px_w.bind_value(class_obj, 'pixel_w', forward=lambda value: int(value or 8))
+            px_w.tooltip('Pixel art Width Preview')
+            px_h = ui.number('H', min=1, max=1080).classes('w-20')
+            px_h.bind_value(class_obj, 'pixel_h', forward=lambda value: int(value or 8))
+            px_h.tooltip('Pixel art Height Preview')
             with ui.row().classes('w-44').style('justify-content: flex-end'):
                 ui.label('gamma')
                 gamma_slider = ui.slider(min=0.01, max=4, step=0.01).props('label-always')
                 gamma_slider.on('wheel', create_wheel_handler(gamma_slider))
-                gamma_slider.bind_value(Media, 'gamma')
+                gamma_slider.bind_value(class_obj, 'gamma')
 
             with ui.column(wrap=True):
                 with ui.row():
                     with ui.column():
                         ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
-                            .bind_value(Media, 'balance_r')
+                            .bind_value(class_obj, 'balance_r')
                         ui.label('R').classes('self-center')
                     with ui.column():
                         ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
-                            .bind_value(Media, 'balance_g')
+                            .bind_value(class_obj, 'balance_g')
                         ui.label('G').classes('self-center')
                     with ui.column():
                         ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
-                            .bind_value(Media, 'balance_b')
+                            .bind_value(class_obj, 'balance_b')
                         ui.label('B').classes('self-center')
-                ui.button('reset', on_click=lambda: reset_rgb(Media)).classes('self-center')
+                ui.button('reset', on_click=lambda: reset_rgb(class_obj)).classes('self-center')
 
     with ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
         with ui.row().classes('w-20').style('justify-content: flex-end'):
             ui.label('saturation')
             saturation_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
             saturation_slider.on('wheel', create_wheel_handler(saturation_slider))
-            saturation_slider.bind_value(Media, 'saturation')
+            saturation_slider.bind_value(class_obj, 'saturation')
 
             ui.label('brightness').classes('text-right')
             brightness_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
             brightness_slider.on('wheel', create_wheel_handler(brightness_slider))
-            brightness_slider.bind_value(Media, 'brightness')
+            brightness_slider.bind_value(class_obj, 'brightness')
 
             ui.label('contrast')
             contrast_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
             contrast_slider.on('wheel', create_wheel_handler(contrast_slider))
-            contrast_slider.bind_value(Media, 'contrast')
+            contrast_slider.bind_value(class_obj, 'contrast')
 
             ui.label('sharpen')
             sharpen_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
             sharpen_slider.on('wheel', create_wheel_handler(sharpen_slider))
-            sharpen_slider.bind_value(Media, 'sharpen')
+            sharpen_slider.bind_value(class_obj, 'sharpen')
 
             ui.checkbox('auto') \
-                .bind_value(Media, 'auto_bright', forward=lambda value: value) \
+                .bind_value(class_obj, 'auto_bright', forward=lambda value: value) \
                 .tooltip('Auto bri/contrast')
             clip_hist_percent_slider = ui.slider(min=0, max=100, step=1).props('label-always')
             clip_hist_percent_slider.on('wheel', create_wheel_handler(clip_hist_percent_slider))
-            clip_hist_percent_slider.bind_value(Media, 'clip_hist_percent')
-
-
-async def desktop_filters(Desktop):
-    """ desktop filter page creation"""
-
-    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-        ui.label('Filters/Effects Desktop')
-        with ui.row().classes('w-44'):
-            ui.checkbox('Flip') \
-                .bind_value(Desktop, 'flip') \
-                .classes('w-20')
-            ui.number('type', min=0, max=1) \
-                .bind_value(Desktop, 'flip_vh', forward=lambda value: int(value or 0)) \
-                .classes('w-20')
-            ui.number('W', min=1, max=1920).classes('w-20').bind_value(Desktop, 'pixel_w', forward=lambda value: int(value or 8))
-            ui.number('H', min=1, max=1080).classes('w-20').bind_value(Desktop, 'pixel_h', forward=lambda value: int(value or 8))
-            with ui.row().classes('w-44').style('justify-content: flex-end'):
-                ui.label('gamma')
-                gamma_slider = ui.slider(min=0.01, max=4, step=0.01).props('label-always')
-                gamma_slider.on('wheel', create_wheel_handler(gamma_slider))
-                gamma_slider.bind_value(Desktop, 'gamma')
-
-            with ui.column(wrap=True):
-                with ui.row():
-                    with ui.column():
-                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-red') \
-                            .bind_value(Desktop, 'balance_r')
-                        ui.label('R').classes('self-center')
-                    with ui.column():
-                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-green') \
-                            .bind_value(Desktop, 'balance_g')
-                        ui.label('G').classes('self-center')
-                    with ui.column():
-                        ui.knob(0, min=0, max=255, step=1, show_value=True).classes('bg-blue') \
-                            .bind_value(Desktop, 'balance_b')
-                        ui.label('B').classes('self-center')
-                ui.button('reset', on_click=lambda: reset_rgb(Desktop)).classes('self-center')
-
-    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-        with ui.row().classes('w-20').style('justify-content: flex-end'):
-            ui.label('saturation')
-            saturation_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
-            saturation_slider.on('wheel', create_wheel_handler(saturation_slider))
-            saturation_slider.bind_value(Desktop, 'saturation')
-
-            ui.label('brightness').classes('text-right')
-            brightness_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
-            brightness_slider.on('wheel', create_wheel_handler(brightness_slider))
-            brightness_slider.bind_value(Desktop, 'brightness')
-
-            ui.label('contrast')
-            contrast_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
-            contrast_slider.on('wheel', create_wheel_handler(contrast_slider))
-            contrast_slider.bind_value(Desktop, 'contrast')
-
-            ui.label('sharpen')
-            sharpen_slider = ui.slider(min=0, max=100, step=1, value=0).props('label-always')
-            sharpen_slider.on('wheel', create_wheel_handler(sharpen_slider))
-            sharpen_slider.bind_value(Desktop, 'sharpen')
-
-            ui.checkbox('auto') \
-                .bind_value(Desktop, 'auto_bright', forward=lambda value: value) \
-                .tooltip('Auto bri/contrast')
-            clip_hist_percent_slider = ui.slider(min=0, max=100, step=1).props('label-always')
-            clip_hist_percent_slider.on('wheel', create_wheel_handler(clip_hist_percent_slider))
-            clip_hist_percent_slider.bind_value(Desktop, 'clip_hist_percent')
+            clip_hist_percent_slider.bind_value(class_obj, 'clip_hist_percent')
 
 
 async def create_cpu_chart(CastAPI):
