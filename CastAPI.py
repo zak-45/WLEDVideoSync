@@ -37,7 +37,7 @@ import niceutils as nice
 import ast
 import tkinter as tk
 
-from asyncio import set_event_loop_policy,WindowsSelectorEventLoopPolicy,sleep,create_task
+from asyncio import set_event_loop_policy,sleep,create_task
 from threading import current_thread
 from subprocess import Popen
 from ddp_queue import DDPDevice
@@ -64,6 +64,7 @@ Media = media.CASTMedia()
 Netdevice = Net()
 
 if sys.platform.lower() == 'win32':
+    from asyncio import WindowsSelectorEventLoopPolicy
     set_event_loop_policy(WindowsSelectorEventLoopPolicy())
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
