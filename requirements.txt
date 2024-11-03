@@ -12,7 +12,7 @@ nicegui==2.2.0
 str2bool==1.1
 pillow==10.4.0
 fastapi==0.109.2
-starlette==0.36.3
+starlette==0.40.0
 pystray==0.19.5
 uvicorn[standard]==0.30.6
 psutil==6.0.0
