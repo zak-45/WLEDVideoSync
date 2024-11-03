@@ -31,6 +31,8 @@ import traceback
 import configparser
 import queue
 import cfg_load as cfg
+from starlette.websockets import WebSocketDisconnect
+
 import desktop
 import media
 import niceutils as nice
@@ -763,117 +765,88 @@ FastAPI WebSockets
 
 websocket_info = 'These are the websocket end point calls and result'
 
-
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """
-    WS image Cast (we use Websocket to minimize delay)
+    WS image Cast (we use WebSocket to minimize delay)
     Main logic: check action name, extract params, execute func, return ws status
     see page ws/docs for help
     usage example:
     {"action":{"type":"cast_image", "param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}
-    :param websocket:
-    :return:
     """
 
-    ws_msg = ''
     action = ''
-
-    # list of managed actions
     allowed_actions = ws_config['allowed-actions'].split(',')
 
-    # Main WS
     try:
-        # accept connection
         await websocket.accept()
 
         while True:
-
-            # wait for data (need to be in json format)
             data = await websocket.receive_json()
 
-            # validate data format received
             if not Utils.validate_ws_json_input(data):
-                ws_msg = 'WEBSOCKET: received data not compliant with expected format({"action":{"type":"","param":{}}})'
+                ws_msg = 'WEBSOCKET: received data not compliant with expected format ({"action":{"type":"","param":{}}})'
                 logger.error(ws_msg)
-                raise Exception
+                raise ValueError(ws_msg)
 
-            # select action to do
             action = data["action"]["type"]
+            params = data["action"]["param"]
 
-            # creating parameter list programmatically
-            params = data["action"]["param"]  # param dict
-
-            # check if managed action
-            if action in allowed_actions:
-
-                # specific to cast_image
-                if action == 'cast_image':
-
-                    # these are required
-                    image_number = data["action"]["param"]["image_number"]
-                    params["image_number"] = image_number
-                    device_number = data["action"]["param"]["device_number"]
-                    params["device_number"] = device_number
-                    class_name = data["action"]["param"]["class_name"]
-                    params["class_name"] = class_name
-
-                    # these are optionals
-                    if "fps_number" in data:
-                        fps_number = data["action"]["param"]["fps_number"]
-                        if fps_number > 60:
-                            fps_number = 60
-                        elif fps_number < 0:
-                            # 0 here is allowed for action cast_image
-                            fps_number = 0
-                        params["fps_number"] = fps_number
-                    if "duration_number" in data:
-                        duration_number = data["action"]["param"]["duration_number"]
-                        if duration_number < 0:
-                            duration_number = 0
-                        params["duration_number"] = duration_number
-                    if "retry_number" in data:
-                        retry_number = data["action"]["param"]["retry_number"]
-                        if retry_number > 10:
-                            retry_number = 10
-                        elif retry_number < 0:
-                            retry_number = 0
-                        params["retry_number"] = retry_number
-                    if "buffer_name" in data:
-                        buffer_name = data["action"]["param"]["buffer_name"]
-                        params["buffer_name"] = buffer_name
-
-                func_name  = action.split('.')
-
-                if len(func_name) == 2:
-                    all_func = globals()[func_name[0]]
-                    my_func = getattr(all_func,func_name[1])
-
-                    # execute action with params: use run_in_threadpool so no block main
-                    result = await run_in_threadpool(my_func, **params)
-
-                elif len(func_name) == 1:
-
-                    # execute action with params: use run_in_threadpool so no block main
-                    result = await run_in_threadpool(globals()[action], **params)
-
-                else:
-                    ws_msg = f'WEBSOCKET: error into function name : {func_name}'
-                    raise Exception
-
-                # send back if no problem
-                await websocket.send_json({"action":action,"result":"success","data": result})
-
-            else:
-
-                ws_msg = 'WEBSOCKET: received data contain unexpected action'
+            if action not in allowed_actions:
+                ws_msg = 'WEBSOCKET: received data contains unexpected action'
                 logger.error(ws_msg)
-                raise Exception
+                raise ValueError(ws_msg)
 
+            if action == 'cast_image':
+                required_params = ["image_number", "device_number", "class_name"]
+                for param in required_params:
+                    if param not in params:
+                        ws_msg = f'WEBSOCKET: missing required parameter: {param}'
+                        logger.error(ws_msg)
+                        raise ValueError(ws_msg)
+
+                optional_params = {
+                    "fps_number": (0, 60),
+                    "duration_number": (0, None),
+                    "retry_number": (0, 10)
+                }
+
+                for param, (min_val, max_val) in optional_params.items():
+                    if param in params:
+                        params[param] = max(min_val, min(params[param], max_val)) if max_val else max(min_val,
+                                                                                                      params[param])
+
+                if "buffer_name" in params:
+                    params["buffer_name"] = params["buffer_name"]
+
+            func_name_parts = action.split('.')
+            if len(func_name_parts) == 2:
+                all_func = globals().get(func_name_parts[0])
+                if all_func:
+                    my_func = getattr(all_func, func_name_parts[1], None)
+                    if my_func:
+                        result = await run_in_threadpool(my_func, **params)
+                    else:
+                        raise AttributeError(f'Function {func_name_parts[1]} not found in {func_name_parts[0]}')
+                else:
+                    raise AttributeError(f'Module {func_name_parts[0]} not found')
+            elif len(func_name_parts) == 1:
+                my_func = globals().get(action)
+                if my_func:
+                    result = await run_in_threadpool(my_func, **params)
+                else:
+                    raise AttributeError(f'Function {action} not found')
+            else:
+                raise ValueError(f'Invalid function name: {func_name_parts}')
+
+            await websocket.send_json({"action": action, "result": "success", "data": result})
+
+    except WebSocketDisconnect:
+        logger.warning('ws closed')
     except Exception as e:
-        logger.error(traceback.format_exc())
-        logger.error(f'WEBSOCKET An exception occurred: {e}')
-        await websocket.send_json({"action":action,"result":"internal error","error":str(e),"data":ws_msg})
+        error_msg = traceback.format_exc()
+        logger.error(error_msg)
+        await websocket.send_json({"action": action, "result": "internal error", "error": str(e), "data": error_msg})
         await websocket.close()
 
 
@@ -926,7 +899,17 @@ def cast_image(image_number,
     elif buffer_name.lower() == 'multicast':
         images_buffer = class_obj.cast_frame_buffer
 
-    ddp = DDPDevice(ip)
+    # we need to retrieve the ddp device created during settings and not create one each time ....
+    find = False
+    for ddp_device in Utils.ddp_devices:
+        if ddp_device._destination == ip:
+            ddp = ddp_device
+            find = True
+            break
+    if find is False:
+        # create DDP device
+        ddp = DDPDevice(ip)
+        Utils.ddp_devices.append(ddp)
 
     start_time = time.time() * 1000  # Get the start time in ms
     end_time = start_time + duration_number  # Calculate the end time
@@ -1471,7 +1454,7 @@ async def main_page_desktop():
                 elif sys.platform.lower() == 'linux':
                     input_options.insert(0,os.getenv('DISPLAY'))
                 new_viinput = ui.select(options=input_options,label='Input', new_value_mode='add-unique')
-                new_viinput.tooltip('Enter type of data to capture, "area" for screen selection, "win=xxxxx" for win title')
+                new_viinput.tooltip('Type data to capture, "area" for screen selection, "win=xxxxx" for win title You will need to press ENTER Key')
                 new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', str(new_viinput.value)))
                 new_preview = ui.checkbox('Preview')
                 new_preview.bind_value(Desktop, 'preview')

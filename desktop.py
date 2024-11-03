@@ -276,6 +276,8 @@ class CASTDesktop:
                 return False
 
         ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
+        # add to global DDP list
+        Utils.update_ddp_list(self.host, ddp_host)
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
@@ -317,7 +319,10 @@ class CASTDesktop:
                                 ddp_exist = True
                                 break
                         if ddp_exist is not True:
-                            t_ddp_multi_names.append(DDPDevice(cast_ip))
+                            new_ddp = DDPDevice(cast_ip)
+                            t_ddp_multi_names.append(new_ddp)
+                            # add to global DDP list
+                            Utils.update_ddp_list(cast_ip,new_ddp)
                             logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')

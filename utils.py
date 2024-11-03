@@ -55,8 +55,22 @@ class CASTUtils:
     yt_file_size_bytes = 0
     yt_file_size_remain_bytes = 0
 
+    ddp_devices: list = []  # all DDP device instances
+
     def __init__(self):
         pass
+
+
+    @staticmethod
+    def update_ddp_list(cast_ip, ddp_obj):
+        # create ddp device for each IP if not exist
+        ddp_exist = False
+        for device in CASTUtils.ddp_devices:
+            if cast_ip == device._destination:
+                ddp_exist = True
+                break
+        if ddp_exist is not True:
+            CASTUtils.ddp_devices.append(ddp_obj)
 
     @staticmethod
     def compile_info():
