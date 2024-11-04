@@ -29,6 +29,34 @@ class CV2Utils:
         pass
 
     @staticmethod
+    def set_black_bg(image):
+        """
+        put black background to an image with transparency
+
+        # Load the image
+        image_path = '/mnt/data/0 11-10-13-3313.png'
+        image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+
+        """
+
+        # Ensure the image has an alpha channel (transparency)
+        if image.shape[2] == 4:
+            # Split the image into its channels
+            b, g, r, a = cv2.split(image)
+            # Create a black background
+            black_background = np.zeros_like(b)
+            # Use the alpha channel as a mask to combine the black background with the image
+            image_with_black_bg = cv2.merge((b, g, r, a))
+            image_with_black_bg[:, :, :3] = np.where(a[:, :, np.newaxis] == 0, black_background[:, :, np.newaxis],
+                                                     image_with_black_bg[:, :, :3])
+        else:
+            # If no alpha channel, just read the image as is
+            image_with_black_bg = image
+
+        return image_with_black_bg
+
+
+    @staticmethod
     def cv2_win_close(server_port, class_name, t_name, t_viinput):
         """ Close cv2 window created by imshow """
 

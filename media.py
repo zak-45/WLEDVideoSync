@@ -567,6 +567,13 @@ class CASTMedia:
             if self.flip:
                 frame = cv2.flip(frame, self.flip_vh)
 
+            # put frame to np buffer (so can be used after by the main)
+            if self.put_to_buffer and frame_count <= self.frame_max:
+                add_frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
+                add_frame = CV2Utils.resize_image(add_frame, t_scale_width, t_scale_height)
+
+                self.frame_buffer.append(add_frame)
+
             """
             check if something to do
             manage concurrent access to the list by using lock feature
@@ -709,12 +716,6 @@ class CASTMedia:
                     else:
                         logger.error(f'{t_name} Not enough IP devices defined. Modify Multicast param')
                         break
-
-                # put frame to np buffer (so can be used after by the main)
-                if self.put_to_buffer and frame_count <= self.frame_max:
-                    add_frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
-                    add_frame = CV2Utils.resize_image(add_frame, t_scale_width, t_scale_height)
-                    self.frame_buffer.append(add_frame)
 
                 """
                     stop for non-live video (length not -1)

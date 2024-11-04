@@ -7,18 +7,18 @@ numpy==1.26.4
 opencv-python==4.10.0.84
 PyWinCtl==0.4.1
 wled==0.16.0
-zeroconf==0.134.0
-nicegui==2.2.0
+zeroconf==0.136.0
+nicegui==2.5.0
 str2bool==1.1
-pillow==10.4.0
-fastapi==0.109.2
+pillow==11.0.0
+fastapi==0.115.4
 starlette==0.40.0
 pystray==0.19.5
 uvicorn[standard]==0.30.6
-psutil==6.0.0
+psutil==6.1.0
 requests==2.32.3
 screeninfo==0.8.1
-av==13.0.0
+av==13.1.0
 youtube-search-python==1.6.6
 
 # Platform dependant
