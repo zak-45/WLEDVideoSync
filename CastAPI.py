@@ -236,7 +236,7 @@ FastAPI
 
 
 @app.get("/api", tags=["root"])
-def read_api_root():
+async def read_api_root():
     """
         Status: provide WLEDVideoSync info
     """
@@ -850,6 +850,11 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.close()
 
 
+def init_wvs(metadata, mouthCues):
+    logger.info('websocket connection initiated')
+    logger.debug(metadata, mouthCues)
+
+
 def cast_image(image_number,
                      device_number,
                      class_name,
@@ -886,9 +891,13 @@ def cast_image(image_number,
     logger.debug(f"Image from buffer: {buffer_name}")
 
     if device_number == -1:  # instruct to use IP from the class.host
-        ip = gethostbyname(class_obj.host)
+        ip = class_obj.host
     else:
-        ip = gethostbyname(class_obj.cast_devices[device_number][1])
+        try:
+            ip = class_obj.cast_devices[device_number][1]  # IP is on 2nd position
+        except IndexError:
+            logger.error('No device set in Cast Devices list')
+            return
 
     if ip == '127.0.0.1':
         logger.warning('WEBSOCKET: Nothing to do for localhost 127.0.0.1')
@@ -917,10 +926,15 @@ def cast_image(image_number,
     if class_obj.protocol == "ddp":
         while time.time() * 1000 < end_time:  # Loop until current time exceeds end time in ms
             # Send x frames here
-            ddp.send_to_queue(images_buffer[image_number], retry_number)
-            if fps_number != 0:
-                time.sleep(1 / fps_number)  # Sleep in s for the time required to send one frame
-
+            try:
+                ddp.send_to_queue(images_buffer[image_number], retry_number)
+                if fps_number != 0:
+                    time.sleep(1 / fps_number)  # Sleep in s for the time required to send one frame
+            except IndexError:
+                logger.error(f'No image set for this index: {image_number}')
+                return
+    else:
+        logger.warning('Not DDP')
 
 """
 NiceGUI
@@ -2550,7 +2564,6 @@ END Common
 async def player_cast(source):
     """ Cast from video CastAPI.player only for Media """
 
-    # await context.client.connected()
     media_info = CV2Utils.get_media_info(source)
     if Media.stopcast:
         ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
