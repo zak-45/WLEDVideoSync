@@ -56,6 +56,7 @@ WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with 
 - For optimal performance, be sure to be on the same VLAN as your DDP devices
 - Verify video source compatibility
 - On linux, wayland do not work, use X11
+- On Mac/Linux be sure to set +x on WLEDVideoSync app
 
 **Contributing:**
 Contributions to the project are welcome. Please follow the standard GitHub fork and pull request workflow.
@@ -78,11 +79,12 @@ MIT
 ### Installation
 
 - Download the corresponding release to your OS : [Get software](https://github.com/zak-45/WLEDVideoSync/releases)
-  - Double-click on it to extract WLEDVideoSync folder
-  - Once extraction finished, you should see this screen:
-![extracted](docs/img/extracted.png)
+  -(Mac/Linux set +x on WLEDVideoSync app) 
+    - Double-click on it to extract WLEDVideoSync folder
+    - Once extraction finished, you should see this screen:
+  ![extracted](docs/img/extracted.png)
 
-      ``WLEDVideoSync folder can be copied, moved where you want, so keep organized``
+        ``WLEDVideoSync folder can be copied, moved where you want, so keep organized``
   
 
 - Go into and click on `WLEDVideoSync-{OS}`(exe/bin) to execute the main program.
