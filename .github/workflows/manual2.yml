@@ -26,7 +26,7 @@ jobs:
       contents: write
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
     env:
       YOUTUBE_DISABLE: yes
       DEBUG_COMPILATION: yes
@@ -103,7 +103,7 @@ jobs:
           macos-create-app-bundle: true
           onefile: true
           onefile-tempdir-spec: ./WLEDVideoSync
-          output-file: WLEDVideoSync-${{runner.os}}
+          output-file: WLEDVideoSync-${{runner.os}}-${{ steps.system-info.outputs.release }}-${{ steps.system-info.outputs.cpu-model }}
           include-package-data: nicegui
           include-module: |
             CastAPI
@@ -129,7 +129,7 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDVideoSync-${{runner.os}}**'
+          path: 'build/WLEDVideoSync-${{runner.os}}-${{ steps.system-info.outputs.release }}-${{ steps.system-info.outputs.cpu-model }}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -137,4 +137,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-${{runner.os}}**'
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}-${{ steps.system-info.outputs.release }}-${{ steps.system-info.outputs.cpu-model }}**'
