@@ -48,6 +48,12 @@ jobs:
       - name: Check-out repository
         uses: actions/checkout@v4
 
+      - name: Windows specific
+        if: matrix.os == 'windows-latest'
+        run: |
+          FOR /F "tokens=*" %i IN ('wmic cpu get name /value ^| findstr "Name"') DO @echo %i > cpu_info.txt
+          FOR /F "tokens=2 delims==" %i IN (cpu_info.txt) DO @echo CPU_INFO=%i >> $GITHUB_ENV
+
       - name: Ubuntu specific
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -55,13 +61,24 @@ jobs:
           sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
           sudo apt-get install ffmpeg
 
-      - name: MacOS specific
+      - name: MacOS specific M1
         if: matrix.os == 'macos-latest'
         run: |
           brew update
           brew install portaudio
-          brew reinstall libsndfile
-         
+          brew reinstall libsndfile    
+          CPU_INFO=$(sysctl -n machdep.cpu.brand_string)
+          echo "CPU_INFO=$CPU_INFO" >> $GITHUB_ENV          
+
+      - name: MacOS specific Intel
+        if: matrix.os == 'macos-13'
+        run: |
+          brew update
+          brew install portaudio
+          brew reinstall libsndfile    
+          CPU_INFO=$(sysctl -n machdep.cpu.brand_string)
+          echo "CPU_INFO=$CPU_INFO" >> $GITHUB_ENV          
+
       - name: Setup Python x64
         uses: actions/setup-python@v5
         with:
@@ -102,7 +119,7 @@ jobs:
           macos-app-icon: assets/favicon.ico
           macos-create-app-bundle: true
           onefile-tempdir-spec: ./WLEDVideoSync
-          output-file: WLEDVideoSync-${{runner.os}}-${{ steps.system-info.outputs.release }}-${{ steps.system-info.outputs.cpu-model }}
+          output-file: WLEDVideoSync-${{runner.os}}-${{ env.CPU_INFO }}
           include-package-data: nicegui
           include-module: |
             CastAPI
@@ -128,7 +145,7 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDVideoSync-${{runner.os}}-${{ steps.system-info.outputs.release }}-${{ steps.system-info.outputs.cpu-model }}**'
+          path: 'build/WLEDVideoSync-${{runner.os}}-${{ env.CPU_INFO }}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -136,4 +153,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-${{runner.os}}-${{ steps.system-info.outputs.release }}-${{ steps.system-info.outputs.cpu-model }}**'
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}-${{ env.CPU_INFO }}**'
