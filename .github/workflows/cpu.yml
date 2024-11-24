@@ -1,0 +1,19 @@
+name: Get CPU Info on macOS
+
+on: [push, pull_request]
+
+jobs:
+  cpu-info:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Get CPU info
+      run: |
+        CPU_INFO=$(sysctl -n machdep.cpu.brand_string)
+        echo "CPU_INFO=$CPU_INFO" >> $GITHUB_ENV
+
+    - name: Print CPU Info
+      run: echo "CPU Info: ${{ env.CPU_INFO }}"
