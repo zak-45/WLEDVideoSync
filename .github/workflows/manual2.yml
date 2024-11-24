@@ -120,7 +120,7 @@ jobs:
           macos-app-icon: assets/favicon.ico
           macos-create-app-bundle: true
           onefile-tempdir-spec: ./WLEDVideoSync
-          output-file: WLEDVideoSync-${{runner.os}}-${{ env.CPU_INFO }}
+          output-file: WLEDVideoSync-${{runner.os}}-${{ env.ARCHITECTURE }}
           include-package-data: nicegui
           include-module: |
             CastAPI
@@ -146,7 +146,7 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
-          path: 'build/WLEDVideoSync-${{runner.os}}-${{ env.CPU_INFO }}**'
+          path: 'build/WLEDVideoSync-${{runner.os}}-${{ env.ARCHITECTURE }}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
         uses: ncipollo/release-action@v1
@@ -154,4 +154,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-${{runner.os}}-${{ env.CPU_INFO }}**'
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}-${{ env.ARCHITECTURE }}**'
