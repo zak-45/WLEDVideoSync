@@ -51,8 +51,7 @@ jobs:
       - name: Windows specific
         if: matrix.os == 'windows-latest'
         run: |
-          FOR /F "tokens=*" %i IN ('wmic cpu get name /value ^| findstr "Name"') DO @echo %i > cpu_info.txt
-          FOR /F "tokens=2 delims==" %i IN (cpu_info.txt) DO @echo CPU_INFO=%i >> $GITHUB_ENV
+          echo "ARCHITECTURE=%PROCESSOR_ARCHITECTURE%" >> $GITHUB_ENV
 
       - name: Ubuntu specific
         if: matrix.os == 'ubuntu-latest'
@@ -60,6 +59,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
           sudo apt-get install ffmpeg
+          ARCHITECTURE=$(uname -m)
+          echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV         
 
       - name: MacOS specific M1
         if: matrix.os == 'macos-latest'
@@ -67,8 +68,8 @@ jobs:
           brew update
           brew install portaudio
           brew reinstall libsndfile    
-          CPU_INFO=$(sysctl -n machdep.cpu.brand_string)
-          echo "CPU_INFO=$CPU_INFO" >> $GITHUB_ENV          
+          ARCHITECTURE=$(uname -m)
+          echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
 
       - name: MacOS specific Intel
         if: matrix.os == 'macos-13'
@@ -76,8 +77,8 @@ jobs:
           brew update
           brew install portaudio
           brew reinstall libsndfile    
-          CPU_INFO=$(sysctl -n machdep.cpu.brand_string)
-          echo "CPU_INFO=$CPU_INFO" >> $GITHUB_ENV          
+          ARCHITECTURE=$(uname -m)
+          echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
 
       - name: Setup Python x64
         uses: actions/setup-python@v5
