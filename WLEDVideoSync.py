@@ -1,6 +1,6 @@
 # Compilation mode, standalone everywhere, except on macOS there app bundle
 # nuitka-project-if: {OS} == "Darwin":
-#    nuitka-project: --mode=app
+#    nuitka-project: --macos-create-app-bundle
 # nuitka-project-if: {OS} == "Windows":
 #   nuitka-project: --lto=no
 #   nuitka-project: --clang

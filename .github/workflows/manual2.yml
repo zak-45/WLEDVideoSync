@@ -109,7 +109,7 @@ jobs:
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@main
         with:
-          nuitka-version: main
+          nuitka-version: 2.4.11
           script-name: WLEDVideoSync.py
           company-name: zak-45
           product-version: ${{github.event.inputs.mytag}}
@@ -119,6 +119,7 @@ jobs:
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
+          onefile: true
           onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}
           include-package-data: nicegui
