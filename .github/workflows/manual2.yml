@@ -26,8 +26,8 @@ jobs:
       contents: write
     strategy:
       matrix:
-        # os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
-        os: [macos-13, macos-latest]
+        os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
+
     env:
       YOUTUBE_DISABLE: yes
       DEBUG_COMPILATION: yes
@@ -115,7 +115,8 @@ jobs:
           product-version: ${{github.event.inputs.mytag}}
           file-version: ${{github.event.inputs.mytag}}
           enable-plugins: tk-inter
-          windows-console-mode: disable
+          # windows-console-mode: disable
+          disable-console: true
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
