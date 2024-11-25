@@ -51,7 +51,7 @@ jobs:
       - name: Windows specific
         if: matrix.os == 'windows-latest'
         run: |
-          echo "ARCHITECTURE=%PROCESSOR_ARCHITECTURE%" >> $GITHUB_ENV
+          echo "ARCHITECTURE=amd64" >> $GITHUB_ENV
 
       - name: Ubuntu specific
         if: matrix.os == 'ubuntu-latest'
@@ -62,7 +62,7 @@ jobs:
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV         
 
-      - name: MacOS specific M1
+      - name: MacOS specific Apple(Mx)
         if: matrix.os == 'macos-latest'
         run: |
           brew update
@@ -146,6 +146,8 @@ jobs:
         with:
           name: ${{runner.os}} Build
           if-no-files-found: warn
+          overwrite: true
+          include-hidden-files: true
           path: 'build/WLEDVideoSync-${{runner.os}}-${{ env.ARCHITECTURE }}**'
             
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka
