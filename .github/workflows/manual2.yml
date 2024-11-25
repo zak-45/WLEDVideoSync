@@ -26,7 +26,8 @@ jobs:
       contents: write
     strategy:
       matrix:
-        os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
+        # os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
+        os: [windows-latest]
     env:
       YOUTUBE_DISABLE: yes
       DEBUG_COMPILATION: yes
@@ -108,7 +109,7 @@ jobs:
       - name: Build Executable for ${{runner.os}}
         uses: Nuitka/Nuitka-Action@main
         with:
-          nuitka-version: 2.5.1
+          nuitka-version: main
           script-name: WLEDVideoSync.py
           company-name: zak-45
           product-version: ${{github.event.inputs.mytag}}
