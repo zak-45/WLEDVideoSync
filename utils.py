@@ -1026,7 +1026,7 @@ class AnimatedElement:
         duration : custom animation delay
     """
 
-    def __init__(self, element_type, animation_name_in='fadeIn', animation_name_out='fadeOut', duration=1.5):
+    def __init__(self, element_type:type[any], animation_name_in='fadeIn', animation_name_out='fadeOut', duration=1.5):
         self.element_type = element_type
         self.animation_name_in = animation_name_in
         self.animation_name_out = animation_name_out
