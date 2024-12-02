@@ -163,7 +163,6 @@ jobs:
           include-hidden-files: true
           path: 'build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**'
 
-
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka for Win/Linux
         if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
         uses: ncipollo/release-action@v1
@@ -181,4 +180,3 @@ jobs:
           commit: main
           tag: ${{github.event.inputs.mytag}}
           artifacts: 'build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**'
-
