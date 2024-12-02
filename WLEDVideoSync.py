@@ -18,6 +18,7 @@
 # nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
+# nuitka-project: --mode=onefile
 # nuitka-project: --nofollow-import-to=doctest
 # nuitka-project: --noinclude-default-mode=error
 """

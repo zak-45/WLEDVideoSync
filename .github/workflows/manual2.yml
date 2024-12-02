@@ -115,8 +115,7 @@ jobs:
           product-version: ${{github.event.inputs.mytag}}
           file-version: ${{github.event.inputs.mytag}}
           enable-plugins: tk-inter
-          # windows-console-mode: disable
-          disable-console: true
+          windows-console-mode: disable
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
