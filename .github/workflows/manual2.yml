@@ -107,7 +107,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build Executable for ${{runner.os}}
-        uses: Nuitka/Nuitka-Action@v1.1
+        uses: Nuitka/Nuitka-Action@vmain
         with:
           nuitka-version: main
           script-name: WLEDVideoSync.py
