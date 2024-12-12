@@ -500,9 +500,11 @@ async def player_pick_file(CastAPI) -> None:
     if result is not None:
         if sys.platform.lower() == 'win32' and len(result) > 0:
             result = str(result[0]).replace('\\', '/')
+        else:
+            result = str(result[0])
 
-        if len(result) > 0:
-            result = './' + result
+        if result != "":
+            result = f'./{result}'
 
         CastAPI.player.set_source(result)
         CastAPI.player.update()
