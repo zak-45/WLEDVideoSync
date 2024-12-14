@@ -116,6 +116,7 @@ import os
 import webbrowser
 import tkinter as tk
 
+from tkinter import PhotoImage
 from utils import CASTUtils as Utils
 from pathlib import Path as PathLib
 from multiprocessing import active_children
@@ -504,7 +505,7 @@ if __name__ == '__main__':
 
     # test to see if executed from compressed version
     # instruct user to go to WLEDVideoSync folder to execute program
-    if "NUITKA_ONEFILE_PARENT"  in os.environ:
+    if "NUITKA_ONEFILE_PARENT" in os.environ:
 
         def on_ok_click():
             # Close the window when OK button is clicked
@@ -546,6 +547,10 @@ if __name__ == '__main__':
 
         # global
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
+
+        # Change the window icon
+        icon = PhotoImage(file=f'{work_dir}/WLEDLipSync/favicon.png')
+        root.iconphoto(False, icon)
 
         # Define the window's contents
         info_text = ("Extracted executable to WLEDVideoSync folder.....\n\n \
