@@ -1,4 +1,12 @@
-# show_error.py
+"""
+a: zak-45
+d: 03/12/2024
+v: 1.0.0.0
+
+ Tkinter info window
+
+"""
+
 import tkinter as tk
 import sys
 
