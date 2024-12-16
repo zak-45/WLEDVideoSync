@@ -29,6 +29,7 @@ import json
 import re
 import platform
 import multiprocessing
+import subprocess
 import configparser
 import io
 import pywinctl as pwc
@@ -60,6 +61,11 @@ class CASTUtils:
     def __init__(self):
         pass
 
+    @staticmethod
+    def display_custom_msg(msg, msg_type: str = ''):
+        # Call the separate script to show the error message in a Tkinter window
+        python_name = 'python' if sys.platform.lower() == 'win32' else 'python3'
+        subprocess.Popen([python_name, 'info_window.py', msg, msg_type])
 
     @staticmethod
     def update_ddp_list(cast_ip, ddp_obj):

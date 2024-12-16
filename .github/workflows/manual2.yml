@@ -139,7 +139,8 @@ jobs:
             xtra=xtra
           include-data-files: |
             favicon.ico=favicon.ico
-            favicon.png=favicon.png            
+            favicon.png=favicon.png
+            info_window.py=info_window.py
             splash-screen.png=splash-screen.png
 
       - name: Upload Artifacts Win/Linux
