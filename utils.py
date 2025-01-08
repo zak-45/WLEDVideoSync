@@ -62,12 +62,6 @@ class CASTUtils:
         pass
 
     @staticmethod
-    def display_custom_msg(msg, msg_type: str = ''):
-        # Call the separate script to show the error message in a Tkinter window
-        python_name = 'python' if sys.platform.lower() == 'win32' else 'python3'
-        subprocess.Popen([python_name, 'info_window.py', msg, msg_type])
-
-    @staticmethod
     def update_ddp_list(cast_ip, ddp_obj):
         # create ddp device for each IP if not exist
         ddp_exist = False
