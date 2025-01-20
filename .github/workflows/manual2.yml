@@ -140,7 +140,6 @@ jobs:
             assets=assets
             config=config
             media=media
-            xtra=xtra
           include-data-files: |
             favicon.ico=favicon.ico
             favicon.png=favicon.png

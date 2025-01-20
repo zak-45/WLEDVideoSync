@@ -1,4 +1,8 @@
 # Compilation mode, standalone everywhere, except on macOS there app bundle
+# nuitka-project: --mode=onefile
+# nuitka-project: --nofollow-import-to=doctest
+# nuitka-project: --noinclude-default-mode=error
+# nuitka-project: --include-raw-dir=xtra=xtra
 # nuitka-project-if: {OS} == "Darwin":
 #    nuitka-project: --mode=app
 # nuitka-project-if: {OS} == "Windows":
@@ -18,9 +22,6 @@
 # nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
-# nuitka-project: --mode=onefile
-# nuitka-project: --nofollow-import-to=doctest
-# nuitka-project: --noinclude-default-mode=error
 """
 a : zak-45
 d : 07/04/2024
@@ -539,7 +540,7 @@ if __name__ == '__main__':
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
 
         # Change the window icon
-        icon = PhotoImage(file=f'{work_dir}/WLEDLipSync/favicon.png')
+        icon = PhotoImage(file=f'{work_dir}/WLEDVideoSync/favicon.png')
         root.iconphoto(False, icon)
 
         # Define the window's contents
