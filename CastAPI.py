@@ -200,7 +200,7 @@ async def init_actions():
 
         # check if linux and wayland
         if sys.platform.lower() == 'linux' and os.getenv('WAYLAND_DISPLAY') is not None:
-            logger.error('Wayland detected, preview should not work !!')
+            logger.error('Wayland detected, preview should not work !!. Switch to X11 session if want to see preview.')
 
     except Exception as e:
         logger.error(f"Error on app startup {e}")
