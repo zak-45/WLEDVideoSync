@@ -8,7 +8,7 @@ opencv-python==4.10.0.84
 PyWinCtl==0.4.1
 wled==0.16.0
 zeroconf==0.136.0
-nicegui==2.9.1
+nicegui==2.10.0
 str2bool==1.1
 pillow==11.0.0
 fastapi==0.115.4
