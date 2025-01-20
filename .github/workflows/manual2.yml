@@ -53,6 +53,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           echo "ARCHITECTURE=amd64" >> $GITHUB_ENV
+          curl -L -o xtra/info_window.exe https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-Windows_.exe          
 
       - name: Ubuntu specific
         if: matrix.os == 'ubuntu-latest'
@@ -61,7 +62,8 @@ jobs:
           sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
           sudo apt-get install ffmpeg
           ARCHITECTURE=$(uname -m)
-          echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV         
+          echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV   
+          curl -L -o xtra/info_window.bin https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-Linux_x86_64          
 
       - name: MacOS specific Apple(Mx)
         if: matrix.os == 'macos-latest'
@@ -71,6 +73,7 @@ jobs:
           brew reinstall libsndfile    
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
+          curl -L -o xtra/info_window.app https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_arm64          
 
       - name: MacOS specific Intel
         if: matrix.os == 'macos-13'
@@ -80,6 +83,7 @@ jobs:
           brew reinstall libsndfile    
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
+          curl -L -o xtra/info_window.app https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_x86_64         
 
       - name: Setup Python x64
         uses: actions/setup-python@v5
