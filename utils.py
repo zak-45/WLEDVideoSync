@@ -46,6 +46,58 @@ from nicegui import ui, run
 from screeninfo import get_monitors
 from str2bool import str2bool
 from PIL import Image
+from pathlib import Path
+
+
+def display_custom_msg(msg, msg_type: str = 'info'):
+    """
+    Displays a custom message using an external info window executable across different platforms.
+    Launches a separate process to show an error or informational message in a platform-specific manner.
+
+    Args:
+        msg (str): The message text to be displayed.
+        msg_type (str, optional): The type of message, defaults to 'info'.
+        Can specify message type like 'info' or 'error'.
+
+    Examples:
+        >> display_custom_msg("Operation completed successfully")
+        >> display_custom_msg("Error occurred", msg_type='error')
+
+    """
+    # Call the separate script to show the error/info message in a Tkinter window
+    absolute_file_name = Path(info_window_exe_name()).resolve()
+    if sys.platform.lower() == "win32":
+        command = [absolute_file_name, msg, msg_type]
+    else:
+        command = ['nohup', absolute_file_name, msg, msg_type, '&']
+
+    subprocess.Popen(command)
+
+
+def info_window_exe_name():
+    """
+    Determines the appropriate executable name for displaying information windows based on the current operating system.
+    Returns the platform-specific executable path for the info window utility.
+
+    Returns:
+        str: The filename of the info window executable for the current platform.
+        Returns None if the platform is not recognized.
+
+    Examples:
+        >> info_window_exe_name()
+        'xtra/info_window.exe'  # On Windows
+        >> info_window_exe_name()
+        'xtra/info_window.bin'  # On Linux
+
+    """
+    if sys.platform.lower() == 'win32':
+        return 'xtra/info_window.exe'
+    elif sys.platform.lower() == 'linux':
+        return 'xtra/info_window.bin'
+    elif sys.platform.lower() == 'darwin':
+        return 'xtra/info_window.app'
+    else:
+        return None
 
 
 class CASTUtils:
