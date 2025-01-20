@@ -9,12 +9,12 @@
 #
 #
 """
-import threading
 import traceback
 
 from cv2utils import CV2Utils, ImageUtils
 from ddp_queue import DDPDevice
 from str2bool import str2bool
+from threading import current_thread
 
 
 def execute_actions(class_obj,
@@ -82,7 +82,7 @@ def execute_actions(class_obj,
             "data": {
                 "start": start_time,
                 "cast_type": class_obj.__name__,
-                "tid": threading.current_thread().native_id,
+                "tid": current_thread().native_id,
                 "viinput": str(t_viinput),
                 "preview": t_preview,
                 "multicast": t_multicast,
