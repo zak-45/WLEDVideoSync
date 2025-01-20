@@ -37,34 +37,11 @@ from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 from multicast import IPSwapper
+from configmanager import ConfigManager
+
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.media')
 
 Process, Queue = Utils.mp_setup()
-
-"""
-When this env var exist, this mean run from the one-file executable.
-Load of the config is not possible, folder config should not exist.
-This avoid FileNotFoundError.
-This env not exist when run the extracted program.
-Expected way to work.
-"""
-if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read config
-    # create logger
-    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.media')
-
-    """
-    Retrieve  config keys
-    """
-    cfg_text = False
-    if os.path.isfile('config/WLEDVideoSync.ini'):
-        # load config file
-        cast_config = cfg.load('config/WLEDVideoSync.ini')
-
-        # config keys
-        app_config = cast_config.get('app')
-        config_text = app_config['text']
-        if str2bool(config_text) is True:
-            cfg_text = True
 
 """
 Class definition
@@ -123,7 +100,7 @@ class CASTMedia:
         self.frame_index: int = 0
         self.put_to_buffer: bool = False
         self.frame_max: int = 8
-        self.text: bool = cfg_text
+        self.text: bool = str2bool(cfg_mgr.app_config['text'])
         self.custom_text: str = ""
         self.multicast: bool = False
         self.cast_x: int = 1
@@ -159,7 +136,7 @@ class CASTMedia:
             CASTMedia.total_frame = 0
             CASTMedia.total_packet = 0
 
-        logger.debug(f'Child thread: {t_name}')
+        cfg_mgr.logger.debug(f'Child thread: {t_name}')
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
 
@@ -205,7 +182,7 @@ class CASTMedia:
         """
 
         if str(self.viinput) == "":
-            logger.error(f'{t_name} Filename could not be empty')
+            cfg_mgr.logger.error(f'{t_name} Filename could not be empty')
             return False
 
         t_viinput = self.viinput
@@ -230,7 +207,7 @@ class CASTMedia:
                         CASTMedia.total_packet += dev.frame_count
                         break
             else:
-                logger.warning(f'{t_name} Multicast frame dropped')
+                cfg_mgr.logger.warning(f'{t_name} Multicast frame dropped')
 
         def send_multicast_images_to_ips(images_buffer, to_ip_addresses):
             """
@@ -269,9 +246,9 @@ class CASTMedia:
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host):
-                logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
+                cfg_mgr.logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
             else:
-                logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
+                cfg_mgr.logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
                 return False
 
         ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
@@ -284,7 +261,7 @@ class CASTMedia:
             if status is True:
                 t_scale_width, t_scale_height = as_run(Utils.get_wled_matrix_dimensions(self.host))
             else:
-                logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
+                cfg_mgr.logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return False
 
         swapper = None
@@ -293,10 +270,10 @@ class CASTMedia:
         if t_multicast:
             # validate cast_devices list
             if not Utils.is_valid_cast_device(str(self.cast_devices)):
-                logger.error(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
+                cfg_mgr.logger.error(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
                 return False
             else:
-                logger.info(f'{t_name} Virtual Matrix size is :' +
+                cfg_mgr.logger.info(f'{t_name} Virtual Matrix size is :' +
                             str(t_scale_width * t_cast_x) + 'x' + str(t_scale_height * t_cast_y))
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
@@ -306,7 +283,7 @@ class CASTMedia:
                         if self.wled:
                             status = as_run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
-                                logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
+                                cfg_mgr.logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                                 return False
 
                         ip_addresses.append(cast_ip)
@@ -314,7 +291,7 @@ class CASTMedia:
                         ddp_exist = False
                         for device in t_ddp_multi_names:
                             if cast_ip == device._destination:
-                                logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
+                                cfg_mgr.logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
                                 ddp_exist = True
                                 break
                         if ddp_exist is not True:
@@ -322,7 +299,7 @@ class CASTMedia:
                             t_ddp_multi_names.append(new_ddp)
                             # add to global DDP list
                             Utils.update_ddp_list(cast_ip,new_ddp)
-                            logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
+                            cfg_mgr.logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
 
@@ -351,7 +328,7 @@ class CASTMedia:
         media = cv2.VideoCapture(t_viinput)
         # Check if the capture is successful
         if not media.isOpened():
-            logger.error(f"{t_name} Error: Unable to open media stream {t_viinput}.")
+            cfg_mgr.logger.error(f"{t_name} Error: Unable to open media stream {t_viinput}.")
             return False
 
         # retrieve frame count, if 1 we assume image (should be no?)
@@ -374,15 +351,15 @@ class CASTMedia:
             interval: float = 1.0 / self.rate
             frame_interval = self.rate
         else:
-            logger.error(f'{t_name} Rate could not be zero')
+            cfg_mgr.logger.error(f'{t_name} Rate could not be zero')
             return False
 
-        logger.info(f"{t_name} Playing media {t_viinput} of length {media_length} at {fps} FPS")
-        logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
+        cfg_mgr.logger.info(f"{t_name} Playing media {t_viinput} of length {media_length} at {fps} FPS")
+        cfg_mgr.logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
 
         # detect if we want specific frame index: only for non-live video (-1) and not image (1)
         if self.frame_index != 0 and media_length > 1:
-            logger.debug(f"{t_name} Start at frame number {self.frame_index}")
+            cfg_mgr.logger.debug(f"{t_name} Start at frame number {self.frame_index}")
             media.set(cv2.CAP_PROP_POS_FRAMES, self.frame_index - 1)
 
         # List to keep all running cast objects
@@ -393,7 +370,7 @@ class CASTMedia:
         current_time = time.time()
         auto_expected_time = current_time
 
-        logger.debug(f'{t_name} Cast running ...')
+        cfg_mgr.logger.debug(f'{t_name} Cast running ...')
 
         """
             Media Loop
@@ -425,7 +402,7 @@ class CASTMedia:
                         if current_time - auto_expected_time >= self.auto_sync_delay:
                             time_to_set = self.sync_to_time
                             self.cast_sync = True
-                            logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
+                            cfg_mgr.logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
 
                             CASTMedia.t_media_lock.acquire()
                             if self.all_sync is True and len(CASTMedia.cast_name_to_sync) == 0:
@@ -433,11 +410,11 @@ class CASTMedia:
                                 CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
                                 # add additional time, can help if cast number > 0 to try to avoid small decay
                                 time_to_set += self.add_all_sync_delay
-                                logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
+                                cfg_mgr.logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
                             CASTMedia.t_media_lock.release()
 
                             auto_expected_time = current_time
-                            logger.debug(f'{t_name} Auto Sync Cast to time :{time_to_set}')
+                            cfg_mgr.logger.debug(f'{t_name} Auto Sync Cast to time :{time_to_set}')
 
                     if self.all_sync is True and self.cast_sync is True:
 
@@ -446,7 +423,7 @@ class CASTMedia:
                         # populate cast names to sync if necessary
                         if len(CASTMedia.cast_name_to_sync) == 0 and self.auto_sync is False:
                             CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
-                            logger.debug(f"{t_name}  Got these to sync  :{CASTMedia.cast_name_to_sync}")
+                            cfg_mgr.logger.debug(f"{t_name}  Got these to sync  :{CASTMedia.cast_name_to_sync}")
 
                         # take only cast not already synced
                         if t_name in CASTMedia.cast_name_to_sync:
@@ -456,9 +433,9 @@ class CASTMedia:
                             CASTMedia.cast_name_to_sync.remove(t_name)
                             # sync cast
                             media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
-                            logger.debug(f'{t_name} ALL Sync Cast to time :{self.sync_to_time}')
+                            cfg_mgr.logger.debug(f'{t_name} ALL Sync Cast to time :{self.sync_to_time}')
 
-                            logger.debug(f'{t_name} synced')
+                            cfg_mgr.logger.debug(f'{t_name} synced')
 
                             # if no more, reset all_sync
                             if len(CASTMedia.cast_name_to_sync) == 0:
@@ -466,17 +443,17 @@ class CASTMedia:
                                     self.all_sync = False
                                 self.cast_sync = False
                                 self.cast_sleep = False
-                                logger.debug(f"{t_name} All sync finished")
+                                cfg_mgr.logger.debug(f"{t_name} All sync finished")
 
                         CASTMedia.t_media_lock.release()
 
-                        logger.debug(f'{t_name} go to sleep if necessary')
+                        cfg_mgr.logger.debug(f'{t_name} go to sleep if necessary')
                         while (self.cast_sleep is True and
                                self.cast_sync is True and
                                len(CASTMedia.cast_name_to_sync) > 0):
                             # sleep until all remaining casts sync
                             time.sleep(.001)
-                        logger.debug(f"{t_name} exit sleep")
+                        cfg_mgr.logger.debug(f"{t_name} exit sleep")
 
                     else:
 
@@ -490,28 +467,28 @@ class CASTMedia:
                             if self.cast_sync:
                                 media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
                                 self.cast_sync = False
-                                logger.debug(f'{t_name} Sync Cast to time :{self.sync_to_time}')
+                                cfg_mgr.logger.debug(f'{t_name} Sync Cast to time :{self.sync_to_time}')
                 #
                 # read frame for all
                 #
                 success, frame = media.read()
                 if not success:
                     if frame_count != media_length:
-                        logger.warning(f'{t_name} Not all frames have been read')
+                        cfg_mgr.logger.warning(f'{t_name} Not all frames have been read')
                         break
 
                     else:
-                        logger.debug(f'{t_name} Media reached END')
+                        cfg_mgr.logger.debug(f'{t_name} Media reached END')
                         # manage the repeat feature, if -1 then unlimited
                         if t_repeat > 0 or t_repeat < 0:
                             t_repeat -= 1
-                            logger.debug(f'{t_name} Remaining repeat : {t_repeat}')
+                            cfg_mgr.logger.debug(f'{t_name} Remaining repeat : {t_repeat}')
                             # reset media to start
                             media.set(cv2.CAP_PROP_POS_FRAMES, 0)
                             # read one frame
                             success, frame = media.read()
                             if not success:
-                                logger.error(f'{t_name} Not able to repeat')
+                                cfg_mgr.logger.error(f'{t_name} Not able to repeat')
                                 break
                             frame_count = 0
                             # reset start time to be able to calculate sleep time to reach requested fps
@@ -530,7 +507,7 @@ class CASTMedia:
             try:
                 frame = CV2Utils.resize_image(frame, t_scale_width, t_scale_height)
             except Exception as im_error:
-                logger.error(f'Error to resize image : {im_error}')
+                cfg_mgr.logger.error(f'Error to resize image : {im_error}')
                 break
 
             # convert to RGB
@@ -584,7 +561,7 @@ class CASTMedia:
             if CASTMedia.t_todo_event.is_set():
                 # only one running cast at time will take care of that
                 CASTMedia.t_media_lock.acquire()
-                logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
+                cfg_mgr.logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
                 # will read cast_name_todo list and see if something to do
                 t_todo_stop, t_preview = actionutils.execute_actions(CASTMedia,
                                                                      frame,
@@ -607,7 +584,7 @@ class CASTMedia:
                                                                      shared_buffer,
                                                                      self.frame_buffer,
                                                                      self.cast_frame_buffer,
-                                                                     logger)
+                                                                     cfg_mgr.logger)
                 # if list is empty, no more for any cast
                 if len(CASTMedia.cast_name_todo) == 0:
                     CASTMedia.t_todo_event.clear()
@@ -655,7 +632,7 @@ class CASTMedia:
                     self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                     # validate cast_devices number only once
                     if len(ip_addresses) != len(self.cast_frame_buffer):
-                        logger.error(f'{t_name} Cast devices number != sub images number: check cast_devices ')
+                        cfg_mgr.logger.error(f'{t_name} Cast devices number != sub images number: check cast_devices ')
                         break
                     t_cast_frame_buffer = self.cast_frame_buffer
 
@@ -665,8 +642,8 @@ class CASTMedia:
                     send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                 except Exception as error:
-                    logger.error(traceback.format_exc())
-                    logger.error(f'{t_name} An exception occurred: {error}')
+                    cfg_mgr.logger.error(traceback.format_exc())
+                    cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
                     break
 
                 # looks like we read an image, go out from the loop...
@@ -693,8 +670,8 @@ class CASTMedia:
                                 ddp_host.send_to_queue(frame_to_send, self.retry_number)
                                 CASTMedia.total_packet += ddp_host.frame_count
                         except Exception as tr_error:
-                            logger.error(traceback.format_exc())
-                            logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
+                            cfg_mgr.logger.error(traceback.format_exc())
+                            cfg_mgr.logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
                             break
 
                     # if multicast and more than one ip address and matrix size 1 * 1
@@ -709,12 +686,12 @@ class CASTMedia:
                             send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                         except Exception as error:
-                            logger.error(traceback.format_exc())
-                            logger.error(f'{t_name} An exception occurred: {error}')
+                            cfg_mgr.logger.error(traceback.format_exc())
+                            cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
                             break
                     # if multicast and only one IP
                     else:
-                        logger.error(f'{t_name} Not enough IP devices defined. Modify Multicast param')
+                        cfg_mgr.logger.error(f'{t_name} Not enough IP devices defined. Modify Multicast param')
                         break
 
                 """
@@ -728,7 +705,7 @@ class CASTMedia:
                                 (self.frame_index != 0 and
                                  frame_count >= self.frame_max and
                                  self.put_to_buffer is True)):
-                            logger.debug(f"{t_name} Reached END ...")
+                            cfg_mgr.logger.debug(f"{t_name} Reached END ...")
                             break
 
             """
@@ -737,7 +714,7 @@ class CASTMedia:
             # preview on fixed size window
             if t_preview:
 
-                if str2bool(app_config['preview_proc']):
+                if str2bool(cfg_mgr.app_config['preview_proc']):
                     # mandatory for no win platform, cv2.imshow() need to run into Main thread
                     # We use ShareableList to share data between this thread and new process
                     if frame_count == 1:
@@ -769,7 +746,7 @@ class CASTMedia:
                                 ],
                                 name=t_name)
                         except Exception as e:
-                            logger.error(f'{t_name} Exception on shared list creation : {e}')
+                            cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {e}')
 
                         # run main_preview in another process
                         # create a child process, so cv2.imshow() will run from its own Main Thread
@@ -777,7 +754,7 @@ class CASTMedia:
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
                         sl_process.start()
-                        logger.debug(f'Starting Child Process for Preview : {t_name}')
+                        cfg_mgr.logger.debug(f'Starting Child Process for Preview : {t_name}')
 
                     # working with the shared list
                     if frame_count > 1:
@@ -858,7 +835,7 @@ class CASTMedia:
             if is_image:
                 if t_repeat > 0 or t_repeat < 0:
                     t_repeat -= 1
-                    logger.debug(f'{t_name} Remaining repeat : {t_repeat}')
+                    cfg_mgr.logger.debug(f'{t_name} Remaining repeat : {t_repeat}')
                     frame_count = 0
                     # reset start time to be able to calculate sleep time to reach requested fps
                     start_time = time.time()
@@ -899,19 +876,19 @@ class CASTMedia:
         try:
             if not isinstance(media, np.ndarray):
                 media.release()
-                logger.debug(f'{t_name} Release Media')
+                cfg_mgr.logger.debug(f'{t_name} Release Media')
         except Exception as e:
-            logger.warning(f'{t_name} Release Media status : {e}')
+            cfg_mgr.logger.warning(f'{t_name} Release Media status : {e}')
 
         # Clean ShareableList
         Utils.sl_clean(sl, sl_process, t_name)
 
-        logger.debug("_" * 50)
-        logger.debug(f'Cast {t_name} end using this media: {t_viinput}')
-        logger.debug(f'Using these devices: {str(ip_addresses)}')
-        logger.debug("_" * 50)
+        cfg_mgr.logger.debug("_" * 50)
+        cfg_mgr.logger.debug(f'Cast {t_name} end using this media: {t_viinput}')
+        cfg_mgr.logger.debug(f'Using these devices: {str(ip_addresses)}')
+        cfg_mgr.logger.debug("_" * 50)
 
-        logger.info(f"{t_name} Cast closed")
+        cfg_mgr.logger.info(f"{t_name} Cast closed")
 
     def cast(self, shared_buffer=None, log_ui=None):
         """
@@ -923,8 +900,8 @@ class CASTMedia:
         if log_ui is not None:
             root_logger = logging.getLogger()
             if log_ui not in root_logger:
-                logger.addHandler(log_ui)
+                cfg_mgr.logger.addHandler(log_ui)
         thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
-        logger.debug('Child Media cast initiated')
+        cfg_mgr.logger.debug('Child Media cast initiated')

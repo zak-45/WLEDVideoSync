@@ -16,7 +16,6 @@ from ddp_queue import DDPDevice
 from str2bool import str2bool
 from threading import current_thread
 
-
 def execute_actions(class_obj,
                     frame,
                     t_name,

@@ -60,7 +60,9 @@ from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 from nicegui import app, ui, native, run
+from configmanager import ConfigManager
 
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
@@ -74,9 +76,6 @@ action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview
 
 app.debug = False
 log_ui = None
-logger = None
-app_config = None
-server_config = None
 server_port = None
 server_ip = None
 
@@ -88,41 +87,26 @@ This env not exist when run from the extracted program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read config
-    # create logger
-    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.api')
-
-    # load config file
-    cast_config = Utils.read_config()
-
-    # config keys
-    server_config = cast_config[0]  # server key
-    app_config = cast_config[1]  # app key
-    color_config = cast_config[2]  # colors key
-    custom_config = cast_config[3]  # custom key
-    preset_config = cast_config[4]  # presets key
-    desktop_config = cast_config[5]  # desktop key
-    ws_config = cast_config[6]  # websocket key
 
     # load optional modules
-    if str2bool(custom_config['player']) or str2bool(custom_config['system-stats']):
+    if str2bool(cfg_mgr.custom_config['player']) or str2bool(cfg_mgr.custom_config['system-stats']):
         import psutil
 
     #  validate network config
-    server_ip = server_config['server_ip']
+    server_ip = cfg_mgr.server_config['server_ip']
     if not Utils.validate_ip_address(server_ip):
-        logger.error(f'Bad server IP: {server_ip}')
+        cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
         sys.exit(1)
 
-    server_port = server_config['server_port']
+    server_port = cfg_mgr.server_config['server_port']
 
     if server_port == 'auto':
         server_port = native.find_open_port()
     else:
-        server_port = int(server_config['server_port'])
+        server_port = int(cfg_mgr.server_config['server_port'])
 
     if server_port not in range(1, 65536):
-        logger.error(f'Bad server Port: {server_port}')
+        cfg_mgr.logger.error(f'Bad server Port: {server_port}')
         sys.exit(2)
 
 """
@@ -133,10 +117,10 @@ Actions to do at application initialization
 async def init_actions():
     """ Done at start of app and before GUI available """
 
-    logger.info(f'Main running {current_thread().name}')
+    cfg_mgr.logger.info(f'Main running {current_thread().name}')
 
     # Apply some default params only once
-    if str2bool(app_config['init_config_done']) is not True:
+    if str2bool(cfg_mgr.app_config['init_config_done']) is not True:
 
         def on_ok_click():
             # Close the window when OK button is clicked
@@ -184,26 +168,26 @@ async def init_actions():
 
     # Apply presets
     try:
-        if str2bool(preset_config['load_at_start']):
-            if preset_config['filter_media'] != '':
-                logger.debug(f"apply : {preset_config['filter_media']} to filter Media")
-                await load_filter_preset('Media', interactive=False, file_name=preset_config['filter_media'])
-            if preset_config['filter_desktop'] != '':
-                logger.debug(f"apply : {preset_config['filter_desktop']} to filter Desktop")
-                await load_filter_preset('Desktop', interactive=False, file_name=preset_config['filter_desktop'])
-            if preset_config['cast_media'] != '':
-                logger.debug(f"apply : {preset_config['cast_media']} to cast Media")
-                await load_cast_preset('Media', interactive=False, file_name=preset_config['cast_media'])
-            if preset_config['cast_desktop'] != '':
-                logger.debug(f"apply : {preset_config['cast_desktop']} to cast Desktop")
-                await load_cast_preset('Desktop', interactive=False, file_name=preset_config['cast_desktop'])
+        if str2bool(cfg_mgr.preset_config['load_at_start']):
+            if cfg_mgr.preset_config['filter_media'] != '':
+                cfg_mgr.logger.debug(f"apply : {cfg_mgr.preset_config['filter_media']} to filter Media")
+                await load_filter_preset('Media', interactive=False, file_name=cfg_mgr.preset_config['filter_media'])
+            if cfg_mgr.preset_config['filter_desktop'] != '':
+                cfg_mgr.logger.debug(f"apply : {cfg_mgr.preset_config['filter_desktop']} to filter Desktop")
+                await load_filter_preset('Desktop', interactive=False, file_name=cfg_mgr.preset_config['filter_desktop'])
+            if cfg_mgr.preset_config['cast_media'] != '':
+                cfg_mgr.logger.debug(f"apply : {cfg_mgr.preset_config['cast_media']} to cast Media")
+                await load_cast_preset('Media', interactive=False, file_name=cfg_mgr.preset_config['cast_media'])
+            if cfg_mgr.preset_config['cast_desktop'] != '':
+                cfg_mgr.logger.debug(f"apply : {cfg_mgr.preset_config['cast_desktop']} to cast Desktop")
+                await load_cast_preset('Desktop', interactive=False, file_name=cfg_mgr.preset_config['cast_desktop'])
 
         # check if linux and wayland
         if sys.platform.lower() == 'linux' and os.getenv('WAYLAND_DISPLAY') is not None:
-            logger.error('Wayland detected, preview should not work !!. Switch to X11 session if want to see preview.')
+            cfg_mgr.logger.error('Wayland detected, preview should not work !!. Switch to X11 session if want to see preview.')
 
     except Exception as e:
-        logger.error(f"Error on app startup {e}")
+        cfg_mgr.logger.error(f"Error on app startup {e}")
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
@@ -320,7 +304,7 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
         try:
             value = int(value)
         except ValueError:
-            logger.debug("viinput act as string only")
+            cfg_mgr.logger.debug("viinput act as string only")
 
     # check valid IP
     if param == 'host':
@@ -494,7 +478,7 @@ async def util_download_yt(yt_url: str):
             await Utils.youtube_download(yt_url=yt_url, interactive=False)
 
         except Exception as e:
-            logger.error(f'youtube error: {e}')
+            cfg_mgr.logger.error(f'youtube error: {e}')
             raise HTTPException(status_code=400,
                                 detail=f"Not able to retrieve video from : {yt_url} {e}")
     else:
@@ -519,7 +503,7 @@ async def util_blackout():
     """
         Put ALL ddp devices Off and stop all Casts
     """
-    logger.warning('** BLACKOUT **')
+    cfg_mgr.logger.warning('** BLACKOUT **')
     Desktop.t_exit_event.set()
     Media.t_exit_event.set()
     Desktop.stopcast = True
@@ -546,7 +530,7 @@ async def util_casts_info(img: bool = False):
         Generate image for preview if requested
     :param: img : False/true
     """
-    logger.debug('Request Cast(s) info')
+    cfg_mgr.logger.debug('Request Cast(s) info')
 
     # clear
     child_info_data = {}
@@ -567,7 +551,7 @@ async def util_casts_info(img: bool = False):
 
     # use to stop the loop in case of
     # start_time = time.time()
-    logger.debug(f'Need to receive info from : {child_list}')
+    cfg_mgr.logger.debug(f'Need to receive info from : {child_list}')
 
     # iterate through all Cast Names
     for _ in child_list:
@@ -577,7 +561,7 @@ async def util_casts_info(img: bool = False):
             child_info_data.update(data)
             t_data_buffer.task_done()
         except queue.Empty:
-            logger.error('Empty queue, but Desktop/Media cast names list not')
+            cfg_mgr.logger.error('Empty queue, but Desktop/Media cast names list not')
             break
 
     # sort the dict
@@ -585,7 +569,7 @@ async def util_casts_info(img: bool = False):
 
     Desktop.t_todo_event.clear()
     Media.t_todo_event.clear()
-    logger.debug('End request info')
+    cfg_mgr.logger.debug('End request info')
 
     return {"t_info": sort_child_info_data}
 
@@ -633,33 +617,33 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
     """
 
     if class_name not in class_to_test:
-        logger.error(f"Class name: {class_name} not in {class_to_test}")
+        cfg_mgr.logger.error(f"Class name: {class_name} not in {class_to_test}")
         raise HTTPException(status_code=400,
                             detail=f"Class name: {class_name} not in {class_to_test}")
     try:
         class_obj = globals()[class_name]
     except KeyError:
-        logger.error(f"Invalid class name: {class_name}")
+        cfg_mgr.logger.error(f"Invalid class name: {class_name}")
         raise HTTPException(status_code=400,
                             detail=f"Invalid class name: {class_name}")
 
     if cast_name is not None and cast_name not in class_obj.cast_names:
-        logger.error(f"Invalid Cast name: {cast_name}")
+        cfg_mgr.logger.error(f"Invalid Cast name: {cast_name}")
         raise HTTPException(status_code=400,
                             detail=f"Invalid Cast name: {cast_name}")
 
     if not hasattr(class_obj, 'cast_name_todo'):
-        logger.error(f"Invalid attribute name")
+        cfg_mgr.logger.error(f"Invalid attribute name")
         raise HTTPException(status_code=400,
                             detail=f"Invalid attribute name")
 
     if clear:
         class_obj.cast_name_todo = []
-        logger.debug(f" To do cleared for {class_obj}'")
+        cfg_mgr.logger.debug(f" To do cleared for {class_obj}'")
         return {"message": f" To do cleared for {class_obj}'"}
 
     if action not in action_to_test and action is not None:
-        logger.error(f"Invalid action name. Allowed : " + str(action_to_test))
+        cfg_mgr.logger.error(f"Invalid action name. Allowed : " + str(action_to_test))
         raise HTTPException(status_code=400,
                             detail=f"Invalid action name {action}. Allowed : " + str(action_to_test))
 
@@ -674,7 +658,7 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            logger.error(f"Invalid Cast/Thread name or action not set")
+            cfg_mgr.logger.error(f"Invalid Cast/Thread name or action not set")
             raise HTTPException(status_code=400,
                                 detail=f"Invalid Cast/Thread name or action not set")
         else:
@@ -683,7 +667,7 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            logger.debug(f"Action '{action}' added successfully to : '{class_obj}'")
+            cfg_mgr.logger.debug(f"Action '{action}' added successfully to : '{class_obj}'")
             return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
 
     else:
@@ -694,7 +678,7 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
             class_obj.t_todo_event.set()
-            logger.debug(f"Actions in queue will be executed")
+            cfg_mgr.logger.debug(f"Actions in queue will be executed")
             return {"message": "Actions in queue will be executed"}
 
         elif cast_name is None or action is None:
@@ -702,7 +686,7 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            logger.error("Invalid Cast/Thread name or action not set")
+            cfg_mgr.logger.error("Invalid Cast/Thread name or action not set")
             raise HTTPException(status_code=400,
                                 detail="Invalid Cast/Thread name or action not set")
 
@@ -714,7 +698,7 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
             class_obj.t_todo_event.set()
-            logger.debug(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
+            cfg_mgr.logger.debug(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
             return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 
@@ -780,7 +764,7 @@ async def websocket_endpoint(websocket: WebSocket):
     """
 
     action = ''
-    allowed_actions = ws_config['allowed-actions'].split(',')
+    allowed_actions = cfg_mgr.ws_config['allowed-actions'].split(',')
 
     try:
         await websocket.accept()
@@ -790,7 +774,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if not Utils.validate_ws_json_input(data):
                 ws_msg = 'WEBSOCKET: received data not compliant with expected format ({"action":{"type":"","param":{}}})'
-                logger.error(ws_msg)
+                cfg_mgr.logger.error(ws_msg)
                 raise ValueError(ws_msg)
 
             action = data["action"]["type"]
@@ -798,7 +782,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if action not in allowed_actions:
                 ws_msg = 'WEBSOCKET: received data contains unexpected action'
-                logger.error(ws_msg)
+                cfg_mgr.logger.error(ws_msg)
                 raise ValueError(ws_msg)
 
             if action == 'cast_image':
@@ -806,7 +790,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 for param in required_params:
                     if param not in params:
                         ws_msg = f'WEBSOCKET: missing required parameter: {param}'
-                        logger.error(ws_msg)
+                        cfg_mgr.logger.error(ws_msg)
                         raise ValueError(ws_msg)
 
                 optional_params = {
@@ -846,17 +830,17 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_json({"action": action, "result": "success", "data": result})
 
     except WebSocketDisconnect:
-        logger.warning('ws closed')
+        cfg_mgr.logger.warning('ws closed')
     except Exception as e:
         error_msg = traceback.format_exc()
-        logger.error(error_msg)
+        cfg_mgr.logger.error(error_msg)
         await websocket.send_json({"action": action, "result": "internal error", "error": str(e), "data": error_msg})
         await websocket.close()
 
 
 def init_wvs(metadata, mouthCues):
-    logger.info('websocket connection initiated')
-    logger.debug(metadata, mouthCues)
+    cfg_mgr.logger.info('websocket connection initiated')
+    cfg_mgr.logger.debug(metadata, mouthCues)
 
 
 def cast_image(image_number,
@@ -885,14 +869,14 @@ def cast_image(image_number,
     on 10/04/2024: device_number come from list entry order (0...n)
     """
 
-    logger.debug('Cast one image from buffer')
-    logger.debug(f"image number: {image_number}")
-    logger.debug(f"device number: {device_number}")
-    logger.debug(f"FPS: {fps_number}")
-    logger.debug(f"Duration (in ms):  {duration_number}")
-    logger.debug(f"retry packet number:  {retry_number}")
-    logger.debug(f"class name: {class_name}")
-    logger.debug(f"Image from buffer: {buffer_name}")
+    cfg_mgr.logger.debug('Cast one image from buffer')
+    cfg_mgr.logger.debug(f"image number: {image_number}")
+    cfg_mgr.logger.debug(f"device number: {device_number}")
+    cfg_mgr.logger.debug(f"FPS: {fps_number}")
+    cfg_mgr.logger.debug(f"Duration (in ms):  {duration_number}")
+    cfg_mgr.logger.debug(f"retry packet number:  {retry_number}")
+    cfg_mgr.logger.debug(f"class name: {class_name}")
+    cfg_mgr.logger.debug(f"Image from buffer: {buffer_name}")
 
     if device_number == -1:  # instruct to use IP from the class.host
         ip = class_obj.host
@@ -900,11 +884,11 @@ def cast_image(image_number,
         try:
             ip = class_obj.cast_devices[device_number][1]  # IP is on 2nd position
         except IndexError:
-            logger.error('No device set in Cast Devices list')
+            cfg_mgr.logger.error('No device set in Cast Devices list')
             return
 
     if ip == '127.0.0.1':
-        logger.warning('WEBSOCKET: Nothing to do for localhost 127.0.0.1')
+        cfg_mgr.logger.warning('WEBSOCKET: Nothing to do for localhost 127.0.0.1')
         return
 
     if buffer_name.lower() == 'buffer':
@@ -935,10 +919,10 @@ def cast_image(image_number,
                 if fps_number != 0:
                     time.sleep(1 / fps_number)  # Sleep in s for the time required to send one frame
             except IndexError:
-                logger.error(f'No image set for this index: {image_number}')
+                cfg_mgr.logger.error(f'No image set for this index: {image_number}')
                 return
     else:
-        logger.warning('Not DDP')
+        cfg_mgr.logger.warning('Not DDP')
 
 """
 NiceGUI
@@ -955,7 +939,7 @@ async def main_page():
 
     apply_custom()
 
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
@@ -964,7 +948,7 @@ async def main_page():
     """
     timer created on main page run to refresh datas
     """
-    ui.timer(int(app_config['timer']), callback=root_timer_action)
+    ui.timer(int(cfg_mgr.app_config['timer']), callback=root_timer_action)
 
     """
     Header with button menu
@@ -974,7 +958,7 @@ async def main_page():
     """
     App info
     """
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         head_row_anim = Animate(ui.row, animation_name_in='backInDown', duration=1)
         head_row = head_row_anim.create_element()
     else:
@@ -1001,7 +985,7 @@ async def main_page():
     """
     Video player
     """
-    if str2bool(custom_config['player']):
+    if str2bool(cfg_mgr.custom_config['player']):
         await video_player_page()
         CastAPI.player.set_visibility(False)
 
@@ -1057,7 +1041,7 @@ async def main_page():
 
                 # refreshable
                 with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
-                    if str2bool(custom_config['system-stats']):
+                    if str2bool(cfg_mgr.custom_config['system-stats']):
                         with ui.row().classes('self-center'):
                             frame_count = ui.number(prefix='F:').bind_value_from(CastAPI, 'total_frame')
                             frame_count.tooltip('TOTAL Frames')
@@ -1084,7 +1068,7 @@ async def main_page():
                             ram_count.classes("w-20")
                             ram_count.props(remove='type=number', add='borderless')
 
-                    if str2bool(custom_config['cpu-chart']):
+                    if str2bool(cfg_mgr.custom_config['cpu-chart']):
                         await nice.create_cpu_chart(CastAPI)
 
         await nice.filters_data(Media)
@@ -1095,15 +1079,15 @@ async def main_page():
     Log display
     """
 
-    if str2bool(app_config['log_to_main']):
+    if str2bool(cfg_mgr.app_config['log_to_main']):
         with ui.expansion('Show log', icon='feed').classes('w-full'):
             log_ui = ui.log(max_lines=250).classes('w-full h-30 bg-black text-white')
             # logging Level
-            logger.setLevel(app_config['log_level'].upper())
+            cfg_mgr.logger.setLevel(cfg_mgr.app_config['log_level'].upper())
             # handler
             handler = LogElementHandler(log_ui)
-            logger.addHandler(handler)
-            ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
+            cfg_mgr.logger.addHandler(handler)
+            ui.context.client.on_disconnect(lambda: cfg_mgr.logger.removeHandler(handler))
             # clear / load log file
             with ui.row().classes('w-full'):
                 ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log')
@@ -1184,12 +1168,12 @@ async def run_video_player_page():
     """
     timer created on video creation to refresh datas
     """
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
         """)
-    ui.timer(int(app_config['timer']), callback=player_timer_action)
+    ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
     await video_player_page()
 
 
@@ -1197,7 +1181,7 @@ async def video_player_page():
     """
     Video player
     """
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         center_card_anim = Animate(ui.card, animation_name_in='fadeInUp', duration=1)
         center_card = center_card_anim.create_element()
     else:
@@ -1206,7 +1190,7 @@ async def video_player_page():
     center_card.classes('self-center w-2/3 bg-gray-500')
     with center_card:
 
-        CastAPI.player = ui.video(app_config["video_file"]).classes('self-center')
+        CastAPI.player = ui.video(cfg_mgr.app_config["video_file"]).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
         CastAPI.player.on('timeupdate', lambda: get_player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
@@ -1318,7 +1302,7 @@ async def video_player_page():
             video_url_icon.bind_visibility_from(CastAPI.player)
 
             # if yt-enable is True display YT info icon
-            if str2bool(custom_config['yt-enable']):
+            if str2bool(cfg_mgr.custom_config['yt-enable']):
                 video_url_info = ui.icon('info')
                 video_url_info.style("cursor: pointer")
                 video_url_info.tooltip("Youtube/Url information's, including formats etc ...")
@@ -1329,7 +1313,7 @@ async def video_player_page():
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False, size='8px')
 
         # if yt-enable is True display YT search buttons
-        if str2bool(custom_config['yt-enable']):
+        if str2bool(cfg_mgr.custom_config['yt-enable']):
             with ui.row(wrap=True).classes('w-full'):
                 # YT search
                 yt_icon = ui.chip('YT Search',
@@ -1356,7 +1340,7 @@ async def main_page_desktop():
 
     await nice.head_set(name='Desktop Params', target='/Desktop', icon='computer')
 
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
@@ -1427,7 +1411,7 @@ async def main_page_desktop():
                 ui.label('No of Packet:')
                 ui.label(str(Desktop.retry_number))
 
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         exp_edit_param_anim = Animate(ui.expansion, animation_name_in='backInDown', duration=1)
         exp_edit_param = exp_edit_param_anim.create_element()
     else:
@@ -1573,8 +1557,8 @@ async def main_page_desktop():
                             img = Image.fromarray(img)
                             await light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
                     except Exception as m_error:
-                        logger.error(traceback.format_exc())
-                        logger.error(f'An exception occurred: {m_error}')
+                        cfg_mgr.logger.error(traceback.format_exc())
+                        cfg_mgr.logger.error(f'An exception occurred: {m_error}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -1615,7 +1599,7 @@ async def main_page_media():
 
     await nice.head_set(name='Media Params', target='/Media', icon='image')
 
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
@@ -1674,7 +1658,7 @@ async def main_page_media():
                 ui.label('No of Packet:')
                 ui.label(str(Media.retry_number))
 
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         media_exp_edit_param_anim = Animate(ui.expansion, animation_name_in='backInDown', duration=1)
         media_exp_edit_param = media_exp_edit_param_anim.create_element()
     else:
@@ -1783,8 +1767,8 @@ async def main_page_media():
                             img = Image.fromarray(img)
                             await light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
                     except Exception as e:
-                        logger.error(traceback.format_exc())
-                        logger.error(f'An exception occurred: {e}')
+                        cfg_mgr.logger.error(traceback.format_exc())
+                        cfg_mgr.logger.error(f'An exception occurred: {e}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -1869,12 +1853,12 @@ async def ws_page():
 @ui.page('/info')
 async def info_page():
     """ simple cast info page from systray """
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
         """)
-    ui.timer(int(app_config['timer']), callback=info_timer_action)
+    ui.timer(int(cfg_mgr.app_config['timer']), callback=info_timer_action)
     await cast_manage_page()
 
 
@@ -1935,9 +1919,9 @@ async def net_view_page():
 async def animate_toggle(img):
     """ toggle animation """
 
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         # put animation False
-        custom_config['animate-ui'] = 'False'
+        cfg_mgr.custom_config['animate-ui'] = 'False'
         img.classes('animate__animated animate__hinge')
     else:
         # Add Animate.css to the HTML head
@@ -1945,11 +1929,11 @@ async def animate_toggle(img):
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
         """)
         # put animation True
-        custom_config['animate-ui'] = 'True'
+        cfg_mgr.custom_config['animate-ui'] = 'True'
         img.classes('animate__animated animate__rubberBand')
 
-    ui.notify(f'Animate :{custom_config["animate-ui"]}')
-    logger.debug(f'Animate :{custom_config["animate-ui"]}')
+    ui.notify(f'Animate :{cfg_mgr.custom_config["animate-ui"]}')
+    cfg_mgr.logger.debug(f'Animate :{cfg_mgr.custom_config["animate-ui"]}')
 
 
 async def youtube_search():
@@ -1957,7 +1941,7 @@ async def youtube_search():
     display search result from pytube
     """
     anime = False
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         animated_yt_area = Animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
         yt_area = animated_yt_area.create_element()
         anime = True
@@ -1978,14 +1962,14 @@ async def youtube_clear_search():
 
     for area in CastAPI.search_areas:
         try:
-            if str2bool(custom_config['animate-ui']):
+            if str2bool(cfg_mgr.custom_config['animate-ui']):
                 animated_area = Animate(area, animation_name_out="backOutUp", duration=1)
                 animated_area.delete_element(area)
             else:
                 area.delete()
         except Exception as y_error:
-            logger.error(traceback.format_exc())
-            logger.error(f'Search area does not exist: {y_error}')
+            cfg_mgr.logger.error(traceback.format_exc())
+            cfg_mgr.logger.error(f'Search area does not exist: {y_error}')
     CastAPI.search_areas = []
 
 
@@ -2024,9 +2008,9 @@ async def select_sc_area():
     # For Calculate crop parameters
     Desktop.screen_coordinates = Sa.screen_coordinates
     #
-    logger.debug(f'Monitor infos: {Sa.monitors}')
-    logger.debug(f'Area Coordinates: {Sa.coordinates} from monitor {monitor}')
-    logger.debug(f'Area screen Coordinates: {Sa.screen_coordinates} from monitor {monitor}')
+    cfg_mgr.logger.debug(f'Monitor infos: {Sa.monitors}')
+    cfg_mgr.logger.debug(f'Area Coordinates: {Sa.coordinates} from monitor {monitor}')
+    cfg_mgr.logger.debug(f'Area screen Coordinates: {Sa.screen_coordinates} from monitor {monitor}')
 
 
 async def player_sync():
@@ -2149,7 +2133,7 @@ def dev_stats_info_page():
     Popen(["devstats"] + dev_ip + ips_list + dark,
           executable=select_chart_exe())
 
-    logger.debug('Run Device(s) Charts')
+    cfg_mgr.logger.debug('Run Device(s) Charts')
     CastAPI.charts_row.set_visibility(False)
 
 
@@ -2164,7 +2148,7 @@ def net_stats_info_page():
           executable=select_chart_exe())
 
     CastAPI.charts_row.set_visibility(False)
-    logger.debug('Run Network Chart')
+    cfg_mgr.logger.debug('Run Network Chart')
 
 
 def sys_stats_info_page():
@@ -2178,11 +2162,11 @@ def sys_stats_info_page():
           executable=select_chart_exe())
 
     CastAPI.charts_row.set_visibility(False)
-    logger.debug('Run System Charts')
+    cfg_mgr.logger.debug('Run System Charts')
 
 
 def select_chart_exe():
-    return app_config['charts_exe']
+    return cfg_mgr.app_config['charts_exe']
 
 
 """
@@ -2256,7 +2240,7 @@ async def save_filter_preset(class_name: str) -> None:
             dialog.close()
             ui.notify(f'Preset saved for {class_name} as {f_name}', type='info')
         except Exception as e:
-            logger.error(f'Error saving preset: {e}')
+            cfg_mgr.logger.error(f'Error saving preset: {e}')
             ui.notify(f'Error saving preset: {e}', type='negative')
 
     with ui.dialog() as dialog:
@@ -2282,7 +2266,7 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
     - bool: True if the preset was applied successfully, False otherwise.
     """
     if class_name not in ['Desktop', 'Media']:
-        logger.error(f'Unknown Class Name: {class_name}')
+        cfg_mgr.logger.error(f'Unknown Class Name: {class_name}')
         return False
 
     def apply_preset_filter(preset_data: dict):
@@ -2315,15 +2299,15 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
                         value = conversion[0](value)
                     setattr(class_obj, attr, value)
                 except KeyError:
-                    logger.warning(f'Key {section}.{key} does not exist in the preset data')
+                    cfg_mgr.logger.warning(f'Key {section}.{key} does not exist in the preset data')
 
             if interactive:
                 ui.notify('Preset applied', type='info')
             return True
 
         except Exception as er:
-            logger.error(traceback.format_exc())
-            logger.error(f'Error applying preset: {er}')
+            cfg_mgr.logger.error(traceback.format_exc())
+            cfg_mgr.logger.error(f'Error applying preset: {er}')
             ui.notify('Error applying preset', type='negative', position='center')
             return False
 
@@ -2355,7 +2339,7 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
             return apply_preset_filter(preset_filter_data)
 
         except Exception as e:
-            logger.error(f'Error loading preset: {e}')
+            cfg_mgr.logger.error(f'Error loading preset: {e}')
             return False
 
 
@@ -2426,7 +2410,7 @@ async def save_cast_preset(class_name: str) -> None:
             dialog.close()
             ui.notify(f'Preset saved for {class_name} as {f_name}', type='info')
         except Exception as e:
-            logger.error(f'Error saving preset: {e}')
+            cfg_mgr.logger.error(f'Error saving preset: {e}')
             ui.notify(f'Error saving preset: {e}', type='negative')
 
     with ui.dialog() as dialog:
@@ -2453,7 +2437,7 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
     - bool: True if the preset was applied successfully, False otherwise.
     """
     if class_name not in ['Desktop', 'Media']:
-        logger.error(f'Unknown Class Name: {class_name}')
+        cfg_mgr.logger.error(f'Unknown Class Name: {class_name}')
         return False
 
     def apply_preset_cast(preset_cast_data: dict):
@@ -2490,15 +2474,15 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                         value = conversion[0](value)
                     setattr(class_obj, attr, value)
                 except KeyError:
-                    logger.warning(f'Key {section}.{key} does not exist in the preset data')
+                    cfg_mgr.logger.warning(f'Key {section}.{key} does not exist in the preset data')
 
             if interactive:
                 ui.notify('Preset applied', type='info')
             return True
 
         except Exception as er:
-            logger.error(traceback.format_exc())
-            logger.error(f'Error applying preset: {er}')
+            cfg_mgr.logger.error(traceback.format_exc())
+            cfg_mgr.logger.error(f'Error applying preset: {er}')
             ui.notify('Error applying preset', type='negative', position='center')
             return False
 
@@ -2528,7 +2512,7 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
             preset_data = cfg.load(f'config/presets/cast/{class_name}/{file_name}')
             return apply_preset_cast(preset_data)
         except Exception as e:
-            logger.error(f'Error loading preset: {e}')
+            cfg_mgr.logger.error(f'Error loading preset: {e}')
             return False
 
 
@@ -2556,7 +2540,7 @@ def str2list_ini(value: str):
     try:
         value = ast.literal_eval(value)
     except Exception as e:
-        logger.warning(f'Not able to convert to list: {value} Error : {e}')
+        cfg_mgr.logger.warning(f'Not able to convert to list: {value} Error : {e}')
     return value
 
 
@@ -2607,7 +2591,7 @@ async def cast_manage_page():
                 .style('cursor: pointer') \
                 .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
 
-            if str2bool(custom_config['animate-ui']):
+            if str2bool(cfg_mgr.custom_config['animate-ui']):
                 animated_card = Animate(ui.card, animation_name_in="fadeInUp", duration=2)
                 card = animated_card.create_element()
             else:
@@ -2665,7 +2649,7 @@ async def tabs_info_page():
     Tabs
     """
 
-    if str2bool(custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="./assets/css/animate.min.css"/>
@@ -2859,7 +2843,7 @@ async def root_timer_action():
 
     nice.cast_manage(CastAPI, Desktop, Media)
 
-    if str2bool(custom_config['system-stats']):
+    if str2bool(cfg_mgr.custom_config['system-stats']):
         await nice.system_stats(CastAPI, Desktop, Media)
 
 
@@ -2894,7 +2878,7 @@ async def cast_to_wled(class_obj, image_number):
 
     # check if valid wled device
     if not is_alive:
-        logger.warning('Device do not accept connection to port 80')
+        cfg_mgr.logger.warning('Device do not accept connection to port 80')
         ui.notify('Device do not accept connection to port 80', type='warning')
     else:
         ui.notify(f'Cast to device : {class_obj.host}')
@@ -2952,7 +2936,7 @@ async def init_cast(class_obj):
     """
     class_obj.cast(shared_buffer=t_data_buffer)
     nice.cast_manage(CastAPI, Desktop, Media)
-    logger.debug(f'Run Cast for {str(class_obj)}')
+    cfg_mgr.logger.debug(f'Run Cast for {str(class_obj)}')
     ui.notify(f'Cast initiated for :{str(class_obj)}')
 
 
@@ -2962,7 +2946,7 @@ async def cast_stop(class_obj):
     class_obj.stopcast = True
     ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
     nice.cast_manage(CastAPI, Desktop, Media)
-    logger.debug(f' Stop Cast for {str(class_obj)}')
+    cfg_mgr.logger.debug(f' Stop Cast for {str(class_obj)}')
 
 
 async def auth_cast(class_obj):
@@ -2971,7 +2955,7 @@ async def auth_cast(class_obj):
     class_obj.stopcast = False
     ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
     nice.cast_manage(CastAPI, Desktop, Media)
-    logger.debug(f' Cast auth. for {str(class_obj)}')
+    cfg_mgr.logger.debug(f' Cast auth. for {str(class_obj)}')
 
 
 async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
@@ -3015,8 +2999,8 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
             ui.button('', icon='preview', on_click=dialog.open, color='bg-red-800').tooltip('View image')
 
         except Exception as im_error:
-            logger.error(traceback.format_exc())
-            logger.error(f'An exception occurred: {im_error}')
+            cfg_mgr.logger.error(traceback.format_exc())
+            cfg_mgr.logger.error(f'An exception occurred: {im_error}')
 
 
 async def bar_get_size():
@@ -3067,7 +3051,7 @@ async def download_url(url):
             video_img_url = './media/' + image_name
 
     ui.notify(f'Video set to : {video_img_url}')
-    logger.debug(f'Video set to : {video_img_url}')
+    cfg_mgr.logger.debug(f'Video set to : {video_img_url}')
 
     # put max value to progress bar
     CastAPI.progress_bar.value = 1
@@ -3112,17 +3096,17 @@ def apply_custom():
     bg image can be customized
     :return:
     """
-    ui.colors(primary=color_config['primary'],
-              secondary=color_config['secondary'],
-              accent=color_config['accent'],
-              dark=color_config['dark'],
-              positive=color_config['positive'],
-              negative=color_config['negative'],
-              info=color_config['info'],
-              warning=color_config['warning']
+    ui.colors(primary=cfg_mgr.color_config['primary'],
+              secondary=cfg_mgr.color_config['secondary'],
+              accent=cfg_mgr.color_config['accent'],
+              dark=cfg_mgr.color_config['dark'],
+              positive=cfg_mgr.color_config['positive'],
+              negative=cfg_mgr.color_config['negative'],
+              info=cfg_mgr.color_config['info'],
+              warning=cfg_mgr.color_config['warning']
               )
 
-    ui.query('body').style(f'background-image: url({custom_config["bg-image"]}); '
+    ui.query('body').style(f'background-image: url({cfg_mgr.custom_config["bg-image"]}); '
                            'background-size: cover;'
                            'background-repeat: no-repeat;'
                            'background-position: center;')
@@ -3143,8 +3127,8 @@ app.add_static_files('/xtra', 'xtra')
 app.on_startup(init_actions)
 
 # choose GUI
-native_ui = app_config['native_ui']
-native_ui_size = app_config['native_ui_size']
+native_ui = cfg_mgr.app_config['native_ui']
+native_ui_size = cfg_mgr.app_config['native_ui_size']
 show = None
 try:
     if native_ui.lower() == 'none':
@@ -3160,7 +3144,7 @@ try:
         native_ui_size = None
         native_ui = False
 except Exception as error:
-    logger.error(f'Error in config file for native_ui : {native_ui} - {error}')
+    cfg_mgr.logger.error(f'Error in config file for native_ui : {native_ui} - {error}')
     sys.exit(1)
 
 # run app
@@ -3168,9 +3152,9 @@ ui.run(title='WLEDVideoSync',
        favicon='favicon.ico',
        host=server_ip,
        port=server_port,
-       fastapi_docs=str2bool(app_config['fastapi_docs']),
+       fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs']),
        show=show,
-       reconnect_timeout=int(server_config['reconnect_timeout']),
+       reconnect_timeout=int(cfg_mgr.server_config['reconnect_timeout']),
        reload=False,
        native=native_ui,
        window_size=native_ui_size,
@@ -3181,16 +3165,16 @@ END
 """
 
 # some cleaning
-logger.debug('Remove tmp files')
+cfg_mgr.logger.debug('Remove tmp files')
 for tmp_filename in PathLib("./tmp/").glob("*_file.*"):
     tmp_filename.unlink()
 
 # remove yt files
-if str2bool(app_config['keep_yt']) is not True:
+if str2bool(cfg_mgr.app_config['keep_yt']) is not True:
     for media_filename in PathLib("./media/").glob("yt-tmp-*.*"):
         media_filename.unlink()
 
 # remove image files
-if str2bool(app_config['keep_image']) is not True:
+if str2bool(cfg_mgr.app_config['keep_image']) is not True:
     for img_filename in PathLib("./media/").glob("image-tmp_*_*.jpg"):
         img_filename.unlink()

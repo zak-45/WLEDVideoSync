@@ -22,6 +22,9 @@ import os
 from datetime import datetime
 from str2bool import str2bool
 from utils import CASTUtils as Utils
+from configmanager import ConfigManager
+
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
 
 class CV2Utils:
 
@@ -60,7 +63,7 @@ class CV2Utils:
     def cv2_win_close(server_port, class_name, t_name, t_viinput):
         """ Close cv2 window created by imshow """
 
-        logger.debug(f'{t_name} Stop window preview if any')
+        cfg_mgr.logger.debug(f'{t_name} Stop window preview if any')
         window_name = f"{server_port}-{t_name}-" + str(t_viinput)
 
         # check if window run into sub process to instruct it by ShareableList
@@ -69,14 +72,14 @@ class CV2Utils:
 
         # for window into sub process
         if preview_proc:
-            logger.debug('Window on sub process')
+            cfg_mgr.logger.debug('Window on sub process')
             try:
                 # attach to a shareable list by name
                 sl = ShareableList(name=t_name)
                 sl[6] = False
                 sl[18] = '0,0,0'
             except Exception as e:
-                logger.error(f'Error to access SharedList  {t_name} with error : {e} ')
+                cfg_mgr.logger.error(f'Error to access SharedList  {t_name} with error : {e} ')
 
         else:
 
@@ -86,7 +89,7 @@ class CV2Utils:
                 if not win == 0:
                     cv2.destroyWindow(window_name)
             except Exception as e:
-                logger.error(f'Error on thread  {t_name} closing window with error : {e} ')
+                cfg_mgr.logger.error(f'Error on thread  {t_name} closing window with error : {e} ')
 
     @staticmethod
     def sl_main_preview(shared_list, class_name):
@@ -159,7 +162,7 @@ class CV2Utils:
                 received_frame = sl_frame.reshape(int(received_shape[0]), int(received_shape[1]), -1)
             else:
                 # in case of any array data/size problem
-                logger.debug(received_shape, shape_bytes, sl_frame.nbytes)
+                cfg_mgr.logger.debug(received_shape, shape_bytes, sl_frame.nbytes)
                 received_frame = sl_img
 
             sl[6], sl[11], sl[15] = CV2Utils.cv2_preview_window(
@@ -188,13 +191,13 @@ class CV2Utils:
             # Stop if requested
             if sl[11] is True:
                 sl[20] = '0,0,0'
-                logger.debug(f'SL STOP Cast for : {sl_t_name}')
+                cfg_mgr.logger.debug(f'SL STOP Cast for : {sl_t_name}')
                 break
             elif sl[6] is False:
-                logger.debug(f'SL END Preview for : {sl_t_name}')
+                cfg_mgr.logger.debug(f'SL END Preview for : {sl_t_name}')
                 break
 
-        logger.debug(f'Child process exit for : {sl_t_name}')
+        cfg_mgr.logger.debug(f'Child process exit for : {sl_t_name}')
 
     @staticmethod
     def cv2_preview_window(total_frame,
@@ -224,7 +227,7 @@ class CV2Utils:
         """
         frame = cv2.resize(frame, (preview_w, preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        if str2bool(custom_config['pixel-art']):
+        if str2bool(cfg_mgr.custom_config['pixel-art']):
             frame = CV2Utils.pixelart_image(frame, pixel_w, pixel_h)
 
         # put text on the image
@@ -309,7 +312,7 @@ class CV2Utils:
                 pass
             t_preview = False
             t_todo_stop = True
-            logger.debug(f'Request to stop {t_name}')
+            cfg_mgr.logger.debug(f'Request to stop {t_name}')
 
         elif key_pressed == ord("p"):
             try:
@@ -358,7 +361,7 @@ class CV2Utils:
             capture.release()
 
         except Exception as e:
-            logger.error(f'Error to get cv2 info : {e}')
+            cfg_mgr.logger.error(f'Error to get cv2 info : {e}')
 
         return dict_media
 
@@ -454,11 +457,11 @@ class CV2Utils:
         Save image from Buffer
         used on the buffer images
         """
-        folder = app_config['img_folder']
+        folder = cfg_mgr.app_config['img_folder']
         if folder[-1] == '/':
             pass
         else:
-            logger.error("The last character of the folder name is not '/'.")
+            cfg_mgr.logger.error("The last character of the folder name is not '/'.")
             return
 
         # Get the absolute path of the folder relative to the current working directory
@@ -466,7 +469,7 @@ class CV2Utils:
         if os.path.isdir(absolute_img_folder):
             pass
         else:
-            logger.error(f"The folder {absolute_img_folder} does not exist.")
+            cfg_mgr.logger.error(f"The folder {absolute_img_folder} does not exist.")
             return
 
         # select buffer
@@ -494,7 +497,7 @@ class CV2Utils:
             img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
             cv2.imwrite(t_filename, img)
 
-        logger.debug(f"Image saved to {t_filename}")
+        cfg_mgr.logger.debug(f"Image saved to {t_filename}")
 
 
 class ImageUtils:
@@ -620,7 +623,7 @@ class ImageUtils:
     def grid_on_image(image, cols, rows):
 
         if cols == 0 or rows == 0:
-            logger.error('Rows / cols should not be zero')
+            cfg_mgr.logger.error('Rows / cols should not be zero')
 
         else:
 
@@ -759,7 +762,7 @@ class VideoThumbnailExtractor:
         else:
             # Provide blank frames if the file is not a valid media file
             self.thumbnail_frames = [self.create_blank_frame() for _ in times_in_seconds]
-            logger.warning(f"{self.media_path} is not a valid media file. Generated blank frames.")
+            cfg_mgr.logger.warning(f"{self.media_path} is not a valid media file. Generated blank frames.")
 
     def extract_thumbnails_from_image(self):
         image = cv2.imread(self.media_path)
@@ -770,15 +773,15 @@ class VideoThumbnailExtractor:
             new_height = int(self.thumbnail_width * aspect_ratio)
             resized_image = cv2.resize(image, (self.thumbnail_width, new_height))
             self.thumbnail_frames = [resized_image]  # Single thumbnail for images
-            logger.debug(f"Thumbnail extracted from image: {self.media_path}")
+            cfg_mgr.logger.debug(f"Thumbnail extracted from image: {self.media_path}")
         else:
             self.thumbnail_frames = [self.create_blank_frame()]
-            logger.error("Failed to read image. Generated a blank frame.")
+            cfg_mgr.logger.error("Failed to read image. Generated a blank frame.")
 
     async def extract_thumbnails_from_video(self, times_in_seconds):
         cap = cv2.VideoCapture(self.media_path)
         if not cap.isOpened():
-            logger.error(f"Failed to open video file: {self.media_path}")
+            cfg_mgr.logger.error(f"Failed to open video file: {self.media_path}")
             self.thumbnail_frames = [self.create_blank_frame() for _ in times_in_seconds]
             return
 
@@ -787,7 +790,7 @@ class VideoThumbnailExtractor:
 
         for time_in_seconds in times_in_seconds:
             if time_in_seconds > video_length:
-                logger.warning(f"Specified time {time_in_seconds}s is greater than video length {video_length}s. "
+                cfg_mgr.logger.warning(f"Specified time {time_in_seconds}s is greater than video length {video_length}s. "
                                f"Setting time to {video_length}s.")
                 time_in_seconds = video_length
 
@@ -803,9 +806,9 @@ class VideoThumbnailExtractor:
                 resized_frame = cv2.resize(frame, (self.thumbnail_width, new_height))
 
                 self.thumbnail_frames.append(resized_frame)
-                logger.debug(f"Thumbnail extracted at {time_in_seconds}s.")
+                cfg_mgr.logger.debug(f"Thumbnail extracted at {time_in_seconds}s.")
             else:
-                logger.error("Failed to extract frame.")
+                cfg_mgr.logger.error("Failed to extract frame.")
                 self.thumbnail_frames.append(self.create_blank_frame())
 
         cap.release()
@@ -820,28 +823,3 @@ class VideoThumbnailExtractor:
 
     def get_thumbnails(self):
         return [cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) for frame in self.thumbnail_frames]
-
-
-"""
-When this env var exist, this mean run from the one-file compressed executable.
-Load of the config is not possible, folder config should not exist.
-This avoid FileNotFoundError.
-This env not exist when run from the extracted program.
-Expected way to work.
-"""
-if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read config
-    # create logger
-    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
-    # load config file
-    cast_config = Utils.read_config()
-
-    # config keys
-    server_config = cast_config[0]  # server key
-    app_config = cast_config[1]  # app key
-    color_config = cast_config[2]  # colors key
-    custom_config = cast_config[3]  # custom key
-    preset_config = cast_config[4]  # presets key
-    desktop_config = cast_config[5]  # desktop key
-    ws_config = cast_config[6]  # websocket key
-

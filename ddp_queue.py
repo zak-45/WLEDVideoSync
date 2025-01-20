@@ -2,21 +2,10 @@ import struct
 import socket
 import numpy as np
 from queue import Queue
-import threading
-import os
-from utils import CASTUtils as Utils
+from threading import Thread
+from configmanager import ConfigManager
 
-"""
-When this env var exist, this mean run from the one-file executable.
-Load of the config is not possible, folder config should not exist.
-This avoid FileNotFoundError.
-This env not exist when run the program under WLEDVideoSync folder.
-Expected way to work.
-"""
-if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read config
-    # create logger
-    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.ddp')
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.ddp')
 
 
 class DDPDevice:
@@ -48,7 +37,7 @@ class DDPDevice:
         self._port = port
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._data_queue = Queue()  # Initialize a queue for input data
-        self._flush_thread = threading.Thread(target=self._process_queue)  # Thread for processing the queue
+        self._flush_thread = Thread(target=self._process_queue)  # Thread for processing the queue
         self._flush_thread.daemon = True  # Daemonize the thread
         self._flush_thread.start()  # Start the thread
 
@@ -57,7 +46,7 @@ class DDPDevice:
         while True:
             # if too much packet waiting, we stop all
             if self._data_queue.qsize() > 500:
-                logger.error(f'Queue size too big {self._data_queue.qsize()}. Maybe Better to stop the Cast')
+                cfg_mgr.logger.error(f'Queue size too big {self._data_queue.qsize()}. Maybe Better to stop the Cast')
             data = self._data_queue.get()  # Get data from the queue
             self.flush_from_queue(data)  # Call flush with the data
             self._data_queue.task_done()  # Mark the task as done
@@ -79,12 +68,12 @@ class DDPDevice:
                 retry_number=self.retry_number
             )
             if self.connection_warning:
-                logger.warning(f"DDP connection reestablished to {self._destination}")
+                cfg_mgr.logger.warning(f"DDP connection reestablished to {self._destination}")
                 self.connection_warning = False
                 self._online = True
         except OSError as error:
             if not self.connection_warning:
-                logger.error(f"Error in DDP connection to {self._destination}: {error}")
+                cfg_mgr.logger.error(f"Error in DDP connection to {self._destination}: {error}")
                 self.connection_warning = True
                 self._online = False
 
@@ -126,5 +115,5 @@ class DDPDevice:
         retry_number can be used to resend data in case of bad network
         """
         packet_to_send = 1 + retry_number
-        for i in range(packet_to_send):
+        for _ in range(packet_to_send):
             sock.sendto(bytes(udpdata), (dest, port))

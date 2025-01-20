@@ -10,7 +10,6 @@
 # used by CastAPI mainly
 #
 """
-import os
 import sys
 import concurrent_log_handler
 import psutil
@@ -24,28 +23,9 @@ from cv2utils import VideoThumbnailExtractor
 from PIL import Image
 from pathlib import Path
 from typing import Optional
+from configmanager import ConfigManager
 
-"""
-When this env var exist, this mean run from the one-file compressed executable.
-Load of the config is not possible, folder config should not exist yet.
-This avoid FileNotFoundError.
-This env not exist when run from the extracted program.
-Expected way to work.
-"""
-if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read config
-    # create logger
-    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
-
-    # load config file
-    cast_config = Utils.read_config()
-
-    # config keys
-    server_config = cast_config[0]  # server key
-    app_config = cast_config[1]  # app key
-    color_config = cast_config[2]  # colors key
-    custom_config = cast_config[3]  # custom key
-    preset_config = cast_config[4]  # presets key
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
 
 
 # Define a factory function to create a wheel event handler for a given slider
@@ -74,7 +54,7 @@ async def system_stats(CastAPI, Desktop, Media):
     CastAPI.total_packet = Desktop.total_packet + Media.total_packet
     CastAPI.total_frame = Desktop.total_frame + Media.total_frame
 
-    if str2bool(custom_config['cpu-chart']):
+    if str2bool(cfg_mgr.custom_config['cpu-chart']):
         if CastAPI.cpu_chart is not None:
             now = datetime.now()
             date_time_str = now.strftime("%H:%M:%S")
@@ -114,7 +94,7 @@ async def head_set(name, target, icon):
             ui.button('Desktop Params', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
         if name != 'Media Params':
             ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
-        if str2bool(app_config['fastapi_docs']):
+        if str2bool(cfg_mgr.app_config['fastapi_docs']):
             ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
         ui.icon('info', size='sm').on('click', lambda: app_info()).style('cursor:pointer')
 

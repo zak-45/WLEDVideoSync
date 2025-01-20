@@ -9,10 +9,12 @@
 #
 """
 
-import time
-import random
-import threading
+from time import sleep
+from random import shuffle, randint
+from threading import Thread
+from configmanager import ConfigManager
 
+cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 class IPSwapper:
     """
@@ -47,7 +49,7 @@ class IPSwapper:
 
     def start_circular_swap(self, delay_ms):
         self.running = True
-        thread = threading.Thread(target=self._circular_swap, args=(delay_ms,))
+        thread = Thread(target=self._circular_swap, args=(delay_ms,))
         thread.daemon = True
         thread.start()
 
@@ -55,11 +57,11 @@ class IPSwapper:
         while self.running:
             self.ip_list.append(self.ip_list.pop(0))  # Move the first element to the end
             self._update_list(self.ip_list)
-            time.sleep(delay_ms / 1000)  # Convert milliseconds to seconds
+            sleep(delay_ms / 1000)  # Convert milliseconds to seconds
 
     def start_reverse_swap(self, delay_ms):
         self.running = True
-        thread = threading.Thread(target=self._reverse_swap, args=(delay_ms,))
+        thread = Thread(target=self._reverse_swap, args=(delay_ms,))
         thread.daemon = True
         thread.start()
 
@@ -67,23 +69,23 @@ class IPSwapper:
         while self.running:
             self.ip_list.insert(0, self.ip_list.pop())  # Move the last element to the front
             self._update_list(self.ip_list)
-            time.sleep(delay_ms / 1000)  # Convert milliseconds to seconds
+            sleep(delay_ms / 1000)  # Convert milliseconds to seconds
 
     def start_random_order(self, delay_ms):
         self.running = True
-        thread = threading.Thread(target=self._random_order, args=(delay_ms,))
+        thread = Thread(target=self._random_order, args=(delay_ms,))
         thread.daemon = True
         thread.start()
 
     def _random_order(self, delay_ms):
         while self.running:
-            random.shuffle(self.ip_list)  # Shuffle the list randomly
+            shuffle(self.ip_list)  # Shuffle the list randomly
             self._update_list(self.ip_list)
-            time.sleep(delay_ms / 1000)  # Convert milliseconds to seconds
+            sleep(delay_ms / 1000)  # Convert milliseconds to seconds
 
     def start_shuffle_sections(self, delay_ms, section_size):
         self.running = True
-        thread = threading.Thread(target=self._shuffle_sections, args=(delay_ms, section_size,))
+        thread = Thread(target=self._shuffle_sections, args=(delay_ms, section_size,))
         thread.daemon = True
         thread.start()
 
@@ -91,14 +93,14 @@ class IPSwapper:
         while self.running:
             for i in range(0, len(self.ip_list), section_size):
                 section = self.ip_list[i:i + section_size]
-                random.shuffle(section)
+                shuffle(section)
                 self.ip_list[i:i + section_size] = section
             self._update_list(self.ip_list)
-            time.sleep(delay_ms / 1000)
+            sleep(delay_ms / 1000)
 
     def start_reverse_sections(self, delay_ms, section_size):
         self.running = True
-        thread = threading.Thread(target=self._reverse_sections, args=(delay_ms, section_size,))
+        thread = Thread(target=self._reverse_sections, args=(delay_ms, section_size,))
         thread.daemon = True
         thread.start()
 
@@ -109,11 +111,11 @@ class IPSwapper:
                 section.reverse()
                 self.ip_list[i:i + section_size] = section
             self._update_list(self.ip_list)
-            time.sleep(delay_ms / 1000)
+            sleep(delay_ms / 1000)
 
     def start_rotate_sections(self, delay_ms, section_size, rotate_by):
         self.running = True
-        thread = threading.Thread(target=self._rotate_sections, args=(delay_ms, section_size, rotate_by,))
+        thread = Thread(target=self._rotate_sections, args=(delay_ms, section_size, rotate_by,))
         thread.daemon = True
         thread.start()
 
@@ -124,11 +126,11 @@ class IPSwapper:
                 section = section[-rotate_by:] + section[:-rotate_by]
                 self.ip_list[i:i + section_size] = section
             self._update_list(self.ip_list)
-            time.sleep(delay_ms / 1000)
+            sleep(delay_ms / 1000)
 
     def start_random_replace(self, delay_ms):
         self.running = True
-        thread = threading.Thread(target=self._random_replace, args=(delay_ms,))
+        thread = Thread(target=self._random_replace, args=(delay_ms,))
         thread.daemon = True
         thread.start()
 
@@ -139,15 +141,15 @@ class IPSwapper:
                     # Restore the previous IP address
                     self.ip_list[self.previous_index] = self.initial_ip_list[self.previous_index]
                 # Select a new random index
-                random_index = random.randint(0, len(self.ip_list) - 1)
+                random_index = randint(0, len(self.ip_list) - 1)
                 # Replace the IP address at the new random index with '127.0.0.1'
                 self.ip_list[random_index] = '127.0.0.1'
                 # Update the previous index
                 self.previous_index = random_index
                 self._update_list(self.ip_list)
-            time.sleep(delay_ms / 1000)
+            sleep(delay_ms / 1000)
 
     def stop(self):
         self.running = False
-        time.sleep(0.1)  # Allow some time for the loop to stop
+        sleep(0.1)  # Allow some time for the loop to stop
         self._update_list(self.initial_ip_list)  # Restore the initial IP list

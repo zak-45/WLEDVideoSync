@@ -124,9 +124,11 @@ from PIL import Image
 from uvicorn import Config, Server
 from nicegui import native
 from str2bool import str2bool
-
 if sys.platform.lower() == 'win32':
     from pystray import Icon, Menu, MenuItem
+from configmanager import ConfigManager
+
+cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 Process, Queue = Utils.mp_setup()
 
@@ -138,38 +140,26 @@ This env not exist when running from the decompressed program.
 Expected way to work.
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read config
-    # create logger
-    logger = Utils.setup_logging('config/logging.ini', 'WLEDLogger')
-
-    # load config file
-    cast_config = Utils.read_config()
-
-    # config keys
-    server_config = cast_config[0]  # server key
-    app_config = cast_config[1]  # app key
-    color_config = cast_config[2]  # colors key
-    custom_config = cast_config[3]  # custom key
 
     #  validate network config
-    server_ip = server_config['server_ip']
+    server_ip = cfg_mgr.server_config['server_ip']
     if not Utils.validate_ip_address(server_ip):
-        logger.error(f'Bad server IP: {server_ip}')
+        cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
         sys.exit(1)
 
-    server_port = server_config['server_port']
+    server_port = cfg_mgr.server_config['server_port']
 
     if server_port == 'auto':
         server_port = native.find_open_port()
     else:
-        server_port = int(server_config['server_port'])
+        server_port = int(cfg_mgr.server_config['server_port'])
 
     if server_port not in range(1, 65536):
-        logger.error(f'Bad server Port: {server_port}')
+        cfg_mgr.logger.error(f'Bad server Port: {server_port}')
         sys.exit(2)
 
     # systray
-    put_on_systray = str2bool(app_config['put_on_systray'])
+    put_on_systray = str2bool(cfg_mgr.app_config['put_on_systray'])
 
 
 """
@@ -353,7 +343,7 @@ def dialog_stop_server(my_window):
     if result:
         # initial instance
         if instance.is_alive():
-            logger.warning('Server stopped')
+            cfg_mgr.logger.warning('Server stopped')
             instance.terminate()
         # if server has been restarted
         if new_instance is not None:
@@ -363,11 +353,11 @@ def dialog_stop_server(my_window):
             # this work here as we have only server instance as child
             for srv_child in active_child:
                 srv_child.terminate()
-            logger.warning('"Child" Server stopped')
+            cfg_mgr.logger.warning('"Child" Server stopped')
 
     else:
 
-        logger.debug('Server stop Canceled')
+        cfg_mgr.logger.debug('Server stop Canceled')
 
     my_window.destroy()
 
@@ -417,11 +407,11 @@ def on_restart_srv():
     global new_instance
 
     if instance.is_alive():
-        logger.warning(f'Already running instance : {instance}')
+        cfg_mgr.logger.warning(f'Already running instance : {instance}')
         return
     new_instance = UvicornServer(config=config)
     if not new_instance.is_alive():
-        logger.warning('Server restarted')
+        cfg_mgr.logger.warning('Server restarted')
         new_instance.start()
 
 
@@ -584,7 +574,7 @@ if __name__ == '__main__':
     Main Params
     """
 
-    show_window = str2bool((app_config['show_window']))
+    show_window = str2bool((cfg_mgr.app_config['show_window']))
 
     # store server port info for others processes
     pid = os.getpid()
@@ -623,7 +613,7 @@ if __name__ == '__main__':
     Run uvicorn server 
     """
 
-    if str2bool(app_config['uvicorn']) is True:
+    if str2bool(cfg_mgr.app_config['uvicorn']) is True:
         """
         Uvicorn
 
@@ -638,8 +628,8 @@ if __name__ == '__main__':
         config = Config(app="CastAPI:app",
                         host=server_ip,
                         port=server_port,
-                        workers=int(server_config['workers']),
-                        log_level=server_config['log_level'],
+                        workers=int(cfg_mgr.server_config['workers']),
+                        log_level=cfg_mgr.server_config['log_level'],
                         access_log=False,
                         reload=False,
                         timeout_keep_alive=10,
@@ -653,7 +643,7 @@ if __name__ == '__main__':
 
         # start server
         instance.start()
-        logger.debug('WLEDVideoSync Started...Server run in separate process')
+        cfg_mgr.logger.debug('WLEDVideoSync Started...Server run in separate process')
 
         """
         systray and webview only if OS win32
@@ -664,7 +654,7 @@ if __name__ == '__main__':
             # start pywebview process
             # this will start native OS window and block main thread
             if show_window:
-                logger.debug('Starting webview loop...')
+                cfg_mgr.logger.debug('Starting webview loop...')
                 start_webview_process()
             else:
                 start_webview_process('Main')
@@ -672,7 +662,7 @@ if __name__ == '__main__':
             # start pystray Icon
             # main infinite loop on systray if requested
             if put_on_systray:
-                logger.debug('Starting systray loop...')
+                cfg_mgr.logger.debug('Starting systray loop...')
                 WLEDVideoSync_icon.run()
 
     else:
@@ -686,7 +676,7 @@ if __name__ == '__main__':
 
     # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     proc_file.close()
-    logger.debug('Remove tmp files')
+    cfg_mgr.logger.debug('Remove tmp files')
 
     try:
         if os.path.isfile(tmp_file + ".dat"):
@@ -699,22 +689,22 @@ if __name__ == '__main__':
             filename.unlink()
 
         # remove yt files
-        if str2bool(app_config['keep_yt']) is not True:
+        if str2bool(cfg_mgr.app_config['keep_yt']) is not True:
             for filename in PathLib("./media/").glob("yt-tmp-*.*"):
                 filename.unlink()
         # remove image files
-        if str2bool(app_config['keep_image']) is not True:
+        if str2bool(cfg_mgr.app_config['keep_image']) is not True:
             for filename in PathLib("./media/").glob("image_*_*.jpg"):
                 filename.unlink()
 
     except Exception as error:
-        logger.error(f'Error to remove tmp files : {error}')
+        cfg_mgr.logger.error(f'Error to remove tmp files : {error}')
 
     # stop initial server
-    logger.info('Stop app')
+    cfg_mgr.logger.info('Stop app')
     if instance is not None:
         instance.stop()
-    logger.info('Server is stopped')
+    cfg_mgr.logger.info('Server is stopped')
     # in case server has been restarted
     if new_instance is not None:
         # get all active child processes (should be only one)
@@ -722,10 +712,10 @@ if __name__ == '__main__':
         # terminate all active children
         for child in active_proc:
             child.terminate()
-        logger.info(f'Active Children: {len(active_proc)} stopped')
+        cfg_mgr.logger.info(f'Active Children: {len(active_proc)} stopped')
     # stop webview if any
     if webview_process is not None:
-        logger.info(f'Found webview process...stopping')
+        cfg_mgr.logger.info(f'Found webview process...stopping')
         webview_process.terminate()
 
-    logger.info('Application Terminated')
+    cfg_mgr.logger.info('Application Terminated')
