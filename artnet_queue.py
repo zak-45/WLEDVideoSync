@@ -20,7 +20,14 @@ _LOGGER = logging.getLogger(__name__)
 class ArtNetQueue:
     """Art-Net device support with queuing"""
 
-    def __init__(self, name, ip_address, universe, pixel_count, universe_size=510, channel_offset=0):
+    def __init__(self,
+                 name,
+                 ip_address,
+                 universe,
+                 pixel_count,
+                 universe_size=510,
+                 channel_offset=0,
+                 channels_per_pixel=3):
         """Initializes an ArtNetQueue object for sending data over Art-Net with queuing.
 
         This class manages the queuing and sending of data over the Art-Net protocol,
@@ -33,7 +40,21 @@ class ArtNetQueue:
             pixel_count (int): The number of pixels in the device.
             universe_size (int, optional): The size of each universe. Defaults to 510.
             channel_offset (int, optional): The channel offset within the universe. Defaults to 0.
+            channels_per_pixel: Channels to use. Default to 3 (RGB) put it to 4 if you want RGBW.
 
+        ex: # For RGB LEDs:
+                queue_rgb = ArtNetQueue(name="My RGB LEDs",
+                ip_address="192.168.1.100",
+                universe=1,
+                pixel_count=100,
+                channels_per_pixel=3)
+
+            # For RGBW LEDs:
+                queue_rgbw = ArtNetQueue(name="My RGBW LEDs",
+                ip_address="192.168.1.101",
+                universe=2,
+                pixel_count=100,
+                channels_per_pixel=4)
         """
         self._name = name
         self._ip_address = ip_address
@@ -41,7 +62,8 @@ class ArtNetQueue:
         self._pixel_count = pixel_count
         self._universe_size = universe_size
         self._channel_offset = channel_offset
-        self._channel_count = self._pixel_count * 3
+        self._channels_per_pixel = channels_per_pixel
+        self._channel_count = self._pixel_count * self._channels_per_pixel
 
         self._artnet = None
         self._data_queue = queue.Queue()
