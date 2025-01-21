@@ -119,6 +119,15 @@ class CASTMedia:
         self.preview = True
         self.repeat = 0  # number of repetition, from -1 to 9999,  -1 = infinite
 
+        self.artnet_name = 'WLEDVideoSync'  # name for e131/artnet
+        self.universe = 0  # universe start number e131/artnet
+        self.pixel_count = 0  # number of pixels e131/artnet
+        self.packet_priority = 100  # priority for e131
+        self.universe_size = 510  # size of each universe e131/artnet
+        self.channel_offset = 0  # The channel offset within the universe. e131/artnet
+        self.channels_per_pixel = 3  # Channels to use for e131/artnet
+
+
     """
     Cast Thread
     """
@@ -148,6 +157,14 @@ class CASTMedia:
         t_cast_y = self.cast_y
         t_cast_frame_buffer = []
         t_protocol = self.protocol
+
+        t_artnet_name = 'WLEDVideoSync'  # name for e131/artnet
+        t_universe = 0  # universe start number e131/artnet
+        t_pixel_count = 0  # number of pixels e131/artnet
+        t_packet_priority = 100  # priority for e131
+        t_universe_size = 510  # size of each universe e131/artnet
+        t_channel_offset = 0  # The channel offset within the universe. e131/artnet
+        t_channels_per_pixel = 3  # Channels to use for e131/artnet
 
         frame_count = 0
 
@@ -887,7 +904,7 @@ class CASTMedia:
 
         cfg_mgr.logger.debug("_" * 50)
         cfg_mgr.logger.debug(f'Cast {t_name} end using this media: {t_viinput}')
-        cfg_mgr.logger.debug(f'Using these devices: {str(ip_addresses)}')
+        cfg_mgr.logger.debug(f'Using these devices: {ip_addresses}')
         cfg_mgr.logger.debug("_" * 50)
 
         cfg_mgr.logger.info(f"{t_name} Cast closed")

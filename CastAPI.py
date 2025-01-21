@@ -1510,7 +1510,8 @@ async def main_page_desktop():
                 ui.button('Manage', on_click=lambda: nice.cast_device_manage(Desktop, Netdevice))
 
             with ui.card():
-                new_protocol = ui.select(['ddp','other'], label='Protocol').bind_value(Desktop,'protocol')
+                new_protocol = ui.select(['ddp', 'artnet', 'e131', 'other'], label='Protocol')
+                new_protocol.bind_value(Desktop, 'protocol')
                 new_protocol.classes('w-40')
                 new_protocol.tooltip('Select other to test experimental feature ....')
 

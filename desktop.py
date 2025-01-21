@@ -167,6 +167,13 @@ class CASTDesktop:
         self.vi_codec: str = 'libx264rgb'
         self.windows_titles = {}
 
+        self.artnet_name = 'WLEDVideoSync'  # name for e131/artnet
+        self.universe = 0  # universe start number e131/artnet
+        self.pixel_count = 0  # number of pixels e131/artnet
+        self.packet_priority = 100  # priority for e131
+        self.universe_size = 510  # size of each universe e131/artnet
+        self.channel_offset = 0  # The channel offset within the universe. e131/artnet
+        self.channels_per_pixel = 3  # Channels to use for e131/artnet
 
     def t_desktop_cast(self, shared_buffer=None):
         """
@@ -201,6 +208,14 @@ class CASTDesktop:
         sl = None
 
         t_protocol = self.protocol
+
+        t_artnet_name = 'WLEDVideoSync'  # name for e131/artnet
+        t_universe = 0  # universe start number e131/artnet
+        t_pixel_count = 0  # number of pixels e131/artnet
+        t_packet_priority = 100  # priority for e131
+        t_universe_size = 510  # size of each universe e131/artnet
+        t_channel_offset = 0  # The channel offset within the universe. e131/artnet
+        t_channels_per_pixel = 3  # Channels to use for e131/artnet
 
         """
         Cast devices
