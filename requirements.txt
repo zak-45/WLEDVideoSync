@@ -14,7 +14,7 @@ pillow==11.0.0
 fastapi==0.115.4
 starlette==0.40.0
 pystray==0.19.5
-uvicorn[standard]==0.30.6
+uvicorn[standard]==0.22.0
 psutil==6.1.0
 requests==2.32.3
 screeninfo==0.8.1
@@ -29,10 +29,13 @@ PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
 
 # any version & Common to all OS
-yt-dlp
+yt-dlp==2024.12.23
 linuxpy
-imageio
+imageio==2.36.0
 pygrabber
 concurrent-log-handler
 cfg-load
 async-timeout
+
+sacn==1.10.0
+pywebview==5.1

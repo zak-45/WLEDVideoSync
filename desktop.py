@@ -83,7 +83,7 @@ Class definition
 
 
 class CASTDesktop:
-    """ Cast Desktop to DDP """
+    """ Cast Desktop to DDP/e131/artnet"""
 
     count = 0  # initialise running casts count to zero
     total_frame = 0  # total number of processed frames
@@ -200,6 +200,8 @@ class CASTDesktop:
         sl_process = None
         sl = None
 
+        t_protocol = self.protocol
+
         """
         Cast devices
         """
@@ -217,21 +219,22 @@ class CASTDesktop:
 
         def send_multicast_image(ip, image):
             """
-            This sends an image to an IP address using DDP
+            This sends an image to an IP address
             :param ip:
             :param image:
             :return:
             """
-            # timeout provided to not have thread waiting infinitely
-            if t_send_frame.wait(timeout=.5):
-                # send ddp data, we select DDPDevice based on the IP
-                for dev in t_ddp_multi_names:
-                    if ip == dev._destination:
-                        dev.send_to_queue(image, self.retry_number)
-                        CASTDesktop.total_packet += dev.frame_count
-                        break
-            else:
-                logger.warning(f'{t_name} Multicast frame dropped')
+            if t_protocol == 'ddp':
+                # timeout provided to not have thread waiting infinitely
+                if t_send_frame.wait(timeout=.5):
+                    # send ddp data, we select DDPDevice based on the IP
+                    for dev in t_ddp_multi_names:
+                        if ip == dev._destination:
+                            dev.send_to_queue(image, self.retry_number)
+                            CASTDesktop.total_packet += dev.frame_count
+                            break
+                else:
+                    logger.warning(f'{t_name} Multicast frame dropped')
 
         def send_multicast_images_to_ips(images_buffer, to_ip_addresses):
             """
@@ -275,9 +278,10 @@ class CASTDesktop:
                 logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
                 return False
 
-        ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
-        # add to global DDP list
-        Utils.update_ddp_list(self.host, ddp_host)
+        if t_protocol == 'ddp':
+            ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
+            # add to global DDP list
+            Utils.update_ddp_list(self.host, ddp_host)
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
@@ -311,19 +315,21 @@ class CASTDesktop:
                                 return False
 
                         ip_addresses.append(cast_ip)
-                        # create ddp device for each IP if not exist
-                        ddp_exist = False
-                        for device in t_ddp_multi_names:
-                            if cast_ip == device._destination:
-                                logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
-                                ddp_exist = True
-                                break
-                        if ddp_exist is not True:
-                            new_ddp = DDPDevice(cast_ip)
-                            t_ddp_multi_names.append(new_ddp)
-                            # add to global DDP list
-                            Utils.update_ddp_list(cast_ip,new_ddp)
-                            logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
+
+                        if t_protocol == 'ddp':
+                            # create ddp device for each IP if not exist
+                            ddp_exist = False
+                            for device in t_ddp_multi_names:
+                                if cast_ip == device._destination:
+                                    logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
+                                    ddp_exist = True
+                                    break
+                            if ddp_exist is not True:
+                                new_ddp = DDPDevice(cast_ip)
+                                t_ddp_multi_names.append(new_ddp)
+                                # add to global DDP list
+                                Utils.update_ddp_list(cast_ip,new_ddp)
+                                logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
 
@@ -656,14 +662,14 @@ class CASTDesktop:
 
                             grid = False
 
-                            # resize frame for sending to ddp device
+                            # resize frame for sending to device
                             frame_to_send = CV2Utils.resize_image(frame, t_scale_width, t_scale_height)
                             # resize frame to pixelart
                             frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
 
                             # DDP run in separate thread to avoid block main loop
                             # here we feed the queue that is read by DDP thread
-                            if self.protocol == "ddp":
+                            if t_protocol == "ddp":
                                 # take only the first IP from list
                                 if t_multicast is False:
                                     try:
