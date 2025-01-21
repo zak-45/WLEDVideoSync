@@ -56,7 +56,7 @@ class ArtNetQueue:
                 pixel_count=100,
                 channels_per_pixel=4)
         """
-        self._name = name
+        self._name = name or 'WLEDVideoSync'
         self._ip_address = ip_address
         self._universe = universe
         self._pixel_count = pixel_count
