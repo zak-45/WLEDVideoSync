@@ -1,4 +1,8 @@
 """
+a:zak-45
+d:21/01/2025
+v:1.0.0
+
 Overview
 This Python code implements an E131Queue class for sending DMX data over an E1.31 (sACN) network.
 It uses the sacn library to handle the sACN communication and incorporates a queue to manage the outgoing data.

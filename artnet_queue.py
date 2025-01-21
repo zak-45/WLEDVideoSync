@@ -1,169 +1,168 @@
+"""
+a:zak-45
+d: 21/01/2025
+v: 1.0.0
+
+This Python code defines the ArtNetQueue class, which manages sending data to Art-Net devices using the stupidArtnet library.
+It uses a queue to buffer data and a background thread to send data asynchronously, handling universe spanning if necessary.
+
+"""
+
 import logging
-
+import threading
+import queue
 import numpy as np
-import voluptuous as vol
 from stupidArtnet import StupidArtnet
-
-from ledfx.devices import NetworkedDevice
-from ledfx.utils import extract_uint8_seq
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class ArtNetDevice(NetworkedDevice):
-    """Art-Net device support"""
+class ArtNetQueue:
+    """Art-Net device support with queuing"""
 
-    CONFIG_SCHEMA = vol.Schema(
-        {
-            vol.Required(
-                "pixel_count",
-                description="Number of individual pixels",
-                default=1,
-            ): vol.All(int, vol.Range(min=1)),
-            vol.Optional(
-                "universe",
-                description="DMX universe for the device",
-                default=0,
-            ): vol.All(int, vol.Range(min=0)),
-            vol.Optional(
-                "packet_size",
-                description="Size of each DMX universe",
-                default=510,
-            ): vol.All(int, vol.Range(min=1, max=512)),
-            vol.Optional(
-                "pre_amble",
-                description="Channel bytes to insert before the RGB data",
-                default="",
-            ): str,
-            vol.Optional(
-                "post_amble",
-                description="Channel bytes to insert after the RGB data",
-                default="",
-            ): str,
-            vol.Optional(
-                "device_repeat",
-                description="numer of pixels to consume per device and repeat pre and post ambles, 0 default will use all pixels in one instance",
-                default=0,
-            ): vol.All(int, vol.Range(min=0)),
-            vol.Optional(
-                "even_packet_size",
-                description="Whether to use even packet size",
-                default=True,
-            ): bool,
-        }
-    )
+    def __init__(self, name, ip_address, universe, pixel_count, universe_size=510, channel_offset=0):
+        """Initializes an ArtNetQueue object for sending data over Art-Net with queuing.
 
-    def __init__(self, ledfx, config):
-        super().__init__(ledfx, config)
+        This class manages the queuing and sending of data over the Art-Net protocol,
+        handling universe spanning and data splitting.
+
+        Args:
+            name (str): The name of the Art-Net sender.
+            ip_address (str): The IP address or hostname of the receiver or "broadcast".
+            universe (int): The starting universe number.
+            pixel_count (int): The number of pixels in the device.
+            universe_size (int, optional): The size of each universe. Defaults to 510.
+            channel_offset (int, optional): The channel offset within the universe. Defaults to 0.
+
+        """
+        self._name = name
+        self._ip_address = ip_address
+        self._universe = universe
+        self._pixel_count = pixel_count
+        self._universe_size = universe_size
+        self._channel_offset = channel_offset
+        self._channel_count = self._pixel_count * 3
+
         self._artnet = None
-        self._device_type = "ArtNet"
-        self.config_use(config)
+        self._data_queue = queue.Queue()
+        self._flush_thread = threading.Thread(target=self._process_queue, daemon=True)
+        self._device_lock = threading.Lock()
 
-    def config_updated(self, config):
-        self.config_use(config)
-        self.deactivate()
-        self.activate()
+        self._calculate_universe_end()
 
-    def config_use(self, config):
-        # get the preamble string, strip it and convert to np.arry of unint8
-        self.pre_amble = np.array(
-            extract_uint8_seq(config.get("pre_amble", "")), dtype=np.uint8
-        )
-        self.post_amble = np.array(
-            extract_uint8_seq(config.get("post_amble", "")), dtype=np.uint8
-        )
-        self.device_repeat = config.get("device_repeat", 0)
+    def _calculate_universe_end(self):
+        """Calculates the last universe used by the device.
 
-        # This assumes RGB - for RGBW devices this isn't gonna work.
-        # TODO: Fix this when/if we ever want to move to RGBW outputs for devices
-        # warning magic number 3 for RGB
-
-        # treat a default value of zero in device_repeat as all pixels in one device
-        # also protect against greater than pixel_count
-        if self.device_repeat == 0 or self.device_repeat > self.pixel_count:
-            self.device_repeat = self.pixel_count
-
-        # if the user has not set enough pixels to fully fill the last device
-        # it is modded away, we will not support partial devices, saves runtime
-        self.devices = self.pixel_count // self.device_repeat
-        self.data_max = self.devices * self.device_repeat
-
-        self.channel_count = (
-            self.pre_amble.size
-            + (self.device_repeat * 3)
-            + self.post_amble.size
-        ) * self.devices
-
-        self.packet_size = self._config["packet_size"]
-        self.universe_count = (
-            self.channel_count + self.packet_size - 1
-        ) // self.packet_size
+        This method determines the ending universe based on the channel count,
+        offset, and universe size.
+        """
+        span = self._channel_offset + self._channel_count - 1
+        self._universe_end = self._universe + int(span / self._universe_size)
+        if span % self._universe_size == 0:
+            self._universe_end -= 1
 
     def activate(self):
-        if self._artnet:
-            _LOGGER.warning(
-                f"Art-Net sender already started for device {self.config['name']}"
-            )
-        self._artnet = StupidArtnet(
-            target_ip=self._config["ip_address"],
-            universe=self._config["universe"],
-            packet_size=self.packet_size,
-            fps=self._config["refresh_rate"],
-            even_packet_size=self._config["even_packet_size"],
-            broadcast=False,
-        )
-        # Don't use start for stupidArtnet - we handle fps locally, and it spawns hundreds of threads
+        """Activates the Art-Net sender and starts the queue processing thread.
 
-        _LOGGER.info(f"Art-Net sender for {self.config['name']} started.")
-        super().activate()
+        This method initializes the Art-Net sender and starts a separate
+        thread to process the data queue.
+        """
+        with self._device_lock:
+            if self._artnet:
+                _LOGGER.warning(f"Art-Net sender already started for {self._name}")
+                return
+
+            self._artnet = StupidArtnet(
+                target_ip=self._ip_address,
+                universe=self._universe,
+                packet_size=self._universe_size,
+                fps=25,  # Set a default FPS value
+                even_packet_size=True,  # Set a default value
+                broadcast=False if self._ip_address != "broadcast" else True,
+            )
+
+            self._flush_thread.start()
+            _LOGGER.info(f"Art-Net sender for {self._name} started.")
 
     def deactivate(self):
-        super().deactivate()
+        """Deactivates the Art-Net sender and stops the queue processing thread.
+
+        This method stops the Art-Net sender, clears the associated resources,
+        and sends a final flush of zeros to the universes.
+        """
         if not self._artnet:
             return
 
-        self._artnet.blackout()
-        self._artnet.close()
-        self._artnet = None
-        _LOGGER.info(f"Art-Net sender for {self.config['name']} stopped.")
+        self.flush(np.zeros(self._channel_count)) # Flush zeros on deactivate
+
+        with self._device_lock:
+            self._artnet.blackout() # Blackout before closing
+            self._artnet.close()
+            self._artnet = None
+            _LOGGER.info(f"Art-Net sender for {self._name} stopped.")
+
+    def send_to_queue(self, data):
+        """Adds data to the queue for sending.
+
+        This method places data into the queue to be processed and sent by the
+        background thread.
+
+        Args:
+            data (np.array): The data to be sent.
+        """
+        self._data_queue.put(data)
+
+    def _process_queue(self):
+        """Processes the data queue and sends data via Art-Net.
+
+        This method continuously retrieves data from the queue and sends it using
+        the `flush` method, handling any exceptions that occur during processing.
+        """
+        while True:
+            try:
+                data = self._data_queue.get()
+                self.flush(data)
+                self._data_queue.task_done()
+            except Exception as e:
+                _LOGGER.error(f"Error processing queue: {e}")
 
     def flush(self, data):
-        with self.lock:
-            """Flush the data to all the Art-Net channels"""
-            if not self._artnet:
-                self.activate()
+        """Sends data over Art-Net, handling universe spanning.
 
-            data = data.flatten()[: self.data_max * 3]
+        This method takes data, splits it into universe-sized chunks if
+        necessary, and sends it over Art-Net.
 
-            # pre allocate the space
-            devices_data = np.empty(self.channel_count, dtype=np.uint8)
+        Args:
+            data (np.array): The data to be sent.
 
-            # Reshape the data into (self.devices, self.device_repeat * 3)
-            reshaped_data = data.reshape(
-                (self.devices, self.device_repeat * 3)
-            )
+        Raises:
+            Exception: If the provided data size does not match the expected
+                channel count.
+        """
+        with self._device_lock:
+            if self._artnet is None:
+                return
 
-            # Create the pre_amble and post_amble arrays to match the device count
-            pre_amble_repeated = np.tile(self.pre_amble, (self.devices, 1))
-            post_amble_repeated = np.tile(self.post_amble, (self.devices, 1))
+            if data.size != self._channel_count:
+                raise Exception(f"Invalid buffer size. {data.size} != {self._channel_count}")
 
-            # Concatenate the pre_amble, reshaped data, and post_amble along the second axis
-            full_device_data = np.concatenate(
-                (pre_amble_repeated, reshaped_data, post_amble_repeated),
-                axis=1,
-            )
+            data = data.flatten()
+            current_index = 0
+            for universe in range(self._universe, self._universe_end + 1):
+                universe_start = (universe - self._universe) * self._universe_size
+                universe_end = (universe - self._universe + 1) * self._universe_size
 
-            devices_data[:] = full_device_data.ravel()
+                dmx_start = max(universe_start, self._channel_offset) % self._universe_size
+                dmx_end = min(universe_end, self._channel_offset + self._channel_count) % self._universe_size
+                if dmx_end == 0:
+                    dmx_end = self._universe_size
 
-            # TODO: Handle the data transformation outside of the loop and just use loop to set universe and send packets
+                input_start = current_index
+                input_end = current_index + dmx_end - dmx_start
+                current_index = input_end
 
-            for i in range(self.universe_count):
-                start = i * self.packet_size
-                end = start + self.packet_size
-                packet = np.zeros(self.packet_size, dtype=np.uint8)
-                packet[: min(self.packet_size, self.channel_count - start)] = (
-                    devices_data[start:end]
-                )
-                self._artnet.set_universe(i + self._config["universe"])
+                packet = np.zeros(self._universe_size, dtype=np.uint8)
+                packet[dmx_start:dmx_end] = data[input_start:input_end]
+                self._artnet.set_universe(universe)
                 self._artnet.set(packet)
                 self._artnet.show()

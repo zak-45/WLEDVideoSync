@@ -29,13 +29,12 @@ PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
 
 # any version & Common to all OS
-yt-dlp==2024.12.23
+yt-dlp
 linuxpy
-imageio==2.36.0
+imageio
 pygrabber
 concurrent-log-handler
 cfg-load
 async-timeout
-
-sacn==1.10.0
-pywebview==5.1
+sacn
+stupidArtnet
