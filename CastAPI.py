@@ -1096,14 +1096,13 @@ async def main_page():
                 ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log')
                 dialog = ui.dialog().classes('w-full') \
                     .props(add='maximized transition-show="slide-up" transition-hide="slide-down"')
-                with dialog, ui.card().classes('w-full'):
+                with (dialog, ui.card().classes('w-full')):
                     log_filename = 'log/WLEDVideoSync.log'
-                    with open(log_filename) as file:
-                        log_data = file.read()
+                    log_data = PathLib(log_filename).read_text()
                     ui.button('Close', on_click=dialog.close, color='red')
                     log_area = ui.textarea(value=log_data).classes('w-full').props(add='bg-color=blue-grey-4')
                     log_area.props(add="rows='25'")
-                ui.button('See Log file', on_click=dialog.open).tooltip('Load log data from file')
+                ui.button('See Log file', on_click=dialog.open).tooltip('Load log data from file.')
 
     """
     Footer : usefully links help
@@ -1566,11 +1565,6 @@ async def main_page_desktop():
         ui.button('Fetch Win TITLES', on_click=grab_windows, color='bg-red-800').tooltip('Retrieve windows titles')
 
 
-async def grab_windows():
-    ui.notification('Retrieved all windows information', close_button=True, timeout=3)
-    Desktop.windows_titles = Utils.windows_titles()
-
-
 @ui.page('/Media')
 async def main_page_media():
     """
@@ -1858,6 +1852,16 @@ async def manage_charts_page():
 """
 helpers /Commons
 """
+
+async def grab_windows():
+    """Retrieves and displays window titles.
+
+    This function retrieves all window titles and displays a notification.
+    """
+
+    ui.notification('Retrieved all windows information', close_button=True, timeout=3)
+    Desktop.windows_titles = Utils.windows_titles()
+
 
 async def media_dev_view_page():
     """
@@ -3126,6 +3130,7 @@ END
 """
 
 # some cleaning
+cfg_mgr.logger.info('Cleaning ...')
 cfg_mgr.logger.debug('Remove tmp files')
 for tmp_filename in PathLib("./tmp/").glob("*_file.*"):
     tmp_filename.unlink()
