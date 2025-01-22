@@ -13,8 +13,9 @@ import threading
 import queue
 import numpy as np
 from stupidArtnet import StupidArtnet
+from configmanager import ConfigManager
 
-_LOGGER = logging.getLogger(__name__)
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.artnet')
 
 
 class ArtNetQueue:
@@ -25,7 +26,7 @@ class ArtNetQueue:
                  ip_address,
                  universe,
                  pixel_count,
-                 universe_size=510,
+                 universe_size=512,
                  channel_offset=0,
                  channels_per_pixel=3):
         """Initializes an ArtNetQueue object for sending data over Art-Net with queuing.
@@ -38,7 +39,7 @@ class ArtNetQueue:
             ip_address (str): The IP address or hostname of the receiver or "broadcast".
             universe (int): The starting universe number.
             pixel_count (int): The number of pixels in the device.
-            universe_size (int, optional): The size of each universe. Defaults to 510.
+            universe_size (int, optional): The size of each universe. Defaults to 512.
             channel_offset (int, optional): The channel offset within the universe. Defaults to 0.
             channels_per_pixel: Channels to use. Default to 3 (RGB) put it to 4 if you want RGBW.
 
@@ -91,7 +92,7 @@ class ArtNetQueue:
         """
         with self._device_lock:
             if self._artnet:
-                _LOGGER.warning(f"Art-Net sender already started for {self._name}")
+                cfg_mgr.logger.warning(f"Art-Net sender already started for {self._name}")
                 return
 
             self._artnet = StupidArtnet(
@@ -104,7 +105,7 @@ class ArtNetQueue:
             )
 
             self._flush_thread.start()
-            _LOGGER.info(f"Art-Net sender for {self._name} started.")
+            cfg_mgr.logger.info(f"Art-Net sender for {self._name} started.")
 
     def deactivate(self):
         """Deactivates the Art-Net sender and stops the queue processing thread.
@@ -121,7 +122,7 @@ class ArtNetQueue:
             self._artnet.blackout() # Blackout before closing
             self._artnet.close()
             self._artnet = None
-            _LOGGER.info(f"Art-Net sender for {self._name} stopped.")
+            cfg_mgr.logger.info(f"Art-Net sender for {self._name} stopped.")
 
     def send_to_queue(self, data):
         """Adds data to the queue for sending.
@@ -146,7 +147,7 @@ class ArtNetQueue:
                 self.flush(data)
                 self._data_queue.task_done()
             except Exception as e:
-                _LOGGER.error(f"Error processing queue: {e}")
+                cfg_mgr.logger.error(f"Error processing queue: {e}")
 
     def flush(self, data):
         """Sends data over Art-Net, handling universe spanning.

@@ -735,11 +735,11 @@ async def edit_artnet(class_obj):
         class_obj: The class instance to bind the Art-Net settings to.
     """
 
-    new_artnet_name = ui.input('artNet name', value=str(class_obj.artnet_name))
-    new_artnet_name.bind_value(class_obj, 'artnet_name')
+    new_artnet_name = ui.input('E131 name', value=str(class_obj.e131_name))
+    new_artnet_name.bind_value(class_obj, 'e131_name')
     new_artnet_name.classes('w-40')
-    new_artnet_name.tooltip('name for e131/artnet')
-    new_universe = ui.number('Universe', placeholder='start', min=1, max=63999, step=1, value=1)
+    new_artnet_name.tooltip('name for e131')
+    new_universe = ui.number('Universe', placeholder='start', min=0, max=63999, step=1, value=1)
     new_universe.bind_value(class_obj, 'universe')
     new_universe.classes('w-40')
     new_universe.tooltip('universe start number e131/artnet')

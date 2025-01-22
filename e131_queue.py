@@ -46,7 +46,7 @@ import numpy as np
 import sacn
 from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.ddp')
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.e131')
 
 class E131Queue:
     """E1.31 device support with queuing"""

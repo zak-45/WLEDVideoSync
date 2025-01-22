@@ -37,6 +37,7 @@ from cv2utils import CV2Utils, ImageUtils
 from multicast import IPSwapper
 from configmanager import ConfigManager
 from e131_queue import E131Queue
+from artnet_queue import ArtNetQueue
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.media')
 
@@ -120,7 +121,7 @@ class CASTMedia:
         self.preview = True
         self.repeat = 0  # number of repetition, from -1 to 9999,  -1 = infinite
 
-        self.artnet_name = 'WVSMedia'  # name for e131/artnet
+        self.e131_name = 'WVSMedia'  # name for e131/artnet
         self.universe = 1  # universe start number e131/artnet
         self.pixel_count = 0  # number of pixels e131/artnet
         self.packet_priority = 100  # priority for e131
@@ -163,7 +164,7 @@ class CASTMedia:
         ddp_host = None
         artnet_host = None
 
-        t_artnet_name = self.artnet_name  # name for e131/artnet
+        t_e131_name = self.e131_name  # name for e131/artnet
         t_universe = int(self.universe)  # universe start number e131/artnet
         t_pixel_count = int(self.pixel_count)  # number of pixels e131/artnet
         t_packet_priority = int(self.packet_priority)  # priority for e131
@@ -279,17 +280,29 @@ class CASTMedia:
             Utils.update_ddp_list(self.host, ddp_host)
 
         elif t_protocol =='e131':
-            e131_host = E131Queue(name=t_artnet_name,
-                            ip_address=self.host,
-                            universe=t_universe,
-                            pixel_count=t_pixel_count,
-                            packet_priority=t_packet_priority,
-                            universe_size=t_universe_size,
-                            channel_offset=t_channel_offset,
-                            channels_per_pixel=t_channels_per_pixel,
-                            blackout=True)
+            e131_host = E131Queue(name=t_e131_name,
+                                  ip_address=self.host,
+                                  universe=t_universe,
+                                  pixel_count=t_pixel_count,
+                                  packet_priority=t_packet_priority,
+                                  universe_size=t_universe_size,
+                                  channel_offset=t_channel_offset,
+                                  channels_per_pixel=t_channels_per_pixel,
+                                  blackout=True)
 
             e131_host.activate()
+
+        elif t_protocol =='artnet':
+            artnet_host = ArtNetQueue(name=t_e131_name,
+                                      ip_address=self.host,
+                                      universe=t_universe,
+                                      pixel_count=t_pixel_count,
+                                      universe_size=t_universe_size,
+                                      channel_offset=t_channel_offset,
+                                      channels_per_pixel=t_channels_per_pixel)
+
+            artnet_host.activate()
+
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
@@ -735,6 +748,10 @@ class CASTMedia:
 
                     e131_host.send_to_queue(frame_to_send)
 
+                elif t_protocol == 'artnet':
+
+                    artnet_host.send_to_queue(frame_to_send)
+
                 """
                     stop for non-live video (length not -1)
                     if we reach end of video or request only x frames from index
@@ -924,8 +941,11 @@ class CASTMedia:
         # Clean ShareableList
         Utils.sl_clean(sl, sl_process, t_name)
 
+        # stop e131/artnet
         if t_protocol == 'e131':
             e131_host.deactivate()
+        elif t_protocol == 'artnet':
+            artnet_host.deactivate()
 
         cfg_mgr.logger.debug("_" * 50)
         cfg_mgr.logger.debug(f'Cast {t_name} end using this media: {t_viinput}')
