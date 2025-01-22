@@ -44,9 +44,9 @@ import queue
 
 import numpy as np
 import sacn
+from configmanager import ConfigManager
 
-_LOGGER = logging.getLogger(__name__)
-
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.ddp')
 
 class E131Queue:
     """E1.31 device support with queuing"""
@@ -59,7 +59,8 @@ class E131Queue:
                  packet_priority=100,
                  universe_size=510,
                  channel_offset=0,
-                 channels_per_pixel=3):
+                 channels_per_pixel=3,
+                 blackout=True):
         """
         Initializes an E131Queue object for sending data over sACN with queuing.
 
@@ -75,6 +76,7 @@ class E131Queue:
             universe_size (int, optional): The size of each universe. Defaults to 510.
             channel_offset (int, optional): The channel offset within the universe. Defaults to 0.
             channels_per_pixel: Channels to use. Default to 3 (RGB) put it to 4 if you want RGBW.
+            blackout: Default to True. Flush device with zero values when deactivate
 
         ex: # For RGB LEDs:
                 queue_rgb = E131Queue(name="My RGB LEDs",
@@ -101,6 +103,7 @@ class E131Queue:
         self._channel_offset = channel_offset
         self._channels_per_pixel = channels_per_pixel
         self._channel_count = self._pixel_count * self._channels_per_pixel
+        self._blackout = blackout
 
         self._sacn = None
         self._data_queue = queue.Queue()
@@ -128,13 +131,13 @@ class E131Queue:
         """
         with self._device_lock:
             if self._sacn:
-                _LOGGER.warning(f"sACN sender already started for {self._name}")
+                cfg_mgr.logger.warning(f"sACN sender already started for {self._name}")
                 return
 
             self._sacn = sacn.sACNsender(source_name=self._name)
 
             for universe in range(self._universe, self._universe_end + 1):
-                _LOGGER.info(f"sACN activating universe {universe}")
+                cfg_mgr.logger.info(f"sACN activating universe {universe}")
                 self._sacn.activate_output(universe)
                 self._sacn[universe].priority = self._packet_priority
                 if self._ip_address.lower() != "multicast":
@@ -146,7 +149,7 @@ class E131Queue:
             self._sacn.manual_flush = True
             self._flush_thread.start()
 
-            _LOGGER.info(f"sACN sender for {self._name} started.")
+            cfg_mgr.logger.info(f"sACN sender for {self._name} started.")
 
     def deactivate(self):
         """Deactivates the sACN sender and stops the queue processing thread.
@@ -156,12 +159,13 @@ class E131Queue:
         if not self._sacn:
             return
 
-        self.flush(np.zeros(self._channel_count))
+        if self._blackout:
+            self.flush(np.zeros(self._channel_count))
 
         with self._device_lock:
             self._sacn.stop()
             self._sacn = None
-            _LOGGER.info(f"sACN sender for {self._name} stopped.")
+            cfg_mgr.logger.info(f"sACN sender for {self._name} stopped.")
 
     def send_to_queue(self, data):
         """Adds data to the queue for sending.
@@ -186,7 +190,7 @@ class E131Queue:
                 self.flush(data)
                 self._data_queue.task_done()
             except Exception as e:
-                _LOGGER.error(f"Error processing queue: {e}")
+                cfg_mgr.logger.error(f"Error processing queue: {e}")
 
 
     def flush(self, data):

@@ -622,10 +622,11 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
                             detail=f"Class name: {class_name} not in {class_to_test}")
     try:
         class_obj = globals()[class_name]
-    except KeyError:
+    except KeyError as e:
         cfg_mgr.logger.error(f"Invalid class name: {class_name}")
-        raise HTTPException(status_code=400,
-                            detail=f"Invalid class name: {class_name}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid class name: {class_name}"
+        ) from e
 
     if cast_name is not None and cast_name not in class_obj.cast_names:
         cfg_mgr.logger.error(f"Invalid Cast name: {cast_name}")
@@ -633,9 +634,8 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
                             detail=f"Invalid Cast name: {cast_name}")
 
     if not hasattr(class_obj, 'cast_name_todo'):
-        cfg_mgr.logger.error(f"Invalid attribute name")
-        raise HTTPException(status_code=400,
-                            detail=f"Invalid attribute name")
+        cfg_mgr.logger.error("Invalid attribute name")
+        raise HTTPException(status_code=400, detail="Invalid attribute name")
 
     if clear:
         class_obj.cast_name_todo = []
@@ -643,9 +643,11 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
         return {"message": f" To do cleared for {class_obj}'"}
 
     if action not in action_to_test and action is not None:
-        cfg_mgr.logger.error(f"Invalid action name. Allowed : " + str(action_to_test))
-        raise HTTPException(status_code=400,
-                            detail=f"Invalid action name {action}. Allowed : " + str(action_to_test))
+        cfg_mgr.logger.error(f"Invalid action name. Allowed : {str(action_to_test)}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid action name {action}. Allowed : {str(action_to_test)}",
+        )
 
     if class_name == 'Desktop':
         class_obj.t_desktop_lock.acquire()
@@ -728,8 +730,9 @@ async def apply_preset_api(class_name: str = Path(description=f'Class name, shou
                 raise HTTPException(status_code=400,
                                     detail=f"Apply preset return value : {result}")
         except Exception as e:
-            raise HTTPException(status_code=400,
-                                detail=f"Not able to apply preset : {e}")
+            raise HTTPException(
+                status_code=400, detail=f"Not able to apply preset : {e}"
+            ) from e
     elif preset_type == 'cast':
         try:
             result = await load_cast_preset(class_name=class_name, interactive=False, file_name=file_name)
@@ -737,8 +740,9 @@ async def apply_preset_api(class_name: str = Path(description=f'Class name, shou
                 raise HTTPException(status_code=400,
                                     detail=f"Apply preset return value : {result}")
         except Exception as e:
-            raise HTTPException(status_code=400,
-                                detail=f"Not able to apply preset : {e}")
+            raise HTTPException(
+                status_code=400, detail=f"Not able to apply preset : {e}"
+            ) from e
     else:
         raise HTTPException(status_code=400,
                             detail=f"unknown error in preset API")
@@ -819,8 +823,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 else:
                     raise AttributeError(f'Module {func_name_parts[0]} not found')
             elif len(func_name_parts) == 1:
-                my_func = globals().get(action)
-                if my_func:
+                if my_func := globals().get(action):
                     result = await run_in_threadpool(my_func, **params)
                 else:
                     raise AttributeError(f'Function {action} not found')
@@ -1429,16 +1432,7 @@ async def main_page_desktop():
                 .on('click', lambda: ui.navigate.to('/Desktop'))
 
             with ui.card():
-                new_rate = ui.number('FPS', value=Desktop.rate, min=1, max=60, precision=0)
-                new_rate.tooltip('Desired Frame Per Second, max = 60')
-                new_rate.bind_value(Desktop, 'rate', forward=lambda value: int(value or 1))
-                new_scale_width = ui.number('Scale Width', value=Desktop.scale_width, min=8, max=1920, precision=0)
-                new_scale_width.tooltip('Cast Width')
-                new_scale_width.bind_value(Desktop, 'scale_width', forward=lambda value: int(value or 8))
-                new_scale_height = (ui.number('Scale Height', value=Desktop.scale_height, min=8, max=1080, precision=0))
-                new_scale_height.tooltip('Cast Height')
-                new_scale_height.bind_value(Desktop, 'scale_height', forward=lambda value: int(value or 8))
-
+                await nice.edit_rate_x_y(Desktop)
 
             with ui.card():
                 new_wled = ui.checkbox('wled')
@@ -1484,23 +1478,12 @@ async def main_page_desktop():
                 ui.button('Codecs', on_click=nice.display_codecs)
 
             with ui.card():
-                new_put_to_buffer = ui.checkbox('Capture Frame')
-                new_put_to_buffer.bind_value(Desktop, 'put_to_buffer')
-                new_put_to_buffer.tooltip('Select if you want to capture images')
-                new_frame_max = ui.number('Number to Capture', value=Desktop.frame_max, min=1, max=30, precision=0)
-                new_frame_max.tooltip('Max number of frame to capture')
-                new_frame_max.bind_value(Desktop, 'frame_max', forward=lambda value: int(value or 0))
+
+                await nice.edit_capture(Desktop)
 
             with ui.card():
-                new_multicast = ui.checkbox('Multicast')
-                new_multicast.tooltip('Select if you want Multicast feature')
-                new_multicast.bind_value(Desktop, 'multicast')
-                new_cast_x = ui.number('Matrix X', value=Desktop.cast_x, min=1, max=1920, precision=0)
-                new_cast_x.tooltip('Increase Matrix * X')
-                new_cast_x.bind_value(Desktop, 'cast_x', forward=lambda value: int(value or 1))
-                new_cast_y = ui.number('Matrix Y', value=Desktop.cast_y, min=1, max=1080, precision=0)
-                new_cast_y.tooltip('Increase Matrix * Y')
-                new_cast_y.bind_value(Desktop, 'cast_y', forward=lambda value: int(value or 1))
+
+                await nice.edit_multicast(Desktop)
 
             with ui.card():
                 new_cast_devices = ui.input('Cast Devices', value=str(Desktop.cast_devices))
@@ -1510,17 +1493,16 @@ async def main_page_desktop():
                 ui.button('Manage', on_click=lambda: nice.cast_device_manage(Desktop, Netdevice))
 
             with ui.card():
-                new_protocol = ui.select(['ddp', 'artnet', 'e131', 'other'], label='Protocol')
-                new_protocol.bind_value(Desktop, 'protocol')
-                new_protocol.classes('w-40')
-                new_protocol.tooltip('Select other to test experimental feature ....')
+                await nice.edit_protocol(Desktop)
+
+            with ui.card():
+                await nice.edit_artnet(Desktop)
 
             with ui.card():
                 new_record = ui.checkbox(text='Record', value=False).bind_value(Desktop,'record')
                 new_record.tooltip('Select if want to record cast')
                 new_record_file = ui.input('File name').bind_value(Desktop,'output_file')
                 new_record_file.tooltip('Provide file name for record, extension determine format eg: file.mp4')
-
 
     ui.separator().classes('mt-6')
 
@@ -1677,15 +1659,7 @@ async def main_page_media():
                 .on('click', lambda: ui.navigate.to('/Media'))
 
             with ui.card():
-                new_rate = ui.number('FPS', value=Media.rate, min=1, max=60, precision=0)
-                new_rate.tooltip('Desired Frame Per Second, max = 60')
-                new_rate.bind_value(Media, 'rate', forward=lambda value: int(value or 1))
-                new_scale_width = ui.number('Scale Width', value=Media.scale_width, min=8, max=1920, precision=0)
-                new_scale_width.tooltip('Cast Width')
-                new_scale_width.bind_value(Media, 'scale_width', forward=lambda value: int(value or 8))
-                new_scale_height = (ui.number('Scale Height', value=Media.scale_height, min=8, max=1080, precision=0))
-                new_scale_height.tooltip('Cast Height')
-                new_scale_height.bind_value(Media, 'scale_height', forward=lambda value: int(value or 8))
+                await nice.edit_rate_x_y(Media)
 
             with ui.card():
                 new_viinput = ui.input('Input', value=str(Media.viinput))
@@ -1704,26 +1678,20 @@ async def main_page_media():
                 new_host.on('focusout', lambda: update_attribute_by_name('Media', 'host', new_host.value))
 
             with ui.card():
-                new_put_to_buffer = ui.checkbox('Capture Frame')
-                new_put_to_buffer.tooltip('Select if you want to capture images')
-                new_put_to_buffer.bind_value(Media, 'put_to_buffer')
-                new_frame_max = ui.number('Number to Capture', value=Media.frame_max, min=1, max=30, precision=0)
-                new_frame_max.tooltip('Max number of frame to capture')
-                new_frame_max.bind_value(Media, 'frame_max', forward=lambda value: int(value or 0))
-                new_frame_index = ui.number('Seek to frame N°', value=Media.frame_index, min=0, precision=0)
-                new_frame_index.tooltip('Position media to frame number')
-                new_frame_index.bind_value(Media, 'frame_index', forward=lambda value: int(value or 0))
+
+                await nice.edit_capture(Media)
 
             with ui.card():
-                new_multicast = ui.checkbox('Multicast')
-                new_multicast.tooltip('Select if you want Multicast feature')
-                new_multicast.bind_value(Media, 'multicast')
-                new_cast_x = ui.number('Matrix X', value=Media.cast_x, min=1, max=1920, precision=0)
-                new_cast_x.tooltip('Increase Matrix * X')
-                new_cast_x.bind_value(Media, 'cast_x', forward=lambda value: int(value or 1))
-                new_cast_y = ui.number('Matrix Y', value=Media.cast_y, min=1, max=1080, precision=0)
-                new_cast_y.tooltip('Increase Matrix * Y')
-                new_cast_y.bind_value(Media, 'cast_y', forward=lambda value: int(value or 1))
+
+                await nice.edit_multicast(Media)
+
+            with ui.card():
+
+                await nice.edit_protocol(Media)
+
+            with ui.card():
+
+                await nice.edit_artnet(Media)
 
             with ui.card():
                 new_cast_devices = ui.input('Cast Devices', value=str(Media.cast_devices))
@@ -1798,10 +1766,13 @@ async def splash_page():
     """
     ui.dark_mode(True)
     ui.image('media/intro.gif').classes('self-center').style('width: 50%')
-    main = ui.button('MAIN INTERFACE', on_click=lambda: (main.props('loading'), ui.navigate.to(f'/'))) \
-        .classes('self-center')
-    ui.button('API', on_click=lambda: ui.navigate.to(f'/docs')) \
-        .classes('self-center')
+    main = ui.button(
+        'MAIN INTERFACE',
+        on_click=lambda: (main.props('loading'), ui.navigate.to('/')),
+    ).classes('self-center')
+    ui.button('API', on_click=lambda: ui.navigate.to('/docs')).classes(
+        'self-center'
+    )
 
 
 @ui.page('/ws/docs')
@@ -2113,23 +2084,19 @@ def dev_stats_info_page():
     if Media.host != '127.0.0.1':
         ips_list.append(Media.host)
 
-    for i in range(len(Desktop.cast_devices)):
-        cast_ip = Desktop.cast_devices[i][1]
-        ips_list.append(cast_ip)
-
-    for i in range(len(Media.cast_devices)):
-        cast_ip = Media.cast_devices[i][1]
-        ips_list.append(cast_ip)
-
-    if len(ips_list) == 0:
+    ips_list.extend(
+        Desktop.cast_devices[i][1] for i in range(len(Desktop.cast_devices))
+    )
+    ips_list.extend(
+        Media.cast_devices[i][1] for i in range(len(Media.cast_devices))
+    )
+    
+    if not ips_list:
         ips_list.append('127.0.0.1')
 
     ips_list = [','.join(ips_list)]
 
-    dark = []
-    if CastAPI.dark_mode is True:
-        dark = ['--dark']
-
+    dark = ['--dark'] if CastAPI.dark_mode is True else []
     # run chart on its own process
     Popen(["devstats"] + dev_ip + ips_list + dark,
           executable=select_chart_exe())
@@ -2141,10 +2108,7 @@ def dev_stats_info_page():
 def net_stats_info_page():
     """ network charts """
 
-    dark = []
-    if CastAPI.dark_mode is True:
-        dark = ['--dark']
-
+    dark = ['--dark'] if CastAPI.dark_mode is True else []
     Popen(["netstats"] + dark,
           executable=select_chart_exe())
 
@@ -2155,10 +2119,7 @@ def net_stats_info_page():
 def sys_stats_info_page():
     """ system charts """
 
-    dark = []
-    if CastAPI.dark_mode is True:
-        dark = ['--dark']
-
+    dark = ['--dark'] if CastAPI.dark_mode is True else []
     Popen(["sysstats"] + dark,
           executable=select_chart_exe())
 
@@ -2189,7 +2150,7 @@ async def save_filter_preset(class_name: str) -> None:
     """
 
     def save_file(f_name: str) -> None:
-        if not f_name or f_name.strip() == '':
+        if not f_name or not f_name.strip():
             ui.notify(f'Preset name could not be blank: {f_name}', type='negative')
             return
 
@@ -2368,7 +2329,7 @@ async def save_cast_preset(class_name: str) -> None:
     """
 
     def save_file(f_name: str) -> None:
-        if not f_name or f_name.strip() == '':
+        if not f_name or not f_name.strip():
             ui.notify(f'Preset name could not be blank: {f_name}', type='negative')
             return
 
@@ -2533,7 +2494,7 @@ def str2bool_ini(value: str) -> bool:
 def str2intstr_ini(value: str):
     try:
         value = int(value)
-    except:
+    except Exception:
         pass
     return value
 
@@ -2737,14 +2698,21 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
             return 'pause'
 
     def valid_swap():
-            type_effect = valid_check()
-            if type_effect is None:
-                # stop effects
-                action_to_thread(class_name, cast_name, action, 'stop', clear, execute=True)
-                ui.notify('Effect stop & Reset to initial')
-            else:
-                ui.notify(f'Initiate effect: {type_effect}')
-                action_to_thread(class_name, cast_name, action, type_effect + ',' + str(int(new_delay.value)), clear, execute=True)
+        type_effect = valid_check()
+        if type_effect is None:
+            # stop effects
+            action_to_thread(class_name, cast_name, action, 'stop', clear, execute=True)
+            ui.notify('Effect stop & Reset to initial')
+        else:
+            ui.notify(f'Initiate effect: {type_effect}')
+            action_to_thread(
+                class_name,
+                cast_name,
+                action,
+                f'{type_effect},{int(new_delay.value)}',
+                clear,
+                execute=True,
+            )
 
     def valid_ip():
         if new_ip.value == '127.0.0.1' or Utils.check_ip_alive(new_ip.value):
@@ -2875,13 +2843,7 @@ async def cast_to_wled(class_obj, image_number):
         ui.notify('No WLED device', type='negative', position='center')
         return
 
-    is_alive = Utils.check_ip_alive(class_obj.host)
-
-    # check if valid wled device
-    if not is_alive:
-        cfg_mgr.logger.warning('Device do not accept connection to port 80')
-        ui.notify('Device do not accept connection to port 80', type='warning')
-    else:
+    if is_alive := Utils.check_ip_alive(class_obj.host):
         ui.notify(f'Cast to device : {class_obj.host}')
         if class_obj.__module__ == 'desktop':
             class_name = 'Desktop'
@@ -2891,11 +2853,7 @@ async def cast_to_wled(class_obj, image_number):
             class_name = 'unknown'
 
         # select buffer for image to send
-        if class_obj.multicast:
-            buffer_name = 'multicast'
-        else:
-            buffer_name = 'buffer'
-
+        buffer_name = 'multicast' if class_obj.multicast else 'buffer'
         # send image
         cast_image(
             image_number=image_number,
@@ -2906,6 +2864,9 @@ async def cast_to_wled(class_obj, image_number):
             retry_number=1,
             buffer_name=buffer_name
         )
+    else:
+        cfg_mgr.logger.warning('Device do not accept connection to port 80')
+        ui.notify('Device do not accept connection to port 80', type='warning')
 
 
 async def discovery_net_notify():
@@ -3038,7 +2999,6 @@ async def download_url(url):
         if yt != '':
             video_img_url = yt
 
-    # check if image
     elif await Utils.is_image_url(url):
 
         # generate a unique name
@@ -3049,7 +3009,7 @@ async def download_url(url):
 
         result = await Utils.download_image('./media/', url, image_name)
         if result:
-            video_img_url = './media/' + image_name
+            video_img_url = f'./media/{image_name}'
 
     ui.notify(f'Video set to : {video_img_url}')
     cfg_mgr.logger.debug(f'Video set to : {video_img_url}')

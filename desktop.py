@@ -45,7 +45,7 @@ from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 from multicast import IPSwapper
-
+from e131_queue import E131Queue
 
 Process, Queue = Utils.mp_setup()
 
@@ -167,8 +167,8 @@ class CASTDesktop:
         self.vi_codec: str = 'libx264rgb'
         self.windows_titles = {}
 
-        self.artnet_name = 'WLEDVideoSync'  # name for e131/artnet
-        self.universe = 0  # universe start number e131/artnet
+        self.artnet_name = 'WVSDesktop'  # name for e131/artnet
+        self.universe = 1  # universe start number e131/artnet
         self.pixel_count = 0  # number of pixels e131/artnet
         self.packet_priority = 100  # priority for e131
         self.universe_size = 510  # size of each universe e131/artnet
@@ -208,14 +208,18 @@ class CASTDesktop:
         sl = None
 
         t_protocol = self.protocol
+        e131_host = None
+        ddp_host = None
+        artnet_host = None
 
-        t_artnet_name = 'WLEDVideoSync'  # name for e131/artnet
-        t_universe = 0  # universe start number e131/artnet
-        t_pixel_count = 0  # number of pixels e131/artnet
-        t_packet_priority = 100  # priority for e131
-        t_universe_size = 510  # size of each universe e131/artnet
-        t_channel_offset = 0  # The channel offset within the universe. e131/artnet
-        t_channels_per_pixel = 3  # Channels to use for e131/artnet
+
+        t_artnet_name = self.artnet_name  # name for e131/artnet
+        t_universe = int(self.universe)  # universe start number e131/artnet
+        t_pixel_count = int(self.pixel_count)  # number of pixels e131/artnet
+        t_packet_priority = int(self.packet_priority)  # priority for e131
+        t_universe_size = int(self.universe_size)  # size of each universe e131/artnet
+        t_channel_offset = int(self.channel_offset)  # The channel offset within the universe. e131/artnet
+        t_channels_per_pixel = int(self.channels_per_pixel)  # Channels to use for e131/artnet
 
         """
         Cast devices
@@ -297,6 +301,19 @@ class CASTDesktop:
             ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
             # add to global DDP list
             Utils.update_ddp_list(self.host, ddp_host)
+
+        elif t_protocol == 'e131':
+            e131_host = E131Queue(name=t_artnet_name,
+                            ip_address=self.host,
+                            universe=t_universe,
+                            pixel_count=t_pixel_count,
+                            packet_priority=t_packet_priority,
+                            universe_size=t_universe_size,
+                            channel_offset=t_channel_offset,
+                            channels_per_pixel=t_channels_per_pixel,
+                            blackout=True)
+
+            e131_host.activate()
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
@@ -718,6 +735,9 @@ class CASTDesktop:
                                     logger.error(f'{t_name} Not enough IP devices defined. Modify Multicast param')
                                     break
 
+                            elif t_protocol == 'e131':
+                                e131_host.send_to_queue(frame_to_send)
+
                             # save frame to np buffer if requested (so can be used after by the main)
                             if self.put_to_buffer and frame_count <= self.frame_max:
                                 self.frame_buffer.append(frame)
@@ -872,6 +892,9 @@ class CASTDesktop:
 
         # Clean ShareableList
         Utils.sl_clean(sl, sl_process, t_name)
+
+        if t_protocol == 'e131':
+            e131_host.deactivate()
 
         logger.debug("_" * 50)
         logger.debug(f'Cast {t_name} end using this input: {t_viinput}')

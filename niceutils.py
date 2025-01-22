@@ -30,6 +30,17 @@ cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
 
 # Define a factory function to create a wheel event handler for a given slider
 def create_wheel_handler(slider):
+    """Creates a wheel event handler for a slider.
+
+    This factory function generates an event handler that allows controlling
+    a slider's value using the mouse wheel.
+
+    Args:
+        slider: The slider widget to control.
+
+    Returns:
+        function: The wheel event handler function.
+    """
 
     # Define a function to round values based on the slider's step size
     def round_to_step(value, step):
@@ -49,20 +60,30 @@ def create_wheel_handler(slider):
     return on_wheel
 
 async def system_stats(CastAPI, Desktop, Media):
+    """Collects and displays system statistics.
+
+    This function retrieves CPU and memory usage, updates a CPU usage chart
+    if enabled, and displays notifications for high resource utilization.
+
+    Args:
+        CastAPI: The CastAPI instance.
+        Desktop: The Desktop instance.
+        Media: The Media instance.
+    """
+
     CastAPI.cpu = psutil.cpu_percent(interval=1, percpu=False)
     CastAPI.ram = psutil.virtual_memory().percent
     CastAPI.total_packet = Desktop.total_packet + Media.total_packet
     CastAPI.total_frame = Desktop.total_frame + Media.total_frame
 
-    if str2bool(cfg_mgr.custom_config['cpu-chart']):
-        if CastAPI.cpu_chart is not None:
-            now = datetime.now()
-            date_time_str = now.strftime("%H:%M:%S")
-
-            CastAPI.cpu_chart.options['series'][0]['data'].append(CastAPI.cpu)
-            CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
-
-            CastAPI.cpu_chart.update()
+    if str2bool(cfg_mgr.custom_config['cpu-chart']) and CastAPI.cpu_chart is not None:
+        now = datetime.now()
+        date_time_str = now.strftime("%H:%M:%S")
+    
+        CastAPI.cpu_chart.options['series'][0]['data'].append(CastAPI.cpu)
+        CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
+    
+        CastAPI.cpu_chart.update()
 
     if CastAPI.cpu >= 65:
         ui.notify('High CPU utilization', type='negative', close_button=True)
@@ -82,6 +103,17 @@ def animate_wled_image(CastAPI, visible):
 
 
 async def head_set(name, target, icon):
+    """Creates and displays a header with navigation links.
+
+    This function generates a header element containing a title, icon, and
+    navigation buttons for different sections of the application.
+
+    Args:
+        name (str): The name to display in the header.
+        target (str): The target URL for the header link.
+        icon (str): The name of the icon to display.
+    """
+
     with ui.header(bordered=True, elevated=True).classes('items-center shadow-lg'):
         ui.link(name, target=target).classes('text-white text-lg font-medium')
         ui.icon(icon)
@@ -109,7 +141,15 @@ def app_info():
 
 
 def sync_button(CastAPI, Media):
-    """ Sync Buttons """
+    """Updates the appearance of synchronization buttons.
+
+    This function manages the visual state of synchronization buttons based
+    on the current synchronization status and type.
+
+    Args:
+        CastAPI: The CastAPI instance.
+        Media: The Media instance.
+    """
 
     if Media.cast_sync is True:
         # VSYNC
@@ -138,9 +178,15 @@ def sync_button(CastAPI, Media):
 
 
 def cast_manage(CastAPI, Desktop, Media):
-    """
-    refresh cast parameters  on the root page /
-    :return:
+    """Manages the visual state of cast buttons.
+
+    This function updates the appearance of cast buttons based on the
+    current casting status and availability.
+
+    Args:
+        CastAPI: The CastAPI instance.
+        Desktop: The Desktop instance.
+        Media: The Media instance.
     """
 
     if Desktop.count > 0:
@@ -198,11 +244,16 @@ async def cast_icon(class_obj):
 
 
 async def filters_data(class_obj):
+    """Creates and displays image filter controls.
+
+    This function generates UI elements for adjusting image filters and
+    effects, such as flip, pixelation, gamma, color balance, saturation,
+    brightness, contrast, sharpen, and auto brightness/contrast.
+
+    Args:
+        class_obj: The class instance to bind the filter values to.
     """
-    Create filters fields for Desktop / Media
-    :param class_obj:
-    :return:
-    """
+
     #  Filters for Media/Desktop
     with (ui.card().classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700')):
         ui.label(f'Filters/Effects {type(class_obj).__name__}')
@@ -272,6 +323,15 @@ async def filters_data(class_obj):
 
 
 async def create_cpu_chart(CastAPI):
+    """Creates and displays a CPU usage chart.
+
+    This function generates an interactive chart that displays CPU usage
+    over time.
+
+    Args:
+        CastAPI: The CastAPI instance.
+    """
+
     CastAPI.cpu_chart = ui.echart({
         'darkMode': 'auto',
         'legend': {
@@ -305,6 +365,15 @@ async def create_cpu_chart(CastAPI):
 
 
 async def player_media_info(player_media):
+    """Displays media information and thumbnail.
+
+    This function retrieves and displays media information in a dialog,
+    including a thumbnail extracted from the image/video.
+
+    Args:
+        player_media (str): The path or URL of the media file.
+    """
+
     with ui.dialog() as dialog:
         dialog.open()
         editor = ui.json_editor({'content': {'json': CV2Utils.get_media_info(player_media)}}) \
@@ -334,6 +403,12 @@ async def player_url_info(player_url):
 
 
 async def display_formats():
+    """Displays available AV formats.
+
+    This function retrieves and displays a list of available audio and video
+    formats in a dialog.
+    """
+
     with ui.dialog() as dialog:
         dialog.open()
         editor = ui.json_editor({'content': {'json': Utils.list_av_formats()}}) \
@@ -341,6 +416,12 @@ async def display_formats():
 
 
 async def display_codecs():
+    """Displays available AV codecs.
+
+    This function retrieves and displays a list of available audio and video
+    codecs in a dialog.
+    """
+
     with ui.dialog() as dialog:
         dialog.open()
         editor = ui.json_editor({'content': {'json': Utils.list_av_codecs()}}) \
@@ -561,6 +642,127 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                         editor = ui.json_editor({'content': {'json': info_data[item_v]["data"]}}) \
                          .run_editor_method('updateProps', {'readOnly': True})
                 ui.button('Details', on_click=lambda item_v=item_th: show_details(item_v))
+
+async def edit_rate_x_y(class_obj):
+    """Creates and displays UI elements for editing rate, scale width, and scale height.
+
+    This function generates number input fields for adjusting the frame rate,
+    scaling width, and scaling height.
+
+    Args:
+        class_obj: The class instance to bind the values to.
+    """
+
+    new_rate = ui.number('FPS', value=class_obj.rate, min=1, max=60, precision=0)
+    new_rate.tooltip('Desired Frame Per Second, max = 60')
+    new_rate.bind_value(class_obj, 'rate', forward=lambda value: int(value or 1))
+    new_scale_width = ui.number('Scale Width', value=class_obj.scale_width, min=8, max=1920, precision=0)
+    new_scale_width.tooltip('Cast Width')
+    new_scale_width.bind_value(class_obj, 'scale_width', forward=lambda value: int(value or 8))
+    new_scale_height = (ui.number('Scale Height', value=class_obj.scale_height, min=8, max=1080, precision=0))
+    new_scale_height.tooltip('Cast Height')
+    new_scale_height.bind_value(class_obj, 'scale_height', forward=lambda value: int(value or 8))
+
+async def edit_multicast(class_obj):
+    """Creates and displays multicast settings controls.
+
+    This function generates UI elements for configuring multicast settings,
+    including enabling/disabling multicast and setting the matrix dimensions.
+
+    Args:
+        class_obj: The class instance to bind the multicast settings to.
+    """
+
+    new_multicast = ui.checkbox('Multicast')
+    new_multicast.tooltip('Select if you want Multicast feature')
+    new_multicast.bind_value(class_obj, 'multicast')
+    new_cast_x = ui.number('Matrix X', value=class_obj.cast_x, min=1, max=1920, precision=0)
+    new_cast_x.tooltip('Increase Matrix * X')
+    new_cast_x.bind_value(class_obj, 'cast_x', forward=lambda value: int(value or 1))
+    new_cast_y = ui.number('Matrix Y', value=class_obj.cast_y, min=1, max=1080, precision=0)
+    new_cast_y.tooltip('Increase Matrix * Y')
+    new_cast_y.bind_value(class_obj, 'cast_y', forward=lambda value: int(value or 1))
+
+
+async def edit_capture(class_obj):
+    """Creates and displays frame capture settings controls.
+
+    This function generates UI elements for configuring frame capture
+    settings, including enabling/disabling capture and setting the maximum
+    number of frames to capture.  For `CASTMedia` instances, it also
+    provides a control for seeking to a specific frame.
+
+    Args:
+        class_obj: The class instance to bind the capture settings to.
+    """
+
+    new_put_to_buffer = ui.checkbox('Capture Frame')
+    new_put_to_buffer.tooltip('Select if you want to capture images')
+    new_put_to_buffer.bind_value(class_obj, 'put_to_buffer')
+    new_frame_max = ui.number('Number to Capture', value=class_obj.frame_max, min=1, max=30, precision=0)
+    new_frame_max.tooltip('Max number of frame to capture')
+    new_frame_max.bind_value(class_obj, 'frame_max', forward=lambda value: int(value or 0))
+    class_name = class_obj.__class__.__name__
+    if class_name == 'CASTMedia':
+        new_frame_index = ui.number('Seek to frame N°', value=class_obj.frame_index, min=0, precision=0)
+        new_frame_index.tooltip('Position media to frame number')
+        new_frame_index.bind_value(class_obj, 'frame_index', forward=lambda value: int(value or 0))
+
+
+async def edit_protocol(class_obj):
+    """Creates and displays a protocol selection dropdown.
+
+    This function generates a dropdown menu for selecting the
+    communication protocol.
+
+    Args:
+        class_obj: The class instance to bind the protocol selection to.
+    """
+
+    new_protocol = ui.select(['ddp', 'artnet', 'e131', 'other'], label='Protocol')
+    new_protocol.bind_value(class_obj, 'protocol')
+    new_protocol.classes('w-40')
+    new_protocol.tooltip('Select other to test experimental feature ....')
+
+
+async def edit_artnet(class_obj):
+    """Creates and displays Art-Net / e131 settings controls.
+
+    This function generates UI elements for configuring Art-Net / e131 settings,
+    including name, universe, pixel count, priority, universe size, offset, and channels per pixel.
+
+    Args:
+        class_obj: The class instance to bind the Art-Net settings to.
+    """
+
+    new_artnet_name = ui.input('artNet name', value=str(class_obj.artnet_name))
+    new_artnet_name.bind_value(class_obj, 'artnet_name')
+    new_artnet_name.classes('w-40')
+    new_artnet_name.tooltip('name for e131/artnet')
+    new_universe = ui.number('Universe', placeholder='start', min=1, max=63999, step=1, value=1)
+    new_universe.bind_value(class_obj, 'universe')
+    new_universe.classes('w-40')
+    new_universe.tooltip('universe start number e131/artnet')
+    new_pixel = ui.number('Pixels', placeholder='total number', min=1, max=63999, step=1, value=0)
+    new_pixel.bind_value(class_obj, 'pixel_count')
+    new_pixel.classes('w-40')
+    new_pixel.tooltip('number of pixels e131/artnet')
+    new_priority = ui.number('Priority', placeholder='packet priority', min=0, max=200, step=1, value=0)
+    new_priority.bind_value(class_obj, 'packet_priority')
+    new_priority.classes('w-40')
+    new_priority.tooltip('priority for e131')
+    new_universe_size = ui.number('Size', placeholder='Universe size', min=1, max=512, step=1, value=510)
+    new_universe_size.bind_value(class_obj, 'universe_size')
+    new_universe_size.classes('w-40')
+    new_universe_size.tooltip('size of each universe 510 for e131/ 512 for artnet')
+    new_offset = ui.number('Offset', placeholder='channel', min=0, max=1024, step=1, value=0)
+    new_offset.bind_value(class_obj, 'channel_offset')
+    new_offset.classes('w-40')
+    new_offset.tooltip('The channel offset within the universe. e131/artnet')
+    new_channels_per_pixel = ui.number('Channels', placeholder='rgb', min=1, max=4, step=1, value=3)
+    new_channels_per_pixel.bind_value(class_obj, 'channels_per_pixel')
+    new_channels_per_pixel.classes('w-40')
+    new_channels_per_pixel.tooltip('Channels to use for e131/artnet, RGB = 3 RGBW = 4.')
 
 
 class LocalFilePicker(ui.dialog):
