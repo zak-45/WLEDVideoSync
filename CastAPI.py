@@ -2719,7 +2719,7 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
             )
 
     def valid_ip():
-        if new_ip.value == '127.0.0.1' or Utils.check_ip_alive(new_ip.value):
+        if new_ip.value == '127.0.0.1' or Utils.check_ip_alive(new_ip.value, ping=True):
             # put to loopback if cast(s) with same IP already exist, and we do not want multi
             if multi.value is False:
                 name = None

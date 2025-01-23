@@ -680,32 +680,49 @@ class CASTUtils:
         return re.search(pattern, input_string) is not None
 
     @staticmethod
-    def check_ip_alive(ip_address, port=80, timeout=2):
+    def check_ip_alive(ip_address, port=80, timeout=1, ping=False):
         """
         efficiently check if an IP address is alive or not by testing connection on specified port
          e.g. WLED allow port 80
+         or
+         by using the ping command
         """
 
-        sock = None
-        try:
-            # Create a new socket
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # Set a timeout for the connection attempt
-            sock.settimeout(timeout)
-            # Attempt to connect to the IP address and port
-            result = sock.connect_ex((ip_address, port))
-            # Check if the connection was successful
-            if result == 0:
-                return True  # Host is reachable
-            else:
-                return False  # Host is not reachable
-        except Exception as error:
-            logger.error(traceback.format_exc())
-            logger.error(f'Error on check IP : {error}')
-            return False
-        finally:
-            # Close the socket
-            sock.close()
+        if ping:
+
+            param = '-n' if platform.system().lower() == 'windows' else '-c'
+
+            command = ['ping', param, '1', ip_address]
+            try:
+                subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=timeout)
+                return True
+            except subprocess.CalledProcessError:
+                return False
+            except subprocess.TimeoutExpired:
+                return False
+
+        else:
+
+            sock = None
+            try:
+                # Create a new socket
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                # Set a timeout for the connection attempt
+                sock.settimeout(timeout)
+                # Attempt to connect to the IP address and port
+                result = sock.connect_ex((ip_address, port))
+                # Check if the connection was successful
+                if result == 0:
+                    return True  # Host is reachable
+                else:
+                    return False  # Host is not reachable
+            except Exception as error:
+                logger.error(traceback.format_exc())
+                logger.error(f'Error on check IP : {error}')
+                return False
+            finally:
+                # Close the socket
+                sock.close()
 
     @staticmethod
     def check_and_clean_todo_list(class_name):
@@ -813,9 +830,7 @@ class CASTUtils:
 
         # Convert the list of dictionaries to a JSON string
         json_output = json.dumps(func_with_params)
-        json_data = json.loads(json_output)
-
-        return json_data
+        return json.loads(json_output)
 
 
 class HTTPDiscovery:

@@ -268,10 +268,10 @@ class CASTMedia:
 
         # check IP
         if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
-            if Utils.check_ip_alive(self.host):
+            if Utils.check_ip_alive(self.host, ping=True):
                 cfg_mgr.logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
             else:
-                cfg_mgr.logger.error(f'{t_name} Error looks like IP {self.host} do not accept connection to port 80')
+                cfg_mgr.logger.error(f'{t_name} Error looks like IP {self.host} do not respond to ping')
                 return False
 
         if t_protocol == 'ddp':
@@ -327,7 +327,7 @@ class CASTMedia:
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
-                    valid_ip = Utils.check_ip_alive(cast_ip, port=80, timeout=2)
+                    valid_ip = Utils.check_ip_alive(cast_ip, ping=True)
                     if valid_ip:
                         if self.wled:
                             status = as_run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
