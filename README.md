@@ -1,5 +1,5 @@
 
-<div align=center>Cast video / image / desktop / window to DDP device e.g. WLED.<br>
+<div align=center>Cast video / image / desktop / window to e131/artNet/DDP device e.g. WLED.<br>
 Cross-Platform (Win / Linux / macOS) Portable Application
 </div>
 
@@ -11,10 +11,10 @@ Portable version give you flexibility and nothing installed into your OS.
 `
 ## WLEDVideoSync
 
-WLEDVideoSync is a tool designed to synchronize WLED-controlled LED strips with video content. This project enables users to create immersive lighting experiences that complement their video playback.
+WLEDVideoSync is a tool designed to synchronize Net LED strips with video content. This project enables users to create immersive lighting experiences that complement their video playback.
 
 **Key Features:**
-- Video synchronization with DDP devices e.g: WLED-controlled LED strips
+- Video synchronization with e131 / artNet / DDP devices e.g: WLED-controlled LED strips
 - Multicast feature: aggregate multi DDP devices to a big, BIG one
 - Support for various video sources: image, video or WebUrl (even Youtube)
 - Support for desktop / desktop area, window content
@@ -167,7 +167,7 @@ All of this could be configured later, for the moment focus on default.
         Cast Devices: number and IP address of each DDP device. Number not yet managed
                       device order come from entry order 
         
-        Protocol: ddp or other, if 'other' will use the 'Output' entry, let it to ddp for now
+        Protocol: e131 / artNet / ddp or other, if 'other' will use the 'Output' entry, let it to ddp for now
 
 ``Main of these values can be saved into Preset to be reloaded``
 
@@ -204,6 +204,8 @@ All of this could be configured later, for the moment focus on default.
                       ==> this require 6 devices to set into 'Cast Devices' list                         
                           (tuple of: device index(0...n) , IP address) 
                           This will create 6 images to send and provide big image of 3x16 leds for x and 2x16 for y
+
+        Protocol: e131 / artNet / ddp or other,  let it to ddp for now
 
         Cast Devices: number and IP address of each DDP device. Number not yet managed
                       device order come from entry order 

@@ -755,15 +755,17 @@ async def edit_artnet(class_obj):
     new_universe_size.bind_value(class_obj, 'universe_size')
     new_universe_size.classes('w-40')
     new_universe_size.tooltip('size of each universe 510 for e131/ 512 for artnet')
+    """
     new_offset = ui.number('Offset', placeholder='channel', min=0, max=1024, step=1, value=0)
     new_offset.bind_value(class_obj, 'channel_offset')
     new_offset.classes('w-40')
     new_offset.tooltip('The channel offset within the universe. e131/artnet')
+    
     new_channels_per_pixel = ui.number('Channels', placeholder='rgb', min=1, max=4, step=1, value=3)
     new_channels_per_pixel.bind_value(class_obj, 'channels_per_pixel')
     new_channels_per_pixel.classes('w-40')
     new_channels_per_pixel.tooltip('Channels to use for e131/artnet, RGB = 3 RGBW = 4.')
-
+    """
 
 class LocalFilePicker(ui.dialog):
     """Local File Picker
