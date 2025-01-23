@@ -280,26 +280,27 @@ class CASTMedia:
             Utils.update_ddp_list(self.host, ddp_host)
 
         elif t_protocol =='e131':
-            e131_host = E131Queue(name=t_e131_name,
+            e131_host = E131Queue(name=self.e131_name,
                                   ip_address=self.host,
-                                  universe=t_universe,
-                                  pixel_count=t_pixel_count,
-                                  packet_priority=t_packet_priority,
-                                  universe_size=t_universe_size,
-                                  channel_offset=t_channel_offset,
-                                  channels_per_pixel=t_channels_per_pixel,
+                                  universe=int(self.universe),
+                                  pixel_count=int(self.pixel_count),
+                                  packet_priority=int(self.packet_priority),
+                                  universe_size=int(self.universe_size),
+                                  channel_offset=int(self.channel_offset),
+                                  channels_per_pixel=int(self.channels_per_pixel),
                                   blackout=True)
 
             e131_host.activate()
 
         elif t_protocol =='artnet':
-            artnet_host = ArtNetQueue(name=t_e131_name,
+            artnet_host = ArtNetQueue(name=self.e131_name,
                                       ip_address=self.host,
-                                      universe=t_universe,
-                                      pixel_count=t_pixel_count,
-                                      universe_size=t_universe_size,
-                                      channel_offset=t_channel_offset,
-                                      channels_per_pixel=t_channels_per_pixel)
+                                      universe=int(self.universe),
+                                      pixel_count=int(self.pixel_count),
+                                      universe_size=int(self.universe_size),
+                                      channel_offset=int(self.channel_offset),
+                                      channels_per_pixel=int(self.channels_per_pixel)
+                                      )
 
             artnet_host.activate()
 
