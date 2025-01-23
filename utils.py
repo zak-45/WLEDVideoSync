@@ -100,6 +100,29 @@ def info_window_exe_name():
         return None
 
 
+class CustomLogger(logging.Logger):
+    """
+    A custom logging class that extends the standard Python Logger to display error messages
+    in a custom window before logging. Enhances standard error logging by adding a visual notification mechanism.
+
+    The CustomLogger overrides the standard error logging method to first display an error message
+    in a separate window using display_custom_msg(), and then proceeds with standard error logging.
+    This provides an additional layer of user notification for critical log events.
+
+    Methods:
+        error: Overrides the standard error logging method to display a custom error message before logging.
+
+    Examples:
+        >> logger = CustomLogger('my_logger')
+        >> logger.error('Critical system failure')  # Displays error in custom window and logs
+
+    """
+    def error(self, msg, *args, **kwargs):
+        # Custom action before logging the error
+        display_custom_msg(msg, 'error')
+        super().error(msg, *args, **kwargs)
+
+
 class CASTUtils:
     dev_list: list = []
     matrix_x: int = 0
@@ -694,6 +717,10 @@ class CASTUtils:
 
     @staticmethod
     def setup_logging(config_path='logging_config.ini', handler_name: str = None):
+
+        # Set the custom logger class
+        logging.setLoggerClass(CustomLogger)
+
         if os.path.exists(config_path):
             logging.config.fileConfig(config_path, disable_existing_loggers=True)
             # trick: use the same name for all modules, ui.log will receive message from alls

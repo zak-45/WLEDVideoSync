@@ -191,6 +191,7 @@ class E131Queue:
                 self._data_queue.task_done()
             except Exception as e:
                 cfg_mgr.logger.error(f"Error processing queue: {e}")
+                self.deactivate()
 
 
     def flush(self, data):
@@ -206,10 +207,13 @@ class E131Queue:
         """
         with self._device_lock:
             if self._sacn is None:
+                cfg_mgr.logger.warning('e131 not active')
                 return
 
             if data.size != self._channel_count:
-                raise Exception(f"Invalid buffer size. {data.size} != {self._channel_count}")
+                cfg_mgr.logger.error(f"Invalid buffer size. {data.size} != {self._channel_count}")
+                self.deactivate()
+                return
 
             data = data.flatten()
             current_index = 0

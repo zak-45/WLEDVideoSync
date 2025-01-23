@@ -148,6 +148,7 @@ class ArtNetQueue:
                 self._data_queue.task_done()
             except Exception as e:
                 cfg_mgr.logger.error(f"Error processing queue: {e}")
+                self.deactivate()
 
     def flush(self, data):
         """Sends data over Art-Net, handling universe spanning.
@@ -167,7 +168,8 @@ class ArtNetQueue:
                 return
 
             if data.size != self._channel_count:
-                raise Exception(f"Invalid buffer size. {data.size} != {self._channel_count}")
+                cfg_mgr.logger.error(f"Invalid buffer size. {data.size} != {self._channel_count}")
+                self.deactivate()
 
             data = data.flatten()
             current_index = 0

@@ -364,7 +364,7 @@ class CASTDesktop:
                                 Utils.update_ddp_list(cast_ip,new_ddp)
                                 cfg_mgr.logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
-                        logging.error(f'{t_name} Not able to validate ip : {cast_ip}')
+                        logging.warning(f'{t_name} Not able to validate ip : {cast_ip}')
 
                 # initiate IPSwapper
                 swapper = IPSwapper(ip_addresses)
@@ -700,8 +700,8 @@ class CASTDesktop:
                             # resize frame to pixelart
                             frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
 
-                            # DDP run in separate thread to avoid block main loop
-                            # here we feed the queue that is read by DDP thread
+                            # Protocols run in separate thread to avoid block main loop
+                            # here we feed the queue that is read by Net thread
                             if t_protocol == "ddp":
                                 # take only the first IP from list
                                 if t_multicast is False:
