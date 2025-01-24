@@ -93,9 +93,21 @@ class CV2Utils:
 
     @staticmethod
     def sl_main_preview(shared_list, class_name):
-        """
-        Used by platform <> win32, in this way cv2.imshow() will run on MainThread from a subprocess
-        This one will read data from a ShareAbleList created by cast thread
+        """Used by platform <> win32, in this way cv2.imshow() will run on MainThread from a subprocess
+        This one will read data from a ShareAbleList created by cast thread.
+                
+        This static method displays a preview of a video or image stream in a separate process. 
+        It receives frame data and other parameters from a shared memory list and updates preview-related flags 
+        in the shared list based on user interaction. It's designed to handle preview display on non-Windows platforms 
+        where cv2.imshow() needs to run in the main thread.
+        
+        The method attaches to a ShareableList containing frame data, preview settings, and control flags. 
+        It continuously reads data from the list, converts the byte data back to a NumPy array representing the frame, 
+        and displays it using cv2.imshow(). It handles potential data corruption issues during the byte-to-array 
+        conversion by displaying a default image if the data size is incorrect. User interactions with the preview 
+        window are captured, and the corresponding flags (t_preview, t_todo_stop, text) are updated in the shared list.
+        The loop terminates when t_todo_stop is set or t_preview is cleared.        
+
         Updated data are: t_preview, to_todo_stop and text caught from user entry on preview window
         :param class_name:  Desktop or Media
         :param shared_list:
@@ -143,14 +155,15 @@ class CV2Utils:
             # ( w * h * (colors number)) e.g. 640(w) * 360()h * 3(rgb)
             shape_bytes = int(received_shape[0]) * int(received_shape[1]) * int(received_shape[2])
             if shape_bytes == 0:
-                window_name = f"{sl_server_port}-{sl_t_name}-" + str(sl_t_viinput)
+                window_name = f"{sl_server_port}-{sl_t_name}-{str(sl_t_viinput)}"
                 try:
                     win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                     if not win == 0:
                         cv2.destroyWindow(window_name)
-                except:
+                except Exception:
                     pass
                 break
+                
             # Generate new frame from ShareableList. Display default img in case of problem
             # original np.array has been transformed to bytes with 'tobytes()'
             # re-created as array with 'frombuffer()'
@@ -253,8 +266,7 @@ class CV2Utils:
                 x, y, w, h = 40, preview_h - 60, preview_w - 80, 15
                 # Draw black background rectangle
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
-                text_to_show_bottom = "Device(s) : "
-                text_to_show_bottom += str(ip_addresses)
+                text_to_show_bottom = f"Device(s) : {str(ip_addresses)}"
                 # Using cv2.putText() method
                 frame = cv2.putText(frame,
                                     text_to_show_bottom,
@@ -267,9 +279,9 @@ class CV2Utils:
 
                 # Top
                 text_to_show = f"WLEDVideoSync: {server_port} - "
-                text_to_show += "FPS: " + str(fps) + " - "
-                text_to_show += "FRAME: " + str(frame_count) + " - "
-                text_to_show += "TOTAL: " + str(total_frame)
+                text_to_show += f"FPS: {str(fps)} - "
+                text_to_show += f"FRAME: {str(frame_count)} - "
+                text_to_show += f"TOTAL: {str(total_frame)}"
             else:
                 text_to_show = custom_text
 
@@ -290,16 +302,14 @@ class CV2Utils:
                                 cv2.LINE_AA)
 
         # Displaying the image
-        window_name = f"{server_port}-{t_name}-" + str(t_viinput)
+        window_name = f"{server_port}-{t_name}-{str(t_viinput)}"
         if grid:
             frame = ImageUtils.grid_on_image(frame, cast_x, cast_y)
 
         cv2.imshow(window_name, frame)
         cv2.resizeWindow(window_name, preview_w, preview_h)
 
-        top = 0
-        if preview_top is True:
-            top = 1
+        top = 1 if preview_top is True else 0
         cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
         key_pressed = cv2.waitKey(1)
 
@@ -308,7 +318,7 @@ class CV2Utils:
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                 if not win == 0:
                     cv2.destroyWindow(window_name)
-            except:
+            except Exception:
                 pass
             t_preview = False
             t_todo_stop = True
@@ -319,7 +329,7 @@ class CV2Utils:
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                 if not win == 0:
                     cv2.destroyWindow(window_name)
-            except:
+            except Exception:
                 pass
             t_preview = False
 
