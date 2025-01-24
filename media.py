@@ -164,14 +164,6 @@ class CASTMedia:
         ddp_host = None
         artnet_host = None
 
-        t_e131_name = self.e131_name  # name for e131/artnet
-        t_universe = int(self.universe)  # universe start number e131/artnet
-        t_pixel_count = int(self.pixel_count)  # number of pixels e131/artnet
-        t_packet_priority = int(self.packet_priority)  # priority for e131
-        t_universe_size = int(self.universe_size)  # size of each universe e131/artnet
-        t_channel_offset = int(self.channel_offset)  # The channel offset within the universe. e131/artnet
-        t_channels_per_pixel = int(self.channels_per_pixel)  # Channels to use for e131/artnet
-
         frame_count = 0
 
         t_todo_stop = False
@@ -203,8 +195,8 @@ class CASTMedia:
 
         """
 
-        if str(self.viinput) == "":
-            cfg_mgr.logger.error(f'{t_name} Filename could not be empty')
+        if not str(self.viinput):
+            cfg_mgr.logger.error(f'{t_name} Input media could not be empty')
             return False
 
         t_viinput = self.viinput
@@ -267,7 +259,7 @@ class CASTMedia:
         """
 
         # check IP
-        if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
+        if self.host != '127.0.0.1' and not self.wled:  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host, ping=True):
                 cfg_mgr.logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
             else:
@@ -408,7 +400,7 @@ class CASTMedia:
         cfg_mgr.logger.info(f"{t_name} Playing media {t_viinput} of length {media_length} at {fps} FPS")
         cfg_mgr.logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
 
-        # detect if we want specific frame index: only for non-live video (-1) and not image (1)
+        # detect if we want specific frame index:  not for live video (-1) and image (1)
         if self.frame_index != 0 and media_length > 1:
             cfg_mgr.logger.debug(f"{t_name} Start at frame number {self.frame_index}")
             media.set(cv2.CAP_PROP_POS_FRAMES, self.frame_index - 1)
@@ -635,7 +627,8 @@ class CASTMedia:
                                                                      shared_buffer,
                                                                      self.frame_buffer,
                                                                      self.cast_frame_buffer,
-                                                                     cfg_mgr.logger)
+                                                                     cfg_mgr.logger,
+                                                                     t_protocol)
                 # if list is empty, no more for any cast
                 if len(CASTMedia.cast_name_todo) == 0:
                     CASTMedia.t_todo_event.clear()
@@ -671,7 +664,7 @@ class CASTMedia:
                     # split to matrix
                     t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                     # put frame to np buffer (so can be used after by the main)
-                    # new cast overwrite, only the last can be seen from GUI
+                    # a new cast overwrite buffer, only the last cast buffer can be seen on GUI
                     if self.put_to_buffer and frame_count <= self.frame_max:
                         add_frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
                         add_frame = CV2Utils.resize_image(add_frame, t_scale_width, t_scale_height)
@@ -697,7 +690,7 @@ class CASTMedia:
                     cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
                     break
 
-                # looks like we read an image, go out from the loop...
+                # if we read an image, go out from the loop...
                 if is_image:
                     break
 
@@ -873,7 +866,7 @@ class CASTMedia:
                         grid)
 
             """
-            do we need to sleep.
+            do we need to sleep to be compliant with selected rate (fps)
             """
             if CASTMedia.t_todo_event.is_set():
                 pass

@@ -37,10 +37,12 @@ def execute_actions(class_obj,
                     shared_buffer,
                     frame_buffer,
                     cast_frame_buffer,
-                    logger):
+                    logger,
+                    t_protocol):
     """
     Logic for action thread that need to execute (Desktop or Media)
 
+    :param t_protocol: protocol used to stream ddata
     :param class_obj: Media or Desktop
     :param frame: Current image frame
     :param t_name: Thread name
@@ -84,6 +86,7 @@ def execute_actions(class_obj,
                 "tid": current_thread().native_id,
                 "viinput": str(t_viinput),
                 "preview": t_preview,
+                "protocol": t_protocol,
                 "multicast": t_multicast,
                 "devices": ip_addresses,
                 "image": {

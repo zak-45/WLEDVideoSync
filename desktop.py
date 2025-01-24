@@ -271,7 +271,7 @@ class CASTDesktop:
         """
 
         # check IP
-        if self.host != '127.0.0.1':  # 127.0.0.1 should always exist
+        if self.host != '127.0.0.1' and not self.wled:  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host, ping=True):
                 cfg_mgr.logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
             else:
@@ -623,7 +623,8 @@ class CASTDesktop:
                                                                                  shared_buffer,
                                                                                  self.frame_buffer,
                                                                                  self.cast_frame_buffer,
-                                                                                 cfg_mgr.logger)
+                                                                                 cfg_mgr.logger,
+                                                                                 t_protocol)
                             # if list is empty, no more for any cast
                             if len(CASTDesktop.cast_name_todo) == 0:
                                 CASTDesktop.t_todo_event.clear()
