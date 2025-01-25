@@ -8,13 +8,71 @@
 # this run in another thread to avoid blocking
 #
 """
-
+import re
 from time import sleep
 from random import shuffle, randint
 from threading import Thread
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+
+class MultiUtils:
+
+    matrix_x: int = 0
+    matrix_y: int = 0
+
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def is_valid_cast_device(input_string):
+        """
+        Validate if cast device input is on this format [(0,'IP')]
+        :param input_string:
+        :return:
+        """
+
+        # Define a regex pattern to match the format [(number, 'IP'), ...]
+        pattern = (r'\[\s*\(\s*\d+\s*,\s*\'(?:\d{1,3}\.){3}\d{1,3}\'\s*\)\s*(?:,\s*\(\s*\d+\s*,\s*\'(?:\d{1,'
+                   r'3}\.){3}\d{1,3}\'\s*\)\s*)*\]')
+
+        # Use the search function to check if the input string matches the pattern
+        return re.search(pattern, input_string) is not None
+
+    @staticmethod
+    def split_image_to_matrix(image_np, num_matrices_x, num_matrices_y):
+        """
+         Split the image (np array) into equal parts
+         sub_images = split_image_to_matrix(image_np, num_matrices_x, num_matrices_y)
+
+         Now you have a List of NumPy arrays, each containing a part of the image
+
+         You can further process them as needed
+
+         ---
+         return n sub-images array
+        """
+
+        MultiUtils.matrix_x = num_matrices_x
+        MultiUtils.matrix_y = num_matrices_y
+
+        # Resize the image to ensure it's divisible into equal parts
+        image_height, image_width = image_np.shape[:2]
+        sub_image_width = image_width // num_matrices_x
+        sub_image_height = image_height // num_matrices_y
+
+        # Split the image into num_matrices_x * num_matrices_y parts
+        sub_images = []
+        for y in range(num_matrices_y):
+            for x in range(num_matrices_x):
+                sub_image = image_np[
+                            y * sub_image_height: (y + 1) * sub_image_height,
+                            x * sub_image_width: (x + 1) * sub_image_width]
+                sub_images.append(sub_image)
+
+        return sub_images
+
+
 
 class IPSwapper:
     """

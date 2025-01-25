@@ -53,6 +53,7 @@ from niceutils import LocalFilePicker
 from utils import ScreenAreaSelection as Sa
 from utils import YtSearch
 from utils import AnimatedElement as Animate
+from multicast import MultiUtils as Multi
 from datetime import datetime
 from str2bool import str2bool
 from PIL import Image
@@ -315,7 +316,7 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
 
     # check cast devices comply to [(0,'IP'), ... ]
     if param == 'cast_devices':
-        is_valid = Utils.is_valid_cast_device(str(value))
+        is_valid = Multi.is_valid_cast_device(str(value))
         if not is_valid:
             raise HTTPException(status_code=400,
                                 detail=f"Value '{value}' for attribute '{param}' not comply to list [(0,'IP'),...]")

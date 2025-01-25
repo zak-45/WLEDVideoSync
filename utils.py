@@ -491,21 +491,19 @@ class CASTUtils:
             from linuxpy.video import device as linux_dev
 
             dev = linux_dev.iter_devices()
-            i = 0
-            for item in dev:
-                i += 1
-                devname = str(item)
-                typedev = 'VIDEO'
-                devicenumber = i
-                CASTUtils.dev_list.append((devname, typedev, devicenumber))
+            typedev = 'VIDEO'
+            CASTUtils.dev_list.extend(
+                (str(item), typedev, i) for i, item in enumerate(dev, start=1)
+            )
 
         elif platform.system().lower() == 'windows':
             from pygrabber.dshow_graph import FilterGraph
+
             graph = FilterGraph()
             devices = graph.get_input_devices()
+            typedev = 'video'
             for item in devices:
                 devname = item
-                typedev = 'video'
                 CASTUtils.dev_list.append((devname, typedev, devicenumber))
                 devicenumber += 1
 
@@ -546,38 +544,6 @@ class CASTUtils:
                     return False
 
         return True
-
-    @staticmethod
-    def split_image_to_matrix(image_np, num_matrices_x, num_matrices_y):
-        """
-         Split the image (np array) into equal parts
-         sub_images = split_image_to_matrix(image_np, num_matrices_x, num_matrices_y)
-
-         Now you have a List of NumPy arrays, each containing a part of the image
-
-         You can further process them as needed
-
-         ---
-         return n sub-images array
-        """
-        CASTUtils.matrix_x = num_matrices_x
-        CASTUtils.matrix_y = num_matrices_y
-
-        # Resize the image to ensure it's divisible into equal parts
-        image_height, image_width = image_np.shape[:2]
-        sub_image_width = image_width // num_matrices_x
-        sub_image_height = image_height // num_matrices_y
-
-        # Split the image into num_matrices_x * num_matrices_y parts
-        sub_images = []
-        for y in range(num_matrices_y):
-            for x in range(num_matrices_x):
-                sub_image = image_np[
-                            y * sub_image_height: (y + 1) * sub_image_height,
-                            x * sub_image_width: (x + 1) * sub_image_width]
-                sub_images.append(sub_image)
-
-        return sub_images
 
     # validate json received by ws
     @staticmethod
@@ -663,21 +629,6 @@ class CASTUtils:
                 return False
 
         return False
-
-    @staticmethod
-    def is_valid_cast_device(input_string):
-        """
-        Validate if cast device input is on this format [(0,'IP')]
-        :param input_string:
-        :return:
-        """
-
-        # Define a regex pattern to match the format [(number, 'IP'), ...]
-        pattern = (r'\[\s*\(\s*\d+\s*,\s*\'(?:\d{1,3}\.){3}\d{1,3}\'\s*\)\s*(?:,\s*\(\s*\d+\s*,\s*\'(?:\d{1,'
-                   r'3}\.){3}\d{1,3}\'\s*\)\s*)*\]')
-
-        # Use the search function to check if the input string matches the pattern
-        return re.search(pattern, input_string) is not None
 
     @staticmethod
     def check_ip_alive(ip_address, port=80, timeout=1, ping=False):
@@ -998,7 +949,7 @@ class YtSearch:
             self.search_button.on_click(lambda: self.search_youtube())
             self.next_button = ui.button('More', on_click=lambda: self.next_search())
             self.next_button.set_visibility(False)
-            self.number_found = ui.label(f'Result : ')
+            self.number_found = ui.label('Result : ')
 
         self.search_result = ui.card()
         with self.search_result:

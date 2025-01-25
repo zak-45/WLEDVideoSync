@@ -9,16 +9,15 @@
 #
 # This utility aim to be cross-platform.
 # You can cast an image file , a video file, or a capture device (USB camera ...)
-# Data will be sent through 'ddp' protocol
-# ddp data are sent by using queue feature to avoid any network problem which cause latency
+# Data will be sent through 'ddp'  e131 or artnet protocol
+# LED datas are sent by using queue feature to avoid any network problem which cause latency
+# Once ddp device created, it remains active until application stopped
 # A preview can be seen via 'cv2' : pixelart look
 #
 # in case of camera status() timeout in linux
 # camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 # 27/05/2024: cv2.imshow with import av  freeze
 #
-import logging
-import logging.config
 import concurrent_log_handler
 import threading
 import concurrent.futures
@@ -35,6 +34,7 @@ from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 from multicast import IPSwapper
+from multicast import MultiUtils as Multi
 from configmanager import ConfigManager
 from e131_queue import E131Queue
 from artnet_queue import ArtNetQueue
@@ -120,7 +120,6 @@ class CASTMedia:
         self.reset_total = False  # reset total number of frame / packets on monitor
         self.preview = True
         self.repeat = 0  # number of repetition, from -1 to 9999,  -1 = infinite
-
         self.e131_name = 'WVSMedia'  # name for e131/artnet
         self.universe = 1  # universe start number e131/artnet
         self.pixel_count = 0  # number of pixels e131/artnet
@@ -154,7 +153,7 @@ class CASTMedia:
         t_scale_width = self.scale_width
         t_scale_height = self.scale_height
         t_multicast = self.multicast
-        t_ddp_multi_names =[]
+        t_ddp_multi_names =[]  # all DDP devices for this cast
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
         t_cast_frame_buffer = []
@@ -311,7 +310,7 @@ class CASTMedia:
         # specifics to Multicast
         if t_multicast:
             # validate cast_devices list
-            if not Utils.is_valid_cast_device(str(self.cast_devices)):
+            if not Multi.is_valid_cast_device(str(self.cast_devices)):
                 cfg_mgr.logger.error(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
                 return False
             else:
@@ -329,6 +328,7 @@ class CASTMedia:
                                 return False
 
                         ip_addresses.append(cast_ip)
+
                         if t_protocol == 'ddp':
                             # create ddp device for each IP if not exist
                             ddp_exist = False
@@ -344,7 +344,7 @@ class CASTMedia:
                                 Utils.update_ddp_list(cast_ip,new_ddp)
                                 cfg_mgr.logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
-                        logging.warning(f'{t_name} Not able to validate ip : {cast_ip}')
+                        cfg_mgr.logger.error(f'{t_name} Not able to validate ip : {cast_ip}')
 
                 # initiate IPSwapper
                 swapper = IPSwapper(ip_addresses)
@@ -472,7 +472,7 @@ class CASTMedia:
                         if t_name in CASTMedia.cast_name_to_sync:
                             self.cast_sleep = True
                             # remove thread name from cast to sync list
-                            logging.debug(f"{t_name} remove from all sync")
+                            cfg_mgr.logger.debug(f"{t_name} remove from all sync")
                             CASTMedia.cast_name_to_sync.remove(t_name)
                             # sync cast
                             media.set(cv2.CAP_PROP_POS_MSEC, self.sync_to_time)
@@ -662,7 +662,7 @@ class CASTMedia:
                 #
                 if frame_count > 1:
                     # split to matrix
-                    t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+                    t_cast_frame_buffer = Multi.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                     # put frame to np buffer (so can be used after by the main)
                     # a new cast overwrite buffer, only the last cast buffer can be seen on GUI
                     if self.put_to_buffer and frame_count <= self.frame_max:
@@ -673,7 +673,7 @@ class CASTMedia:
                 else:
                     # populate global cast buffer from first frame only
                     # split to matrix
-                    self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+                    self.cast_frame_buffer = Multi.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                     # validate cast_devices number only once
                     if len(ip_addresses) != len(self.cast_frame_buffer):
                         cfg_mgr.logger.error(f'{t_name} Cast devices number != sub images number: check cast_devices ')
@@ -796,7 +796,9 @@ class CASTMedia:
                                     grid,
                                     str(frame.shape).replace('(', '').replace(')', '')
                                 ],
-                                name=t_name)
+                                name=t_name
+                            )
+
                         except Exception as e:
                             cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {e}')
 
@@ -827,6 +829,7 @@ class CASTMedia:
                         new_frame = frame.tobytes()
                         new_frame = bytearray(new_frame)
                         new_frame.append(1)
+                        #
                         new_frame = bytes(new_frame)
                         sl[1] = new_frame
                         #
@@ -956,7 +959,7 @@ class CASTMedia:
             log_ui: used when want to see log msg into main UI
         """
         if log_ui is not None:
-            root_logger = logging.getLogger()
+            root_logger = cfg_mgr.logger.getLogger()
             if log_ui not in root_logger:
                 cfg_mgr.logger.addHandler(log_ui)
         thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))

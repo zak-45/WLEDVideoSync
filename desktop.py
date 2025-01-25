@@ -30,11 +30,8 @@ import imageio.v3 as iio
 import concurrent.futures
 import threading
 import cv2
-import logging
-import logging.config
 import concurrent_log_handler
 import traceback
-import cfg_load as cfg
 import av
 import actionutils
 
@@ -45,6 +42,7 @@ from ddp_queue import DDPDevice
 from utils import CASTUtils as Utils
 from cv2utils import CV2Utils, ImageUtils
 from multicast import IPSwapper
+from multicast import MultiUtils as Multi
 from e131_queue import E131Queue
 from artnet_queue import ArtNetQueue
 from configmanager import ConfigManager
@@ -323,7 +321,7 @@ class CASTDesktop:
         # specifics for Multicast
         if t_multicast:
             # validate cast_devices list
-            if not Utils.is_valid_cast_device(str(self.cast_devices)):
+            if not Multi.is_valid_cast_device(str(self.cast_devices)):
                 cfg_mgr.logger.error(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
                 return False
             else:
@@ -357,7 +355,7 @@ class CASTDesktop:
                                 Utils.update_ddp_list(cast_ip,new_ddp)
                                 cfg_mgr.logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
-                        logging.warning(f'{t_name} Not able to validate ip : {cast_ip}')
+                        cfg_mgr.logger.error(f'{t_name} Not able to validate ip : {cast_ip}')
 
                 # initiate IPSwapper
                 swapper = IPSwapper(ip_addresses)
@@ -658,14 +656,14 @@ class CASTDesktop:
 
                             if frame_count > 1:
                                 # split to matrix
-                                t_cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+                                t_cast_frame_buffer = Multi.split_image_to_matrix(frame, t_cast_x, t_cast_y)
                                 # save frame to np buffer if requested (so can be used after by the main)
                                 if self.put_to_buffer and frame_count <= self.frame_max:
                                     self.frame_buffer.append(frame)
 
                             else:
                                 # split to matrix
-                                self.cast_frame_buffer = Utils.split_image_to_matrix(frame, t_cast_x, t_cast_y)
+                                self.cast_frame_buffer = Multi.split_image_to_matrix(frame, t_cast_x, t_cast_y)
 
                                 # validate cast_devices number
                                 if len(ip_addresses) != len(self.cast_frame_buffer):
@@ -914,7 +912,7 @@ class CASTDesktop:
             log_ui : logger to send data to main logger on root page
         """
         if log_ui is not None:
-            root_logger = logging.getLogger()
+            root_logger = cfg_mgr.logger.getLogger()
             if log_ui not in root_logger:
                 cfg_mgr.logger.addHandler(log_ui)
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,))
