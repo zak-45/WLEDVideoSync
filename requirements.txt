@@ -38,3 +38,4 @@ cfg-load
 async-timeout
 sacn
 stupidArtnet
+coldtype

@@ -1444,7 +1444,7 @@ async def main_page_desktop():
 
 
             with ui.card():
-                input_options=['area','win=']
+                input_options=['area','win=','queue']
                 if sys.platform.lower() == 'win32':
                     input_options.insert(0,'desktop')
                 elif sys.platform.lower() == 'linux':

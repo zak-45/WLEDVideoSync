@@ -10,6 +10,8 @@ This allows for asynchronous sending of DMX data, preventing delays in the main 
 The class supports sending data to a single or multiple universes, handling universe splitting
 and offsetting automatically.
 
+Port. E1.31 default is 5568
+
 Key Components
 E131Queue Class: This class encapsulates the functionality for sending DMX data over E1.31.
 It manages the sACN connection, data queue, and universe configuration.

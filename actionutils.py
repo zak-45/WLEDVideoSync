@@ -77,7 +77,10 @@ def execute_actions(class_obj,
         frame_buffer.append(add_frame)
 
     def handle_info_action():
-        img = ImageUtils.image_array_to_base64(frame) if str2bool(params) else None
+        if str(t_viinput) != "queue":
+            img = ImageUtils.image_array_to_base64(frame) if str2bool(params) else "None"
+        else:
+            img = "None"
         t_info = {t_name: {
             "type": "info",
             "data": {

@@ -1,14 +1,22 @@
-# a: zak-45
-# d: 13/03/2024
-# v: 1.0.0
-#
-# CASTDesktop class
-#
-#           Cast your screen to ddp device (e.g.WLED)
-#                               or others
-#
-# logger.info(av.codec.codecs_available)
-# pyav --codecs
+"""
+ a: zak-45
+ d: 13/03/2024
+ v: 1.0.0
+
+ CASTDesktop class
+
+           Cast your screen or frame (np) from queue to Artnet/e131/ddp device (e.g.WLED)
+                               or others
+
+ logger.info(av.codec.codecs_available)
+ pyav --codecs
+
+# This Python file (desktop.py) implements the CASTDesktop class, which allows users to cast their desktop screen,
+# a specific window, or a selected area to various devices supporting Art-Net, E1.31, or DDP (e.g., WLED).
+# It leverages the PyAV library for video capture and encoding, eliminating the need for a separate FFmpeg installation.
+# The class supports casting to a single device or multiple devices in a multicast setup, enabling synchronized display
+# across a virtual matrix of devices. It also includes options for video recording, real-time preview, and image
+# adjustments like brightness, contrast, gamma, and saturation.
 #
 # windows : ffmpeg -f gdigrab -framerate 30 -video_size 640x480 -show_region 1 -i desktop output.mkv
 # linux   : ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0+100,200 output.mp4
@@ -18,11 +26,15 @@
 # PyAV is a Pythonic binding for ffmpeg.
 # This utility aim to be cross-platform.
 # You can cast your entire desktop screen or only window content or desktop area.
-# Data will be sent through 'ddp' protocol or stream via udp:// rtp:// etc ...
-# ddp data are sent by using queue feature to avoid any network problem which cause latency
-# 27/05/2024: cv2.imshow with import av  freeze on not win OS
-# to fix it, cv2.imshow can run from its own process with cost of additional overhead: set preview_proc = True
-#
+# Data will be sent through 'ddp' /artnet / e131 protocol or stream via udp:// rtp:// etc ...
+# Net data are sent by using queue feature to avoid any network problem which cause latency
+
+ 27/05/2024: cv2.imshow with import av  freeze on not win OS
+ to fix it, cv2.imshow can run from its own process with cost of additional overhead: set preview_proc = True
+
+"""
+
+import queue
 import sys
 import os
 import time
@@ -34,6 +46,7 @@ import concurrent_log_handler
 import traceback
 import av
 import actionutils
+
 
 from multiprocessing.shared_memory import ShareableList
 from str2bool import str2bool
@@ -68,7 +81,9 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
 """
 Class definition
 """
-
+class ExitFromLoop(Exception):
+    """ Raise when need to exit from loop """
+    pass
 
 class CASTDesktop:
     """ Cast Desktop to DDP/e131/artnet"""
@@ -87,6 +102,8 @@ class CASTDesktop:
     server_port = Utils.get_server_port()
 
     total_packet = 0  # net packets number
+
+    queue_names = {}  # queues dict
 
     def __init__(self):
         self.rate: int = 25
@@ -185,10 +202,12 @@ class CASTDesktop:
         t_ddp_multi_names =[]
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
-        t_cast_frame_buffer = []
         media_length = -1
         interval = self.rate
         frame_count = 0
+
+        frame = None
+        queue_buffer = None
 
         t_todo_stop = False
 
@@ -208,6 +227,8 @@ class CASTDesktop:
         """
         av 
         """
+
+        input_container = None
         output_container = False
         output_stream = None
 
@@ -265,6 +286,331 @@ class CASTDesktop:
         """
 
         """
+        actions processing
+        """
+        def process_action(iframe, i_preview, i_todo_stop):
+            """
+            check if something to do
+            manage concurrent access to the list by using lock feature
+            event clear only when no more item in list
+            """
+
+            # only one running cast at time will take care of that
+            CASTDesktop.t_desktop_lock.acquire()
+            cfg_mgr.logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
+            # will read cast_name_todo list and see if something to do
+            i_todo_stop, i_preview = actionutils.execute_actions(CASTDesktop,
+                                                                 iframe,
+                                                                 t_name,
+                                                                 t_viinput,
+                                                                 t_scale_width,
+                                                                 t_scale_height,
+                                                                 t_multicast,
+                                                                 ip_addresses,
+                                                                 ddp_host,
+                                                                 t_cast_x,
+                                                                 t_cast_y,
+                                                                 start_time,
+                                                                 i_todo_stop,
+                                                                 i_preview,
+                                                                 frame_interval,
+                                                                 frame_count,
+                                                                 media_length,
+                                                                 swapper,
+                                                                 shared_buffer,
+                                                                 self.frame_buffer,
+                                                                 self.cast_frame_buffer,
+                                                                 cfg_mgr.logger,
+                                                                 t_protocol)
+            # if list is empty, no more for any cast
+            if len(CASTDesktop.cast_name_todo) == 0:
+                CASTDesktop.t_todo_event.clear()
+            # release once task finished for this cast
+            CASTDesktop.t_desktop_lock.release()
+
+            return i_preview, i_todo_stop
+
+        """
+        end actions
+        """
+
+        """
+        frame processing
+        """
+        def process_frame(iframe, i_preview, i_todo_stop):
+
+            # adjust gamma
+            iframe = cv2.LUT(iframe, ImageUtils.gamma_correct_frame(self.gamma))
+            # auto brightness contrast
+            if self.auto_bright:
+                iframe = ImageUtils.automatic_brightness_and_contrast(iframe, self.clip_hist_percent)
+            # filters
+            filter_params = [self.saturation,
+                             self.brightness,
+                             self.contrast,
+                             self.sharpen,
+                             self.balance_r,
+                             self.balance_g,
+                             self.balance_b
+                             ]
+
+            # apply filters if any
+            if any(param != 0 for param in filter_params):
+                # apply filters
+                filters = {"saturation": self.saturation,
+                           "brightness": self.brightness,
+                           "contrast": self.contrast,
+                           "sharpen": self.sharpen,
+                           "balance_r": self.balance_r,
+                           "balance_g": self.balance_g,
+                           "balance_b": self.balance_b}
+
+                iframe = ImageUtils.process_raw_image(iframe, filters=filters)
+
+            # flip vertical/horizontal: 0,1
+            if self.flip:
+                iframe = cv2.flip(iframe, self.flip_vh)
+
+            if t_multicast and (t_cast_y != 1 or t_cast_x != 1):
+                """
+                    multicast manage any number of devices of same configuration
+                    each device need to drive the same amount of leds, same config
+                    e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
+                    ==> this give 6 devices to set into cast_devices list                     
+                        (tuple of: device index(0...n) , IP address) 
+                        we will manage image of 3x16 leds for x and 2x16 for y    
+
+                    on 10/04/2024: device_number come from list entry order (0...n)
+
+                """
+
+                grid = True
+
+                # resize frame to virtual matrix size
+                frame_art = CV2Utils.pixelart_image(iframe, t_scale_width, t_scale_height)
+                iframe = CV2Utils.resize_image(iframe,
+                                              t_scale_width * t_cast_x,
+                                              t_scale_height * t_cast_y)
+
+                if frame_count > 1:
+                    # split to matrix
+                    t_cast_frame_buffer = Multi.split_image_to_matrix(iframe, t_cast_x, t_cast_y)
+                    # save frame to np buffer if requested (so can be used after by the main)
+                    if self.put_to_buffer and frame_count <= self.frame_max:
+                        self.frame_buffer.append(iframe)
+
+                else:
+                    # split to matrix
+                    self.cast_frame_buffer = Multi.split_image_to_matrix(iframe, t_cast_x, t_cast_y)
+
+                    # validate cast_devices number
+                    if len(ip_addresses) != len(self.cast_frame_buffer):
+                        cfg_mgr.logger.error(
+                            f'{t_name} Cast devices number != sub images number: check cast_devices ')
+                        raise ExitFromLoop
+
+                    t_cast_frame_buffer = self.cast_frame_buffer
+
+                # send, keep synchronized
+                try:
+
+                    send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
+
+                except Exception as er:
+                    cfg_mgr.logger.error(traceback.format_exc())
+                    cfg_mgr.logger.error(f'{t_name} An exception occurred: {er}')
+                    raise ExitFromLoop
+
+
+            else:
+
+                grid = False
+
+                # resize frame for sending to device
+                frame_to_send = CV2Utils.resize_image(iframe, t_scale_width, t_scale_height)
+                # resize frame to pixelart
+                iframe = CV2Utils.pixelart_image(iframe, t_scale_width, t_scale_height)
+
+                # Protocols run in separate thread to avoid block main loop
+                # here we feed the queue that is read by Net thread
+                if t_protocol == "ddp":
+                    # take only the first IP from list
+                    if t_multicast is False:
+                        try:
+                            if ip_addresses[0] != '127.0.0.1':
+                                # send data to queue
+                                ddp_host.send_to_queue(frame_to_send, self.retry_number)
+                                CASTDesktop.total_packet += ddp_host.frame_count
+                        except Exception as tr_error:
+                            cfg_mgr.logger.error(traceback.format_exc())
+                            cfg_mgr.logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
+                            raise ExitFromLoop
+
+                    # if multicast and more than one ip address and matrix size 1 * 1
+                    # we send the frame to all cast devices
+                    elif t_multicast is True and t_cast_x == 1 and t_cast_y == 1 and len(ip_addresses) > 1:
+
+                        t_cast_frame_buffer = [frame_to_send]
+
+                        # send, keep synchronized
+                        try:
+
+                            send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
+
+                        except Exception as er:
+                            cfg_mgr.logger.error(traceback.format_exc())
+                            cfg_mgr.logger.error(f'{t_name} An exception occurred: {er}')
+                            raise ExitFromLoop
+
+                    # if multicast and only one IP
+                    else:
+                        cfg_mgr.logger.error(f'{t_name} Not enough IP devices defined. Modify Multicast param')
+                        raise ExitFromLoop
+
+                elif t_protocol == 'e131':
+
+                    e131_host.send_to_queue(frame_to_send)
+
+                elif t_protocol == 'artnet':
+
+                    artnet_host.send_to_queue(frame_to_send)
+
+                # save frame to np buffer if requested (so can be used after by the main)
+                if self.put_to_buffer and frame_count <= self.frame_max:
+                    self.frame_buffer.append(frame)
+
+            """
+            Record
+            """
+            if self.record and out_file is not None:
+                out_file.write_frame(frame)
+
+            """
+            Manage preview window, depend on the platform
+            """
+            # preview on fixed size window
+            if i_preview:
+                i_preview, i_todo_stop = process_preview(iframe,i_preview, i_todo_stop, grid)
+
+            return i_preview, i_todo_stop
+
+        """
+        end frame process
+        """
+
+        """
+        preview process
+        Manage preview window, depend on the platform
+        """
+        def process_preview(iframe, i_preview, i_todo_stop, grid):
+            # preview on fixed size window
+
+            if str2bool(cfg_mgr.app_config['preview_proc']):
+                # for non-win platform mainly, cv2.imshow() need to run into Main thread
+                # We use ShareableList to share data between this thread and new process
+                if frame_count == 1:
+                    # create a shared list, name is thread name
+                    try:
+                        sl = ShareableList(
+                            [
+                                CASTDesktop.total_frame,
+                                iframe.tobytes(),
+                                self.server_port,
+                                t_viinput,
+                                t_name,
+                                self.preview_top,
+                                i_preview,
+                                self.preview_w,
+                                self.preview_h,
+                                self.pixel_w,
+                                self.pixel_h,
+                                i_todo_stop,
+                                frame_count,
+                                frame_interval,
+                                str(ip_addresses),
+                                self.text,
+                                self.custom_text,
+                                self.cast_x,
+                                self.cast_y,
+                                grid,
+                                str(frame.shape).replace('(', '').replace(')', '')
+                            ],
+                            name=t_name)
+                    except Exception as er:
+                        cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {er}')
+
+                    # run main_preview in another process
+                    # create a child process, so cv2.imshow() will run from its Main Thread
+                    sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Desktop',))
+                    # start the child process
+                    # small delay should occur, OS take some time to initiate the new process
+                    sl_process.start()
+                    cfg_mgr.logger.debug(f'Starting Child Process for Preview : {t_name}')
+
+                # working with the shared list
+                if frame_count > 1:
+                    # what to do from data updated by the child process (keystroke from preview window)
+                    if sl[11] is True or sl[20] == '0,0,0':
+                        t_todo_stop = True
+                    elif sl[6] is False:
+                        t_preview = False
+                    else:
+                        if sl[15] is False:
+                            self.text = False
+                        else:
+                            self.text = True
+                        # Update Data on shared List
+                        sl[0] = CASTDesktop.total_frame
+                        # append not zero value to bytes to solve ShareableList bug
+                        # see https://github.com/python/cpython/issues/106939
+                        new_frame = frame.tobytes()
+                        new_frame = bytearray(new_frame)
+                        new_frame.append(1)
+                        new_frame = bytes(new_frame)
+                        sl[1] = new_frame
+                        #
+                        sl[5] = self.preview_top
+                        sl[7] = self.preview_w
+                        sl[8] = self.preview_h
+                        sl[9] = self.pixel_w
+                        sl[10] = self.pixel_h
+                        sl[12] = frame_count
+                        sl[15] = self.text
+                        sl[20] = str(frame.shape).replace('(', '').replace(')', '')
+
+            else:
+
+                # for win, not necessary to use child process as this work into thread (avoid overhead)
+                i_preview, i_todo_stop, self.text = CV2Utils.cv2_preview_window(
+                    CASTDesktop.total_frame,
+                    iframe,
+                    CASTDesktop.server_port,
+                    t_viinput,
+                    t_name,
+                    self.preview_top,
+                    i_preview,
+                    self.preview_w,
+                    self.preview_h,
+                    self.pixel_w,
+                    self.pixel_h,
+                    i_todo_stop,
+                    frame_count,
+                    frame_interval,
+                    ip_addresses,
+                    self.text,
+                    self.custom_text,
+                    self.cast_x,
+                    self.cast_y,
+                    'Desktop',
+                    grid)
+
+            return i_preview, i_todo_stop
+
+        """
+        end preview process
+        """
+
+        """
         First, check devices 
         """
 
@@ -274,7 +620,7 @@ class CASTDesktop:
                 cfg_mgr.logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
             else:
                 cfg_mgr.logger.error(f'{t_name} Error looks like IP {self.host} do not respond to ping')
-                return False
+                return
 
         if t_protocol == 'ddp':
             ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
@@ -314,7 +660,7 @@ class CASTDesktop:
                 t_scale_width, t_scale_height = as_run(Utils.get_wled_matrix_dimensions(self.host))
             else:
                 cfg_mgr.logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
-                return False
+                return
 
         swapper = None
 
@@ -323,7 +669,7 @@ class CASTDesktop:
             # validate cast_devices list
             if not Multi.is_valid_cast_device(str(self.cast_devices)):
                 cfg_mgr.logger.error(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
-                return False
+                return
             else:
                 cfg_mgr.logger.info(f'{t_name} Virtual Matrix size is : \
                             {str(t_scale_width * t_cast_x)}x{str(t_scale_height * t_cast_y)}')
@@ -336,7 +682,7 @@ class CASTDesktop:
                             status = as_run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
                                 cfg_mgr.logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
-                                return False
+                                return
 
                         ip_addresses.append(cast_ip)
 
@@ -399,8 +745,7 @@ class CASTDesktop:
             # specific window content
             # append title (win) if needed
             if sys.platform.lower() == 'win32':
-                self.viinput = 'title=' + self.viinput[4:]
-            # retrieve window ID
+                self.viinput = f'title={self.viinput[4:]}'
             elif sys.platform.lower() == 'linux':
                 try:
                     # list all id for a title name (should be only one ...)
@@ -431,7 +776,15 @@ class CASTDesktop:
 
                 except Exception as e:
                     cfg_mgr.logger.error(f'Not able to retrieve Window ID (hWnd) : {e}')
-                    return False
+                    return
+
+        elif self.viinput == 'queue':
+
+            queue_buffer = CASTDesktop.queue_names[f"{t_name}_q"] = queue.Queue()
+
+            if not isinstance(queue_buffer, queue.Queue):
+                cfg_mgr.logger.error(f"{t_name} Queue buffer not initialized for queue input.")
+                return
 
         cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
 
@@ -439,7 +792,8 @@ class CASTDesktop:
         viinput can be:
                     desktop or :0 ...  : to stream full screen or a part of the screen
                     title=<window name> : to stream only window content for win
-                    window_id : to stream only window content for Linux            
+                    window_id : to stream only window content for Linux 
+                    queue to read np frame from (e.g: coldtype)           
                     or str
         """
 
@@ -451,18 +805,19 @@ class CASTDesktop:
             t_viinput = self.viinput
 
         # Open av input container in read mode
-        try:
+        if queue_buffer is None:
+            try:
 
-            input_container = av.open(t_viinput, 'r', format=self.viformat, options=input_options)
+                input_container = av.open(t_viinput, 'r', format=self.viformat, options=input_options)
 
-        except Exception as error:
-            cfg_mgr.logger.error(traceback.format_exc())
-            cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
-            return False
+            except Exception as error:
+                cfg_mgr.logger.error(traceback.format_exc())
+                cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
+                return
 
-        # Decoding with auto threading...if True Decode using both FRAME and SLICE methods
-        if str2bool(cfg_mgr.desktop_config['multi_thread']) is True:
-            input_container.streams.video[0].thread_type = "AUTO"  # Go faster!
+            # Decoding with auto threading...if True Decode using both FRAME and SLICE methods
+            if str2bool(cfg_mgr.desktop_config['multi_thread']) is True:
+                input_container.streams.video[0].thread_type = "AUTO"  # Go faster!
 
         # Define Output via av only if protocol is other
         if 'other' in self.protocol:
@@ -482,7 +837,7 @@ class CASTDesktop:
             except Exception as error:
                 cfg_mgr.logger.error(traceback.format_exc())
                 cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
-                return False
+                return
 
         """
         Record
@@ -501,355 +856,127 @@ class CASTDesktop:
         CASTDesktop.cast_names.append(t_name)
         CASTDesktop.count += 1
 
+        #
         # Main loop
-        if input_container:
-            # input video stream from container (for decode)
-            input_stream = input_container.streams.get(video=0)
+        #
+        if input_container is not None or queue_buffer is not None:
+
+            cfg_mgr.logger.info(f"{t_name} Capture from {t_viinput}")
+            cfg_mgr.logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
 
             # Main frame loop
             # Stream loop
             try:
 
-                cfg_mgr.logger.info(f"{t_name} Capture from {t_viinput}")
-                cfg_mgr.logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
+                if input_container is not None:
+                    # input video stream from container (for decode)
+                    input_stream = input_container.streams.get(video=0)
 
-                for frame in input_container.decode(input_stream):
+                    for frame in input_container.decode(input_stream):
 
-                    if self.record and out_file is None:
-                        out_file = iio.imopen(self.output_file, "w", plugin="pyav")
-                        out_file.init_video_stream(self.vo_codec, fps=frame_interval)
+                        if self.record and out_file is None:
+                            out_file = iio.imopen(self.output_file, "w", plugin="pyav")
+                            out_file.init_video_stream(self.vo_codec, fps=frame_interval)
 
-                    frame_count += 1
-                    CASTDesktop.total_frame += 1
+                        frame_count += 1
+                        CASTDesktop.total_frame += 1
 
-                    # if global stop or local stop
-                    if self.stopcast or t_todo_stop:
-                        break
-
-                    """
-                    instruct the thread to exit 
-                    """
-                    if CASTDesktop.t_exit_event.is_set():
-                        break
-
-                    if output_container:
-                        # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
-                        # Convert the frame to rgb format
-                        frame_rgb = frame.reformat(width=output_stream.width, height=output_stream.height,
-                                                   format='rgb24')
-
-                        # Encode the frame
-                        for packet in output_stream.encode(frame_rgb):
-                            output_container.mux(packet)
-                            """
-                            Record
-                            """
-                            if self.record and out_file is not None:
-                                # convert frame to np array
-                                frame_np = frame.to_ndarray(format="rgb24")
-                                out_file.write_frame(frame_np)
-
-                    else:
-
-                        # resize to requested size
-                        frame = frame.reformat(t_scale_width, t_scale_height)
-
-                        # convert frame to np array
-                        frame = frame.to_ndarray(format="rgb24")
-
-                        # adjust gamma
-                        frame = cv2.LUT(frame, ImageUtils.gamma_correct_frame(self.gamma))
-                        # auto brightness contrast
-                        if self.auto_bright:
-                            frame = ImageUtils.automatic_brightness_and_contrast(frame, self.clip_hist_percent)
-                        # filters
-                        filter_params = [self.saturation,
-                                         self.brightness,
-                                         self.contrast,
-                                         self.sharpen,
-                                         self.balance_r,
-                                         self.balance_g,
-                                         self.balance_b
-                                         ]
-
-                        # apply filters if any
-                        if any(param != 0 for param in filter_params):
-                            # apply filters
-                            filters = {"saturation": self.saturation,
-                                       "brightness": self.brightness,
-                                       "contrast": self.contrast,
-                                       "sharpen": self.sharpen,
-                                       "balance_r": self.balance_r,
-                                       "balance_g": self.balance_g,
-                                       "balance_b": self.balance_b}
-
-                            frame = ImageUtils.process_raw_image(frame, filters=filters)
-
-                        # flip vertical/horizontal: 0,1
-                        if self.flip:
-                            frame = cv2.flip(frame, self.flip_vh)
+                        # if global stop or local stop
+                        if self.stopcast or t_todo_stop:
+                            raise ExitFromLoop
 
                         """
-                        check if something to do
-                        manage concurrent access to the list by using lock feature
-                        event clear only when no more item in list
+                        instruct the thread to exit 
                         """
+                        if CASTDesktop.t_exit_event.is_set():
+                            raise ExitFromLoop
 
-                        if CASTDesktop.t_todo_event.is_set():
-                            # only one running cast at time will take care of that
-                            CASTDesktop.t_desktop_lock.acquire()
-                            cfg_mgr.logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
-                            # will read cast_name_todo list and see if something to do
-                            t_todo_stop, t_preview = actionutils.execute_actions(CASTDesktop,
-                                                                                 frame,
-                                                                                 t_name,
-                                                                                 t_viinput,
-                                                                                 t_scale_width,
-                                                                                 t_scale_height,
-                                                                                 t_multicast,
-                                                                                 ip_addresses,
-                                                                                 ddp_host,
-                                                                                 t_cast_x,
-                                                                                 t_cast_y,
-                                                                                 start_time,
-                                                                                 t_todo_stop,
-                                                                                 t_preview,
-                                                                                 frame_interval,
-                                                                                 frame_count,
-                                                                                 media_length,
-                                                                                 swapper,
-                                                                                 shared_buffer,
-                                                                                 self.frame_buffer,
-                                                                                 self.cast_frame_buffer,
-                                                                                 cfg_mgr.logger,
-                                                                                 t_protocol)
-                            # if list is empty, no more for any cast
-                            if len(CASTDesktop.cast_name_todo) == 0:
-                                CASTDesktop.t_todo_event.clear()
-                            # release once task finished for this cast
-                            CASTDesktop.t_desktop_lock.release()
+                        if output_container:
+                            # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
+                            # Convert the frame to rgb format
+                            frame_rgb = frame.reformat(width=output_stream.width, height=output_stream.height,
+                                                       format='rgb24')
 
-                        """
-                        End To do
-                        """
-
-                        if t_multicast and (t_cast_y != 1 or t_cast_x != 1):
-                            """
-                                multicast manage any number of devices of same configuration
-                                each device need to drive the same amount of leds, same config
-                                e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
-                                ==> this give 6 devices to set into cast_devices list                     
-                                    (tuple of: device index(0...n) , IP address) 
-                                    we will manage image of 3x16 leds for x and 2x16 for y    
-
-                                on 10/04/2024: device_number come from list entry order (0...n)
-
-                            """
-
-                            grid = True
-
-                            # resize frame to virtual matrix size
-                            frame_art = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
-                            frame = CV2Utils.resize_image(frame,
-                                                          t_scale_width * t_cast_x,
-                                                          t_scale_height * t_cast_y)
-
-                            if frame_count > 1:
-                                # split to matrix
-                                t_cast_frame_buffer = Multi.split_image_to_matrix(frame, t_cast_x, t_cast_y)
-                                # save frame to np buffer if requested (so can be used after by the main)
-                                if self.put_to_buffer and frame_count <= self.frame_max:
-                                    self.frame_buffer.append(frame)
-
-                            else:
-                                # split to matrix
-                                self.cast_frame_buffer = Multi.split_image_to_matrix(frame, t_cast_x, t_cast_y)
-
-                                # validate cast_devices number
-                                if len(ip_addresses) != len(self.cast_frame_buffer):
-                                    cfg_mgr.logger.error(
-                                        f'{t_name} Cast devices number != sub images number: check cast_devices ')
-                                    break
-
-                                t_cast_frame_buffer = self.cast_frame_buffer
-
-                            # send, keep synchronized
-                            try:
-
-                                send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
-
-                            except Exception as error:
-                                cfg_mgr.logger.error(traceback.format_exc())
-                                cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
-                                break
+                            # Encode the frame
+                            for packet in output_stream.encode(frame_rgb):
+                                output_container.mux(packet)
+                                """
+                                Record
+                                """
+                                if self.record and out_file is not None:
+                                    # convert frame to np array
+                                    frame_np = frame.to_ndarray(format="rgb24")
+                                    out_file.write_frame(frame_np)
 
                         else:
 
-                            grid = False
+                            # resize to requested size
+                            frame = frame.reformat(t_scale_width, t_scale_height)
 
-                            # resize frame for sending to device
-                            frame_to_send = CV2Utils.resize_image(frame, t_scale_width, t_scale_height)
-                            # resize frame to pixelart
-                            frame = CV2Utils.pixelart_image(frame, t_scale_width, t_scale_height)
+                            # convert frame to np array
+                            frame = frame.to_ndarray(format="rgb24")
 
-                            # Protocols run in separate thread to avoid block main loop
-                            # here we feed the queue that is read by Net thread
-                            if t_protocol == "ddp":
-                                # take only the first IP from list
-                                if t_multicast is False:
-                                    try:
-                                        if ip_addresses[0] != '127.0.0.1':
-                                            # send data to queue
-                                            ddp_host.send_to_queue(frame_to_send, self.retry_number)
-                                            CASTDesktop.total_packet += ddp_host.frame_count
-                                    except Exception as tr_error:
-                                        cfg_mgr.logger.error(traceback.format_exc())
-                                        cfg_mgr.logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
-                                        break
+                            # process frame and receive back value from action
+                            t_preview, t_todo_stop = process_frame(frame, t_preview, t_todo_stop)
 
-                                # if multicast and more than one ip address and matrix size 1 * 1
-                                # we send the frame to all cast devices
-                                elif t_multicast is True and t_cast_x == 1 and t_cast_y == 1 and len(ip_addresses) > 1:
+                        if CASTDesktop.t_todo_event.is_set():
+                            t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
 
-                                    t_cast_frame_buffer = [frame_to_send]
+                elif queue_buffer is not None:
+                    cfg_mgr.logger.debug('process from queue')
+                    # Default image to display when queue is empty
+                    default_img = cv2.imread('assets/Source-intro.png')
+                    default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
+                    default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
 
-                                    # send, keep synchronized
-                                    try:
+                    # infinite loop
+                    while True:
 
-                                        send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
+                        """
+                        instruct the thread to exit 
+                        """
+                        # if global stop or local stop
+                        if self.stopcast or t_todo_stop:
+                            raise ExitFromLoop
 
-                                    except Exception as error:
-                                        cfg_mgr.logger.error(traceback.format_exc())
-                                        cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
-                                        break
+                        if CASTDesktop.t_exit_event.is_set():
+                            raise ExitFromLoop
 
-                                # if multicast and only one IP
-                                else:
-                                    cfg_mgr.logger.error(f'{t_name} Not enough IP devices defined. Modify Multicast param')
+                        #
+                        # we read all data from the queue
+                        #
+                        while not queue_buffer.empty():
+                            if queue_buffer.qsize() < 50000 :
+                                try:
+                                    frame = queue_buffer.get(timeout=0.1)  # Use get() with timeout
+                                    # process frame
+                                    frame_count += 1
+                                    CASTDesktop.total_frame += 1
+                                    t_preview, t_todo_stop = process_frame(frame, t_preview, t_todo_stop)
+                                    queue_buffer.task_done()
+                                except queue.Empty:
+                                    frame = default_img
+                                    t_preview, t_todo_stop = process_frame(frame, t_preview, t_todo_stop)
                                     break
-
-                            elif t_protocol == 'e131':
-
-                                e131_host.send_to_queue(frame_to_send)
-
-                            elif t_protocol == 'artnet':
-
-                                artnet_host.send_to_queue(frame_to_send)
-
-                            # save frame to np buffer if requested (so can be used after by the main)
-                            if self.put_to_buffer and frame_count <= self.frame_max:
-                                self.frame_buffer.append(frame)
-
-                        """
-                        Record
-                        """
-                        if self.record and out_file is not None:
-                            out_file.write_frame(frame)
-
-                        """
-                        Manage preview window, depend on the platform
-                        """
-                        # preview on fixed size window
-                        if t_preview:
-
-                            if str2bool(cfg_mgr.app_config['preview_proc']):
-                                # for non-win platform mainly, cv2.imshow() need to run into Main thread
-                                # We use ShareableList to share data between this thread and new process
-                                if frame_count == 1:
-                                    # create a shared list, name is thread name
-                                    try:
-                                        sl = ShareableList(
-                                            [
-                                                CASTDesktop.total_frame,
-                                                frame.tobytes(),
-                                                self.server_port,
-                                                t_viinput,
-                                                t_name,
-                                                self.preview_top,
-                                                t_preview,
-                                                self.preview_w,
-                                                self.preview_h,
-                                                self.pixel_w,
-                                                self.pixel_h,
-                                                t_todo_stop,
-                                                frame_count,
-                                                frame_interval,
-                                                str(ip_addresses),
-                                                self.text,
-                                                self.custom_text,
-                                                self.cast_x,
-                                                self.cast_y,
-                                                grid,
-                                                str(frame.shape).replace('(', '').replace(')', '')
-                                            ],
-                                            name=t_name)
-                                    except Exception as e:
-                                        cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {e}')
-
-                                    # run main_preview in another process
-                                    # create a child process, so cv2.imshow() will run from its Main Thread
-                                    sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Desktop',))
-                                    # start the child process
-                                    # small delay should occur, OS take some time to initiate the new process
-                                    sl_process.start()
-                                    cfg_mgr.logger.debug(f'Starting Child Process for Preview : {t_name}')
-
-                                # working with the shared list
-                                if frame_count > 1:
-                                    # what to do from data updated by the child process (keystroke from preview window)
-                                    if sl[11] is True or sl[20] == '0,0,0':
-                                        t_todo_stop = True
-                                    elif sl[6] is False:
-                                        t_preview = False
-                                    else:
-                                        if sl[15] is False:
-                                            self.text = False
-                                        else:
-                                            self.text = True
-                                        # Update Data on shared List
-                                        sl[0] = CASTDesktop.total_frame
-                                        # append not zero value to bytes to solve ShareableList bug
-                                        # see https://github.com/python/cpython/issues/106939
-                                        new_frame = frame.tobytes()
-                                        new_frame = bytearray(new_frame)
-                                        new_frame.append(1)
-                                        new_frame = bytes(new_frame)
-                                        sl[1] = new_frame
-                                        #
-                                        sl[5] = self.preview_top
-                                        sl[7] = self.preview_w
-                                        sl[8] = self.preview_h
-                                        sl[9] = self.pixel_w
-                                        sl[10] = self.pixel_h
-                                        sl[12] = frame_count
-                                        sl[15] = self.text
-                                        sl[20] = str(frame.shape).replace('(', '').replace(')', '')
-
                             else:
+                                cfg_mgr.logger.error(f'frame Queue size too big: {queue_buffer.qsize()}')
+                                self.stopcast = True
+                                raise ExitFromLoop
 
-                                # for win, not necessary to use child process as this work into thread (avoid overhead)
-                                t_preview, t_todo_stop, self.text = CV2Utils.cv2_preview_window(
-                                    CASTDesktop.total_frame,
-                                    frame,
-                                    CASTDesktop.server_port,
-                                    t_viinput,
-                                    t_name,
-                                    self.preview_top,
-                                    t_preview,
-                                    self.preview_w,
-                                    self.preview_h,
-                                    self.pixel_w,
-                                    self.pixel_h,
-                                    t_todo_stop,
-                                    frame_count,
-                                    frame_interval,
-                                    ip_addresses,
-                                    self.text,
-                                    self.custom_text,
-                                    self.cast_x,
-                                    self.cast_y,
-                                    'Desktop',
-                                    grid)
+                        # check to see if something to do
+                        if CASTDesktop.t_todo_event.is_set():
+                            t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
+
+                        # some sleep until next, this could add some delay to stream next available frame
+                        time.sleep(0.1)
+
+                else:
+
+                    cfg_mgr.logger.error(f'Do not know what to do from this input: {t_viinput}')
+                    raise ExitFromLoop
+
+            except ExitFromLoop as ext:
+                cfg_mgr.logger.info(f'{t_name} Requested to end cast loop {ext}')
 
             except Exception as e:
                 cfg_mgr.logger.error(traceback.format_exc())
@@ -860,7 +987,9 @@ class CASTDesktop:
                 END
                 """
                 # close av input
-                input_container.close()
+                if input_container is not None:
+                    input_container.close()
+                    cfg_mgr.logger.info(f'{t_name} AV Input container closed')
                 # close av output if any
                 if output_container:
                     # Pass None to the encoder at the end - flush last packets
@@ -878,7 +1007,7 @@ class CASTDesktop:
                     CV2Utils.cv2_win_close(CASTDesktop.server_port, 'Desktop', t_name, t_viinput)
         else:
 
-            cfg_mgr.logger.error(f'{t_name} av input_container not defined')
+            cfg_mgr.logger.error(f'{t_name} av input_container not defined or no queue')
 
         """
         END +
@@ -896,6 +1025,11 @@ class CASTDesktop:
             e131_host.deactivate()
         elif t_protocol == 'artnet':
             artnet_host.deactivate()
+
+        # remove queue from dict and memory
+        if queue_buffer is not None:
+            del CASTDesktop.queue_names[f"{t_name}_q"]
+            del queue_buffer
 
         cfg_mgr.logger.debug("_" * 50)
         cfg_mgr.logger.debug(f'Cast {t_name} end using this input: {t_viinput}')

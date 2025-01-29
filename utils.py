@@ -39,6 +39,9 @@ import ipaddress
 import requests
 import cfg_load as cfg
 
+import av
+import numpy as np
+
 from asyncio import create_task
 from wled import WLED
 from zeroconf import ServiceBrowser, Zeroconf
@@ -137,14 +140,31 @@ class CASTUtils:
         pass
 
     @staticmethod
+    def mp4_to_gif(mp4_file, gif_file, loop: int = 0, duration: int = 100):
+        # Open the MP4 file using pyav
+        container = av.open(mp4_file)
+
+        # Read the frames from the first video stream
+        frames = []
+        for frame in container.decode(video=0):
+            # Convert the frame to numpy array (RGB format)
+            img = frame.to_image()
+            img = np.array(img)
+
+            # Append the frame to the list
+            frames.append(img)
+
+        # Create a GIF from the frames
+        frames_pil = [Image.fromarray(frame) for frame in frames]
+        frames_pil[0].save(gif_file, save_all=True, append_images=frames_pil[1:], loop=loop, duration=duration)
+
+
+    @staticmethod
     def update_ddp_list(cast_ip, ddp_obj):
-        # create ddp device for each IP if not exist
-        ddp_exist = False
-        for device in CASTUtils.ddp_devices:
-            if cast_ip == device._destination:
-                ddp_exist = True
-                break
-        if ddp_exist is not True:
+        ddp_exist = any(
+            cast_ip == device._destination for device in CASTUtils.ddp_devices
+        )
+        if not ddp_exist:
             CASTUtils.ddp_devices.append(ddp_obj)
 
     @staticmethod
@@ -223,25 +243,13 @@ class CASTUtils:
 
     @staticmethod
     def list_av_formats():
-        import av
-        dict_formats = []
-        j = 0
-        for item in av.formats_available:
-            dict_formats.append(item)
-            j += 1
-        dict_formats = sorted(dict_formats)
-        return dict_formats
+        dict_formats = list(av.formats_available)
+        return sorted(dict_formats)
 
     @staticmethod
     def list_av_codecs():
-        import av
-        dict_codecs = []
-        j = 0
-        for item in av.codec.codecs_available:
-            dict_codecs.append(item)
-            j += 1
-        dict_codecs = sorted(dict_codecs)
-        return dict_codecs
+        dict_codecs = list(av.codec.codecs_available)
+        return sorted(dict_codecs)
 
     @staticmethod
     async def list_yt_formats(url):

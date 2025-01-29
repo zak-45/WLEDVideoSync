@@ -6,6 +6,8 @@ v: 1.0.0
 This Python code defines the ArtNetQueue class, which manages sending data to Art-Net devices using the stupidArtnet library.
 It uses a queue to buffer data and a background thread to send data asynchronously, handling universe spanning if necessary.
 
+Port Art-Net default is 6454
+
 """
 
 import logging

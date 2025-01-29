@@ -135,8 +135,6 @@ Process, Queue = Utils.mp_setup()
 
 """
 When this env var exist, this mean run from the one-file executable (compressed file).
-Load of the config is not possible, folder config should not exist.
-This avoid FileNotFoundError.
 This env not exist when running from the decompressed program.
 Expected way to work.
 """

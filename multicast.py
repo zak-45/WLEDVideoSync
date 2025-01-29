@@ -73,7 +73,6 @@ class MultiUtils:
         return sub_images
 
 
-
 class IPSwapper:
     """
     Update IP list, provide some basic effects to multicast
