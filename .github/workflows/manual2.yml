@@ -139,7 +139,8 @@ jobs:
             comtypes.stream
             av.opaque
             coldtype
-            skia
+            skia-python
+            skia-pathops
           include-data-dir: |
             tmp=tmp
             log=log
