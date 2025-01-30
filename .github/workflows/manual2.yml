@@ -134,6 +134,7 @@ jobs:
             dbm.dumb
             comtypes.stream
             av.opaque
+            coldtype
           include-data-dir: |
             tmp=tmp
             log=log

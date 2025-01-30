@@ -6,7 +6,7 @@ from threading import Thread
 from coldtype.renderer import Renderer
 
 _, parser = Renderer.Argparser()
-params = parser.parse_args(["test2.py","-kl","fr","-wcs","1"])
+params = parser.parse_args(["test1.py","-kl","fr","-wcs","1"])
 
 def run():
     print('start coldtype')
