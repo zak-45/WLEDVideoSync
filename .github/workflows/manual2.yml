@@ -140,7 +140,6 @@ jobs:
             av.opaque
             coldtype
             skia-python
-            skia-pathops
           include-data-dir: |
             tmp=tmp
             log=log
