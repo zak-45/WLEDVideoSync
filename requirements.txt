@@ -39,3 +39,4 @@ async-timeout
 sacn
 stupidArtnet
 coldtype
+skia-python
