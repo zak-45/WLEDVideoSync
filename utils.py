@@ -50,6 +50,7 @@ from screeninfo import get_monitors
 from str2bool import str2bool
 from PIL import Image
 from pathlib import Path
+from coldtype.text.reader import Font
 
 
 def display_custom_msg(msg, msg_type: str = 'info'):
@@ -136,8 +137,27 @@ class CASTUtils:
 
     ddp_devices: list = []  # all DDP device instances
 
+    font_dict = {}
+    font_dirs = []
+
     def __init__(self):
         pass
+
+    @staticmethod
+    def get_system_fonts():
+        """Retrieve a dictionary of system fonts and a list of unique font directories.
+
+        This function retrieves all available system fonts, returning them as a dictionary
+        where keys are font stems and values are string representations of the font paths.
+        It also returns a list of unique directories containing these fonts.
+
+                - dict: A dictionary mapping font stems to font paths.
+                - list: A list of unique font directories.
+        """
+        fonts = Font.List('')
+        CASTUtils.font_dict = {font.stem: str(font) for font in fonts}
+        CASTUtils.font_dirs = sorted(list({os.path.dirname(str(font)) for font in fonts}))  # Extract and deduplicate directories
+
 
     @staticmethod
     def mp4_to_gif(mp4_file, gif_file, loop: int = 0, duration: int = 100):

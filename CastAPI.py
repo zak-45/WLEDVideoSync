@@ -62,6 +62,8 @@ from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 from nicegui import app, ui, native, run
 from configmanager import ConfigManager
+from fontsmanager import FontPreviewManager
+
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 Desktop = desktop.CASTDesktop()
@@ -1126,6 +1128,7 @@ async def main_page():
             with ui.card().classes('w-1/3'):
                 ui.button('System', on_click=sys_stats_info_page)
         CastAPI.charts_row.set_visibility(False)
+        ui.button('Fonts', on_click=font_select, color='bg-red-800')
         if sys.platform.lower() != 'win32':
             ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
@@ -1849,6 +1852,84 @@ async def manage_charts_page():
             ui.button('System', on_click=sys_stats_info_page)
 
 
+@ui.page('/Fonts')
+async def manage_font_page():
+
+    ui.dark_mode(CastAPI.dark_mode)
+
+    apply_custom()
+
+    def selected_font(i_font_name):
+        ui.notify(f'Selected font : {i_font_name}')
+
+    # Search for all system fonts
+    Utils.get_system_fonts()
+    # update dict
+    fonts = Utils.font_dict
+    # init font class
+    font_manager = FontPreviewManager(fonts)
+
+    with ui.column().classes('p-4 h-full w-full') as layout:
+
+        async def filter_fonts(e):
+            query = e.value.lower()
+            font_list.clear()
+            matching_fonts = font_manager.filter_fonts(query) # Use the class method
+            for list_font_name in matching_fonts:
+                with font_list:
+                    font_label = ui.label(list_font_name).classes("cursor-pointer hover:underline")
+                    font_label.on(
+                        "mouseover",
+                        lambda z=list_font_name, x=font_label: set_preview(fonts[z], x)
+                    )
+                    font_label.on(
+                        "mouseout",
+                        lambda x=font_label: x.classes(remove='bg-slate-300')
+                    )
+                    font_label.on(
+                        "click",
+                        lambda x=font_label: selected_font(x.text)
+                    )
+
+        async def set_preview(font_path, font_label):
+            font_label.classes(add='bg-slate-300')
+            if preview_data := font_manager.get_preview(font_path, font_label): # Use class method, get preview data
+                preview_image.set_source(preview_data) # Set preview image source
+
+        ui.label("Hover over a font to see a preview").classes("text-sm font-bold mb-4")
+
+        # Search bar
+        search_input = ui.input(
+            label="Search Fonts",
+            placeholder="Type to search...",
+            on_change=filter_fonts,
+        ).classes("mb-4 w-full")
+
+        # Searchable font list
+        font_list = ui.column().classes(
+            'w-full flex-grow overflow-y-auto border rounded shadow p-2 max-h-[40vh]')
+
+        font_name = ui.label('Font name :')
+        font_name.classes('self-center')
+        font_name.bind_text_from(font_manager,'selected_font_label',
+                                 backward=lambda v: font_manager.selected_font_label.text)
+
+        # image preview of font
+        preview_image = ui.image().classes("border rounded shadow mb-4").style(
+            "width: 100%; height: 100px; background-color: white;")
+
+        # slider for font size preview
+        s_font_size = ui.slider(min=1, max=100, value=25,
+                                on_change=lambda var: set_preview(font_manager.selected_font_path,
+                                                                  font_manager.selected_font_label))
+
+        s_font_size.bind_value_to(font_manager,'font_size')
+
+
+    # Populate font list initially
+    search_input.set_value("")
+    await filter_fonts(search_input) # Call filter_fonts to populate the list initially
+
 
 """
 helpers /Commons
@@ -2077,6 +2158,18 @@ def charts_select():
         CastAPI.charts_row.set_visibility(True)
     else:
         ui.notify('No charts executable', type='warning')
+
+async def font_select():
+    """
+    Font Page
+    :return:
+    """
+
+    with ui.dialog() as font_dialog:
+        font_dialog.open()
+        with ui.card().classes('w-full'):
+            await manage_font_page()
+            ui.button('close', on_click=font_dialog.close).classes('self-center')
 
 
 def dev_stats_info_page():
