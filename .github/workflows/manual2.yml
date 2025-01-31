@@ -129,7 +129,11 @@ jobs:
           macos-app-icon: assets/favicon.ico
           onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}
-          include-package-data: nicegui
+
+          include-package-data: |
+            nicegui
+            coldtype
+
           include-module: |
             CastAPI
             zeroconf._utils.ipaddress
@@ -148,6 +152,7 @@ jobs:
             assets=assets
             config=config
             media=media
+
           include-data-files: |
             favicon.ico=favicon.ico
             favicon.png=favicon.png
