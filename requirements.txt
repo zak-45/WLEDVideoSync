@@ -40,3 +40,5 @@ sacn
 stupidArtnet
 coldtype
 skia-python
+fonttools
+pywebview

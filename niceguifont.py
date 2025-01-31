@@ -1,3 +1,12 @@
+"""
+
+* {
+    font-family: "my font" !important;
+  }
+
+"""
+
+
 from nicegui import ui, app
 
 app.add_static_files('/path_in_webserver', r'C:\Windows\Fonts')
@@ -9,7 +18,11 @@ ui.add_head_html(r'''
     src: url('/path_in_webserver/vladimir.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
+    size-adjust: 90%;
 }
+* {
+    font-family: "my font" !important;
+  }
 </style>
 ''')
 

@@ -50,6 +50,14 @@
 #                   False to run from nicegui server (uvicorn implementation)
 #                   on Win32, put to True to have feature like systray
 # fastapi_docs  : True or False, activate /docs FastApi endpoint
+#
+# font_file     : Full font path to apply to the application e.g: C:\Windows\Fonts\Absalom_.ttf
+# font-weight   : normal, The font-weight CSS property sets the weight (or boldness) of the font.(normal,bold..)
+# font-style    : normal, The font-style CSS property sets whether a font should be styled with a normal, italic,
+#                   or oblique face from its font-family
+# size-adjust   : 90%, The size-adjust CSS descriptor for the @font-face at-rule defines a multiplier for glyph outlines
+#                   and metrics associated with this font
+
 [app]
 
 

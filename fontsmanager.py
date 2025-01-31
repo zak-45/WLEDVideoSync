@@ -1,10 +1,80 @@
 import io
 import base64
+import os
 
 from coldtype import StSt
 from coldtype.raster import *
-from nicegui import ui
+from nicegui import ui, app
+import fontTools.ttLib
 
+
+class FontSetApplication:
+    """
+    Manages the application's font settings, including loading custom fonts and applying them to UI elements.
+    """
+
+    def __init__(self,
+                 font_path,
+                 font_family_name="WLEDFont",
+                 path_in_webserver='/FontsPath',
+                 font_weight='normal',
+                 font_style='normal',
+                 size_adjust='90%'):
+        """Initialize the FontSetApplication.
+
+        Args:
+            font_path (str): The path to the font file.
+            font_family_name (str, optional): The name to assign to the font family. Defaults to "WLEDFont".
+            path_in_webserver (str, optional): The path to serve the font from in the webserver. Defaults to '/FontsPath'.
+            font_weight : normal, bold ...
+            font_style : normal, italic ...
+            size_adjust : percentage
+        """
+        self.font_path = font_path
+        self.font_type = self.get_font_type(font_path)
+        self.font_family_name = font_family_name
+        self.path_in_webserver = path_in_webserver
+        self.font_weight = font_weight
+        self.font_style = font_style
+        self.size_adjust = size_adjust
+
+        self.font_dir = os.path.dirname(self.font_path)
+        app.add_static_files(self.path_in_webserver, self.font_dir)
+
+        font_url = f"{self.path_in_webserver}/{os.path.basename(self.font_path)}"
+        style = f"""
+        <style>
+        @font-face {{
+            font-family: "{self.font_family_name}";
+            src: url("{font_url}") format('{self.font_type}');
+            font-weight: {self.font_weight};
+            font-style: {self.font_style};
+            size-adjust: {self.size_adjust};
+        }}
+        * {{
+            font-family: "{self.font_family_name}";
+        }}
+        </style>
+        """
+        ui.add_head_html(style)
+
+    @staticmethod
+    def get_font_type(font_path):
+        """
+        Detects the font type from the font file path.
+
+        Args:
+            font_path (str): Path to the font file.
+
+        Returns:
+            str: The font type (e.g., "truetype", "opentype", etc.), or "truetype" if the type cannot be determined.
+        """
+        try:
+            font = fontTools.ttLib.TTFont(font_path)
+            return "opentype" if 'CFF ' in font else "truetype"
+        except Exception as e:
+            print(f"Error detecting font type: {e}")
+            return "truetype"  # Default to truetype if detection fails
 
 class FontPreviewManager:
     """Manages font preview and selection functionality.

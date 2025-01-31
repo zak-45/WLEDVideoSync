@@ -63,7 +63,7 @@ from starlette.concurrency import run_in_threadpool
 from nicegui import app, ui, native, run
 from configmanager import ConfigManager
 from fontsmanager import FontPreviewManager
-
+from fontsmanager import FontSetApplication
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 Desktop = desktop.CASTDesktop()
@@ -3165,6 +3165,12 @@ def apply_custom():
               warning=cfg_mgr.color_config['warning']
               )
 
+    # custom font (experimental)
+    font_file = cfg_mgr.app_config['font_file']
+    if font_file != '':
+        FontSetApplication(font_file)
+
+    # custom bg
     ui.query('body').style(f'background-image: url({cfg_mgr.custom_config["bg-image"]}); '
                            'background-size: cover;'
                            'background-repeat: no-repeat;'
