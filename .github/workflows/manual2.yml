@@ -140,6 +140,7 @@ jobs:
             av.opaque
             coldtype
             skia
+            fontgoggles.font.otfFont
 
           include-data-dir: |
             tmp=tmp
