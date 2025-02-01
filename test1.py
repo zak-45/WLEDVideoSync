@@ -1,7 +1,7 @@
 from coldtype import *
 
 # Define the string to cycle through
-s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+s = "ZABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 # Construct a timeline based on the string and a frame-count-per-element
 frames_per_element = 20

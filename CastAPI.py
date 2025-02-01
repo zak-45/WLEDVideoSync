@@ -1930,6 +1930,39 @@ async def manage_font_page():
     search_input.set_value("")
     await filter_fonts(search_input) # Call filter_fonts to populate the list initially
 
+@ui.page('/Coldtype')
+async def coldtype_test_page():
+    """
+    run Coldtype programmatically
+    """
+    from coldtype.renderer import Renderer
+    from run_coldtype import RUNColdtype
+
+    _, parser = Renderer.Argparser()
+    params = parser.parse_args(["test2.py", "-kl", "fr", "-wcs", "1"])
+
+
+    """
+    def cold_run():
+        print('start coldtype')
+        # run Coldtype with params
+        Renderer(parser=params).main()
+
+
+    thread = Thread(target=lambda: cold_run())
+    thread.daemon = True  # Ensures the thread exits when the main program does
+    thread.start()
+    thread.join()
+
+
+    await run.cpu_bound(Renderer(parser=params).main)
+    """
+    cold = RUNColdtype()
+    cold.run()
+
+
+    print('end of coldtype')
+
 
 """
 helpers /Commons
