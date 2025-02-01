@@ -20,7 +20,6 @@ info_text_color = hsl(0.5, s=0.5, l=0.5)  # color for info text
 
 font = Font.Find("v")
 
-
 @animation(timeline=timeline, bg=bg_color)  # adjust the timeline according to the animation animation_speed
 def animate_alphabet(f):
     letter = timeline.at(f.i).now()
