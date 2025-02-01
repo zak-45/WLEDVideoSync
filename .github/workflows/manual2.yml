@@ -31,7 +31,7 @@ jobs:
 
     env:
       YOUTUBE_DISABLE: yes
-      DEBUG_COMPILATION: yes
+      DEBUG_COMPILATION: no
       COMP_VERSION: ${{github.event.inputs.mytag}}
 
     runs-on: ${{matrix.os}}
@@ -123,7 +123,7 @@ jobs:
           product-version: ${{github.event.inputs.mytag}}
           file-version: ${{github.event.inputs.mytag}}
           enable-plugins: tk-inter
-          windows-console-mode: disable
+          windows-console-mode: attach
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
