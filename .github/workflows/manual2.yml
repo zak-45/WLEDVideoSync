@@ -143,6 +143,7 @@ jobs:
             comtypes.stream
             av.opaque
             coldtype
+            coldtype.raster
             skia
             fontgoggles.font.otfFont
 
