@@ -1,6 +1,7 @@
 import multiprocessing
 import sys
 import io
+import time
 
 from coldtype.renderer import Renderer
 
@@ -54,3 +55,49 @@ class RUNColdtype(multiprocessing.Process):
             self._stop.set()  # Stop the Coldtype process gracefully
             self.log_queue.put(("stdout", "Coldtype process exiting..."))
 
+
+def log_listener(log_queue):
+    """ Reads logs and prints them in real-time. """
+    while True:
+        if not log_queue.empty():
+            log_type, message = log_queue.get()
+            print(f"[{log_type.upper()}] {message}")
+
+
+def start_terminal_interface(log_queue, command_queue, coldtype_process):
+    """ A terminal-based interface to interact with Coldtype. """
+    print("Coldtype has started. Enter commands to interact with it or 'exit' to quit.")
+
+    # Start the log listener in a separate process
+    listener_process = multiprocessing.Process(target=log_listener, args=(log_queue,))
+    listener_process.start()
+
+    # Monitor Coldtype process and wait for it to finish
+    while coldtype_process.is_alive():
+        # Give some time for the user to enter commands
+        command = input("Enter command: ").strip()
+        command_queue.put(command)
+
+        if command == "exit":
+            listener_process.terminate()  # Stop the listener
+            coldtype_process.terminate()  # Stop the Coldtype process
+            break
+
+    # Ensure the listener is also terminated when Coldtype exits
+    listener_process.terminate()
+
+
+if __name__ == "__main__":
+    multiprocessing.freeze_support()  # Needed for Windows if using multiprocessing
+
+    log_queue = multiprocessing.Queue()
+    command_queue = multiprocessing.Queue()
+
+    # Start Coldtype in the background
+    coldtype_process = RUNColdtype(log_queue, command_queue)
+    coldtype_process.start()
+
+    # Give Coldtype a moment to initialize before starting the terminal interface
+    time.sleep(1)
+
+    start_terminal_interface(log_queue, command_queue, coldtype_process)  # Start the terminal interface

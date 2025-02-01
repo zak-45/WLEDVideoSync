@@ -23,6 +23,7 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
+import multiprocessing
 import time
 import sys
 import os
@@ -1956,9 +1957,19 @@ async def coldtype_test_page():
 
 
     await run.cpu_bound(Renderer(parser=params).main)
-    """
+    
     cold = RUNColdtype()
     cold.run()
+    """
+
+    log_queue = multiprocessing.Queue()
+    command_queue = multiprocessing.Queue()
+
+    # Start Coldtype in the background
+    coldtype_process = RUNColdtype(log_queue, command_queue)
+    coldtype_process.start()
+
+
 
 
     print('end of coldtype')

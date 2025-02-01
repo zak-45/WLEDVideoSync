@@ -20,7 +20,7 @@ spacings = [
     dict(tu=80),
 ]
 
-a=1
+a=25
 
 
 at = AsciiTimeline(3, a, """
