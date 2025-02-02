@@ -529,7 +529,7 @@ class ImageUtils:
         return img_str
 
     @staticmethod
-    def process_raw_image(img: np.ndarray, filters: dict) -> np.ndarray:
+    def process_filters_image(img: np.ndarray, filters: dict) -> np.ndarray:
         img = ImageUtils.apply_filters_cv2(img, filters)
         return img
 

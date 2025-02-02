@@ -581,7 +581,7 @@ class CASTMedia:
                            "balance_g": self.balance_g,
                            "balance_b": self.balance_b}
 
-                frame = ImageUtils.process_raw_image(frame, filters=filters)
+                frame = ImageUtils.process_filters_image(frame, filters=filters)
 
             # flip vertical/horizontal: 0,1
             if self.flip:
@@ -769,13 +769,13 @@ class CASTMedia:
                 if str2bool(cfg_mgr.app_config['preview_proc']):
                     # mandatory for no win platform, cv2.imshow() need to run into Main thread
                     # We use ShareableList to share data between this thread and new process
-                    # Create a (9999, 9999, 3) array with all values set to 255 to reserve memory
-                    frame_info = frame.shape
-                    frame_info_list = list(frame_info)
-                    frame_info = tuple(frame_info_list)
-                    full_array = np.full(frame_info, 255, dtype=np.uint8)
                     #
                     if frame_count == 1:
+                        # Create a (9999, 9999, 3) array with all values set to 255 to reserve memory
+                        frame_info = frame.shape
+                        frame_info_list = list(frame_info)
+                        frame_info = tuple(frame_info_list)
+                        full_array = np.full(frame_info, 255, dtype=np.uint8)
                         # create a shared list, name is thread name
                         try:
                             sl = ShareableList(

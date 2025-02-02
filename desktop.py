@@ -367,7 +367,7 @@ class CASTDesktop:
                            "balance_g": self.balance_g,
                            "balance_b": self.balance_b}
 
-                iframe = ImageUtils.process_raw_image(iframe, filters=filters)
+                iframe = ImageUtils.process_filters_image(iframe, filters=filters)
 
             # flip vertical/horizontal: 0,1
             if self.flip:
