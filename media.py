@@ -769,13 +769,19 @@ class CASTMedia:
                 if str2bool(cfg_mgr.app_config['preview_proc']):
                     # mandatory for no win platform, cv2.imshow() need to run into Main thread
                     # We use ShareableList to share data between this thread and new process
+                    # Create a (9999, 9999, 3) array with all values set to 255 to reserve memory
+                    frame_info = frame.shape
+                    frame_info_list = list(frame_info)
+                    frame_info = tuple(frame_info_list)
+                    full_array = np.full(frame_info, 255, dtype=np.uint8)
+                    #
                     if frame_count == 1:
                         # create a shared list, name is thread name
                         try:
                             sl = ShareableList(
                                 [
                                     CASTMedia.total_frame,
-                                    frame.tobytes(),
+                                    full_array.tobytes(),
                                     self.server_port,
                                     t_viinput,
                                     t_name,
@@ -794,12 +800,13 @@ class CASTMedia:
                                     self.cast_x,
                                     self.cast_y,
                                     grid,
-                                    str(frame.shape).replace('(', '').replace(')', '')
+                                    str(list(frame_info))
                                 ],
                                 name=t_name
                             )
 
                         except Exception as e:
+                            cfg_mgr.logger.error(traceback.format_exc())
                             cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {e}')
 
                         # run main_preview in another process
@@ -812,35 +819,36 @@ class CASTMedia:
 
                     # working with the shared list
                     if frame_count > 1:
-                        # what to do from data updated by the child process (mainly user keystroke on preview)
-                        if sl[11] is True or sl[20] == '0,0,0':
-                            t_todo_stop = True
-                        if sl[6] is False:
+                        try:
+                            # what to do from data updated by the child process (mainly user keystroke on preview)
+                            if sl[11] is True:
+                                t_todo_stop = True
+                            if sl[6] is False:
+                                t_preview = False
+                            self.text = sl[15] is not False
+                            # Update Data on shared List
+                            sl[0] = CASTMedia.total_frame
+                            #
+                            # append not zero value to bytes to solve ShareableList bug
+                            # see https://github.com/python/cpython/issues/106939
+                            new_frame = frame.tobytes()
+                            new_frame = bytearray(new_frame)
+                            new_frame.append(1)
+                            new_frame = bytes(new_frame)
+                            sl[1] = new_frame
+                            #
+                            sl[5] = self.preview_top
+                            sl[7] = self.preview_w
+                            sl[8] = self.preview_h
+                            sl[9] = self.pixel_w
+                            sl[10] = self.pixel_h
+                            sl[12] = frame_count
+                            sl[15] = self.text
+
+                        except Exception as e:
+                            cfg_mgr.logger.error(traceback.format_exc())
+                            cfg_mgr.logger.error(f'Error to set ShareableList : {e}')
                             t_preview = False
-                        if sl[15] is False:
-                            self.text = False
-                        else:
-                            self.text = True
-                        # Update Data on shared List
-                        sl[0] = CASTMedia.total_frame
-                        # 08/09/2024
-                        # append not zero value to bytes to solve ShareableList bug
-                        # see https://github.com/python/cpython/issues/106939
-                        new_frame = frame.tobytes()
-                        new_frame = bytearray(new_frame)
-                        new_frame.append(1)
-                        #
-                        new_frame = bytes(new_frame)
-                        sl[1] = new_frame
-                        #
-                        sl[5] = self.preview_top
-                        sl[7] = self.preview_w
-                        sl[8] = self.preview_h
-                        sl[9] = self.pixel_w
-                        sl[10] = self.pixel_h
-                        sl[12] = frame_count
-                        sl[15] = self.text
-                        sl[20] = str(frame.shape).replace('(', '').replace(')', '')
 
                 else:
 
@@ -871,9 +879,7 @@ class CASTMedia:
             """
             do we need to sleep to be compliant with selected rate (fps)
             """
-            if CASTMedia.t_todo_event.is_set():
-                pass
-            else:
+            if not CASTMedia.t_todo_event.is_set():
                 # Calculate the current time
                 current_time = time.time()
 

@@ -45,6 +45,8 @@ import cv2
 import concurrent_log_handler
 import traceback
 import av
+import numpy as np
+
 import actionutils
 
 
@@ -209,10 +211,10 @@ class CASTDesktop:
         frame = None
         queue_buffer = None
 
-        t_todo_stop = False
-
-        sl_process = None
         sl = None
+        sl_process = None
+
+        t_todo_stop = False
 
         t_protocol = self.protocol
         e131_host = None
@@ -337,7 +339,7 @@ class CASTDesktop:
         """
         frame processing
         """
-        def process_frame(iframe, i_preview, i_todo_stop):
+        def process_frame(iframe):
 
             # adjust gamma
             iframe = cv2.LUT(iframe, ImageUtils.gamma_correct_frame(self.gamma))
@@ -384,7 +386,7 @@ class CASTDesktop:
 
                 """
 
-                grid = True
+                i_grid = True
 
                 # resize frame to virtual matrix size
                 frame_art = CV2Utils.pixelart_image(iframe, t_scale_width, t_scale_height)
@@ -424,7 +426,7 @@ class CASTDesktop:
 
             else:
 
-                grid = False
+                i_grid = False
 
                 # resize frame for sending to device
                 frame_to_send = CV2Utils.resize_image(iframe, t_scale_width, t_scale_height)
@@ -485,14 +487,8 @@ class CASTDesktop:
             if self.record and out_file is not None:
                 out_file.write_frame(frame)
 
-            """
-            Manage preview window, depend on the platform
-            """
-            # preview on fixed size window
-            if i_preview:
-                i_preview, i_todo_stop = process_preview(iframe,i_preview, i_todo_stop, grid)
 
-            return i_preview, i_todo_stop
+            return i_grid
 
         """
         end frame process
@@ -502,85 +498,44 @@ class CASTDesktop:
         preview process
         Manage preview window, depend on the platform
         """
-        def process_preview(iframe, i_preview, i_todo_stop, grid):
+        def process_preview(iframe, i_preview, i_todo_stop, i_grid):
             # preview on fixed size window
 
             if str2bool(cfg_mgr.app_config['preview_proc']):
                 # for non-win platform mainly, cv2.imshow() need to run into Main thread
                 # We use ShareableList to share data between this thread and new process
-                if frame_count == 1:
-                    # create a shared list, name is thread name
-                    try:
-                        sl = ShareableList(
-                            [
-                                CASTDesktop.total_frame,
-                                iframe.tobytes(),
-                                self.server_port,
-                                t_viinput,
-                                t_name,
-                                self.preview_top,
-                                i_preview,
-                                self.preview_w,
-                                self.preview_h,
-                                self.pixel_w,
-                                self.pixel_h,
-                                i_todo_stop,
-                                frame_count,
-                                frame_interval,
-                                str(ip_addresses),
-                                self.text,
-                                self.custom_text,
-                                self.cast_x,
-                                self.cast_y,
-                                grid,
-                                str(frame.shape).replace('(', '').replace(')', '')
-                            ],
-                            name=t_name)
-                    except Exception as er:
-                        cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {er}')
-
-                    # run main_preview in another process
-                    # create a child process, so cv2.imshow() will run from its Main Thread
-                    sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Desktop',))
-                    # start the child process
-                    # small delay should occur, OS take some time to initiate the new process
-                    sl_process.start()
-                    cfg_mgr.logger.debug(f'Starting Child Process for Preview : {t_name}')
+                # preview window is managed by CV2Utils.sl_main_preview() running from sl_process
 
                 # working with the shared list
-                if frame_count > 1:
-                    # what to do from data updated by the child process (keystroke from preview window)
-                    if sl[11] is True or sl[20] == '0,0,0':
-                        t_todo_stop = True
-                    elif sl[6] is False:
-                        t_preview = False
-                    else:
-                        if sl[15] is False:
-                            self.text = False
-                        else:
-                            self.text = True
-                        # Update Data on shared List
-                        sl[0] = CASTDesktop.total_frame
-                        # append not zero value to bytes to solve ShareableList bug
-                        # see https://github.com/python/cpython/issues/106939
-                        new_frame = frame.tobytes()
-                        new_frame = bytearray(new_frame)
-                        new_frame.append(1)
-                        new_frame = bytes(new_frame)
-                        sl[1] = new_frame
-                        #
-                        sl[5] = self.preview_top
-                        sl[7] = self.preview_w
-                        sl[8] = self.preview_h
-                        sl[9] = self.pixel_w
-                        sl[10] = self.pixel_h
-                        sl[12] = frame_count
-                        sl[15] = self.text
-                        sl[20] = str(frame.shape).replace('(', '').replace(')', '')
+                # what to do from data updated by the child process (keystroke from preview window)
+                if sl[11] is True:
+                    i_todo_stop = True
+                elif sl[6] is False:
+                    i_preview = False
+                else:
+                    # Update Data on shared List
+                    self.text = sl[15] is not False
+                    sl[0] = CASTDesktop.total_frame
+                    #
+                    # append not zero value to bytes to solve ShareableList bug
+                    # see https://github.com/python/cpython/issues/106939
+                    new_frame = frame.tobytes()
+                    new_frame = bytearray(new_frame)
+                    new_frame.append(1)
+                    new_frame = bytes(new_frame)
+                    sl[1] = new_frame
+                    #
+                    sl[5] = self.preview_top
+                    sl[7] = self.preview_w
+                    sl[8] = self.preview_h
+                    sl[9] = self.pixel_w
+                    sl[10] = self.pixel_h
+                    sl[12] = frame_count
+                    sl[15] = self.text
 
             else:
 
-                # for win, not necessary to use child process as this work into thread (avoid overhead)
+                # for win, not necessary to use child process as this work from thread (avoid overhead)
                 i_preview, i_todo_stop, self.text = CV2Utils.cv2_preview_window(
                     CASTDesktop.total_frame,
                     iframe,
@@ -602,13 +557,64 @@ class CASTDesktop:
                     self.cast_x,
                     self.cast_y,
                     'Desktop',
-                    grid)
+                    i_grid)
 
             return i_preview, i_todo_stop
 
         """
         end preview process
         """
+
+        """
+        create shareable list        
+        """
+        def create_shareable_list():
+            i_sl = None
+            # Create a (9999, 9999, 3) array with all values set to 255 to reserve memory
+            frame_info = frame.shape
+            frame_info_list = list(frame_info)
+            frame_info = tuple(frame_info_list)
+            full_array = np.full(frame_info, 255, dtype=np.uint8)
+            # create a shared list, name is thread name
+            try:
+                i_sl = ShareableList(
+                    [
+                        CASTDesktop.total_frame,
+                        full_array.tobytes(),
+                        self.server_port,
+                        t_viinput,
+                        t_name,
+                        self.preview_top,
+                        t_preview,
+                        self.preview_w,
+                        self.preview_h,
+                        self.pixel_w,
+                        self.pixel_h,
+                        t_todo_stop,
+                        frame_count,
+                        frame_interval,
+                        str(ip_addresses),
+                        self.text,
+                        self.custom_text,
+                        self.cast_x,
+                        self.cast_y,
+                        grid,
+                        str(list(frame_info))
+                    ],
+                    name=t_name)
+            except Exception as er:
+                cfg_mgr.logger.error(traceback.format_exc())
+                cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {er}')
+
+            # run main_preview in another process
+            # create a child process, so cv2.imshow() will run from its Main Thread
+            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Desktop',))
+            # start the child process
+            # small delay should occur, OS take some time to initiate the new process
+            i_sl_process.start()
+            cfg_mgr.logger.debug(f'Starting Child Process for Preview : {t_name}')
+
+            return i_sl, i_sl_process
 
         """
         First, check devices 
@@ -916,20 +922,38 @@ class CASTDesktop:
                             # convert frame to np array
                             frame = frame.to_ndarray(format="rgb24")
 
-                            # process frame and receive back value from action
-                            t_preview, t_todo_stop = process_frame(frame, t_preview, t_todo_stop)
+                            # process frame
+                            grid = process_frame(frame)
+
+                            # preview on fixed size window and receive back value from keyboard
+                            if t_preview:
+                                # create ShareableList if necessary
+                                if frame_count == 1 and str2bool(cfg_mgr.app_config['preview_proc']):
+                                    sl, sl_process = create_shareable_list()
+                                    if sl is None or sl_process is None:
+                                        cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
+                                        raise ExitFromLoop
+
+                                t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
 
                         if CASTDesktop.t_todo_event.is_set():
                             t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
 
                 elif queue_buffer is not None:
+
                     cfg_mgr.logger.debug('process from queue')
                     # Default image to display when queue is empty
                     default_img = cv2.imread('assets/Source-intro.png')
                     default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
                     default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
+                    # create ShareableList if necessary
+                    if t_preview and str2bool(cfg_mgr.app_config['preview_proc']):
+                        sl, sl_process = create_shareable_list()
+                        if sl is None or sl_process is None:
+                            cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
+                            raise ExitFromLoop
 
-                    # infinite loop
+                    # infinite loop for queue
                     while True:
 
                         """
@@ -952,13 +976,17 @@ class CASTDesktop:
                                     # process frame
                                     frame_count += 1
                                     CASTDesktop.total_frame += 1
-                                    t_preview, t_todo_stop = process_frame(frame, t_preview, t_todo_stop)
+                                    grid = process_frame(frame)
                                     queue_buffer.task_done()
+                                    if t_preview:
+                                        t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
                                 except queue.Empty:
                                     frame = default_img
-                                    t_preview, t_todo_stop = process_frame(frame, t_preview, t_todo_stop)
-                                    break
+                                    grid = process_frame(frame)
+                                    if t_preview:
+                                        t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
                             else:
+
                                 cfg_mgr.logger.error(f'frame Queue size too big: {queue_buffer.qsize()}')
                                 self.stopcast = True
                                 raise ExitFromLoop
@@ -966,6 +994,10 @@ class CASTDesktop:
                         # check to see if something to do
                         if CASTDesktop.t_todo_event.is_set():
                             t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
+
+                        # preview default
+                        if t_preview:
+                            t_preview, t_todo_stop = process_preview(default_img, t_preview, t_todo_stop, i_grid=False)
 
                         # some sleep until next, this could add some delay to stream next available frame
                         time.sleep(0.1)

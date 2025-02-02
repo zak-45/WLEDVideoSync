@@ -1969,9 +1969,6 @@ async def coldtype_test_page():
     coldtype_process = RUNColdtype(log_queue, command_queue)
     coldtype_process.start()
 
-
-
-
     print('end of coldtype')
 
 

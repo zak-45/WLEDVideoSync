@@ -10,7 +10,19 @@
 # Image utilities
 # cv2 preview
 #
+
+
+
+In my case I found following command helpful for dumping:
+
+string = str(array.tolist())
+
+And for reloading:
+
+array = np.array( eval(string), dtype='uint8' )
+
 """
+import ast
 
 import cv2
 from multiprocessing.shared_memory import ShareableList
@@ -113,13 +125,14 @@ class CV2Utils:
         :param shared_list:
         :return:
         """
-        # Default image to display in case of np.array conversion problem
-        sl_img = cv2.imread('assets/Source-intro.png')
-        sl_img = cv2.cvtColor(sl_img, cv2.COLOR_BGR2RGB)
-        sl_img = CV2Utils.resize_image(sl_img, 640, 360, keep_ratio=False)
 
         # attach to a shareable list by name: name is Thread Name
         sl = ShareableList(name=shared_list)
+
+        # Default image to display in case of np.array conversion problem
+        default_img = cv2.imread('assets/Source-intro.png')
+        default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
+        default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
 
         # Display image on preview window
         while True:
@@ -149,21 +162,13 @@ class CV2Utils:
             sl_cast_x = sl[17]
             sl_cast_y = sl[18]
             sl_grid = sl[19]
-            received_shape = sl[20].split(',')
+            sl_frame_info = tuple(ast.literal_eval(sl[20]))
 
-            # calculate new shape value, if 0 then stop preview
+
+            # calculate new shape value
             # ( w * h * (colors number)) e.g. 640(w) * 360()h * 3(rgb)
-            shape_bytes = int(received_shape[0]) * int(received_shape[1]) * int(received_shape[2])
-            if shape_bytes == 0:
-                window_name = f"{sl_server_port}-{sl_t_name}-{str(sl_t_viinput)}"
-                try:
-                    win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                    if not win == 0:
-                        cv2.destroyWindow(window_name)
-                except Exception:
-                    pass
-                break
-                
+            shape_bytes = int(sl_frame_info[0]) * int(sl_frame_info[1]) * int(sl_frame_info[2])
+
             # Generate new frame from ShareableList. Display default img in case of problem
             # original np.array has been transformed to bytes with 'tobytes()'
             # re-created as array with 'frombuffer()'
@@ -172,15 +177,15 @@ class CV2Utils:
             # shape need to be the same
             if sl_frame.nbytes == shape_bytes:
                 # we need to reshape the array to provide right dim. ( w, h, 3-->rgb)
-                received_frame = sl_frame.reshape(int(received_shape[0]), int(received_shape[1]), -1)
+                frame_to_view = sl_frame.reshape(int(sl_frame_info[0]), int(sl_frame_info[1]), int(sl_frame_info[2]))
             else:
                 # in case of any array data/size problem
-                cfg_mgr.logger.debug(received_shape, shape_bytes, sl_frame.nbytes)
-                received_frame = sl_img
+                cfg_mgr.logger.debug(sl_frame_info, shape_bytes, sl_frame.nbytes)
+                frame_to_view = default_img
 
             sl[6], sl[11], sl[15] = CV2Utils.cv2_preview_window(
                 sl_total_frame,
-                received_frame,
+                frame_to_view,
                 sl_server_port,
                 sl_t_viinput,
                 sl_t_name,
@@ -203,7 +208,6 @@ class CV2Utils:
 
             # Stop if requested
             if sl[11] is True:
-                sl[20] = '0,0,0'
                 cfg_mgr.logger.debug(f'SL STOP Cast for : {sl_t_name}')
                 break
             elif sl[6] is False:
