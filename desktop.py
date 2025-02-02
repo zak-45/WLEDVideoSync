@@ -488,7 +488,7 @@ class CASTDesktop:
                 out_file.write_frame(frame)
 
 
-            return i_grid
+            return iframe, i_grid
 
         """
         end frame process
@@ -923,7 +923,7 @@ class CASTDesktop:
                             frame = frame.to_ndarray(format="rgb24")
 
                             # process frame
-                            grid = process_frame(frame)
+                            frame, grid = process_frame(frame)
 
                             # preview on fixed size window and receive back value from keyboard
                             if t_preview:
@@ -976,13 +976,12 @@ class CASTDesktop:
                                     # process frame
                                     frame_count += 1
                                     CASTDesktop.total_frame += 1
-                                    grid = process_frame(frame)
+                                    frame, grid = process_frame(frame)
                                     queue_buffer.task_done()
                                     if t_preview:
                                         t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
                                 except queue.Empty:
-                                    frame = default_img
-                                    grid = process_frame(frame)
+                                    frame, grid = process_frame(default_img)
                                     if t_preview:
                                         t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
                             else:
