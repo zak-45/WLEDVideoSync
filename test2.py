@@ -1,8 +1,8 @@
 from coldtype import *
 from coldtype.raster import *
-from multiprocessing.shared_memory import ShareableList
+#from multiprocessing.shared_memory import ShareableList
 
-sl = ShareableList(name="shared_list")
+#sl = ShareableList(name="shared_list")
 # fnt = Font.List("")
 # fnt = Font.Find("Roboto Serif 20pt")
 
@@ -42,7 +42,7 @@ def list_fonts_skia():
     fonts.extend(
         font_mgr.getFamilyName(i) for i in range(font_mgr.countFamilies())
     )
-    print(fonts)
+    # print(fonts)
     return sorted(fonts)
 
 fnt_list = Font.List(" ")
@@ -70,6 +70,6 @@ def default(f):
 
     print(type(gen_image))
     # print(sl[0])
-    sl[0] += 1
+    #sl[0] += 1
 
     return SkiaImage(gen_image)

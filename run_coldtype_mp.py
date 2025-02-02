@@ -44,17 +44,17 @@ class RUNColdtype(multiprocessing.Process):
             sys.stderr = original_stderr
 
 
-def log_listener(ilog_queue, stop_event, shared_list_name):
-    shared_list = ShareableList(name=shared_list_name)  # Attach to existing shared list
-    while not stop_event.is_set():
+def log_listener(ilog_queue, i_stop_event, shared_list_name):
+    i_shared_list = ShareableList(name=shared_list_name)  # Attach to existing shared list
+    while not i_stop_event.is_set():
         if not ilog_queue.empty():
             log_type, message = ilog_queue.get()
             print(f"[{log_type.upper()}] {message}")
-            print(f"Shared List Value: {shared_list[0]}")  # Example of accessing shared data
-        command = shared_list[1].strip()
-        if command == "exit":
+            print(f"Shared List Value: {i_shared_list[0]}")  # Example of accessing shared data
+        i_command = i_shared_list[1].strip()
+        if i_command == "exit":
             stop_event.set()
-    shared_list.shm.close()
+    i_shared_list.shm.close()
 
 
 if __name__ == "__main__":
@@ -75,9 +75,10 @@ if __name__ == "__main__":
     listener_process.start()
 
     while coldtype_process.is_alive():
-        command = str(shared_list[0]).strip()
-        print(command)
-        if command == "exit":
+        share_value = str(shared_list[0]).strip()
+        print(share_value)
+        if share_value == '5':
+            print('ok')
             break
 
     # Set stop flag for both processes

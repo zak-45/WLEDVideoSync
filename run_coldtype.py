@@ -23,7 +23,7 @@ class RUNColdtype(multiprocessing.Process):
 
         try:
             # Arguments for the Renderer
-            args = ["test2.py", "-kl", "fr", "-wcs", "1", "-ec","notepad"]
+            args = ["C:\\Users\\zak-4\\PycharmProjects\\WLEDVideoSync\\test2.py", "-kl", "fr", "-wcs", "1", "-ec","notepad"]
 
             # Initialize the Renderer
             _, parser = Renderer.Argparser()

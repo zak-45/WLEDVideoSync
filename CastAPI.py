@@ -1933,17 +1933,19 @@ async def manage_font_page():
 
 @ui.page('/Coldtype')
 async def coldtype_test_page():
+    from run_coldtype import RUNColdtype
+
     """
     run Coldtype programmatically
-    """
+    
     from coldtype.renderer import Renderer
-    from run_coldtype import RUNColdtype
+
 
     _, parser = Renderer.Argparser()
     params = parser.parse_args(["test2.py", "-kl", "fr", "-wcs", "1"])
 
 
-    """
+
     def cold_run():
         print('start coldtype')
         # run Coldtype with params
@@ -1957,7 +1959,7 @@ async def coldtype_test_page():
 
 
     await run.cpu_bound(Renderer(parser=params).main)
-    
+        
     cold = RUNColdtype()
     cold.run()
     """
