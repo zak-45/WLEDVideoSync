@@ -65,7 +65,7 @@ from nicegui import app, ui, native, run
 from configmanager import ConfigManager
 from fontsmanager import FontPreviewManager
 from fontsmanager import FontSetApplication
-from run_coldtype import RUNColdtype
+from run_coldtype_thr import RUNColdtype
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 Desktop = desktop.CASTDesktop()
@@ -1935,47 +1935,12 @@ async def manage_font_page():
 @ui.page('/Coldtype')
 async def coldtype_test_page():
 
-
-    """
-    run Coldtype programmatically
-    
-    from coldtype.renderer import Renderer
-
-
-    _, parser = Renderer.Argparser()
-    params = parser.parse_args(["test2.py", "-kl", "fr", "-wcs", "1"])
-
-
-
     def cold_run():
-        print('start coldtype')
-        # run Coldtype with params
-        Renderer(parser=params).main()
+        cold = RUNColdtype()
+        cold.start()
 
-
-    thread = Thread(target=lambda: cold_run())
-    thread.daemon = True  # Ensures the thread exits when the main program does
-    thread.start()
-    thread.join()
-
-
-    await run.cpu_bound(Renderer(parser=params).main)
-        
-    cold = RUNColdtype()
-    cold.run()
-    """
-    async def cold_run():
-
-        print('define queues')
-        log_queue = multiprocessing.Queue()
-        command_queue = multiprocessing.Queue()
-
-        print('RUNColdtype class ')
-        coldtype_process = RUNColdtype(log_queue, command_queue)
-        print('Start Coldtype in the background')
-        coldtype_process.start()
-
-    ui.button('run cold', on_click=cold_run)
+    ui.button('run Coldtype', on_click=cold_run)
+    ui.button('shutdown', on_click=app.shutdown)
 
     print('end of coldtype page load')
 

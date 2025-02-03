@@ -22,30 +22,30 @@ class RUNColdtype(multiprocessing.Process):
         sys.stderr = self.stderr_capture
 
         try:
-            print('Arguments for the Renderer')
+            # Arguments for the Renderer
             args = ["test2.py", "-kl", "fr", "-wcs", "1", "-ec","notepad"]
 
-            print('Initialize the Renderer')
+            # Initialize the Renderer
             _, parser = Renderer.Argparser()
             params = parser.parse_args(args)
 
-            print('Use the Renderer class to run Coldtype')
+            # Use the Renderer class to run Coldtype
             renderer = Renderer(parser=params)
 
-            print('Run the Coldtype rendering process')
-            #while not self._stop.is_set():
+            # Run the Coldtype rendering process
+            # while not self._stop.is_set():
             renderer.main()  # Keep the rendering loop going
 
         except Exception as e:
             self.log_queue.put(("stderr", f"Error running Coldtype: {str(e)}"))
 
         finally:
-            print('Capture any stderr output from Coldtype after execution')
+            # Capture any stderr output from Coldtype after execution
             stderr_output = self.stderr_capture.getvalue()
             if stderr_output:
                 self.log_queue.put(("stderr", stderr_output))
 
-            print('Restore original stderr')
+            # Restore original stderr
             sys.stderr = original_stderr
 
     def handle_command(self, command):

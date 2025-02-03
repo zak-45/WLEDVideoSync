@@ -1,17 +1,15 @@
-import multiprocessing
-from nicegui import ui
-from run_coldtype import RUNColdtype
-
+from nicegui import ui, app
+from run_coldtype_thr import RUNColdtype
 
 def cold_run():
-    log_queue = multiprocessing.Queue()
-    command_queue = multiprocessing.Queue()
 
-    # Start Coldtype in the background
-    coldtype_process = RUNColdtype(log_queue, command_queue)
-    coldtype_process.start()
+    cold = RUNColdtype()
+    cold.start()
 
+ui.button('run Coldtype', on_click=cold_run)
+ui.button('shutdown', on_click=app.shutdown)
 
-ui.button('click', on_click=cold_run)
+print('run NiceGUI')
+ui.run(reload=False)
 
-ui.run()
+print('end of main')
