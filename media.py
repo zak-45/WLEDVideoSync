@@ -808,6 +808,7 @@ class CASTMedia:
                         except Exception as e:
                             cfg_mgr.logger.error(traceback.format_exc())
                             cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {e}')
+                            break
 
                         # run main_preview in another process
                         # create a child process, so cv2.imshow() will run from its own Main Thread

@@ -65,6 +65,7 @@ from nicegui import app, ui, native, run
 from configmanager import ConfigManager
 from fontsmanager import FontPreviewManager
 from fontsmanager import FontSetApplication
+from run_coldtype import RUNColdtype
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 Desktop = desktop.CASTDesktop()
@@ -1933,7 +1934,7 @@ async def manage_font_page():
 
 @ui.page('/Coldtype')
 async def coldtype_test_page():
-    from run_coldtype import RUNColdtype
+
 
     """
     run Coldtype programmatically
@@ -1963,15 +1964,20 @@ async def coldtype_test_page():
     cold = RUNColdtype()
     cold.run()
     """
+    async def cold_run():
 
-    log_queue = multiprocessing.Queue()
-    command_queue = multiprocessing.Queue()
+        print('define queues')
+        log_queue = multiprocessing.Queue()
+        command_queue = multiprocessing.Queue()
 
-    # Start Coldtype in the background
-    coldtype_process = RUNColdtype(log_queue, command_queue)
-    coldtype_process.start()
+        print('RUNColdtype class ')
+        coldtype_process = RUNColdtype(log_queue, command_queue)
+        print('Start Coldtype in the background')
+        coldtype_process.start()
 
-    print('end of coldtype')
+    ui.button('run cold', on_click=cold_run)
+
+    print('end of coldtype page load')
 
 
 """
