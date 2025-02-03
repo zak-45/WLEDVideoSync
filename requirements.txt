@@ -42,3 +42,4 @@ coldtype
 skia-python
 fonttools
 pywebview
+glfw
