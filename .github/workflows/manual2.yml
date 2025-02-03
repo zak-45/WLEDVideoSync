@@ -144,7 +144,6 @@ jobs:
             av.opaque
             coldtype
             coldtype.raster
-            skia
             fontgoggles.font.otfFont
 
           include-data-dir: |
