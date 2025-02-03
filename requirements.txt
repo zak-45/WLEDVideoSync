@@ -38,8 +38,6 @@ cfg-load
 async-timeout
 sacn
 stupidArtnet
-coldtype
-skia-python
 fonttools
 pywebview
-glfw
+coldtype[viewer]
