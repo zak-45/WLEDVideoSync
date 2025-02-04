@@ -21,7 +21,7 @@ info_text_color = hsl(0.5, s=0.5, l=0.5)  # color for info text
 font = Font.Find("v")
 
 @animation(rect=(1280, 640),timeline=timeline, bg=bg_color)  # adjust the timeline according to the animation animation_speed
-def test1(f):
+def cold_demo_02(f):
     letter = timeline.at(f.i).now()
     t = letter.e("linear", 0)
 

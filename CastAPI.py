@@ -3258,3 +3258,4 @@ if str2bool(cfg_mgr.app_config['keep_yt']) is not True:
 if str2bool(cfg_mgr.app_config['keep_image']) is not True:
     for img_filename in PathLib("./media/").glob("image-tmp_*_*.jpg"):
         img_filename.unlink()
+
