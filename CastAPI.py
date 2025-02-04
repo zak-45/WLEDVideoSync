@@ -65,7 +65,7 @@ from nicegui import app, ui, native, run
 from configmanager import ConfigManager
 from fontsmanager import FontPreviewManager
 from fontsmanager import FontSetApplication
-from run_coldtype_thr import RUNColdtype
+from coldtypemp import RUNColdtype
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 Desktop = desktop.CASTDesktop()
