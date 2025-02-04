@@ -23,7 +23,7 @@ class RUNColdtype(multiprocessing.Process):
 
         try:
             _, parser = Renderer.Argparser()
-            args = ["test2.py", "-kl", "fr", "-wcs", "1", "-ec", "notepad"]
+            args = ["cold_demo.py", "-kl", "fr", "-wcs", "1", "-ec", "notepad"]
             # params = parser.parse_args(self.shared_list[2:])  # Use shared list for arguments
             params = parser.parse_args(args)
             renderer = Renderer(parser=params)
