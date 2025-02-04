@@ -1,7 +1,7 @@
 from coldtype import *
 
 # Define the string to cycle through
-s = "ZABCDEFGHIJKLMNOPQRSTUVWXYZ"
+s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 # Construct a timeline based on the string and a frame-count-per-element
 frames_per_element = 20
@@ -20,8 +20,8 @@ info_text_color = hsl(0.5, s=0.5, l=0.5)  # color for info text
 
 font = Font.Find("v")
 
-@animation(timeline=timeline, bg=bg_color)  # adjust the timeline according to the animation animation_speed
-def animate_alphabet(f):
+@animation(rect=(1280, 640),timeline=timeline, bg=bg_color)  # adjust the timeline according to the animation animation_speed
+def test1(f):
     letter = timeline.at(f.i).now()
     t = letter.e("linear", 0)
 

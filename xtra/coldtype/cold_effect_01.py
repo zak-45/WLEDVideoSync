@@ -22,36 +22,18 @@ spacings = [
     dict(tu=80),
 ]
 
-a=25
+fps=25
 
 
-at = AsciiTimeline(3, a, """
+at = AsciiTimeline(3, fps, """
                                 <
 [0     ][1     ][2     ][3     ][4     ]
 """).shift("end", -10)
 
-def list_fonts_skia():
-    """
-    List fonts using Skia's FontMgr.
-
-    Returns:
-    - A sorted list of font family names.
-    """
-    font_mgr = skia.FontMgr()
-    fonts = []
-    fonts.extend(
-        font_mgr.getFamilyName(i) for i in range(font_mgr.countFamilies())
-    )
-    # print(fonts)
-    return sorted(fonts)
-
-fnt_list = Font.List(" ")
-
 fnt_path = Font.Cacheable('C:/Windows/Fonts/NotoSans-Regular.ttf')
 
-
 @animation(Rect(860, 320), timeline=at, bg=-1)
-def default(f):
+def cold_effect_01(f):
 
     state = at.kf("eeio", keyframes=states)
     spacing = at.kf("seio", keyframes=spacings)
