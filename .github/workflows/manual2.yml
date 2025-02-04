@@ -31,7 +31,7 @@ jobs:
 
     env:
       YOUTUBE_DISABLE: yes
-      DEBUG_COMPILATION: no
+      DEBUG_COMPILATION: yes
       COMP_VERSION: ${{github.event.inputs.mytag}}
 
     runs-on: ${{matrix.os}}
