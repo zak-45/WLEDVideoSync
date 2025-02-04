@@ -157,7 +157,6 @@ jobs:
             favicon.ico=favicon.ico
             favicon.png=favicon.png
             splash-screen.png=splash-screen.png
-            cold_demo.py=cold_demo.py
 
       - name: Upload Artifacts Win/Linux
         if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
