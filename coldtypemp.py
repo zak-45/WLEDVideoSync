@@ -52,7 +52,7 @@ class RUNColdtype(multiprocessing.Process):
 
         try:
 
-            script_file = 'xtra/coldtype/cold_effect_01.py'
+            script_file = 'xtra/coldtype/cold_demo_01.py'
 
             # Extract the file name without extension
             script_name =  os.path.splitext(os.path.basename(script_file))[0]
