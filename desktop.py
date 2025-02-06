@@ -106,6 +106,7 @@ class CASTDesktop:
     total_packet = 0  # net packets number
 
     queue_names = {}  # queues dict
+    queues_list = []  # list of all queues obj
 
     def __init__(self):
         self.rate: int = 25
@@ -786,7 +787,9 @@ class CASTDesktop:
 
         elif self.viinput == 'queue':
 
-            queue_buffer = CASTDesktop.queue_names[f"{t_name}_q"] = queue.Queue()
+            queue_buffer =  queue.Queue()
+            CASTDesktop.queue_names[f"{t_name}_q"] = CASTDesktop.count
+            CASTDesktop.queues_list.append(queue_buffer)
 
             if not isinstance(queue_buffer, queue.Queue):
                 cfg_mgr.logger.error(f"{t_name} Queue buffer not initialized for queue input.")
@@ -1057,9 +1060,10 @@ class CASTDesktop:
         elif t_protocol == 'artnet':
             artnet_host.deactivate()
 
-        # remove queue from dict and memory
+        # remove queue from dict list and memory
         if queue_buffer is not None:
             del CASTDesktop.queue_names[f"{t_name}_q"]
+            CASTDesktop.queues_list.remove(queue_buffer)
             del queue_buffer
 
         cfg_mgr.logger.debug("_" * 50)

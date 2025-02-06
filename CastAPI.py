@@ -265,9 +265,10 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
 
     try:
         class_obj = globals()[class_name]
-    except KeyError:
-        raise HTTPException(status_code=400,
-                            detail=f"Invalid class name: {class_name}")
+    except KeyError as e:
+        raise HTTPException(
+            status_code=400, detail=f"Invalid class name: {class_name}"
+        ) from e
 
     if not hasattr(class_obj, param):
         raise HTTPException(status_code=400,
@@ -353,8 +354,10 @@ async def buffer_image(class_obj: str = Path(description=f'Class name, should be
 
     try:
         class_name = globals()[class_obj]
-    except KeyError:
-        raise HTTPException(status_code=400, detail=f"Invalid Class name: {class_obj}")
+    except KeyError as e:
+        raise HTTPException(
+            status_code=400, detail=f"Invalid Class name: {class_obj}"
+        ) from e
 
     if number > len(class_name.frame_buffer):
         raise HTTPException(status_code=400, detail=f"Image number : {number} not exist for Class name: {class_obj} ")
@@ -362,7 +365,10 @@ async def buffer_image(class_obj: str = Path(description=f'Class name, should be
     try:
         img = ImageUtils.image_array_to_base64(class_name.frame_buffer[number])
     except Exception as b_error:
-        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {b_error}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Class name: {class_obj} provide this error : {b_error}",
+        ) from b_error
 
     return {"buffer_base64": img}
 
@@ -378,8 +384,10 @@ async def buffer_image_save(class_obj: str = Path(description=f'Class name, shou
 
     try:
         class_name = globals()[class_obj]
-    except KeyError:
-        raise HTTPException(status_code=400, detail=f"Invalid Class name: {class_obj}")
+    except KeyError as e:
+        raise HTTPException(
+            status_code=400, detail=f"Invalid Class name: {class_obj}"
+        ) from e
 
     if number > len(class_name.frame_buffer):
         raise HTTPException(status_code=400, detail=f"Image number : {number} not exist for Class name: {class_obj} ")
@@ -387,7 +395,10 @@ async def buffer_image_save(class_obj: str = Path(description=f'Class name, shou
     try:
         await CV2Utils.save_image(class_name, 'frame_buffer', number)
     except Exception as b_error:
-        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {b_error}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Class name: {class_obj} provide this error : {b_error}",
+        ) from b_error
 
     return {"buffer_save": True}
 
@@ -403,8 +414,10 @@ async def buffer_image_save_ascii(class_obj: str = Path(description=f'Class name
 
     try:
         class_name = globals()[class_obj]
-    except KeyError:
-        raise HTTPException(status_code=400, detail=f"Invalid Class name: {class_obj}")
+    except KeyError as e:
+        raise HTTPException(
+            status_code=400, detail=f"Invalid Class name: {class_obj}"
+        ) from e
 
     if number > len(class_name.frame_buffer):
         raise HTTPException(status_code=400, detail=f"Image number : {number} not exist for Class name: {class_obj} ")
@@ -412,7 +425,10 @@ async def buffer_image_save_ascii(class_obj: str = Path(description=f'Class name
     try:
         await CV2Utils.save_image(class_name, 'frame_buffer', number, ascii_art=True)
     except Exception as b_error:
-        raise HTTPException(status_code=400, detail=f"Class name: {class_obj} provide this error : {b_error}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Class name: {class_obj} provide this error : {b_error}",
+        ) from b_error
 
     return {"buffer_save": True}
 
@@ -426,8 +442,10 @@ async def run_cast(class_obj: str = Path(description=f'Class name, should be in:
         raise HTTPException(status_code=400, detail=f"Class name: {class_obj} not in {class_to_test}")
     try:
         my_obj = globals()[class_obj]
-    except KeyError:
-        raise HTTPException(status_code=400, detail=f"Invalid Class name: {class_obj}")
+    except KeyError as e:
+        raise HTTPException(
+            status_code=400, detail=f"Invalid Class name: {class_obj}"
+        ) from e
 
     # run cast and pass the queue to share data
     my_obj.cast(shared_buffer=t_data_buffer)
@@ -464,9 +482,7 @@ async def util_device_list_update():
     """
         Update available devices list
     """
-    status = "Error"
-    if Utils.dev_list_update():
-        status = "Ok"
+    status = "Ok" if Utils.dev_list_update() else "Error"
     return {"device_list": status}
 
 
@@ -476,20 +492,20 @@ async def util_download_yt(yt_url: str):
        Download video from Youtube Url
     """
 
-    if 'youtu' in yt_url:
-
-        try:
-
-            await Utils.youtube_download(yt_url=yt_url, interactive=False)
-
-        except Exception as e:
-            cfg_mgr.logger.error(f'youtube error: {e}')
-            raise HTTPException(status_code=400,
-                                detail=f"Not able to retrieve video from : {yt_url} {e}")
-    else:
+    if 'youtu' not in yt_url:
         raise HTTPException(status_code=400,
                             detail=f"Looks like not YT url : {yt_url} ")
 
+    try:
+
+        await Utils.youtube_download(yt_url=yt_url, interactive=False)
+
+    except Exception as e:
+        cfg_mgr.logger.error(f'youtube error: {e}')
+        raise HTTPException(
+            status_code=400,
+            detail=f"Not able to retrieve video from : {yt_url} {e}",
+        ) from e
     return {"youtube": "ok"}
 
 
@@ -540,15 +556,18 @@ async def util_casts_info(img: bool = False):
     # clear
     child_info_data = {}
     child_list = []
-    params = True if img else False
+       
+    params = img
 
     # create casts lists
     for item in Desktop.cast_names:
         child_list.append(item)
-        Desktop.cast_name_todo.append(str(item) + '||' + 'info' + '||' + str(params) + '||' + str(time.time()))
+        Desktop.cast_name_todo.append(
+            f'{str(item)}||info||{params}||{str(time.time())}'
+        )
     for item in Media.cast_names:
         child_list.append(item)
-        Media.cast_name_todo.append(str(item) + '||' + 'info' + '||' + str(params) + '||' + str(time.time()))
+        Media.cast_name_todo.append(f'{str(item)}||info||{params}||{str(time.time())}')
 
     # request info from threads
     Desktop.t_todo_event.set()
@@ -563,7 +582,7 @@ async def util_casts_info(img: bool = False):
         # wait and get info dict from a thread
         try:
             data = t_data_buffer.get(timeout=3)
-            child_info_data.update(data)
+            child_info_data |= data
             t_data_buffer.task_done()
         except queue.Empty:
             cfg_mgr.logger.error('Empty queue, but Desktop/Media cast names list not')
@@ -579,6 +598,15 @@ async def util_casts_info(img: bool = False):
     return {"t_info": sort_child_info_data}
 
 
+@app.get("/api/util/queues", tags=["casts"])
+async def list_cast_queues():
+    """
+        Get all queues from Desktop cast
+        These queues wait for an image in numpy array (y,x,3)
+    """
+
+    return {"queues":Desktop.queue_names}
+
 @app.get("/api/{class_name}/list_actions", tags=["casts"])
 async def list_todo_actions(class_name: str = Path(description=f'Class name, should be in: {class_to_test}')):
     """
@@ -591,13 +619,13 @@ async def list_todo_actions(class_name: str = Path(description=f'Class name, sho
                             detail=f"Class name: {class_name} not in {class_to_test}")
     try:
         class_obj = globals()[class_name]
-    except KeyError:
-        raise HTTPException(status_code=400,
-                            detail=f"Invalid class name: {class_name}")
+    except KeyError as e:
+        raise HTTPException(
+            status_code=400, detail=f"Invalid class name: {class_name}"
+        ) from e
 
     if not hasattr(class_obj, 'cast_name_todo'):
-        raise HTTPException(status_code=400,
-                            detail=f"Invalid attribute name")
+        raise HTTPException(status_code=400, detail="Invalid attribute name")
 
     return {"actions": class_obj.cast_name_todo}
 
