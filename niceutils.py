@@ -771,7 +771,7 @@ class LocalFilePicker(ui.dialog):
     """Local File Picker
 
     This is  simple file picker that allows you to select a file from the local filesystem where NiceGUI is running.
-    Right-click on a file will display image if available.
+    Right-click on a file will display image/video if available.
 
     :param directory: The directory to start in.
     :param upper_limit: The directory to stop at (None: no limit, default: same as the starting directory).
@@ -782,7 +782,8 @@ class LocalFilePicker(ui.dialog):
 
     def __init__(self, directory: str, *,
                  upper_limit: Optional[str] = ...,
-                 multiple: bool = False, show_hidden_files: bool = False, thumbs: bool = True) -> None:
+                 multiple: bool = False, show_hidden_files: bool = False, thumbs: bool = True,
+                 extension: Optional[str] = None) -> None:
 
         super().__init__()
 
@@ -793,7 +794,9 @@ class LocalFilePicker(ui.dialog):
         else:
             self.upper_limit = Path(directory if upper_limit == ... else upper_limit).expanduser()
         self.show_hidden_files = show_hidden_files
-        self.supported_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','.avi', '.mkv', '.mp4', '.mov')
+        self.extension = extension
+        # for the right click (thumb)
+        self.supported_thumb_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff', '.avi', '.mkv', '.mp4', '.mov')
 
         with (self, ui.card()):
             self.add_drives_toggle()
@@ -827,7 +830,10 @@ class LocalFilePicker(ui.dialog):
         self.update_grid()
 
     def update_grid(self) -> None:
-        paths = list(self.path.glob('*'))
+        if self.extension:
+            paths = list(self.path.glob(f'*{self.extension}'))
+        else:
+            paths = list(self.path.glob('*'))
         if not self.show_hidden_files:
             paths = [p for p in paths if not p.name.startswith('.')]
         paths.sort(key=lambda p: p.name.lower())
@@ -861,12 +867,12 @@ class LocalFilePicker(ui.dialog):
 
     def click(self, e: events.GenericEventArguments) -> None:
         self.path = Path(e.args['data']['path'])
-        if self.path.suffix.lower() in self.supported_extensions and self.path.is_file() and self.thumbs:
+        if self.path.suffix.lower() in self.supported_thumb_extensions and self.path.is_file() and self.thumbs:
             ui.notify('Right-click for Preview', position='top')
 
     async def right_click(self, e: events.GenericEventArguments) -> None:
         self.path = Path(e.args['data']['path'])
-        if self.path.suffix.lower() in self.supported_extensions and self.path.is_file() and self.thumbs:
+        if self.path.suffix.lower() in self.supported_thumb_extensions and self.path.is_file() and self.thumbs:
             with ui.dialog() as thumb:
                 thumb.open()
                 with ui.card().classes('w-full'):

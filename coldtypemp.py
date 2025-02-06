@@ -76,7 +76,7 @@ class RUNColdtype(multiprocessing.Process):
                 # Check shared list for 'exit' command
                 if self.shared_list and self.shared_list[1].strip() == "exit":
                     print("Exit command received.")  # Debugging line
-                    renderer.signal_shutdown(signal.SIGINT)
+                    # renderer.signal_shutdown(signal.SIGINT)
                     self._stop.set()
 
                 time.sleep(0.1)
@@ -128,12 +128,14 @@ class RUNColdtype(multiprocessing.Process):
 
 if __name__ == "__main__":
     process = RUNColdtype()  # No stop_event needed now
+    process.daemon = True
     process.start()
 
     # Main process loop: Check if Coldtype is still alive
     while process.is_alive():
         print("Main process can perform tasks here.")
-        time.sleep(1)  # Wait 1 second before checking again
+        time.sleep(5)  # Wait 1 second before checking again
+        process.terminate()
 
     # Now that Coldtype is finished, we can exit the main process
     print("Coldtype process finished. Main process is now ending.")
