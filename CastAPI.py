@@ -1131,6 +1131,7 @@ async def main_page():
                 ui.button('System', on_click=sys_stats_info_page)
         CastAPI.charts_row.set_visibility(False)
         ui.button('Fonts', on_click=font_select, color='bg-red-800')
+        ui.button('PYEditor', on_click=lambda: ui.navigate.to('Pyeditor'), color='bg-red-800')
         if sys.platform.lower() != 'win32':
             ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
@@ -1935,15 +1936,32 @@ async def manage_font_page():
 @ui.page('/Coldtype')
 async def coldtype_test_page():
 
+    ui.dark_mode(CastAPI.dark_mode)
+
+    apply_custom()
+
     def cold_run():
         cold = RUNColdtype()
         cold.start()
 
     ui.button('run Coldtype', on_click=cold_run)
-    ui.button('shutdown', on_click=app.shutdown)
 
     print('end of coldtype page load')
 
+
+@ui.page('/Pyeditor')
+async def pyeditor_test_page():
+    from pyeditor import PythonEditor
+
+    ui.dark_mode(CastAPI.dark_mode)
+
+    apply_custom()
+
+    # Instantiate and run the editor
+    editor_app = PythonEditor()
+    editor_app.setup_ui()
+
+    print('end of pyeditor page load')
 
 """
 helpers /Commons

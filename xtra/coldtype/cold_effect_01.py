@@ -50,7 +50,8 @@ def cold_effect_01(f):
 
     print(type(gen_image))
 
-    # print(sl[0])
+    #print(sl[0])
     #sl[0] += 1
 
     return SkiaImage(gen_image)
+    
