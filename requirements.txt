@@ -41,3 +41,4 @@ stupidArtnet
 fonttools
 pywebview
 coldtype[viewer]
+noise
