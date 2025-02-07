@@ -777,7 +777,7 @@ class CASTDesktop:
                     # more than one, do not know what to do
                     else:
                         cfg_mgr.logger.warning(f'More than one hWnd (ID) returned, you need to put it by yourself: {window_ids}')
-                        raise Exception
+                        return
 
                     input_options |= window_options
 

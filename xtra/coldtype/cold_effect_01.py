@@ -29,7 +29,7 @@ at = AsciiTimeline(3, fps, """
 [0     ][1     ][2     ][3     ][4     ]
 """).shift("end", -10)
 
-fnt_path = Font.Cacheable('C:/Windows/Fonts/NotoSans-Regular.ttf')
+fnt_path = Font.Cacheable('assets/Font/DejaVuSansCondensed.ttf')
 
 @animation(Rect(860, 320), timeline=at, bg=-1)
 def cold_effect_01(f):

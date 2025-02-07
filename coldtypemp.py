@@ -3,7 +3,6 @@ import sys
 import os
 import io
 import time
-import signal
 from datetime import datetime
 from coldtype.renderer import Renderer
 from multiprocessing.shared_memory import ShareableList
@@ -32,8 +31,9 @@ class DualStream(io.StringIO):
 
 
 class RUNColdtype(multiprocessing.Process):
-    def __init__(self, log_queue=None, shared_list_name=None):
+    def __init__(self, script_file="", log_queue=None, shared_list_name=None):
         super().__init__()
+        self.script_file = script_file
         self.log_queue = log_queue  # Optional queue for logs
         self.shared_list = ShareableList(name=shared_list_name) if shared_list_name else None
         self._stop = multiprocessing.Event()  # Event to signal when to stop
@@ -52,14 +52,12 @@ class RUNColdtype(multiprocessing.Process):
 
         try:
 
-            script_file = 'xtra/coldtype/cold_demo_01.py'
-
             # Extract the file name without extension
-            script_name =  os.path.splitext(os.path.basename(script_file))[0]
+            script_name =  os.path.splitext(os.path.basename(self.script_file))[0]
             render_folder = f'media/coldtype/{script_name}'
             _, parser = Renderer.Argparser()
             # Use shared list for arguments if provided, otherwise default args
-            args = self.shared_list[2:] if self.shared_list else [script_file, "-kl", "fr", "-wcs", "1", "-ec",
+            args = self.shared_list[2:] if self.shared_list else [self.script_file, "-kl", "fr", "-wcs", "1", "-ec",
                                                                   "notepad", "-of", render_folder]
             print(f"Using arguments: {args}")  # Debugging line
             params = parser.parse_args(args)

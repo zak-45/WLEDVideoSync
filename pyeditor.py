@@ -1,7 +1,10 @@
 import sys
 import ast
+import time
+
 from nicegui import ui
 from niceutils import LocalFilePicker
+from coldtypemp import RUNColdtype
 
 UPLOAD_FOLDER = './xtra/coldtype'  # Set the upload folder
 
@@ -11,7 +14,14 @@ class PythonEditor:
         self.editor = None
         self.preview = None
         self.editor_file = None
-        self.output = None
+        self.syntax = None
+        self.py_run = None
+
+
+    async def run_py(self):
+        my_python=RUNColdtype(script_file=self.editor_file.text)
+        my_python.start()
+
 
     async def read_file(self, file_path):
         """Reads and displays the content of a file."""
@@ -36,15 +46,19 @@ class PythonEditor:
         """Check Python syntax and return a formatted error message if any."""
         try:
             ast.parse(code)
+            self.py_run.set_visibility(True)
             return "✅ No syntax errors detected."
         except SyntaxError as e:
+            self.py_run.set_visibility(False)
             return f"❌ Syntax Error: {e.msg} \nLine: {e.lineno}"
 
     def check_code_syntax(self):
         """Check the syntax of the code in the editor and display the result."""
         code = self.editor.value
         result = self.check_syntax(code)
-        self.output.set_text(result)  # Use HTML formatting for better display
+        self.syntax.set_text(result)
+        self.syntax.set_visibility(True)
+
 
     def toggle_fullscreen(self):
         """Toggle fullscreen mode for the editor."""
@@ -74,7 +88,7 @@ class PythonEditor:
             await self.read_file(self.current_file)
             self.editor.set_value(self.preview.value),
             self.editor_file.set_text(self.current_file)
-            self.output.set_text('')
+            self.syntax.set_text('')
 
     def setup_ui(self):
         """Setup the UI layout and actions."""
@@ -104,7 +118,11 @@ class PythonEditor:
 
             ui.label('Current Editor File:').classes('text-sm text-gray-500')
             self.editor_file = ui.label(self.current_file).classes('text-sm')
-            self.output = ui.label().classes('text-red-500 whitespace-pre-wrap')
+            self.syntax = ui.label().classes('text-red-500 whitespace-pre-wrap')
+            self.syntax.set_visibility(False)
+            self.py_run = ui.icon('settings').style('cursor: pointer')
+            self.py_run.on('click',lambda : self.run_py())
+            self.py_run.set_visibility(False)
 
             # File content preview area
             self.preview = ui.textarea().classes('w-full h-84 resize-y border border-gray-300')

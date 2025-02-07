@@ -23,7 +23,7 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
-import multiprocessing
+
 import time
 import sys
 import os
@@ -44,7 +44,6 @@ from asyncio import set_event_loop_policy,sleep,create_task
 from threading import current_thread
 from subprocess import Popen
 from ddp_queue import DDPDevice
-from socket import gethostbyname
 from pathlib import Path as PathLib
 from utils import CASTUtils as Utils, LogElementHandler
 from utils import HTTPDiscovery as Net
@@ -1972,7 +1971,7 @@ async def coldtype_test_page():
         cold = RUNColdtype()
         cold.start()
 
-    ui.button('run Coldtype', on_click=cold_run)
+    ui.button('run Coldtype', on_click=cold_run).classes('self-cnter')
 
     print('end of coldtype page load')
 
