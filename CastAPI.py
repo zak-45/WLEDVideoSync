@@ -3227,7 +3227,7 @@ def apply_custom():
     # custom font (experimental)
     font_file = cfg_mgr.app_config['font_file']
     if font_file != '':
-        FontSetApplication(font_file)
+        FontSetApplication(font_path=font_file, size_adjust='100%')
 
     # custom bg
     ui.query('body').style(f'background-image: url({cfg_mgr.custom_config["bg-image"]}); '

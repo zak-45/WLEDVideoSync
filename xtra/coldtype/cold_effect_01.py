@@ -22,7 +22,7 @@ spacings = [
     dict(tu=80),
 ]
 
-fps=15
+fps=25
 
 at = AsciiTimeline(3, fps, """
                                 <
@@ -31,7 +31,7 @@ at = AsciiTimeline(3, fps, """
 
 fnt_path = Font.Cacheable('assets/Font/DejaVuSansCondensed.ttf')
 
-@animation(Rect(860, 320), timeline=at, bg=-1)
+@animation(Rect(860, 220), timeline=at, bg=rgb(0,0,0, 0))
 def cold_effect_01(f):
     state = at.kf("eeio", keyframes=states)
     spacing = at.kf("seio", keyframes=spacings)

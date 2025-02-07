@@ -133,3 +133,7 @@ class PythonEditor:
             with ui.column().classes('editor-container w-full h-96 border border-gray-300'):
                 self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
                 self.editor.style(add='font-family:Roboto !important')
+
+                with ui.button(icon='palette'):
+                    picker = ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
+                    # picker.q_color.props('default-view=palette no-header no-footer')
