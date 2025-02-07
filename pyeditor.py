@@ -21,7 +21,7 @@ class PythonEditor:
     async def run_py(self):
         my_python=RUNColdtype(script_file=self.editor_file.text)
         my_python.start()
-
+        ui.notify(f'File "{self.editor_file.text}" running in Coldtype. Wait ...', color='green')
 
     async def read_file(self, file_path):
         """Reads and displays the content of a file."""
@@ -132,3 +132,4 @@ class PythonEditor:
             # Code editor with syntax highlighting
             with ui.column().classes('editor-container w-full h-96 border border-gray-300'):
                 self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
+                self.editor.style(add='font-family:Roboto !important')

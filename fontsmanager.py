@@ -19,11 +19,11 @@ class FontSetApplication:
                  path_in_webserver='/FontsPath',
                  font_weight='normal',
                  font_style='normal',
-                 size_adjust='90%'):
+                 size_adjust='100%'):
         """Initialize the FontSetApplication.
 
         Args:
-            font_path (str): The path to the font file.
+            font_path (str): The absolute path to the font file.
             font_family_name (str, optional): The name to assign to the font family. Defaults to "WLEDFont".
             path_in_webserver (str, optional): The path to serve the font from in the webserver. Defaults to '/FontsPath'.
             font_weight : normal, bold ...
@@ -44,16 +44,21 @@ class FontSetApplication:
         font_url = f"{self.path_in_webserver}/{os.path.basename(self.font_path)}"
         style = f"""
         <style>
-        @font-face {{
-            font-family: "{self.font_family_name}";
-            src: url("{font_url}") format('{self.font_type}');
-            font-weight: {self.font_weight};
-            font-style: {self.font_style};
-            size-adjust: {self.size_adjust};
-        }}
-        * {{
-            font-family: "{self.font_family_name}";
-        }}
+            @font-face {{
+                font-family: "{self.font_family_name}";
+                src: url("{font_url}") format('{self.font_type}');
+                font-weight: {self.font_weight};
+                font-style: {self.font_style};
+                size-adjust: {self.size_adjust};
+            }}
+
+            body {{
+                font-family: "{self.font_family_name}", sans-serif;
+            }}
+
+            .nicegui-editor {{
+                font-family: "Roboto", sans-serif !important;
+            }}
         </style>
         """
         ui.add_head_html(style)
@@ -145,7 +150,7 @@ class FontPreviewManager:
         This method generates and sets a preview image for the selected font.
 
         Args:
-            font_path (str): The path to the font file.
+            font_path (str): The absolute path to the font file.
             font_label (ui.label): The UI label element associated with the font.
 
         Returns:
