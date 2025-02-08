@@ -55,7 +55,11 @@ class FontSetApplication:
             body {{
                 font-family: "{self.font_family_name}", sans-serif;
             }}
-
+            
+            .console-output {{
+                font-family: "Roboto", sans-serif !important;
+            }}
+            
             .nicegui-editor {{
                 font-family: "Roboto", sans-serif !important;
             }}

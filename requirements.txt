@@ -8,9 +8,9 @@ opencv-python==4.10.0.84
 PyWinCtl==0.4.1
 wled==0.16.0
 zeroconf==0.136.0
-nicegui==2.10.0
+nicegui==2.11.0
 str2bool==1.1
-pillow==11.0.0
+pillow==11.1.0
 fastapi==0.115.4
 starlette==0.40.0
 pystray==0.19.5
@@ -29,16 +29,17 @@ PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
 
 # any version & Common to all OS
-yt-dlp
+yt-dlp==2024.12.23
 linuxpy
-imageio
+imageio==2.36.0
 pygrabber
 concurrent-log-handler
 cfg-load
 async-timeout
-sacn
-stupidArtnet
-fonttools
-pywebview
-coldtype[viewer]
+sacn==1.10.0
+stupidArtnet==1.5.0
+fonttools==4.55.6
+pywebview==5.1
+coldtype[viewer]==0.11.3
 noise
+simpleeval==1.0.3

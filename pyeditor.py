@@ -1,10 +1,12 @@
+import multiprocessing
 import sys
 import ast
-import time
 
 from nicegui import ui
 from niceutils import LocalFilePicker
 from coldtypemp import RUNColdtype
+from calculator import Calculator
+from console import ConsoleCapture
 
 UPLOAD_FOLDER = './xtra/coldtype'  # Set the upload folder
 
@@ -16,10 +18,12 @@ class PythonEditor:
         self.editor_file = None
         self.syntax = None
         self.py_run = None
+        self.log_queue = None
 
+        self.capture = ConsoleCapture(show_console=False)
 
     async def run_py(self):
-        my_python=RUNColdtype(script_file=self.editor_file.text)
+        my_python=RUNColdtype(script_file=self.editor_file.text, log_queue=self.capture.log_queue)
         my_python.start()
         ui.notify(f'File "{self.editor_file.text}" running in Coldtype. Wait ...', color='green')
 
@@ -77,7 +81,7 @@ class PythonEditor:
 
     async def pick_file_to_edit(self, label) -> None:
         """Select a file to edit."""
-        pyfile = await LocalFilePicker(f'{UPLOAD_FOLDER}', multiple=False, thumbs=True, extension='.py')
+        pyfile = await LocalFilePicker(f'{UPLOAD_FOLDER}', multiple=False, thumbs=False, extension='.py')
         if pyfile:
             pyfile = str(pyfile[0])
             if sys.platform.lower() == 'win32':
@@ -90,8 +94,15 @@ class PythonEditor:
             self.editor_file.set_text(self.current_file)
             self.syntax.set_text('')
 
+    @staticmethod
+    async def show_calculator():
+        with ui.dialog() as dialog:
+            dialog.open()
+            Calculator()
+
     def setup_ui(self):
         """Setup the UI layout and actions."""
+
         # UI Layout
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
         with ui.row().classes('w-full max-w-4xl mx-auto mt-8'):
@@ -120,8 +131,7 @@ class PythonEditor:
             self.editor_file = ui.label(self.current_file).classes('text-sm')
             self.syntax = ui.label().classes('text-red-500 whitespace-pre-wrap')
             self.syntax.set_visibility(False)
-            self.py_run = ui.icon('settings').style('cursor: pointer')
-            self.py_run.on('click',lambda : self.run_py())
+            self.py_run = ui.button(icon='settings', on_click=self.run_py)
             self.py_run.set_visibility(False)
 
             # File content preview area
@@ -134,6 +144,23 @@ class PythonEditor:
                 self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
                 self.editor.style(add='font-family:Roboto !important')
 
-                with ui.button(icon='palette'):
-                    picker = ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
-                    # picker.q_color.props('default-view=palette no-header no-footer')
+                with ui.row():
+                    with ui.button(icon='palette'):
+                        picker = ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
+                    ui.button(icon='calculate', on_click=self.show_calculator)
+
+        self.capture.setup_ui()
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    # NiceGUI app
+    @ui.page('/')
+    def main_page():
+
+        # Instantiate and run the editor
+        editor_app = PythonEditor()
+        editor_app.setup_ui()
+
+        print('Editor is running')
+
+    ui.run(reload=False)
