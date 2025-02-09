@@ -62,6 +62,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
           sudo apt-get install ffmpeg
+          sudo apt-get install libfontconfig1 libgl1-mesa-glx libgl1-mesa-dri
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV   
           curl -L -o xtra/info_window.bin https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-Linux_x86_64          
