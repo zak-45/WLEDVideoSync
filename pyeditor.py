@@ -112,21 +112,20 @@ class PythonEditor:
 
         # UI Layout
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
-        with ui.row().classes('w-full max-w-4xl mx-auto mt-8'):
-            # Toolbar
-            with ui.row().classes('w-full justify-between mb-4'):
-                ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit)
-                ui.button('Check Syntax', on_click=self.check_code_syntax).classes('bg-blue-500 text-white')
-                ui.button('Save File', icon='save', on_click=lambda: self.save_file(self.editor_file.text)).classes(
-                    'bg-green-500 text-white')
-                ui.button('Fullscreen', icon='fullscreen', on_click=self.toggle_fullscreen).classes('bg-gray-700 text-white')
+        with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):
 
             ui.label('Current Editor File:').classes('text-sm text-gray-500')
             self.editor_file = ui.label(self.current_file).classes('text-sm')
             self.syntax = ui.label().classes('text-red-500 whitespace-pre-wrap')
             self.syntax.set_visibility(False)
-            self.py_run = ui.button(icon='settings', on_click=self.run_py)
-            self.py_run.set_visibility(False)
+
+            # Toolbar - remove any default margins/padding
+            with ui.row().classes('w-full justify-between'): # No margin or padding
+                ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit)
+                ui.button('Check Syntax',icon='check', on_click=self.check_code_syntax).classes('bg-blue-500 text-white')
+                self.py_run = ui.button(icon='settings', on_click=self.run_py)
+                self.py_run.set_visibility(False)
+                ui.button('Fullscreen', icon='fullscreen', on_click=self.toggle_fullscreen).classes('bg-gray-700 text-white')
 
             # File content preview area
             # 09/02/2025 : use it in this way to prevent NiceGUI bug :https://github.com/zauberzeug/nicegui/issues/3337
@@ -134,7 +133,7 @@ class PythonEditor:
             self.preview.set_visibility(False)
 
             # Code editor with syntax highlighting
-            with ui.column().classes('editor-container w-full h-96 border border-gray-300'):
+            with ui.column().classes('editor-container w-full h-96 border border-gray-300 mt-0 pt-0 gap-0'):
                 self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
                 self.editor.style(add='font-family:Roboto !important')
 
@@ -142,9 +141,11 @@ class PythonEditor:
                     with ui.button(icon='palette'):
                         ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
                     ui.button(icon='calculate', on_click=self.show_calculator)
+                    save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
+                    save_file.classes('bg-green-500 text-white')
 
         ui.separator()
-        ui.separator()
+
         media_exp_param = ui.expansion('Console', icon='feed', value=False)
         with media_exp_param.classes('w-full bg-sky-800'):
             self.capture.setup_ui()

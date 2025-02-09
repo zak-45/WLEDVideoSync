@@ -1,9 +1,9 @@
 from coldtype import *
 
-@animation((640, 320), timeline=50, bg=hsl(0.4))
+@animation((800, 240), timeline=100, bg=hsl(0.4))
 def cold_demo_01(f):
     return (StSt("CDELOPTY",
-        Font.ColdtypeObviously(), 100,
+        Font.ColdtypeObviously(), 150,
         wdth=f.e("eeio", 1))
         .align(f.a.r)
         .f(1))
