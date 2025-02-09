@@ -128,6 +128,12 @@ class CustomLogger(logging.Logger):
 
 
 class CASTUtils:
+    """Provides utility functions for various CAST operations.
+
+    This class offers a collection of static methods for tasks such as
+    system font retrieval, media format conversion, logging setup,
+    configuration management, network operations, and more.
+    """
     dev_list: list = []
     matrix_x: int = 0
     matrix_y: int = 0
@@ -161,6 +167,11 @@ class CASTUtils:
 
     @staticmethod
     def mp4_to_gif(mp4_file, gif_file, loop: int = 0, duration: int = 100):
+        """Convert an MP4 file to a GIF.
+
+        Reads frames from an MP4 file using pyav, converts them to RGB numpy arrays,
+        and then saves them as a GIF using Pillow.
+        """
         # Open the MP4 file using pyav
         container = av.open(mp4_file)
 
@@ -181,6 +192,10 @@ class CASTUtils:
 
     @staticmethod
     def update_ddp_list(cast_ip, ddp_obj):
+        """Update the list of DDP devices.
+
+        Adds a new DDP device object to the global list if it doesn't already exist.
+        """
         ddp_exist = any(
             cast_ip == device._destination for device in CASTUtils.ddp_devices
         )
@@ -263,11 +278,19 @@ class CASTUtils:
 
     @staticmethod
     def list_av_formats():
+        """List available AV formats.
+
+        Returns a sorted list of strings representing the available AV formats.
+        """
         dict_formats = list(av.formats_available)
         return sorted(dict_formats)
 
     @staticmethod
     def list_av_codecs():
+        """List available AV codecs.
+
+        Returns a sorted list of strings representing the available AV codecs.
+        """
         dict_codecs = list(av.codec.codecs_available)
         return sorted(dict_codecs)
 

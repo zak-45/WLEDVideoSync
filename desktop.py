@@ -88,7 +88,12 @@ class ExitFromLoop(Exception):
     pass
 
 class CASTDesktop:
-    """ Cast Desktop to DDP/e131/artnet"""
+    """Casts desktop screen or window content to DDP devices.
+
+    Captures screen or window content using PyAV, processes the frames, and sends
+    them to DDP devices (e.g., WLED) via Art-Net, E1.31, or DDP protocols. Supports
+    multicast, preview, recording, and image adjustments.
+    """
 
     count = 0  # initialise running casts count to zero
     total_frame = 0  # total number of processed frames

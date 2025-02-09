@@ -18,6 +18,11 @@ class PythonEditor:
     indicating the file is running.
     """
     def __init__(self):
+        """Initialize the PythonEditor.
+
+        Sets up the initial state of the editor, including file name tracking,
+        editor and preview components, syntax checker, and console capture.
+        """
         self.current_file = ""  # Global variable to keep track of the loaded file name
         self.editor = None
         self.preview = None
@@ -29,6 +34,12 @@ class PythonEditor:
         self.capture = ConsoleCapture(show_console=False)
 
     async def run_py(self):
+        """Run the Python code in the editor using Coldtype.
+
+        Executes the code in the editor using the RUNColdtype class,
+        providing the file path and log queue. Displays a notification
+        indicating the file is running.
+        """
         my_python=RUNColdtype(script_file=self.editor_file.text, log_queue=self.capture.log_queue)
         my_python.start()
         ui.notify(f'File "{self.editor_file.text}" running in Coldtype. Wait ...', color='green')
@@ -103,6 +114,7 @@ class PythonEditor:
 
     @staticmethod
     async def show_calculator():
+        """Display a calculator dialog."""
         with ui.dialog() as dialog:
             dialog.open()
             Calculator()

@@ -5,7 +5,18 @@ import threading
 import time
 
 class ConsoleCapture:
+    """Captures and displays console output in a NiceGUI UI.
+
+    Redirects stdout and stderr to a queue, which is then displayed
+    in an ui.log element.  Provides options for UI customization and restoring
+    the original console output streams.
+    """
     def __init__(self, show_console=False, text_color='text-white', bg_color='bg-black'):
+        """Initialize the ConsoleCapture.
+
+        Sets up console capturing by redirecting stdout and stderr, initializing the UI
+        if requested, and starting a background thread to process captured output.
+        """
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
         self.text_color = text_color
@@ -24,6 +35,11 @@ class ConsoleCapture:
         threading.Thread(target=self.read_queue, daemon=True).start()
 
     def setup_ui(self):
+        """Set up the UI for the console output.
+
+        Creates and configures a ui.log element to display captured console output,
+        applying specified styling classes.
+        """
         self.log_ui = ui.log()
         self.log_ui.classes(f'console-output w-full h-30 {self.bg_color} {self.text_color}')
 

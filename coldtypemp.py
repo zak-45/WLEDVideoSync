@@ -22,6 +22,11 @@ class DualStream:
         self.stream_name = stream_name
 
     def write(self, message):
+        """Write a message to both the original stream and the queue.
+
+        Args:
+            message (str): The message to write.
+        """
         if message.strip():  # Avoid empty lines
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             formatted_message = f"[{timestamp}] [{self.stream_name}] {message.strip()}"
@@ -46,6 +51,12 @@ class RUNColdtype(multiprocessing.Process):
 
 
     def run(self):
+        """Run the Coldtype renderer in a separate process.
+
+        This method sets up the environment for the Coldtype process,
+        redirects stdout and stderr to the log queue if provided,
+        and then executes the Coldtype renderer.
+        """
         if self.log_queue:
             sys.stdout = DualStream(sys.__stdout__, self.log_queue, stream_name="stdout")
             sys.stderr = DualStream(sys.__stderr__, self.log_queue, stream_name="stderr")

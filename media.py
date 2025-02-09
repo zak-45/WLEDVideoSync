@@ -48,7 +48,12 @@ Class definition
 """
 
 class CASTMedia:
-    """ Cast Media to DDP """
+    """Casts media (video, image, or capture device) to DDP devices.
+
+    Sends image data via DDP (e131 or ArtNet) protocol, using a queue for network
+    efficiency.  Supports preview, multicast, synchronization, and various image
+    processing options.
+    """
 
     count = 0  # initialise running casts count to zero
     total_frame = 0  # total number of processed frames
@@ -134,11 +139,12 @@ class CASTMedia:
     """
 
     def t_media_cast(self, shared_buffer=None):
-        """
-            Main cast logic
-            Cast media : video file, image file or video capture device
-        """
+        """Cast media to DDP devices in a separate thread.
 
+        This method handles the core logic for capturing, processing, and sending
+        media frames to DDP devices. It supports various media types, multicast,
+        synchronization, and preview functionalities.
+        """
         t_name = threading.current_thread().name
         if CASTMedia.count == 0 or self.reset_total is True:
             CASTMedia.total_frame = 0

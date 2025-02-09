@@ -10,17 +10,6 @@
 # Image utilities
 # cv2 preview
 #
-
-
-
-In my case I found following command helpful for dumping:
-
-string = str(array.tolist())
-
-And for reloading:
-
-array = np.array( eval(string), dtype='uint8' )
-
 """
 import ast
 
@@ -39,7 +28,13 @@ from configmanager import ConfigManager
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
 
 class CV2Utils:
+    """Provides utility functions for OpenCV (cv2) operations.
 
+    This class offers static methods for image processing, preview display,
+    video thumbnail extraction, and other cv2-related tasks.  It also
+    includes utilities for handling shared memory lists used for
+    inter-process communication.
+    """
     def __init__(self):
         pass
 
@@ -382,6 +377,10 @@ class CV2Utils:
     # resize image to specific width/height, optional ratio
     @staticmethod
     def resize_keep_aspect_ratio(image, target_width, target_height, ratio):
+        """Resize an image while preserving aspect ratio.
+
+        Crops the image to maintain the target aspect ratio before resizing.
+        """
 
         if ratio:
             # First crop the image to the target aspect ratio
@@ -515,26 +514,43 @@ class CV2Utils:
 
 
 class ImageUtils:
+    """Provides utility functions for image processing and manipulation.
 
+    This class offers static methods for applying filters, converting images
+    to ASCII art, drawing grids on images, and adjusting brightness and
+    contrast.
+    """
     @staticmethod
     def image_array_to_base64(nparray):
+        """Convert an image array to a Base64 string.
+
+        Converts a NumPy array representing an image to a Base64 encoded string, suitable for embedding in HTML or 
+        other text-based formats.
+        """
         # Convert NumPy array to PIL Image
         image = Image.fromarray(nparray)
         # Save the image to a bytes buffer
         buffered = io.BytesIO()
         image.save(buffered, format="JPEG")
-        # Encode the bytes as Base64
-        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-        # The img_str is the Base64 string representation of the image
-        return img_str
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
     @staticmethod
     def process_filters_image(img: np.ndarray, filters: dict) -> np.ndarray:
+        """Process image filters.
+
+        Applies a set of filters to an image using OpenCV.  The filters are specified as a dictionary, 
+        where keys are filter names and values are filter parameters.
+        """
         img = ImageUtils.apply_filters_cv2(img, filters)
         return img
 
     @staticmethod
     def apply_filters_cv2(img: np.ndarray, filters: dict) -> np.ndarray:
+        """Apply filters to an image using OpenCV.
+
+        Applies various image filters like saturation, brightness, contrast, sharpen, and color balance to 
+        the input image.  The filters and their parameters are specified in the `filters` dictionary.
+        """
         # Convert to HSV for color adjustment
         if filters["saturation"] != 0:
             img = ImageUtils.filter_saturation(img, filters["saturation"])
@@ -564,6 +580,10 @@ class ImageUtils:
 
     @staticmethod
     def filter_balance(img, alpha):
+        """Adjust color balance of an image.
+
+        Scales the red, green, and blue channels of the image by the factors specified in the `alpha` dictionary.
+        """
         # scale the red, green, and blue channels
         scale = np.array([alpha["r"], alpha["g"], alpha["b"]])[np.newaxis, np.newaxis, :]
 
@@ -572,6 +592,10 @@ class ImageUtils:
 
     @staticmethod
     def filter_saturation(img, alpha):
+        """Adjust the saturation of an image.
+
+        Enhances or reduces the saturation of an image by blending the original image with a grayscale version.
+        """
         # Convert to HSV and split the channels
         hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
         h, s, v = cv2.split(hsv)
@@ -582,33 +606,41 @@ class ImageUtils:
         # Enhance color
         s_enhanced = cv2.addWeighted(s, alpha, gray, 1 - alpha, 0)
 
-        # Merge and convert back to RGB
-        enhanced_img = cv2.cvtColor(cv2.merge([h, s_enhanced, v]), cv2.COLOR_HSV2RGB)
-        return enhanced_img
+        return cv2.cvtColor(cv2.merge([h, s_enhanced, v]), cv2.COLOR_HSV2RGB)
 
     @staticmethod
     def filter_brightness(img, alpha):
+        """Adjust the brightness of an image.
+
+        Changes the brightness of an image by blending it with a black image.  The `alpha` parameter controls the 
+        blending ratio.
+        """
         # Create a black image
         black_img = np.zeros_like(img)
 
-        # Enhance brightness
-        enhanced_img = cv2.addWeighted(img, alpha, black_img, 1 - alpha, 0)
-        return enhanced_img
+        return cv2.addWeighted(img, alpha, black_img, 1 - alpha, 0)
 
     @staticmethod
     def filter_contrast(img, alpha):
+        """Adjust the contrast of an image.
+
+        Modifies the contrast of an image by blending it with a gray image of mean luminance.  
+        The `alpha` parameter controls the blending ratio.
+        """
         # Compute the mean luminance (gray level)
         mean_luminance = np.mean(img)
 
         # Create a gray image of mean luminance
         gray_img = np.full_like(img, mean_luminance)
 
-        # Enhance contrast
-        enhanced_img = cv2.addWeighted(img, alpha, gray_img, 1 - alpha, 0)
-        return enhanced_img
+        return cv2.addWeighted(img, alpha, gray_img, 1 - alpha, 0)
 
     @staticmethod
     def filter_sharpen(img, alpha):
+        """Sharpen an image using a Laplacian kernel.
+
+        Applies a sharpening filter to the image using a Laplacian kernel scaled by the `alpha` parameter.
+        """
         kernel = np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]]) * alpha
         kernel[1, 1] += 1
         img = cv2.filter2D(img, -1, kernel)
@@ -616,6 +648,11 @@ class ImageUtils:
 
     @staticmethod
     def image_to_ascii(image):
+        """Convert an image to ASCII art.
+
+        Transforms a PIL Image into an ASCII art representation using a set of characters to approximate 
+        grayscale values.  The resulting ASCII art is returned as a string.
+        """
         # Convert the image to ASCII art
         ascii_chars = "@%#*+=-:. "
         width, height = image.size
@@ -635,6 +672,11 @@ class ImageUtils:
 
     @staticmethod
     def grid_on_image(image, cols, rows):
+        """Draw a grid and cell numbers on an image.
+
+        Overlays a grid with the specified number of columns and rows onto the image.  
+        Each cell in the grid is numbered for identification.
+        """
 
         if cols == 0 or rows == 0:
             cfg_mgr.logger.error('Rows / cols should not be zero')
@@ -647,9 +689,7 @@ class ImageUtils:
 
             # Calculate font size based on image size
             font_scale = min(image.shape[0], image.shape[1]) // 250
-            if font_scale < .3:
-                font_scale = .3
-
+            font_scale = max(font_scale, .3)
             # Draw the grid
             for i in range(1, rows):
                 cv2.line(image, (0, i * cell_height), (image.shape[1], i * cell_height), (255, 255, 255), 2)
@@ -671,6 +711,11 @@ class ImageUtils:
 
     @staticmethod
     def automatic_brightness_and_contrast(image, clip_hist_percent=25):
+        """Automatically adjust brightness and contrast of an image.
+
+        Calculates the optimal brightness and contrast values based on the image's histogram and applies them 
+        to enhance the image's dynamic range.
+        """
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # Calculate grayscale histogram
@@ -708,18 +753,17 @@ class ImageUtils:
             alpha = 255 / .1
         beta = -minimum_gray * alpha
 
-        auto_image = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
-
-        return auto_image
+        return cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
 
     @staticmethod
     def gamma_correct_frame(gamma: float = 0.5):
+        """Generate a gamma correction lookup table.
 
+        Creates a lookup table for gamma correction, which can be used to adjust the gamma of an image using cv2.LUT.
+        """
         inverse_gamma = 1 / gamma
         gamma_table = [((i / 255) ** inverse_gamma) * 255 for i in range(256)]
-        gamma_table = np.array(gamma_table, np.uint8)
-
-        return gamma_table
+        return np.array(gamma_table, np.uint8)
 
 
 class VideoThumbnailExtractor:
