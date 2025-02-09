@@ -4,7 +4,7 @@ from coldtype import *
 s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 # Construct a timeline based on the string and a frame-count-per-element
-frames_per_element = 20
+frames_per_element = 10
 clips = []
 
 for idx, c in enumerate(s):

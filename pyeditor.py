@@ -114,8 +114,6 @@ class PythonEditor:
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
         with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):
 
-            ui.label('Current Editor File:').classes('text-sm text-gray-500')
-            self.editor_file = ui.label(self.current_file).classes('text-sm')
             self.syntax = ui.label().classes('text-red-500 whitespace-pre-wrap')
             self.syntax.set_visibility(False)
 
@@ -127,23 +125,27 @@ class PythonEditor:
                 self.py_run.set_visibility(False)
                 ui.button('Fullscreen', icon='fullscreen', on_click=self.toggle_fullscreen).classes('bg-gray-700 text-white')
 
+            ui.label('Current Editor File:').classes('text-sm text-gray-500')
+            self.editor_file = ui.label(self.current_file).classes('text-sm')
+
             # File content preview area
             # 09/02/2025 : use it in this way to prevent NiceGUI bug :https://github.com/zauberzeug/nicegui/issues/3337
             self.preview = ui.textarea()
             self.preview.set_visibility(False)
 
             # Code editor with syntax highlighting
-            with ui.column().classes('editor-container w-full h-96 border border-gray-300 mt-0 pt-0 gap-0'):
-                self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
-                self.editor.style(add='font-family:Roboto !important')
-
+            with ui.column().classes('editor-container w-full h-96 border border-gray-300 mt-0 pt-0 gap-1'):
                 with ui.row():
+                    save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
+                    save_file.classes('bg-green-500 text-white')
                     with ui.button(icon='palette'):
                         ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
                     ui.button(icon='calculate', on_click=self.show_calculator)
-                    save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
-                    save_file.classes('bg-green-500 text-white')
 
+                self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
+                self.editor.style(add='font-family:Roboto !important')
+
+        ui.separator()
         ui.separator()
 
         media_exp_param = ui.expansion('Console', icon='feed', value=False)
