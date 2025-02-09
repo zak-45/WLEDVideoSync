@@ -11,6 +11,12 @@ from console import ConsoleCapture
 UPLOAD_FOLDER = './xtra/coldtype'  # Set the upload folder
 
 class PythonEditor:
+    """Run the Python code in the editor using Coldtype.
+
+    Executes the code in the editor using the RUNColdtype class,
+    providing the file path and log queue. Displays a notification
+    indicating the file is running.
+    """
     def __init__(self):
         self.current_file = ""  # Global variable to keep track of the loaded file name
         self.editor = None
@@ -63,9 +69,10 @@ class PythonEditor:
         self.syntax.set_text(result)
         self.syntax.set_visibility(True)
 
-
-    def toggle_fullscreen(self):
+    @staticmethod
+    def toggle_fullscreen():
         """Toggle fullscreen mode for the editor."""
+
         ui.run_javascript(''' 
             const editor = document.querySelector('.editor-container');
             const closeButton = document.querySelector('.fullscreen-close');
@@ -100,7 +107,7 @@ class PythonEditor:
             dialog.open()
             Calculator()
 
-    def setup_ui(self):
+    async def setup_ui(self):
         """Setup the UI layout and actions."""
 
         # UI Layout
@@ -109,23 +116,10 @@ class PythonEditor:
             # Toolbar
             with ui.row().classes('w-full justify-between mb-4'):
                 ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit)
-                """
-                ui.button('Edit File', icon='edit', on_click=lambda: (
-                    self.editor.set_value(self.preview.value),
-                    self.editor_file.set_text(self.current_file)
-                ))
-                """
                 ui.button('Check Syntax', on_click=self.check_code_syntax).classes('bg-blue-500 text-white')
                 ui.button('Save File', icon='save', on_click=lambda: self.save_file(self.editor_file.text)).classes(
                     'bg-green-500 text-white')
                 ui.button('Fullscreen', icon='fullscreen', on_click=self.toggle_fullscreen).classes('bg-gray-700 text-white')
-
-            """
-            # Labels to show the current file paths
-            ui.label('Current Uploaded File:').classes('text-sm text-gray-500')
-            file = ui.label(self.current_file).classes('text-sm')
-            file.bind_text_from(self,'current_file')
-            """
 
             ui.label('Current Editor File:').classes('text-sm text-gray-500')
             self.editor_file = ui.label(self.current_file).classes('text-sm')
@@ -135,8 +129,8 @@ class PythonEditor:
             self.py_run.set_visibility(False)
 
             # File content preview area
-            self.preview = ui.textarea().classes('w-full h-84 resize-y border border-gray-300')
-            self.preview.props(add='placeholder="F i l e   P r e v i e w" rows="2"')
+            # 09/02/2025 : use it in this way to prevent NiceGUI bug :https://github.com/zauberzeug/nicegui/issues/3337
+            self.preview = ui.textarea()
             self.preview.set_visibility(False)
 
             # Code editor with syntax highlighting
@@ -146,20 +140,24 @@ class PythonEditor:
 
                 with ui.row():
                     with ui.button(icon='palette'):
-                        picker = ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
+                        ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
                     ui.button(icon='calculate', on_click=self.show_calculator)
 
-        self.capture.setup_ui()
+        ui.separator()
+        ui.separator()
+        media_exp_param = ui.expansion('Console', icon='feed', value=False)
+        with media_exp_param.classes('w-full bg-sky-800'):
+            self.capture.setup_ui()
 
 
 if __name__ in {"__main__", "__mp_main__"}:
     # NiceGUI app
     @ui.page('/')
-    def main_page():
+    async def main_page():
 
         # Instantiate and run the editor
         editor_app = PythonEditor()
-        editor_app.setup_ui()
+        await editor_app.setup_ui()
 
         print('Editor is running')
 

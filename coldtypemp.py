@@ -6,54 +6,65 @@ import time
 from datetime import datetime
 from coldtype.renderer import Renderer
 from multiprocessing.shared_memory import ShareableList
-from io import StringIO
 
 
-class StreamToQueue:
-    def __init__(self, queue, stream_name="stdout"):
+class DualStream:
+    def __init__(self, original_stream, queue, stream_name="stdout"):
+        """Initialize the DualStream.
+
+        Args:
+            original_stream: The original stream (stdout or stderr).
+            queue: The queue to write messages to.
+            stream_name (str, optional): The name of the stream. Defaults to "stdout".
+        """
+        self.original_stream = original_stream  # Reference to original stdout/stderr
         self.queue = queue
         self.stream_name = stream_name
-        self.buffer = StringIO()
 
     def write(self, message):
         if message.strip():  # Avoid empty lines
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.queue.put(f"[{timestamp}] [{self.stream_name}] {message.strip()}")
+            formatted_message = f"[{timestamp}] [{self.stream_name}] {message.strip()}"
+            self.queue.put(formatted_message)  # Send to log queue
+            self.original_stream.write(message+'\n')  # Send to original stdout/stderr
 
     def flush(self):
-        pass  # Needed for compatibility with sys.stdout and sys.stderr
-
+        self.original_stream.flush()
 
 class RUNColdtype(multiprocessing.Process):
+    """Run the Coldtype renderer in a separate process.
+
+     This method sets up the environment for the Coldtype process,
+     redirects stdout and stderr to the log queue if provided,
+     and then executes the Coldtype renderer.
+     """
     def __init__(self, script_file="", log_queue=None, shared_list_name=None):
         super().__init__()
         self.script_file = script_file
         self.log_queue = log_queue   # Optional log queue for console capture
         self.shared_list = ShareableList(name=shared_list_name) if shared_list_name else None
 
+
     def run(self):
         if self.log_queue:
-            sys.stdout = StreamToQueue(self.log_queue, stream_name="stdout")
-            sys.stderr = StreamToQueue(self.log_queue, stream_name="stderr")
+            sys.stdout = DualStream(sys.__stdout__, self.log_queue, stream_name="stdout")
+            sys.stderr = DualStream(sys.__stderr__, self.log_queue, stream_name="stderr")
 
         print("Coldtype process started")
 
         try:
             # Extract the file name without extension
             script_name = os.path.splitext(os.path.basename(self.script_file))[0]
+            # folder to store img
             render_folder = f'media/coldtype/{script_name}'
+            #
+            # call Coldtype with arguments
             _, parser = Renderer.Argparser()
-
-            # Use shared list for arguments if provided, otherwise default args
-            args = self.shared_list[2:] if self.shared_list else [
-                self.script_file, "-kl", "fr", "-wcs", "1", "-ec", "notepad", "-of", render_folder
-            ]
+            args =[self.script_file, "-kl", "fr", "-wcs", "1", "-ec", "notepad", "-of", render_folder]
             print(f"Using arguments: {args}")
-
             params = parser.parse_args(args)
             renderer = Renderer(parser=params)
-
-            print("Running renderer.main()...")
+            print("Running renderer.main()...main Coldtype blocking loop")
             renderer.main()
 
         except Exception as e:
@@ -69,8 +80,7 @@ class RUNColdtype(multiprocessing.Process):
 
 
 if __name__ == "__main__":
-    process = RUNColdtype()  # No stop_event needed now
-    process.daemon = True
+    process = RUNColdtype()
     process.start()
 
     # Main process loop: Check if Coldtype is still alive

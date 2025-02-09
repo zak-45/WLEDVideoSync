@@ -1986,7 +1986,7 @@ async def pyeditor_test_page():
 
     # Instantiate and run the editor
     editor_app = PythonEditor()
-    editor_app.setup_ui()
+    await editor_app.setup_ui()
 
     print('end of pyeditor page load')
 
