@@ -86,7 +86,7 @@ class PythonEditor:
             }
         ''')
 
-    async def pick_file_to_edit(self, label) -> None:
+    async def pick_file_to_edit(self) -> None:
         """Select a file to edit."""
         pyfile = await LocalFilePicker(f'{UPLOAD_FOLDER}', multiple=False, thumbs=False, extension='.py')
         if pyfile:
@@ -130,6 +130,7 @@ class PythonEditor:
 
             # File content preview area
             # 09/02/2025 : use it in this way to prevent NiceGUI bug :https://github.com/zauberzeug/nicegui/issues/3337
+            # will use textarea to store file content and copy to editor
             self.preview = ui.textarea()
             self.preview.set_visibility(False)
 
