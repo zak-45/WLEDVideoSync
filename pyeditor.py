@@ -128,8 +128,8 @@ class PythonEditor:
             self.syntax = ui.label().classes('text-red-500 whitespace-pre-wrap')
             self.syntax.set_visibility(False)
 
-            # Toolbar - remove any default margins/padding
-            with ui.row().classes('w-full justify-between'): # No margin or padding
+            # Toolbar
+            with ui.row().classes('w-full justify-between'):
                 ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit)
                 ui.button('Check Syntax',icon='check', on_click=self.check_code_syntax).classes('bg-blue-500 text-white')
                 self.py_run = ui.button(icon='settings', on_click=self.run_py)
@@ -145,7 +145,7 @@ class PythonEditor:
             self.preview = ui.textarea()
             self.preview.set_visibility(False)
 
-            # Code editor with syntax highlighting
+            # Code editor with syntax highlighting - remove any default margins-top/padding-top
             with ui.column().classes('editor-container w-full h-96 border border-gray-300 mt-0 pt-0 gap-1'):
                 with ui.row():
                     save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))

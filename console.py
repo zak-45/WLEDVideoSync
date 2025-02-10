@@ -37,7 +37,7 @@ class ConsoleCapture:
     def setup_ui(self):
         """Set up the UI for the console output.
 
-        Creates and configures a ui.log element to display captured console output,
+        Creates and configures an ui.log element to display captured console output,
         applying specified styling classes.
         """
         self.log_ui = ui.log()

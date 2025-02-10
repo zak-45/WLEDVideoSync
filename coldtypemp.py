@@ -43,7 +43,7 @@ class RUNColdtype(multiprocessing.Process):
      redirects stdout and stderr to the log queue if provided,
      and then executes the Coldtype renderer.
      """
-    def __init__(self, script_file="", log_queue=None, shared_list_name=None):
+    def __init__(self, script_file, log_queue=None, shared_list_name=None):
         super().__init__()
         self.script_file = script_file
         self.log_queue = log_queue   # Optional log queue for console capture
