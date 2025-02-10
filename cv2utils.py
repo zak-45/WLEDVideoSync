@@ -11,6 +11,7 @@
 # cv2 preview
 #
 """
+
 import ast
 
 import cv2
@@ -19,6 +20,7 @@ import numpy as np
 from PIL import Image
 import io
 import base64
+import contextlib
 import os
 from datetime import datetime
 from str2bool import str2bool
@@ -71,14 +73,11 @@ class CV2Utils:
         """ Close cv2 window created by imshow """
 
         cfg_mgr.logger.debug(f'{t_name} Stop window preview if any')
-        window_name = f"{server_port}-{t_name}-" + str(t_viinput)
+        window_name = f"{server_port}-{t_name}-{str(t_viinput)}"
 
         # check if window run into sub process to instruct it by ShareableList
         config_data = Utils.read_config()
-        preview_proc = str2bool(config_data[1]['preview_proc'])
-
-        # for window into sub process
-        if preview_proc:
+        if preview_proc := str2bool(config_data[1]['preview_proc']):
             cfg_mgr.logger.debug('Window on sub process')
             try:
                 # attach to a shareable list by name
@@ -89,11 +88,10 @@ class CV2Utils:
                 cfg_mgr.logger.error(f'Error to access SharedList  {t_name} with error : {e} ')
 
         else:
-
             # for window into thread
             try:
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                if not win == 0:
+                if win != 0:
                     cv2.destroyWindow(window_name)
             except Exception as e:
                 cfg_mgr.logger.error(f'Error on thread  {t_name} closing window with error : {e} ')
@@ -239,9 +237,6 @@ class CV2Utils:
         CV2 preview window
         Main logic for imshow() and waitKey()
         """
-
-        cfg_mgr.logger.info('Preview running ...')
-
         frame = cv2.resize(frame, (preview_w, preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         if str2bool(cfg_mgr.custom_config['pixel-art']):
@@ -318,30 +313,23 @@ class CV2Utils:
         key_pressed = cv2.waitKey(1)
 
         if key_pressed == ord("q"):
-            try:
+            with contextlib.suppress(Exception):
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                if not win == 0:
+                if win != 0:
                     cv2.destroyWindow(window_name)
-            except Exception:
-                pass
             t_preview = False
             t_todo_stop = True
             cfg_mgr.logger.debug(f'Request to stop {t_name}')
 
         elif key_pressed == ord("p"):
-            try:
+            with contextlib.suppress(Exception):
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
-                if not win == 0:
+                if win != 0:
                     cv2.destroyWindow(window_name)
-            except Exception:
-                pass
             t_preview = False
 
         elif key_pressed == ord("t"):
-            if text:
-                text = False
-            else:
-                text = True
+            text = not text
 
         return t_preview, t_todo_stop, text
 
@@ -359,25 +347,27 @@ class CV2Utils:
             capture = cv2.VideoCapture(media)
 
             # showing values of the properties
-            dict_media.append('"CV_CAP_PROP_FRAME_WIDTH": "{}"'.format(capture.get(cv2.CAP_PROP_FRAME_WIDTH)))
-            dict_media.append('"CV_CAP_PROP_FRAME_HEIGHT" : "{}"'.format(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-            dict_media.append('"CAP_PROP_FPS" : "{}"'.format(capture.get(cv2.CAP_PROP_FPS)))
-            dict_media.append('"CAP_PROP_POS_MSEC" : "{}"'.format(capture.get(cv2.CAP_PROP_POS_MSEC)))
-            dict_media.append('"CAP_PROP_FRAME_COUNT" : "{}"'.format(capture.get(cv2.CAP_PROP_FRAME_COUNT)))
-            dict_media.append('"CAP_PROP_BRIGHTNESS" : "{}"'.format(capture.get(cv2.CAP_PROP_BRIGHTNESS)))
-            dict_media.append('"CAP_PROP_CONTRAST" : "{}"'.format(capture.get(cv2.CAP_PROP_CONTRAST)))
-            dict_media.append('"CAP_PROP_SATURATION" : "{}"'.format(capture.get(cv2.CAP_PROP_SATURATION)))
-            dict_media.append('"CAP_PROP_HUE" : "{}"'.format(capture.get(cv2.CAP_PROP_HUE)))
-            dict_media.append('"CAP_PROP_GAIN" : "{}"'.format(capture.get(cv2.CAP_PROP_GAIN)))
-            dict_media.append('"CAP_PROP_CONVERT_RGB" : "{}"'.format(capture.get(cv2.CAP_PROP_CONVERT_RGB)))
+            dict_media.append(f'"CV_CAP_PROP_FRAME_WIDTH": "{capture.get(cv2.CAP_PROP_FRAME_WIDTH)}"')
+            dict_media.append(f'"CV_CAP_PROP_FRAME_HEIGHT": "{capture.get(cv2.CAP_PROP_FRAME_HEIGHT)}"')
+            dict_media.append(f'"CAP_PROP_FPS": "{capture.get(cv2.CAP_PROP_FPS)}"')
+            dict_media.append(f'"CAP_PROP_POS_MSEC": "{capture.get(cv2.CAP_PROP_POS_MSEC)}"')
+            dict_media.append(f'"CAP_PROP_FRAME_COUNT": "{capture.get(cv2.CAP_PROP_FRAME_COUNT)}"')
+            dict_media.append(f'"CAP_PROP_BRIGHTNESS": "{capture.get(cv2.CAP_PROP_BRIGHTNESS)}"')
+            dict_media.append(f'"CAP_PROP_CONTRAST": "{capture.get(cv2.CAP_PROP_CONTRAST)}"')
+            dict_media.append(f'"CAP_PROP_SATURATION": "{capture.get(cv2.CAP_PROP_SATURATION)}"')
+            dict_media.append(f'"CAP_PROP_HUE": "{capture.get(cv2.CAP_PROP_HUE)}"')
+            dict_media.append(f'"CAP_PROP_GAIN": "{capture.get(cv2.CAP_PROP_GAIN)}"')
+            dict_media.append(f'"CAP_PROP_CONVERT_RGB": "{capture.get(cv2.CAP_PROP_CONVERT_RGB)}"')
 
             # release
             capture.release()
 
         except Exception as e:
             cfg_mgr.logger.error(f'Error to get cv2 info : {e}')
+            dict_media.append('"CV2 ERROR": "Not able to read media"')
 
-        return dict_media
+        finally:
+            return dict_media
 
     # resize image to specific width/height, optional ratio
     @staticmethod
@@ -464,10 +454,10 @@ class CV2Utils:
 
         # Resize input to "pixelated" size
         temp_img = cv2.resize(image_np, (w, h), interpolation=cv2.INTER_LINEAR)
-        # Initialize output image
-        pixelart_img = cv2.resize(temp_img, (orig_width, orig_height), interpolation=cv2.INTER_NEAREST)
-
-        return pixelart_img
+        
+        return cv2.resize(
+            temp_img, (orig_width, orig_height), interpolation=cv2.INTER_NEAREST
+        )
 
     @staticmethod
     async def save_image(class_obj, buffer, image_number, ascii_art=False):
@@ -476,17 +466,13 @@ class CV2Utils:
         used on the buffer images
         """
         folder = cfg_mgr.app_config['img_folder']
-        if folder[-1] == '/':
-            pass
-        else:
+        if folder[-1] != '/':
             cfg_mgr.logger.error("The last character of the folder name is not '/'.")
             return
 
         # Get the absolute path of the folder relative to the current working directory
         absolute_img_folder = os.path.abspath(folder)
-        if os.path.isdir(absolute_img_folder):
-            pass
-        else:
+        if not os.path.isdir(absolute_img_folder):
             cfg_mgr.logger.error(f"The folder {absolute_img_folder} does not exist.")
             return
 
@@ -730,9 +716,10 @@ class ImageUtils:
         # Calculate cumulative distribution from the histogram
         accumulator = [float(hist[0])]
 
-        for index in range(1, hist_size):
-            accumulator.append(accumulator[index - 1] + float(hist[index]))
-
+        accumulator.extend(
+            accumulator[index - 1] + float(hist[index])
+            for index in range(1, hist_size)
+        )
         # Locate points to clip
         maximum = accumulator[-1]
         clip_hist_percent *= (maximum / 100.0)
@@ -745,12 +732,9 @@ class ImageUtils:
 
         # Locate right cut
         maximum_gray = hist_size - 1
-        try:
+        with contextlib.suppress(IndexError):
             while accumulator[maximum_gray] >= (maximum - clip_hist_percent):
                 maximum_gray -= 1
-        except IndexError as error:
-            pass
-
         # Calculate alpha and beta values
         if maximum_gray - minimum_gray > 0:
             alpha = 255 / (maximum_gray - minimum_gray)
@@ -879,10 +863,9 @@ class VideoThumbnailExtractor:
     def create_blank_frame(self):
         # Create a blank frame with the specified thumbnail width and a default height
         height = int(self.thumbnail_width * 9 / 16)  # Assuming a 16:9 aspect ratio for the blank frame
-        blank_frame = np.random.randint(0, 256, (height, self.thumbnail_width, 3), dtype=np.uint8)
-        # blank_frame = np.zeros((height, self.thumbnail_width, 3), np.uint8)
-        # blank_frame[:] = (255, 255, 255)  # White blank frame
-        return blank_frame
+        return np.random.randint(
+            0, 256, (height, self.thumbnail_width, 3), dtype=np.uint8
+        )
 
     def get_thumbnails(self):
         return [cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) for frame in self.thumbnail_frames]
