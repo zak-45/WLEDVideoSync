@@ -30,7 +30,7 @@ jobs:
         os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
 
     env:
-      YOUTUBE_DISABLE: no
+      YOUTUBE_DISABLE: yes
       DEBUG_COMPILATION: yes
       COMP_VERSION: ${{github.event.inputs.mytag}}
 

@@ -129,6 +129,8 @@ class CV2Utils:
         default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
         default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
 
+        cfg_mgr.logger.info('Preview from ShareAbleList')
+
         # Display image on preview window
         while True:
             # Data from shared List
@@ -237,6 +239,9 @@ class CV2Utils:
         CV2 preview window
         Main logic for imshow() and waitKey()
         """
+
+        cfg_mgr.logger.info('Preview running ...')
+
         frame = cv2.resize(frame, (preview_w, preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         if str2bool(cfg_mgr.custom_config['pixel-art']):
