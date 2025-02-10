@@ -4,26 +4,26 @@
 
 # Specific version & Common to all OS
 numpy==1.26.4
-opencv-python==4.10.0.84
+opencv-python==4.11.0.86
 PyWinCtl==0.4.1
-wled==0.16.0
-zeroconf==0.136.0
+wled==0.21.0
+zeroconf==0.143.0
 nicegui==2.11.0
 str2bool==1.1
 pillow==11.1.0
-fastapi==0.115.4
-starlette==0.40.0
+fastapi==0.115.8
+starlette==0.45.3
 pystray==0.19.5
-uvicorn[standard]==0.22.0
-psutil==6.1.0
+uvicorn[standard]==0.34.0
+psutil==6.1.1
 requests==2.32.3
 screeninfo==0.8.1
-av==14.0.1
+av==14.1.0
 youtube-search-python==1.6.6
 
 # Platform dependant
-pywebview==5.1 ; sys_platform != "linux"
-pywebview[qt]==5.1 ; sys_platform == "linux"
+pywebview==5.4 ; sys_platform != "linux"
+pywebview[qt]==5.4 ; sys_platform == "linux"
 pycairo ; sys_platform == "linux"
 PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
