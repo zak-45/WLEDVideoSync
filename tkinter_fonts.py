@@ -1,7 +1,7 @@
+import contextlib
 import tkinter as tk
 from tkinter import font
 import platform
-import os
 
 def update_preview():
     """Update the preview text with the selected font and style."""
@@ -28,7 +28,7 @@ def update_preview():
 
 def populate_styles(event):
     """Populate the styles dropdown based on the selected font."""
-    try:
+    with contextlib.suppress(tk.TclError):
         selected_font = font_listbox.get(font_listbox.curselection())
 
         # Define supported styles
@@ -43,8 +43,6 @@ def populate_styles(event):
         # Update the attributes label
         attributes_label.config(text=f"Attributes: Font: {selected_font}, Available Styles: {', '.join(styles)}")
         update_preview()
-    except tk.TclError:
-        pass
 
 def set_default_font():
     """Set the default font selection based on the operating system."""
@@ -111,9 +109,7 @@ font_listbox = tk.Listbox(frame, height=15, selectmode=tk.SINGLE, yscrollcommand
 font_listbox.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 scrollbar.config(command=font_listbox.yview)
 
-# Populate the listbox with font names
-available_fonts = list(font.families())
-available_fonts.sort()
+available_fonts = sorted(font.families())
 for f in available_fonts:
     font_listbox.insert(tk.END, f)
 
