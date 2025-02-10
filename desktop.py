@@ -211,7 +211,6 @@ class CASTDesktop:
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
         media_length = -1
-        interval = self.rate
         frame_count = 0
 
         frame = None
@@ -395,7 +394,7 @@ class CASTDesktop:
                 i_grid = True
 
                 # resize frame to virtual matrix size
-                frame_art = CV2Utils.pixelart_image(iframe, t_scale_width, t_scale_height)
+                # frame_art = CV2Utils.pixelart_image(iframe, t_scale_width, t_scale_height)
                 iframe = CV2Utils.resize_image(iframe,
                                               t_scale_width * t_cast_x,
                                               t_scale_height * t_cast_y)

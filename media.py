@@ -446,24 +446,22 @@ class CASTMedia:
                     # Sync all casts to player_time if requested
                     # manage concurrent access to the list by using lock feature
                     # set value if auto sync is true
-                    if self.auto_sync is True:
-                        # sync every x seconds
-                        if current_time - auto_expected_time >= self.auto_sync_delay:
-                            time_to_set = self.sync_to_time
-                            self.cast_sync = True
-                            cfg_mgr.logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
-
-                            CASTMedia.t_media_lock.acquire()
-                            if self.all_sync is True and len(CASTMedia.cast_name_to_sync) == 0:
-                                # populate cast names to sync
-                                CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
-                                # add additional time, can help if cast number > 0 to try to avoid small decay
-                                time_to_set += self.add_all_sync_delay
-                                cfg_mgr.logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
-                            CASTMedia.t_media_lock.release()
-
-                            auto_expected_time = current_time
-                            cfg_mgr.logger.debug(f'{t_name} Auto Sync Cast to time :{time_to_set}')
+                    if self.auto_sync is True and current_time - auto_expected_time >= self.auto_sync_delay:
+                        time_to_set = self.sync_to_time
+                        self.cast_sync = True
+                        cfg_mgr.logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
+                    
+                        CASTMedia.t_media_lock.acquire()
+                        if self.all_sync is True and len(CASTMedia.cast_name_to_sync) == 0:
+                            # populate cast names to sync
+                            CASTMedia.cast_name_to_sync = CASTMedia.cast_names.copy()
+                            # add additional time, can help if cast number > 0 to try to avoid small decay
+                            time_to_set += self.add_all_sync_delay
+                            cfg_mgr.logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
+                        CASTMedia.t_media_lock.release()
+                    
+                        auto_expected_time = current_time
+                        cfg_mgr.logger.debug(f'{t_name} Auto Sync Cast to time :{time_to_set}')
 
                     if self.all_sync is True and self.cast_sync is True:
 

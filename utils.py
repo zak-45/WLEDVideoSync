@@ -53,7 +53,7 @@ from pathlib import Path
 from coldtype.text.reader import Font
 
 
-def display_custom_msg(msg, msg_type: str = 'info'):
+def run_window_msg(msg: str = '', msg_type: str = 'info'):
     """
     Displays a custom message using an external info window executable across different platforms.
     Launches a separate process to show an error or informational message in a platform-specific manner.
@@ -61,11 +61,11 @@ def display_custom_msg(msg, msg_type: str = 'info'):
     Args:
         msg (str): The message text to be displayed.
         msg_type (str, optional): The type of message, defaults to 'info'.
-        Can specify message type like 'info' or 'error'.
+        Can specify message type like 'info' or 'error'. If error, bg is 'red'
 
     Examples:
-        >> display_custom_msg("Operation completed successfully")
-        >> display_custom_msg("Error occurred", msg_type='error')
+        >> run_window_msg("Operation completed successfully")
+        >> run_window_msg("Error occurred", msg_type='error')
 
     """
     # Call the separate script to show the error/info message in a Tkinter window
@@ -110,7 +110,7 @@ class CustomLogger(logging.Logger):
     in a custom window before logging. Enhances standard error logging by adding a visual notification mechanism.
 
     The CustomLogger overrides the standard error logging method to first display an error message
-    in a separate window using display_custom_msg(), and then proceeds with standard error logging.
+    in a separate window using run_window_msg(), and then proceeds with standard error logging.
     This provides an additional layer of user notification for critical log events.
 
     Methods:
@@ -123,7 +123,7 @@ class CustomLogger(logging.Logger):
     """
     def error(self, msg, *args, **kwargs):
         # Custom action before logging the error
-        display_custom_msg(msg, 'error')
+        run_window_msg(str(msg), 'error')
         super().error(msg, *args, **kwargs)
 
 

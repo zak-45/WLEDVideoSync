@@ -1,4 +1,3 @@
-import multiprocessing
 import sys
 import ast
 
@@ -120,7 +119,7 @@ class PythonEditor:
             Calculator()
 
     async def setup_ui(self):
-        """Setup the UI layout and actions."""
+        """Set up the UI layout and actions."""
 
         # UI Layout
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')

@@ -245,7 +245,7 @@ async def all_params(class_name: str = Path(description=f'Class name, should be 
         raise HTTPException(status_code=400, detail=f"Class name: {class_name} not in {class_to_test}")
     class_params = vars(globals()[class_name])
     # to avoid delete param from the class, need to copy to another dict
-    return_data = {k: v for k, v in class_params.items()}
+    return_data = dict(class_params)
     if class_name != 'Netdevice':
         del return_data['frame_buffer']
         del return_data['cast_frame_buffer']
@@ -846,14 +846,12 @@ async def websocket_endpoint(websocket: WebSocket):
             func_name_parts = action.split('.')
             if len(func_name_parts) == 2:
                 all_func = globals().get(func_name_parts[0])
-                if all_func:
-                    my_func = getattr(all_func, func_name_parts[1], None)
-                    if my_func:
-                        result = await run_in_threadpool(my_func, **params)
-                    else:
-                        raise AttributeError(f'Function {func_name_parts[1]} not found in {func_name_parts[0]}')
-                else:
+                if not all_func:
                     raise AttributeError(f'Module {func_name_parts[0]} not found')
+                if my_func := getattr(all_func, func_name_parts[1], None):
+                    result = await run_in_threadpool(my_func, **params)
+                else:
+                    raise AttributeError(f'Function {func_name_parts[1]} not found in {func_name_parts[0]}')
             elif len(func_name_parts) == 1:
                 if my_func := globals().get(action):
                     result = await run_in_threadpool(my_func, **params)
@@ -933,6 +931,7 @@ def cast_image(image_number,
 
     # we need to retrieve the ddp device created during settings and not create one each time ....
     find = False
+    ddp = None
     for ddp_device in Utils.ddp_devices:
         if ddp_device._destination == ip:
             ddp = ddp_device

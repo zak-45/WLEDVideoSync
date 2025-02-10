@@ -504,10 +504,13 @@ async def generate_carousel(class_obj):
             h, w = class_obj.frame_buffer[i].shape[:2]
             img = ui.interactive_image(carousel_image.resize(size=(640, 360))).classes('w-[640]')
             with img:
-                ui.button(text=str(i) + ':size:' + str(w) + 'x' + str(h), icon='tag') \
-                    .props('flat fab color=white') \
-                    .classes('absolute top-0 left-0 m-2') \
-                    .tooltip('Image Number')
+                ui.button(
+                    text=f'{str(i)}:size:{str(w)}x{str(h)}', icon='tag'
+                ).props('flat fab color=white').classes(
+                    'absolute top-0 left-0 m-2'
+                ).tooltip(
+                    'Image Number'
+                )
 
 
 async def multi_preview(class_name):
@@ -517,9 +520,7 @@ async def multi_preview(class_name):
     """
     dialog = ui.dialog().style('width: 200px')
     with dialog:
-        grid_col = ''
-        for c in range(class_name.cast_x):
-            grid_col += '1fr '
+        grid_col = ''.join('1fr ' for _ in range(class_name.cast_x))
         with ui.grid(columns=grid_col).classes('w-full gap-0'):
             for i in range(len(class_name.cast_frame_buffer)):
                 with ui.image(Image.fromarray(class_name.cast_frame_buffer[i])).classes('w-60'):
@@ -539,15 +540,17 @@ async def cast_devices_view(class_name):
             with ui.grid(columns=3):
                 for i in range(len(class_name.cast_devices)):
                     with ui.card():
-                        ui.label('No: ' + str(class_name.cast_devices[i][0]))
+                        ui.label(f'No: {str(class_name.cast_devices[i][0])}')
                         if Utils.validate_ip_address(str(class_name.cast_devices[i][1])):
                             text_decoration = "color: green; text-decoration: underline"
                         else:
                             text_decoration = "color: red; text-decoration: red wavy underline"
 
-                        ui.link('IP  :  ' + str(class_name.cast_devices[i][1]),
-                                'http://' + str(class_name.cast_devices[i][1]),
-                                new_tab=True).style(text_decoration)
+                        ui.link(
+                            f'IP  :  {str(class_name.cast_devices[i][1])}',
+                            f'http://{str(class_name.cast_devices[i][1])}',
+                            new_tab=True,
+                        ).style(text_decoration)
         ui.button('Close', on_click=dialog.close, color='red')
     ui.button('DEVICE', icon='preview', on_click=dialog.open).tooltip('View Cast devices')
 
