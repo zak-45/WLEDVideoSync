@@ -1,4 +1,3 @@
-import multiprocessing
 import sys
 import os
 import time
@@ -6,7 +5,12 @@ import time
 from datetime import datetime
 from coldtype.renderer import Renderer
 from multiprocessing.shared_memory import ShareableList
+from utils import CASTUtils as Utils
+from configmanager import ConfigManager
 
+cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+
+Process, Queue = Utils.mp_setup()
 
 class DualStream:
     def __init__(self, original_stream, queue, stream_name="stdout"):
@@ -36,14 +40,14 @@ class DualStream:
     def flush(self):
         self.original_stream.flush()
 
-class RUNColdtype(multiprocessing.Process):
+class RUNColdtype(Process):
     """Run the Coldtype renderer in a separate process.
 
      This method sets up the environment for the Coldtype process,
      redirects stdout and stderr to the log queue if provided,
      and then executes the Coldtype renderer.
      """
-    def __init__(self, script_file, log_queue=None, shared_list_name=None):
+    def __init__(self, script_file='', log_queue=None, shared_list_name=None):
         super().__init__()
         self.script_file = script_file
         self.log_queue = log_queue   # Optional log queue for console capture
@@ -70,8 +74,10 @@ class RUNColdtype(multiprocessing.Process):
             render_folder = f'media/coldtype/{script_name}'
             #
             # call Coldtype with arguments
+            keyboard = cfg_mgr.app_config['keyboard']
+            editor = cfg_mgr.app_config['py_editor']
             _, parser = Renderer.Argparser()
-            args =[self.script_file, "-kl", "fr", "-wcs", "1", "-ec", "notepad", "-of", render_folder]
+            args =[self.script_file, "-kl", keyboard, "-wcs", "1", "-ec", editor, "-of", render_folder]
             print(f"Using arguments: {args}")
             params = parser.parse_args(args)
             renderer = Renderer(parser=params)

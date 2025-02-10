@@ -57,6 +57,8 @@
 #                   or oblique face from its font-family
 # size-adjust   : 90%, The size-adjust CSS descriptor for the @font-face at-rule defines a multiplier for glyph outlines
 #                   and metrics associated with this font
+# keyboard      : fr, for azerty keyboard (see coldtype)
+# py_editor     : notepad, editor to open from coldtype preview window
 
 [app]
 
