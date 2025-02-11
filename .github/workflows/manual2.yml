@@ -144,7 +144,6 @@ jobs:
             dbm.dumb
             comtypes.stream
             av.opaque
-            coldtype
             coldtype.raster
             fontgoggles.font.otfFont
 
