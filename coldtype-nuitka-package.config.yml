@@ -1,6 +1,4 @@
 - module-name: 'coldtype'
   data-files:
-    dirs:
+    raw_dirs:
       - 'demo'
-    patterns:
-      - '*.py'
