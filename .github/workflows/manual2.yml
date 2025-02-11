@@ -162,7 +162,7 @@ jobs:
 
           user-package-configuration-file: |
             coldtype-nuitka-package.config.yml
-            yt_dlp-fix-nuitka-package.config.yml            
+            yt_dlp-fix-nuitka-package.config.yml
 
       - name: Upload Artifacts Win/Linux
         if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
