@@ -251,15 +251,10 @@ class CASTUtils:
         Main test for platform
             macOS / linux need specific case
         """
-        if sys.platform.lower() == 'darwin' or sys.platform.lower() == 'linux':
-            ctx = multiprocessing.get_context('spawn')
-            process = ctx.Process
-            queue = ctx.Queue
-        else:
-            process = multiprocessing.Process
-            queue = multiprocessing.Queue
-
-        return process, queue
+        if sys.platform.lower() != 'linux':
+            return multiprocessing.Process, multiprocessing.Queue # Direct return
+        ctx = multiprocessing.get_context('spawn')
+        return ctx.Process, ctx.Queue # Direct return
 
     @staticmethod
     def sl_clean(sl, sl_process, t_name):
