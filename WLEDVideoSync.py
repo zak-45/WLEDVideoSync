@@ -4,8 +4,6 @@
 # nuitka-project: --noinclude-default-mode=error
 # nuitka-project: --include-raw-dir=xtra=xtra
 # nuitka-project-if: {OS} == "Windows":
-#   nuitka-project: --lto=no
-#   nuitka-project: --clang
 #   nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
 # nuitka-project-if: os.getenv("DEBUG_COMPILATION", "no") == "yes":
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
