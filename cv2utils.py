@@ -198,7 +198,6 @@ class CV2Utils:
                 sl_custom_text,
                 sl_cast_x,
                 sl_cast_y,
-                class_name,
                 sl_grid)
 
             # Stop if requested
@@ -231,7 +230,6 @@ class CV2Utils:
                            custom_text,
                            cast_x,
                            cast_y,
-                           class_name,
                            grid=False):
         """
         CV2 preview window
@@ -785,12 +783,21 @@ class VideoThumbnailExtractor:
         self.thumbnail_frames = []
 
     def is_image_file(self):
+        """Check if the media path is an image file.
+
+        Checks if the file extension of the media path matches common image formats.
+        """
         # Check if the file extension is an image format
         image_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']
         _, ext = os.path.splitext(self.media_path)
         return ext.lower() in image_extensions
 
     def is_video_file(self):
+        """Check if the media path is a video file.
+
+        Attempts to open the media path using cv2.VideoCapture and reads a frame to verify if it's a valid video.
+         Releases the capture object regardless of success.
+        """
         # Check if the file can be opened as a video
         cap = cv2.VideoCapture(self.media_path)
         if not cap.isOpened():
@@ -800,6 +807,11 @@ class VideoThumbnailExtractor:
         return ret
 
     async def extract_thumbnails(self, times_in_seconds=None):
+        """Extract thumbnails from media.
+
+        Extracts thumbnails from a video or image file at specified times or from the entire image.
+        Generates blank frames if the media file is invalid.
+        """
         if times_in_seconds is None:
             times_in_seconds = [5]
         if self.is_image_file():
@@ -812,6 +824,11 @@ class VideoThumbnailExtractor:
             cfg_mgr.logger.warning(f"{self.media_path} is not a valid media file. Generated blank frames.")
 
     def extract_thumbnails_from_image(self):
+        """Extract a thumbnail from an image.
+
+        Reads an image file, resizes it to the specified thumbnail width while maintaining aspect ratio,
+        and stores it as a thumbnail frame.  Generates a blank frame if image reading fails.
+        """
         image = cv2.imread(self.media_path)
         if image is not None:
             # Resize the image to the specified thumbnail width while maintaining aspect ratio
@@ -826,6 +843,11 @@ class VideoThumbnailExtractor:
             cfg_mgr.logger.error("Failed to read image. Generated a blank frame.")
 
     async def extract_thumbnails_from_video(self, times_in_seconds):
+        """Extract thumbnails from a video at specified times.
+
+        Reads frames from a video file at specified time offsets and resizes them to create thumbnails.
+        Handles cases where the specified time exceeds the video length and generates blank frames if extraction fails.
+        """
         cap = cv2.VideoCapture(self.media_path)
         if not cap.isOpened():
             cfg_mgr.logger.error(f"Failed to open video file: {self.media_path}")
@@ -861,6 +883,11 @@ class VideoThumbnailExtractor:
         cap.release()
 
     def create_blank_frame(self):
+        """Create a blank frame for thumbnail.
+
+        Generates a blank placeholder frame with dimensions based on the thumbnail width and a 16:9 aspect ratio.
+        The frame is filled with random noise.
+        """
         # Create a blank frame with the specified thumbnail width and a default height
         height = int(self.thumbnail_width * 9 / 16)  # Assuming a 16:9 aspect ratio for the blank frame
         return np.random.randint(
@@ -868,4 +895,8 @@ class VideoThumbnailExtractor:
         )
 
     def get_thumbnails(self):
+        """Get the extracted thumbnails.
+
+        Returns a list of thumbnail frames as RGB NumPy arrays.  Converts BGR images to RGB before returning.
+        """
         return [cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) for frame in self.thumbnail_frames]

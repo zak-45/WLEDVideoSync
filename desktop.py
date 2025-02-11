@@ -561,7 +561,6 @@ class CASTDesktop:
                     self.custom_text,
                     self.cast_x,
                     self.cast_y,
-                    'Desktop',
                     i_grid)
 
             return i_preview, i_todo_stop
