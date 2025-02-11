@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+import multiprocessing
 
 from datetime import datetime
 from coldtype.renderer import Renderer
@@ -40,7 +41,7 @@ class DualStream:
     def flush(self):
         self.original_stream.flush()
 
-class RUNColdtype(Process):
+class RUNColdtype(multiprocessing.Process):
     """Run the Coldtype renderer in a separate process.
 
      This method sets up the environment for the Coldtype process,
