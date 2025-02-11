@@ -1,0 +1,4 @@
+- module-name: 'coldtype'
+  data-files:
+     dirs:
+       - 'demo'
