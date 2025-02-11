@@ -77,7 +77,7 @@ class Calculator:
                 ui.button('9', on_click=lambda: self.add_data('9'))
                 ui.button('/', on_click=lambda: self.add_data('/'))
                 # ////////////
-                # im not sure what is the purpose of this, it doesnt seem to change functionality in a normal calculator
+                # im not sure what is the purpose of this, it doesn't seem to change functionality in a normal calculator
                 ui.button('\u00B1', on_click=lambda: self.add_data('-'))
                 ui.button('4', on_click=lambda: self.add_data('4'))
                 ui.button('5', on_click=lambda: self.add_data('5'))
