@@ -8,13 +8,6 @@
 # nuitka-project-if: os.getenv("DEBUG_COMPILATION", "no") == "yes":
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
-# nuitka-project-if: os.getenv("YOUTUBE_DISABLE", "no") == "yes":
-#   nuitka-project: --nofollow-import-to=yt_dlp
-#   nuitka-project: --nofollow-import-to=youtubesearchpython
-# nuitka-project-if: os.getenv("YOUTUBE_DISABLE", "no") == "no":
-#   nuitka-project: --include-module=yt_dlp.utils._deprecated
-#   nuitka-project: --lto=no
-#   nuitka-project: --clang
 # nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=qtpy
