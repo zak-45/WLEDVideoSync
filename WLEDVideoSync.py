@@ -3,8 +3,6 @@
 # nuitka-project: --nofollow-import-to=doctest
 # nuitka-project: --noinclude-default-mode=error
 # nuitka-project: --include-raw-dir=xtra=xtra
-# nuitka-project-if: {OS} == "Darwin":
-#    nuitka-project: --mode=app
 # nuitka-project-if: {OS} == "Windows":
 #   nuitka-project: --lto=no
 #   nuitka-project: --clang
