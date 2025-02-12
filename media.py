@@ -18,6 +18,8 @@
 # camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 # 27/05/2024: cv2.imshow with import av  freeze
 #
+import errno
+
 import concurrent_log_handler
 import threading
 import concurrent.futures
@@ -808,6 +810,11 @@ class CASTMedia:
                                 ],
                                 name=t_name
                             )
+
+                        except OSError as e:
+                            if e.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
+                                cfg_mgr.logger.warning(f"Shared memory '{t_name}' already exists. Attaching to it.")
+                                sl = ShareableList(name=t_name)
 
                         except Exception as e:
                             cfg_mgr.logger.error(traceback.format_exc())

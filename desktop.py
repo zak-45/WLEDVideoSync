@@ -33,7 +33,8 @@
  to fix it, cv2.imshow can run from its own process with cost of additional overhead: set preview_proc = True
 
 """
-
+import errno
+import multiprocessing
 import queue
 import sys
 import os
@@ -606,13 +607,20 @@ class CASTDesktop:
                         str(list(frame_info))
                     ],
                     name=t_name)
+
+            except OSError as er:
+                if er.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
+                    cfg_mgr.logger.warning(f"Shared memory '{t_name}' already exists. Attaching to it.")
+                    i_sl = ShareableList(name=t_name)
+
             except Exception as er:
                 cfg_mgr.logger.error(traceback.format_exc())
                 cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {er}')
+                i_sl = None
 
             # run main_preview in another process
             # create a child process, so cv2.imshow() will run from its Main Thread
-            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Desktop',))
+            i_sl_process = multiprocessing.Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Desktop',))
             # start the child process
             # small delay should occur, OS take some time to initiate the new process
             i_sl_process.start()
