@@ -1024,8 +1024,8 @@ class YtSearch:
     async def search_youtube(self):
         """ Run Search YT from input """
 
-        def run_search():
-            create_task(self.py_search(self.my_search.value))
+        async def run_search():
+            await create_task(self.py_search(self.my_search.value))
 
         self.search_button.props('loading')
         self.search_result.clear()
