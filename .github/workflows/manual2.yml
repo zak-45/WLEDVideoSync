@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         # os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
-        os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
 
     env:
       YOUTUBE_DISABLE: no
@@ -61,7 +61,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
-          sudo apt-get install ffmpeg
           sudo apt-get install libfontconfig1 libgl1-mesa-dri
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV   
@@ -108,8 +107,15 @@ jobs:
       - name: Ubuntu specific bis
         if: matrix.os == 'ubuntu-latest'
         run: |
+          sudo apt-get -y install libavdevice-dev
+          sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg7
+          sudo apt update
+          sudo apt install ffmpeg
+          ffmpeg -version
           sudo apt-get install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.1         
-          sudo apt-get install gstreamer1.0-plugins-bad
+          sudo apt-get install gstreamer1.0-plugins-bad          
+          pip3 install av --no-binary av
+          
 
       - name: Install Dependencies for All
         run: |
