@@ -53,9 +53,8 @@ jobs:
       - name: Windows specific
         if: matrix.os == 'windows-latest'
         run: |
-          set ARCHITECTURE=x86_64
-          echo "ARCHITECTURE=%ARCHITECTURE%" >> $GITHUB_ENV
-          curl -L -o xtra/info_window.exe https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-Windows_.exe          
+          echo "ARCHITECTURE=x86_64" >> $env:GITHUB_ENV
+          curl -L -o xtra/info_window.exe https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-Windows_.exe
 
       - name: Ubuntu specific
         if: matrix.os == 'ubuntu-latest'
