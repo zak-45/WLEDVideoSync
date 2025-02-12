@@ -2,3 +2,4 @@
   data-files:
     raw_dirs:
       - 'demo'
+      - 'renderer'
