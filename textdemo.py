@@ -1,26 +1,22 @@
-import logging
-import time
-from typing import Optional, Tuple
-
 import cv2
-import numpy as np
-from PIL import Image, ImageDraw, ImageFont
-
 from textanimator import TextAnimator
+
 
 
 # Example 1: Basic scrolling text
 animator = TextAnimator(
-    text="Hello, world!",
+    text="Basic scrolling text",
     width=640,
-    height=480,
-    speed=100,
+    height=120,
+    speed=400,
+    font_path="assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_size=60,
     direction="left",
     color=(255, 255, 255), # White text
     fps=30
 )
 
-for _ in range(100): # Generate 100 frames
+for _ in range(200): # Generate 100 frames
     frame = animator.read()
     if frame is not None:
         cv2.imshow("Animation", frame)
@@ -32,15 +28,15 @@ animator.stop()
 
 # Example 2: Scrolling text with custom font, color, and shadow
 animator = TextAnimator(
-    text="Custom Font",
+    text="Scrolling text with custom font,\n color,\n and shadow",
     width=800,
     height=600,
-    speed=50,
+    speed=150,
     direction="up",
     color=(0, 0, 255), # Blue text
     fps=24,
     font_path="assets/Font/DejaVuSansCondensed.ttf", # Replace with your font path
-    font_size=60,
+    font_size=40,
     shadow=True,
     shadow_color=(128, 128, 128), # Gray shadow
     shadow_offset=(3, 3)
@@ -55,47 +51,50 @@ for _ in range(200): # Generate 200 frames
 cv2.destroyAllWindows()
 animator.stop()
 
-
-
-# Example 3: Blinking text
+# Example 1: Basic scrolling blink text
 animator = TextAnimator(
-    text="Blinking Text",
-    width=500,
-    height=100,
-    speed=0, # No scrolling
-    direction="left", # Direction doesn't matter when speed is 0
-    color=(0, 255, 0), # Green text
-    fps=10, # Lower FPS for slower blink
-    effect="blink"
+    text="Scrolling blink text",
+    width=640,
+    height=120,
+    speed=400,
+    font_path="assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_size=60,
+    direction="left",
+    effect="blink",
+    blink_interval=.1,
+    color=(0, 255, 255),
+    fps=30
 )
 
-for _ in range(100):
+for _ in range(200): # Generate 100 frames
     frame = animator.read()
     if frame is not None:
         cv2.imshow("Animation", frame)
-        cv2.waitKey(int(1000/animator.fps))
+        cv2.waitKey(int(1000/animator.fps)) # Delay to match FPS
 
 cv2.destroyAllWindows()
 animator.stop()
 
 
-# Example 4: Color cycling text
+# Example 4: color cycling
 animator = TextAnimator(
-    text="Color Cycling",
-    width=600,
-    height=200,
-    speed=75,
-    direction="right",
-    color=(255, 255, 255), # Initial color (will be cycled)
-    fps=30,
-    effect="color_cycle"
+    text="Scrolling blink text",
+    width=640,
+    height=120,
+    speed=400,
+    font_path="assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_size=60,
+    direction="left",
+    effect="color_cycle",
+    color=(0, 255, 255),
+    fps=30
 )
 
-for _ in range(300):
+for _ in range(200): # Generate 100 frames
     frame = animator.read()
     if frame is not None:
         cv2.imshow("Animation", frame)
-        cv2.waitKey(int(1000/animator.fps))
+        cv2.waitKey(int(1000/animator.fps)) # Delay to match FPS
 
 cv2.destroyAllWindows()
 animator.stop()
@@ -221,8 +220,7 @@ cv2.destroyAllWindows()
 animator.stop()
 
 
-# Example 10: Custom blink interval (requires modifying TextAnimator)
-# In textanimator.py, add blink_interval parameter to __init__ and use it in apply_effects.
+# Example 10: Custom blink interval
 animator = TextAnimator(
     text="Slower Blink",
     width=500,

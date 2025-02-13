@@ -2,6 +2,7 @@ import logging
 import time
 from typing import Optional, Tuple
 
+import math
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -33,8 +34,8 @@ class TextAnimator:
         shadow_color: Tuple[int, int, int] = (0, 0, 0),
         shadow_offset: Tuple[int, int] = (2, 2),
         explode_speed: int = 5,  # Speed of the explosion effect
-        blink_interval: int = 1,  # Blink interval in seconds
-        color_change_interval: int = 2,  # Color change interval in seconds
+        blink_interval: float = .5,  # Blink interval in seconds
+        color_change_interval: int = 1,  # Color change interval in seconds
         fade_step: int = 5,  # Opacity change per frame for fade effect
         explode_pre_delay: float = 0.0  # Delay before explosion in seconds
     ):
@@ -229,6 +230,25 @@ class TextAnimator:
             params["explode_speed"] = self.explode_speed  # Adjust explosion speed
             params["fragments"] = []  # Store exploded fragments
             params["explode_pre_delay_frames"] = int(self.explode_pre_delay) # pre_delay in frames
+        # Add wave effect
+        elif self.effect == "wave":
+            params["wave_counter"] = 0  # Start the wave effect counter
+        # Add shake effect
+        elif self.effect == "shake":
+            params["shake_counter"] = 0  # Start the shake effect counter
+        # Add scale effect
+        elif self.effect == "scale":
+            params["scale_counter"] = 0  # Start the scale effect counter
+        # Add rotate effect
+        elif self.effect == "rotate":
+            params["rotate_counter"] = 0  # Start the rotate effect counter
+        # Add slide effect
+        elif self.effect == "slide_in":
+            params["slide_counter"] = 0  # Start the slide effect counter
+        # Add zoom effect
+        elif self.effect == "zoom":
+            params["zoom_counter"] = 0  # Start the zoom effect counter
+
         return params
 
     def apply_effects(self):
@@ -247,6 +267,19 @@ class TextAnimator:
             self.apply_rainbow_cycle_effect()
         elif self.effect == "explode":
             self.apply_explode_effect()
+        elif self.effect == "shake":
+            self.apply_shake_effect()
+        elif self.effect == "wave":
+            self.apply_wave_effect()
+        elif self.effect == "scale":
+            self.apply_scale_effect()
+        elif self.effect == "rotate":
+            self.apply_rotate_effect()
+        elif self.effect == "slide_in":
+            self.apply_slide_in_effect()
+        elif self.effect == "zoom":
+            self.apply_zoom_effect()
+
 
     def apply_fade_effect(self):
         """Applies fade in/out effect."""
@@ -306,6 +339,68 @@ class TextAnimator:
         )
         self.color = new_color
         self.text_image = self.create_text_image()
+
+    def apply_wave_effect(self):
+        """Applies wave effect to text position."""
+        wave_amplitude = 10  # Adjust the wave height
+        wave_frequency = 2  # Adjust the wave speed
+        self.y_pos = self.y_pos + wave_amplitude * math.sin(self.effect_params["wave_counter"] * wave_frequency)
+        self.effect_params["wave_counter"] += 0.1
+
+    def apply_shake_effect(self):
+        """Shakes the text left and right."""
+        shake_amplitude = 5  # Adjust the shake amplitude
+        shake_frequency = 10  # Adjust how often it shakes
+        self.x_pos += shake_amplitude * math.sin(self.effect_params["shake_counter"] * shake_frequency)
+        self.effect_params["shake_counter"] += 0.1
+
+    def apply_scale_effect(self):
+        """Scales the text up and down."""
+        scale_factor = 1 + 0.5 * math.sin(self.effect_params["scale_counter"])
+        self.text_image = self.text_image.resize(
+            (int(self.text_image.width * scale_factor), int(self.text_image.height * scale_factor)),
+            Image.ANTIALIAS)
+        self.effect_params["scale_counter"] += 0.1
+
+    def apply_rotate_effect(self):
+        """Rotates the text."""
+        angle = self.effect_params["rotate_counter"] * 5  # Rotate 5 degrees per step
+        rotated_text = self.text_image.rotate(angle, expand=True)
+        self.text_image = rotated_text
+        self.effect_params["rotate_counter"] += 0.1
+
+    def apply_slide_in_effect(self):
+        """Slides the text into the frame from one direction."""
+        slide_speed = 5
+        if self.direction == "left":
+            self.x_pos += slide_speed
+        elif self.direction == "right":
+            self.x_pos -= slide_speed
+        elif self.direction == "up":
+            self.y_pos += slide_speed
+        elif self.direction == "down":
+            self.y_pos -= slide_speed
+
+    def apply_zoom_effect(self):
+        """Zooms the text in and out."""
+        zoom_speed = 0.05  # Controls the speed of the zoom
+        zoom_in_limit = 1.5  # Maximum zoom-in size
+        zoom_out_limit = 0.5  # Minimum zoom-out size
+
+        # Sinusoidal zoom for smooth transition
+        zoom_factor = 1 + (math.sin(self.effect_params["zoom_counter"]) * 0.5)
+
+        # Clamp the zoom factor to the desired range (zoom in/out)
+        zoom_factor = max(min(zoom_factor, zoom_in_limit), zoom_out_limit)
+
+        # Apply the zoom effect
+        self.text_image = self.text_image.resize(
+            (int(self.text_image.width * zoom_factor), int(self.text_image.height * zoom_factor)),
+            Image.ANTIALIAS
+        )
+
+        # Update the counter to animate the zoom in/out
+        self.effect_params["zoom_counter"] += zoom_speed
 
     def apply_explode_effect(self):
         """Applies explode effect after a delay."""
@@ -465,4 +560,3 @@ class TextAnimator:
         """Stops the animator."""
 
         self.logger.debug("Stopping TextAnimator")
-
