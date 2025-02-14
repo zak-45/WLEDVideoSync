@@ -596,7 +596,7 @@ if __name__ == '__main__':
 
         """
         # uvicorn server definition
-        config = Config(app="src.gui.CastAPI:app",
+        config = Config(app="CastAPI:app",
                         host=server_ip,
                         port=server_port,
                         workers=int(cfg_mgr.server_config['workers']),
