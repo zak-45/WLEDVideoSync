@@ -1596,7 +1596,7 @@ async def main_page_desktop():
         ui.button('Fetch Win TITLES', on_click=grab_windows, color='bg-red-800').tooltip('Retrieve windows titles')
 
 
-@ui.page('/media')
+@ui.page('/Media')
 async def main_page_media():
     """
     Media param page
