@@ -1,12 +1,12 @@
+import librosa
 import logging
 import time
 from typing import Optional, Tuple
-
 import math
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
-
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from multiprocessing import Queue
 
 class TextAnimator:
     """Animates text on a canvas with various effects.
@@ -39,6 +39,9 @@ class TextAnimator:
         fade_step: int = 5,  # Opacity change per frame for fade effect
         explode_pre_delay: float = 0.0  # Delay before explosion in seconds
     ):
+        self.next_text_change = None
+        self.text_index = None
+        self.text_interval = None
         self.current_frame = None
         self.delta_y = None
         self.delta_x = None
@@ -89,6 +92,11 @@ class TextAnimator:
 
         self.last_frame_time = time.perf_counter()
         self.paused = False
+
+        self.text_sequence = None  # For dynamic text
+
+        self.particles = [{"position": [np.random.randint(0, self.width), np.random.randint(0, self.height)],
+                        "velocity": [np.random.uniform(-1, 1), np.random.uniform(-1, 1)]} for _ in range(50)]
 
     def create_text_image(self, text=None, color=None, opacity=None, shadow=None) -> Image.Image:
         """Creates an image of the text with optional effects.
@@ -279,6 +287,31 @@ class TextAnimator:
             self.apply_slide_in_effect()
         elif self.effect == "zoom":
             self.apply_zoom_effect()
+        elif self.effect == "particle":
+            self.apply_particle_effect()
+
+
+    def enable_dynamic_text(self, text_sequence, interval):
+        """Enable dynamic text that changes at specified intervals.
+
+        Args:
+            text_sequence (list of str): List of text strings to cycle through.
+            interval (float): Time interval (in seconds) for switching text.
+            animator.enable_dynamic_text(["Hello", "Dynamic Text", "NiceGUI Rocks!"], interval=2.0)
+        """
+        self.text_sequence = text_sequence
+        self.text_interval = interval
+        self.text_index = 0
+        self.next_text_change = time.perf_counter() + interval
+
+    def update_text(self):
+        """Checks if it's time to update the text and switches to the next one."""
+        current_time = time.perf_counter()
+        if current_time >= self.next_text_change:
+            self.text_index = (self.text_index + 1) % len(self.text_sequence)
+            self.text = self.text_sequence[self.text_index]
+            self.text_image = self.create_text_image()
+            self.next_text_change = current_time + self.text_interval
 
 
     def apply_fade_effect(self):
@@ -402,6 +435,18 @@ class TextAnimator:
         # Update the counter to animate the zoom in/out
         self.effect_params["zoom_counter"] += zoom_speed
 
+    def apply_particle_effect(self):
+        """Adds particles around the text for a sparkly effect."""
+
+        for particle in self.particles:
+            particle["position"][0] += particle["velocity"][0]
+            particle["position"][1] += particle["velocity"][1]
+            if not (0 <= particle["position"][0] < self.width) or not (0 <= particle["position"][1] < self.height):
+                particle["position"] = [np.random.randint(0, self.width), np.random.randint(0, self.height)]
+
+            cv2.circle(self.current_frame, (int(particle["position"][0]), int(particle["position"][1])), 2,
+                       (255, 255, 255), -1)
+
     def apply_explode_effect(self):
         """Applies explode effect after a delay."""
 
@@ -467,6 +512,8 @@ class TextAnimator:
 
         if elapsed_time >= 1.0 / self.fps:
             self.last_frame_time = current_time
+            if self.text_sequence:
+                self.update_text()
             if self.direction in ["left", "right"]:
                 self.x_pos += self.delta_x
 
@@ -544,6 +591,37 @@ class TextAnimator:
         self.current_frame = final_frame
 
         return self.current_frame
+
+
+    def sync_with_audio(self, audio_file):
+        """Adjust animation speed or effects based on audio beat."""
+        y, sr = librosa.load(audio_file)
+        tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+        self.logger.info(f"Detected tempo: {tempo} BPM")
+        self.speed = tempo / 60  # Adjust speed based on tempo
+
+    def export_as_video(self, output_file, duration=10):
+        """Exports the animation as a video file."""
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(output_file, fourcc, self.fps, (self.width, self.height))
+
+        frame_count = int(duration * self.fps)
+        for _ in range(frame_count):
+            frame = self.read()
+            out.write(frame)
+
+        out.release()
+        self.logger.info(f"Video saved to {output_file}")
+
+    def send_frame_to_queue(self, frame_queue: Queue):
+        """Sends the current animation frame to a multiprocessing queue."""
+        frame = self.read()
+        if frame is not None:
+            try:
+                frame_queue.put(frame, block=False)
+                self.logger.info("Frame sent to queue.")
+            except Exception as e:
+                self.logger.error(f"Failed to send frame to queue: {e}")
 
     def pause(self):
         """Pauses the animation."""
