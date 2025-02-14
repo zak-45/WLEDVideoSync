@@ -496,7 +496,7 @@ class TextAnimator:
             fragment["position"][1] += fragment["velocity"][1]
             fragment["velocity"][1] += 0.5  # Gravity
 
-    def read(self) -> Optional[np.ndarray]:
+    def generate(self) -> Optional[np.ndarray]:
         """Generates the next frame of the animation.
 
         Returns:
@@ -607,7 +607,7 @@ class TextAnimator:
 
         frame_count = int(duration * self.fps)
         for _ in range(frame_count):
-            frame = self.read()
+            frame = self.generate()
             out.write(frame)
 
         out.release()
@@ -615,7 +615,7 @@ class TextAnimator:
 
     def send_frame_to_queue(self, frame_queue: Queue):
         """Sends the current animation frame to a multiprocessing queue."""
-        frame = self.read()
+        frame = self.generate()
         if frame is not None:
             try:
                 frame_queue.put(frame, block=False)

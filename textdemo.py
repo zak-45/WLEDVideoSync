@@ -17,7 +17,7 @@ animator = TextAnimator(
 )
 
 for _ in range(200): # Generate 100 frames
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000/animator.fps)) # Delay to match FPS
@@ -43,7 +43,7 @@ animator = TextAnimator(
 )
 
 for _ in range(200): # Generate 200 frames
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000/animator.fps))
@@ -67,7 +67,7 @@ animator = TextAnimator(
 )
 
 for _ in range(200): # Generate 100 frames
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000/animator.fps)) # Delay to match FPS
@@ -91,7 +91,7 @@ animator = TextAnimator(
 )
 
 for _ in range(200): # Generate 100 frames
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000/animator.fps)) # Delay to match FPS
@@ -115,7 +115,7 @@ animator = TextAnimator(
 )
 
 for _ in range(200):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000/animator.fps))
@@ -143,7 +143,7 @@ animator.effect = "fade" # set the effect to fade
 
 
 for _ in range(300):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000/animator.fps))
@@ -166,7 +166,7 @@ animator = TextAnimator(
 )
 
 for _ in range(300):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000/animator.fps))
@@ -189,7 +189,7 @@ animator = TextAnimator(
 )
 
 for _ in range(200):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000/animator.fps))
@@ -211,7 +211,7 @@ animator = TextAnimator(
 )
 
 for _ in range(300):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000 / animator.fps))
@@ -235,7 +235,7 @@ animator = TextAnimator(
 )
 
 for _ in range(300):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000/animator.fps))
@@ -257,7 +257,7 @@ animator = TextAnimator(
 )
 
 for _ in range(300):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000 / animator.fps))
@@ -279,7 +279,7 @@ animator = TextAnimator(
 )
 
 for _ in range(250):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000 / animator.fps))
@@ -302,7 +302,7 @@ animator = TextAnimator(
 )
 
 for _ in range(300):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000 / animator.fps))
@@ -329,7 +329,7 @@ animator = TextAnimator(
 )
 
 for _ in range(200):
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000 / animator.fps))
@@ -357,7 +357,7 @@ for i in range(300):
     elif i == 200:  # Resume at frame 200
         animator.resume() # Assuming you've added a resume method
 
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
         cv2.waitKey(int(1000 / animator.fps))
@@ -379,7 +379,7 @@ animator = TextAnimator(
 )
 
 for _ in range(600):  # Display for 20 seconds (600 frames at 30fps)
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Rainbow Animation", frame)
         cv2.waitKey(int(1000 / animator.fps))
@@ -404,7 +404,7 @@ animator = TextAnimator(
 )
 
 for _ in range(300):  # Adjust number of frames as needed
-    frame = animator.read()
+    frame = animator.generate()
     if frame is not None:
         cv2.imshow("Exploding Text Animation", frame)
         cv2.waitKey(int(1000 / animator.fps))
