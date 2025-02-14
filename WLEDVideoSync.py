@@ -32,8 +32,6 @@ For Windows, Linux, and FreeBSD: --onefile mode.
 For macOS (Darwin): --standalone mode with an app bundle creation.
 Windows Specific Configuration:
 
-Disables link-time optimization (--lto=no).
-Uses Clang compiler.
 Adds a custom splash screen for the executable.
 Debug and Feature Flags:
 
@@ -147,7 +145,6 @@ netstat_process = None
 Uvicorn class    
 """
 
-
 class UvicornServer(Process):
     """
     This allows to do stop / run server and define programmatically Config
@@ -166,14 +163,12 @@ class UvicornServer(Process):
     def run(self, *args, **kwargs):
         self.server.run()
 
-
 """
 Webview : local OS native Window
 """
 """
 Pywebview
 """
-
 
 def start_webview_process(window_name='Splash'):
     """
@@ -380,7 +375,7 @@ def on_restart_srv():
     if instance.is_alive():
         cfg_mgr.logger.warning(f'Already running instance : {instance}')
         return
-    new_instance = UvicornServer(config=config)
+    new_instance = UvicornServer(config=u_config)
     if not new_instance.is_alive():
         cfg_mgr.logger.warning('Server restarted')
         new_instance.start()
@@ -596,7 +591,7 @@ if __name__ == '__main__':
 
         """
         # uvicorn server definition
-        config = Config(app="src.gui.CastAPI:app",
+        u_config = Config(app="src.gui.CastAPI:app",
                         host=server_ip,
                         port=server_port,
                         workers=int(cfg_mgr.server_config['workers']),
@@ -606,7 +601,7 @@ if __name__ == '__main__':
                         timeout_keep_alive=10,
                         timeout_graceful_shutdown=3)
 
-        instance = UvicornServer(config=config)
+        instance = UvicornServer(config=u_config)
 
         """
         START
