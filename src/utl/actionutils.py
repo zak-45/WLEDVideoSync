@@ -11,8 +11,8 @@
 """
 import traceback
 
-from cv2utils import CV2Utils, ImageUtils
-from ddp_queue import DDPDevice
+from src.utl.cv2utils import CV2Utils, ImageUtils
+from src.net.ddp_queue import DDPDevice
 from str2bool import str2bool
 from threading import current_thread
 

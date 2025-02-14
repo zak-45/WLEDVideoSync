@@ -1,5 +1,5 @@
 import cv2
-from textanimator import TextAnimator
+from src.txt.textanimator import TextAnimator
 
 
 
@@ -9,7 +9,7 @@ animator = TextAnimator(
     width=640,
     height=120,
     speed=400,
-    font_path="assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
     font_size=60,
     direction="left",
     color=(255, 255, 255), # White text
@@ -35,7 +35,7 @@ animator = TextAnimator(
     direction="up",
     color=(0, 0, 255), # Blue text
     fps=24,
-    font_path="assets/Font/DejaVuSansCondensed.ttf", # Replace with your font path
+    font_path="../../assets/Font/DejaVuSansCondensed.ttf", # Replace with your font path
     font_size=40,
     shadow=True,
     shadow_color=(128, 128, 128), # Gray shadow
@@ -57,7 +57,7 @@ animator = TextAnimator(
     width=640,
     height=120,
     speed=400,
-    font_path="assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
     font_size=60,
     direction="left",
     effect="blink",
@@ -82,7 +82,7 @@ animator = TextAnimator(
     width=640,
     height=120,
     speed=400,
-    font_path="assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
     font_size=60,
     direction="left",
     effect="color_cycle",

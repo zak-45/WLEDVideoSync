@@ -81,7 +81,6 @@ Webview Integration: Uses pywebview to provide a native OS window for the applic
 System Tray: Implements a system tray icon with menu options to manage the application on Windows.
 
 """
-import concurrent_log_handler
 import sys
 import shelve
 import webview
@@ -91,7 +90,7 @@ import webbrowser
 import tkinter as tk
 
 from tkinter import PhotoImage
-from utils import CASTUtils as Utils
+from src.utl.utils import CASTUtils as Utils
 from pathlib import Path as PathLib
 from multiprocessing import active_children
 from PIL import Image
@@ -640,7 +639,7 @@ if __name__ == '__main__':
     else:
 
         # run NiceGUI app with built-in server
-        import CastAPI
+        pass
 
     """
     STOP

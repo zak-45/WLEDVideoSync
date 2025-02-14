@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from textanimator import TextAnimator
-from typing import Optional, Tuple, List
+from src.txt.textanimator import TextAnimator
+from typing import Optional, Tuple
 
 # FastAPI integration
 app = FastAPI()

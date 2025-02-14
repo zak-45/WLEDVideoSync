@@ -11,15 +11,14 @@
 #
 """
 import sys
-import concurrent_log_handler
 import psutil
 
 from nicegui import ui, events
 from datetime import datetime
 from str2bool import str2bool
-from utils import CASTUtils as Utils
-from cv2utils import CV2Utils
-from cv2utils import VideoThumbnailExtractor
+from src.utl.utils import CASTUtils as Utils
+from src.utl.cv2utils import CV2Utils
+from src.utl.cv2utils import VideoThumbnailExtractor
 from PIL import Image
 from pathlib import Path
 from typing import Optional

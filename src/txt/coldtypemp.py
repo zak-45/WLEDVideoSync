@@ -6,7 +6,7 @@ import multiprocessing
 from datetime import datetime
 from coldtype.renderer import Renderer
 from multiprocessing.shared_memory import ShareableList
-from utils import CASTUtils as Utils
+from src.utl.utils import CASTUtils as Utils
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')

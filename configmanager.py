@@ -8,7 +8,7 @@ Manages configuration settings for the application across different environments
 """
 
 from os import environ
-from utils import CASTUtils
+from src.utl.utils import CASTUtils
 
 class ConfigManager:
     """

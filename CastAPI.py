@@ -27,7 +27,6 @@ Web GUI based on NiceGUI
 import time
 import sys
 import os
-import concurrent_log_handler
 import traceback
 import configparser
 import queue
@@ -36,24 +35,24 @@ from starlette.websockets import WebSocketDisconnect
 
 import desktop
 import media
-import niceutils as nice
+from src.utl import niceutils as nice
 import ast
 import tkinter as tk
 
 from asyncio import set_event_loop_policy,sleep,create_task
 from threading import current_thread
 from subprocess import Popen
-from ddp_queue import DDPDevice
+from src.net.ddp_queue import DDPDevice
 from pathlib import Path as PathLib
-from utils import CASTUtils as Utils, LogElementHandler
-from utils import HTTPDiscovery as Net
-from cv2utils import ImageUtils
-from cv2utils import CV2Utils
-from niceutils import LocalFilePicker
-from utils import ScreenAreaSelection as Sa
-from utils import YtSearch
-from utils import AnimatedElement as Animate
-from multicast import MultiUtils as Multi
+from src.utl.utils import CASTUtils as Utils, LogElementHandler
+from src.utl.utils import HTTPDiscovery as Net
+from src.utl.cv2utils import ImageUtils
+from src.utl.cv2utils import CV2Utils
+from src.utl.niceutils import LocalFilePicker
+from src.utl.utils import ScreenAreaSelection as Sa
+from src.utl.utils import YtSearch
+from src.utl.utils import AnimatedElement as Animate
+from src.utl.multicast import MultiUtils as Multi
 from datetime import datetime
 from str2bool import str2bool
 from PIL import Image
@@ -62,9 +61,9 @@ from fastapi import HTTPException, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 from nicegui import app, ui, native, run
 from configmanager import ConfigManager
-from fontsmanager import FontPreviewManager
-from fontsmanager import FontSetApplication
-from coldtypemp import RUNColdtype
+from src.utl.fontsmanager import FontPreviewManager
+from src.utl.fontsmanager import FontSetApplication
+from src.txt.coldtypemp import RUNColdtype
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 Desktop = desktop.CASTDesktop()
@@ -94,7 +93,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
 
     # load optional modules
     if str2bool(cfg_mgr.custom_config['player']) or str2bool(cfg_mgr.custom_config['system-stats']):
-        import psutil
+        pass
 
     #  validate network config
     server_ip = cfg_mgr.server_config['server_ip']
@@ -1977,7 +1976,7 @@ async def coldtype_test_page():
 
 @ui.page('/Pyeditor')
 async def pyeditor_test_page():
-    from pyeditor import PythonEditor
+    from src.utl.pyeditor import PythonEditor
 
     ui.dark_mode(CastAPI.dark_mode)
 

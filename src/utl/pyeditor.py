@@ -2,10 +2,10 @@ import sys
 import ast
 
 from nicegui import ui
-from niceutils import LocalFilePicker
-from coldtypemp import RUNColdtype
-from calculator import Calculator
-from console import ConsoleCapture
+from src.utl.niceutils import LocalFilePicker
+from src.txt.coldtypemp import RUNColdtype
+from src.utl.calculator import Calculator
+from src.utl.console import ConsoleCapture
 
 UPLOAD_FOLDER = './xtra/coldtype'  # Set the upload folder
 
