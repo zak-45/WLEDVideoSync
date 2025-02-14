@@ -10,12 +10,11 @@ Port Art-Net default is 6454
 
 """
 
-import logging
 import threading
 import queue
 import numpy as np
 from stupidArtnet import StupidArtnet
-from configmanager import ConfigManager
+from src.utl.configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.artnet')
 

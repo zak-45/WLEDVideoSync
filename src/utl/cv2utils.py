@@ -25,7 +25,7 @@ import os
 from datetime import datetime
 from str2bool import str2bool
 from src.utl.utils import CASTUtils as Utils
-from configmanager import ConfigManager
+from src.utl.configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
 

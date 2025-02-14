@@ -2,6 +2,32 @@ import cv2
 from src.txt.textanimator import TextAnimator
 
 
+# Example 16: Exploding text with pre-delay
+animator = TextAnimator(
+    text="Exploding Text!Exploding Text!Exploding Text!Exploding Text!Exploding Text!Exploding Text!",
+    width=640,
+    height=120,
+    speed=0,  # No scrolling for this example
+    direction="right",
+    color=(0, 0, 255),  # Blue text
+    fps=50,
+    font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_size=40,
+    alignment='center',
+    effect="explode",
+    explode_speed=8,  # Adjust explosion speed as needed
+    explode_pre_delay=1 # Delay before explosion in seconds
+)
+
+for _ in range(300):  # Adjust number of frames as needed
+    frame = animator.generate()
+    if frame is not None:
+        cv2.imshow("Exploding Text Animation", frame)
+        cv2.waitKey(int(1000 / animator.fps))
+
+cv2.destroyAllWindows()
+animator.stop()
+
 
 # Example 1: Basic scrolling text
 animator = TextAnimator(

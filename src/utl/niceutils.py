@@ -22,7 +22,7 @@ from src.utl.cv2utils import VideoThumbnailExtractor
 from PIL import Image
 from pathlib import Path
 from typing import Optional
-from configmanager import ConfigManager
+from src.utl.configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
 

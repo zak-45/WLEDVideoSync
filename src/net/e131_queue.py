@@ -40,13 +40,12 @@ while DMX data is being transmitted in the background.
 
 """
 
-import logging
 import threading
 import queue
 
 import numpy as np
 import sacn
-from configmanager import ConfigManager
+from src.utl.configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.e131')
 

@@ -99,7 +99,7 @@ from nicegui import native
 from str2bool import str2bool
 if sys.platform.lower() == 'win32':
     from pystray import Icon, Menu, MenuItem
-from configmanager import ConfigManager
+from src.utl.configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
@@ -596,7 +596,7 @@ if __name__ == '__main__':
 
         """
         # uvicorn server definition
-        config = Config(app="CastAPI:app",
+        config = Config(app="src.gui.CastAPI:app",
                         host=server_ip,
                         port=server_port,
                         workers=int(cfg_mgr.server_config['workers']),

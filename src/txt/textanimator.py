@@ -8,13 +8,73 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from multiprocessing import Queue
 
+
+
+class BackgroundOverlay:
+    """
+    The BackgroundOverlay class manages a background image and provides methods to create a tiled version of it
+    and overlay other images on top. It handles RGBA images correctly, respecting the alpha channel for transparency.
+    If the overlaid image doesn't have an alpha channel, it's treated as a regular BGR image.
+    """
+    def __init__(self, background_path):
+        # Load and prepare the tiled background
+        self.background_image = Image.open(background_path).convert("RGBA")
+        self.bg_np = np.array(self.background_image)
+        bgr = self.bg_np[..., :3]
+        alpha = self.bg_np[..., 3]
+        bg_alpha_scaled = alpha[:, :, np.newaxis] / 255.0
+        self.background = (bgr * bg_alpha_scaled + 255 * (1 - bg_alpha_scaled)).astype(np.uint8)
+
+    def get_tiled_background(self, window_width, window_height):
+        """Creates a tiled background image.
+
+        Tiles the loaded background image to fit the specified dimensions.
+        """
+        # Create the tiled background to fill the window
+        tiled_background = np.zeros((window_height, window_width, 3), dtype=np.uint8)
+        tile_height, tile_width = self.background.shape[:2]
+
+        for y in range(0, window_height, tile_height):
+            for x in range(0, window_width, tile_width):
+                tiled_background[y:y + tile_height, x:x + tile_width] = self.background[
+                                                                        :min(tile_height, window_height - y),
+                                                                        :min(tile_width, window_width - x)]
+
+        return tiled_background
+
+    def apply_background(self, i_frame):
+        """Overlays the input frame onto the tiled background.
+
+        Combines the tiled background with the given frame, respecting the frame's alpha channel if present.
+        """
+        # Get the window size and tile the background
+        window_height, window_width = i_frame.shape[:2]
+        tiled_background = self.get_tiled_background(window_width, window_height)
+
+        # Combine the background with the frame (overlay frame on top)
+        combined_frame = np.copy(tiled_background)
+
+        # Assume the frame has an alpha channel (RGBA), otherwise convert to RGB
+        if i_frame.shape[2] == 4:
+            alpha = i_frame[..., 3] / 255.0  # Get the alpha channel of the frame
+            for y in range(window_height):
+                for x in range(window_width):
+                    if alpha[y, x] > 0:  # Only overwrite where the frame is non-transparent
+                        combined_frame[y, x] = i_frame[y, x, :3]
+        else:
+            # If no alpha channel, just overlay as a regular BGR frame
+            combined_frame = i_frame
+
+        return combined_frame
+
+
 class TextAnimator:
     """Animates text on a canvas with various effects.
 
     Supports scrolling, blinking, color cycling, fading, rainbow cycling, and
     exploding text.
-    """
 
+    """
     def __init__(
         self,
         text: str,
@@ -139,6 +199,7 @@ class TextAnimator:
             text_image = Image.new("RGBA", (canvas_width, canvas_height), self.bg_color + (255,))
         else:
             text_image = Image.new("RGBA", (canvas_width, canvas_height), (0, 0, 0, 0))
+
         draw = ImageDraw.Draw(text_image)
 
         # Calculate text position based on alignment
@@ -485,8 +546,8 @@ class TextAnimator:
                 }
             )
 
-        self.text_image = Image.new("RGBA", self.text_image.size, (0, 0, 0, 0)) # Make original text transparent after fragments are created
-
+        # Make original text transparent after fragments are created
+        self.text_image = Image.new("RGBA", self.text_image.size, (0, 0, 0, 0))
 
     def update_exploding_fragments(self):
         """Updates the position of exploding fragments."""
@@ -534,32 +595,7 @@ class TextAnimator:
         frame = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
         if self.effect == "explode":
-            if self.effect_params["explode_counter"] <= self.effect_params["explode_pre_delay_frames"]:
-                # Display the original text image before explosion
-                frame_pil = self.create_text_image(text=self.text, color=self.color, opacity=self.opacity, shadow=self.shadow)
-                frame_cv = cv2.cvtColor(np.array(frame_pil), cv2.COLOR_RGBA2BGRA)
-            else:
-                frame_pil = Image.new("RGBA", (self.width, self.height))
-                for fragment in self.effect_params["fragments"]:
-                    frame_pil.paste(fragment["image"], (int(fragment["position"][0]), int(fragment["position"][1])), fragment["image"])
-                frame_cv = cv2.cvtColor(np.array(frame_pil), cv2.COLOR_RGBA2BGRA)
-
-            frame_bgra = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
-
-            # Resize if necessary before adding
-            frame_cv = cv2.resize(frame_cv, (self.width, self.height))
-            frame_bgra = cv2.resize(frame_bgra, (self.width, self.height))
-
-            # Ensure 4 channels for both images
-            if frame_cv.shape[2] == 3:
-                frame_cv = cv2.cvtColor(frame_cv, cv2.COLOR_BGR2BGRA)
-            if frame_bgra.shape[2] == 3:
-                frame_bgra = cv2.cvtColor(frame_bgra, cv2.COLOR_BGR2BGRA)
-
-            combined = cv2.add(frame_bgra, frame_cv)
-            final_frame = cv2.cvtColor(combined, cv2.COLOR_BGRA2BGR)
-            self.current_frame = final_frame
-            return final_frame
+            return self.generate_explode(frame)
 
         frame_pil = self.text_image.copy()
         frame_cv = cv2.cvtColor(np.array(frame_pil), cv2.COLOR_RGBA2BGRA)
@@ -586,12 +622,48 @@ class TextAnimator:
                 return self.current_frame # Return last valid frame to avoid crash
 
         frame_bgra = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
-        combined = cv2.add(frame_bgra, overlay)
+
+        return self.generate_combine(frame_bgra, overlay)
+
+
+    def generate_explode(self, frame):
+        """Generates a frame for the explosion effect.
+
+        Creates and positions fragments of the exploded text, handling pre-delay and image conversions.
+        """
+        if self.effect_params["explode_counter"] <= self.effect_params["explode_pre_delay_frames"]:
+            # Display the original text image before explosion
+            frame_pil = self.create_text_image(text=self.text, color=self.color, opacity=self.opacity, shadow=self.shadow)
+        else:
+            frame_pil = Image.new("RGBA", (self.width, self.height))
+            for fragment in self.effect_params["fragments"]:
+                frame_pil.paste(fragment["image"], (int(fragment["position"][0]), int(fragment["position"][1])), fragment["image"])
+        frame_cv = cv2.cvtColor(np.array(frame_pil), cv2.COLOR_RGBA2BGRA)
+        frame_bgra = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
+
+        # Resize if necessary before adding
+        frame_cv = cv2.resize(frame_cv, (self.width, self.height))
+        frame_bgra = cv2.resize(frame_bgra, (self.width, self.height))
+
+        # Ensure 4 channels for both images
+        if frame_cv.shape[2] == 3:
+            frame_cv = cv2.cvtColor(frame_cv, cv2.COLOR_BGR2BGRA)
+        if frame_bgra.shape[2] == 3:
+            frame_bgra = cv2.cvtColor(frame_bgra, cv2.COLOR_BGR2BGRA)
+
+        return self.generate_combine(frame_bgra, frame_cv)
+
+
+    def generate_combine(self, text_frame, overlay):
+        """Combines the text image with the background frame.
+
+        Adds the text image to the background frame and converts the result to BGR format.
+        """
+        combined = cv2.add(text_frame, overlay)
         final_frame = cv2.cvtColor(combined, cv2.COLOR_BGRA2BGR)
         self.current_frame = final_frame
 
-        return self.current_frame
-
+        return final_frame
 
     def sync_with_audio(self, audio_file):
         """Adjust animation speed or effects based on audio beat."""
@@ -615,7 +687,7 @@ class TextAnimator:
 
     def send_frame_to_queue(self, frame_queue: Queue):
         """Sends the current animation frame to a multiprocessing queue."""
-        frame = self.generate()
+        frame = self.current_frame
         if frame is not None:
             try:
                 frame_queue.put(frame, block=False)
