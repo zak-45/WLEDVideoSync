@@ -596,7 +596,7 @@ if __name__ == '__main__':
 
         """
         # uvicorn server definition
-        config = Config(app="CastAPI:app",
+        config = Config(app="src.gui.CastAPI:app",
                         host=server_ip,
                         port=server_port,
                         workers=int(cfg_mgr.server_config['workers']),
@@ -639,7 +639,7 @@ if __name__ == '__main__':
     else:
 
         # run NiceGUI app with built-in server
-        pass
+        import src.gui.CastAPI
 
     """
     STOP

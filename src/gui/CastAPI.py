@@ -142,17 +142,17 @@ async def init_actions():
         uvicorn = True
         """
         if sys.platform.lower() == 'win32':
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
+            Utils.update_ini_key('../../config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
+            Utils.update_ini_key('../../config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
+            Utils.update_ini_key('../../config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
+            Utils.update_ini_key('../../config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
         else:
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
+            Utils.update_ini_key('../../config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
+            Utils.update_ini_key('../../config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
+            Utils.update_ini_key('../../config/WLEDVideoSync.ini', 'app', 'native_ui_size', '')
+            Utils.update_ini_key('../../config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
 
-        Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
+        Utils.update_ini_key('../../config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
 
         # Define the window's contents
         info_text = "Some Params has changed.... restart your app"
@@ -999,7 +999,7 @@ async def main_page():
     with head_row.classes('w-full no-wrap'):
         ui.label('DESKTOP: Cast Screen / Window content').classes('bg-slate-400 w-1/3')
         with ui.card().classes('bg-slate-400 w-1/3'):
-            img = ui.image("assets/favicon.ico").classes('self-center')
+            img = ui.image("../../assets/favicon.ico").classes('self-center')
             img.on('click', lambda: animate_toggle(img))
             img.style('cursor: pointer')
             img.tailwind.border_width('4').width('8')
@@ -1010,7 +1010,7 @@ async def main_page():
     """
 
     ui.separator().classes('mt-6')
-    CastAPI.w_image = ui.image("assets/Source-intro.png").classes('self-center')
+    CastAPI.w_image = ui.image("../../assets/Source-intro.png").classes('self-center')
     CastAPI.w_image.classes(add='animate__animated')
     CastAPI.w_image.tailwind.border_width('8').width('1/6')
 
@@ -1166,7 +1166,7 @@ async def main_page():
 
     with ui.page_sticky(position='bottom-right', x_offset=20, y_offset=20):
         with ui.button(on_click=footer.toggle).props(add='round outline'):
-            ui.image('assets/favicon.ico').classes('rounded-full w-8 h-8')
+            ui.image('../../assets/favicon.ico').classes('rounded-full w-8 h-8')
 
 
 @ui.page('/Manage')
@@ -1596,7 +1596,7 @@ async def main_page_desktop():
         ui.button('Fetch Win TITLES', on_click=grab_windows, color='bg-red-800').tooltip('Retrieve windows titles')
 
 
-@ui.page('media')
+@ui.page('../../media')
 async def main_page_media():
     """
     Media param page
@@ -1790,7 +1790,7 @@ async def splash_page():
     :return:
     """
     ui.dark_mode(True)
-    ui.image('media/intro.gif').classes('self-center').style('width: 50%')
+    ui.image('../../media/intro.gif').classes('self-center').style('width: 50%')
     main = ui.button(
         'MAIN INTERFACE',
         on_click=lambda: (main.props('loading'), ui.navigate.to('/')),
@@ -3161,7 +3161,7 @@ async def download_url(url):
         # Format the unique name with prefix, date, time, and extension
         image_name = f"image-tmp_{current_time}.jpg"
 
-        result = await Utils.download_image('media/', url, image_name)
+        result = await Utils.download_image('../../media/', url, image_name)
         if result:
             video_img_url = f'./media/{image_name}'
 
@@ -3288,16 +3288,16 @@ END
 # some cleaning
 cfg_mgr.logger.info('Cleaning ...')
 cfg_mgr.logger.debug('Remove tmp files')
-for tmp_filename in PathLib("tmp/").glob("*_file.*"):
+for tmp_filename in PathLib("../../tmp/").glob("*_file.*"):
     tmp_filename.unlink()
 
 # remove yt files
 if str2bool(cfg_mgr.app_config['keep_yt']) is not True:
-    for media_filename in PathLib("media/").glob("yt-tmp-*.*"):
+    for media_filename in PathLib("../../media/").glob("yt-tmp-*.*"):
         media_filename.unlink()
 
 # remove image files
 if str2bool(cfg_mgr.app_config['keep_image']) is not True:
-    for img_filename in PathLib("media/").glob("image-tmp_*_*.jpg"):
+    for img_filename in PathLib("../../media/").glob("image-tmp_*_*.jpg"):
         img_filename.unlink()
 
