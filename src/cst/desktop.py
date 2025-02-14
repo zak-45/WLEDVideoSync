@@ -953,7 +953,7 @@ class CASTDesktop:
 
                     cfg_mgr.logger.debug('process from queue')
                     # Default image to display when queue is empty
-                    default_img = cv2.imread('../../assets/Source-intro.png')
+                    default_img = cv2.imread('assets/Source-intro.png')
                     default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
                     default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
                     frame = default_img

@@ -123,7 +123,7 @@ class CV2Utils:
         sl = ShareableList(name=shared_list)
 
         # Default image to display in case of np.array conversion problem
-        default_img = cv2.imread('../../assets/Source-intro.png')
+        default_img = cv2.imread('assets/Source-intro.png')
         default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
         default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
 
