@@ -2,33 +2,6 @@ import cv2
 from src.txt.textanimator import TextAnimator
 
 
-# Example 16: Exploding text with pre-delay
-animator = TextAnimator(
-    text="Exploding Text!Exploding Text!Exploding Text!Exploding Text!Exploding Text!Exploding Text!",
-    width=640,
-    height=120,
-    speed=0,  # No scrolling for this example
-    direction="right",
-    color=(0, 0, 255),  # Blue text
-    fps=50,
-    font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
-    font_size=40,
-    alignment='center',
-    effect="explode",
-    explode_speed=8,  # Adjust explosion speed as needed
-    explode_pre_delay=1 # Delay before explosion in seconds
-)
-
-for _ in range(300):  # Adjust number of frames as needed
-    frame = animator.generate()
-    if frame is not None:
-        cv2.imshow("Exploding Text Animation", frame)
-        cv2.waitKey(int(1000 / animator.fps))
-
-cv2.destroyAllWindows()
-animator.stop()
-
-
 # Example 1: Basic scrolling text
 animator = TextAnimator(
     text="Basic scrolling text",
@@ -57,7 +30,7 @@ animator = TextAnimator(
     text="Scrolling text with custom font,\n color,\n and shadow",
     width=800,
     height=600,
-    speed=150,
+    speed=100,
     direction="up",
     color=(0, 0, 255), # Blue text
     fps=24,
@@ -65,7 +38,7 @@ animator = TextAnimator(
     font_size=40,
     shadow=True,
     shadow_color=(128, 128, 128), # Gray shadow
-    shadow_offset=(3, 3)
+    shadow_offset=(2, 5)
 )
 
 for _ in range(200): # Generate 200 frames
@@ -77,7 +50,7 @@ for _ in range(200): # Generate 200 frames
 cv2.destroyAllWindows()
 animator.stop()
 
-# Example 1: Basic scrolling blink text
+# Example 3: Basic scrolling blink text
 animator = TextAnimator(
     text="Scrolling blink text",
     width=640,
@@ -92,7 +65,7 @@ animator = TextAnimator(
     fps=30
 )
 
-for _ in range(200): # Generate 100 frames
+for _ in range(200): # Generate 200 frames
     frame = animator.generate()
     if frame is not None:
         cv2.imshow("Animation", frame)
@@ -104,7 +77,7 @@ animator.stop()
 
 # Example 4: color cycling
 animator = TextAnimator(
-    text="Scrolling blink text",
+    text="Scrolling color cycling text",
     width=640,
     height=120,
     speed=400,
@@ -125,6 +98,28 @@ for _ in range(200): # Generate 100 frames
 cv2.destroyAllWindows()
 animator.stop()
 
+# Example 4: color cycling
+animator = TextAnimator(
+    text="Scrolling color cycling text",
+    width=640,
+    height=120,
+    speed=400,
+    font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_size=60,
+    direction="left",
+    effect="rainbow_cycle",
+    color=(0, 255, 255),
+    fps=30
+)
+
+for _ in range(200): # Generate 100 frames
+    frame = animator.generate()
+    if frame is not None:
+        cv2.imshow("Animation", frame)
+        cv2.waitKey(int(1000/animator.fps)) # Delay to match FPS
+
+cv2.destroyAllWindows()
+animator.stop()
 
 
 # Example 5: Fading text
@@ -135,6 +130,8 @@ animator = TextAnimator(
     speed=0, # No scrolling
     direction="left", # Direction doesn't matter when speed is 0
     color=(255, 0, 0), # Red text
+    font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_size=60,
     fps=20,
     effect="fade",
     opacity=0.8 # Initial opacity
@@ -365,7 +362,7 @@ animator.stop()
 
 
 
-# Example 15: Pausing the animation (requires modification to TextAnimator)
+# Example 15: Pausing the animation
 
 animator = TextAnimator(
     text="Pausing Animation",
@@ -379,9 +376,9 @@ animator = TextAnimator(
 
 for i in range(300):
     if i == 100:  # Pause at frame 100
-        animator.pause() # Assuming you've added a pause method
+        animator.pause()
     elif i == 200:  # Resume at frame 200
-        animator.resume() # Assuming you've added a resume method
+        animator.resume()
 
     frame = animator.generate()
     if frame is not None:
@@ -416,20 +413,22 @@ animator.stop()
 
 # Example 16: Exploding text with pre-delay
 animator = TextAnimator(
-    text="Exploding Text!Exploding Text!Exploding Text!Exploding Text!Exploding Text!Exploding Text!",
-    width=800,
-    height=600,
+    text="Exploding text with pre-delay",
+    width=620,
+    height=120,
     speed=0,  # No scrolling for this example
-    direction="left",
+    direction="right",
     color=(0, 0, 255),  # Blue text
     fps=30,
     alignment='center',
+    font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
+    font_size=40,
     effect="explode",
-    explode_speed=8,  # Adjust explosion speed as needed
+    explode_speed=10,  # Adjust explosion speed as needed
     explode_pre_delay=2 # Delay before explosion in seconds
 )
 
-for _ in range(300):  # Adjust number of frames as needed
+for _ in range(150):  # Adjust number of frames as needed
     frame = animator.generate()
     if frame is not None:
         cv2.imshow("Exploding Text Animation", frame)
@@ -437,5 +436,4 @@ for _ in range(300):  # Adjust number of frames as needed
 
 cv2.destroyAllWindows()
 animator.stop()
-
 

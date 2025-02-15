@@ -9,7 +9,6 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from multiprocessing import Queue
 
 
-
 class BackgroundOverlay:
     """
     The BackgroundOverlay class manages a background image and provides methods to create a tiled version of it
@@ -96,7 +95,6 @@ class TextAnimator:
         explode_speed: int = 5,  # Speed of the explosion effect
         blink_interval: float = .5,  # Blink interval in seconds
         color_change_interval: int = 1,  # Color change interval in seconds
-        fade_step: int = 5,  # Opacity change per frame for fade effect
         explode_pre_delay: float = 0.0  # Delay before explosion in seconds
     ):
         self.next_text_change = None
@@ -127,8 +125,10 @@ class TextAnimator:
         self.explode_speed = explode_speed
         self.blink_interval = blink_interval
         self.color_change_interval = color_change_interval
-        self.fade_step = fade_step
+        self.text_sequence = None  # For dynamic text
         self.explode_pre_delay = explode_pre_delay * fps  # Delay before explosion in frames
+        self.particles = [{"position": [np.random.randint(0, self.width), np.random.randint(0, self.height)],
+                        "velocity": [np.random.uniform(-1, 1), np.random.uniform(-1, 1)]} for _ in range(50)]
 
         # Initialize font using PIL
         try:
@@ -150,13 +150,8 @@ class TextAnimator:
         # Initialize scrolling positions based on direction
         self.initialize_scrolling()
 
-        self.last_frame_time = time.perf_counter()
         self.paused = False
-
-        self.text_sequence = None  # For dynamic text
-
-        self.particles = [{"position": [np.random.randint(0, self.width), np.random.randint(0, self.height)],
-                        "velocity": [np.random.uniform(-1, 1), np.random.uniform(-1, 1)]} for _ in range(50)]
+        self.last_frame_time = time.perf_counter()
 
     def create_text_image(self, text=None, color=None, opacity=None, shadow=None) -> Image.Image:
         """Creates an image of the text with optional effects.
@@ -220,22 +215,23 @@ class TextAnimator:
         if self.direction in ["left", "right"]:
             y = (canvas_height - text_height) // 2
             if self.alignment == "center":
-                x = (self.width - text_width) // 2
+                x = (canvas_width - text_width) // 2  # Correct centering calculation
             elif self.alignment == "right":
-                x = self.width - text_width
+                x = canvas_width - text_width  # Right-align text
             else:  # left alignment
                 x = 0
         elif self.direction in ["up", "down"]:
             x = (canvas_width - text_width) // 2
             if self.alignment == "center":
-                y = (self.height - text_height) // 2
+                y = (canvas_height - text_height) // 2  # Correct centering calculation
             elif self.alignment == "right":  # bottom alignment for vertical scrolling
-                y = self.height - text_height
+                y = canvas_height - text_height
             else:  # top alignment
                 y = 0
         else:
             x, y = 0, 0  # default position
         return x, y
+
 
     def initialize_scrolling(self):
         """Initializes scrolling position and speed."""
@@ -264,6 +260,7 @@ class TextAnimator:
         """Initializes parameters for text effects."""
 
         params = {}
+
         if self.effect == "blink":
             params["blink"] = True
             params["blink_interval"] = self.fps * self.blink_interval  # Blink every second
@@ -283,11 +280,6 @@ class TextAnimator:
                 self.fps * self.color_change_interval
             )  # Change color every 2 seconds
             params["color_change_counter"] = 0
-        elif self.effect == "fade":
-            params["fade_in"] = True
-            params["fade_out"] = False  # Start with fade-in
-            params["fade_step"] = self.fade_step  # Opacity change per frame
-            params["current_opacity"] = 0
         elif self.effect == "rainbow_cycle":
             params["rainbow_cycle"] = True
             params["rainbow_counter"] = 0
@@ -317,6 +309,10 @@ class TextAnimator:
         # Add zoom effect
         elif self.effect == "zoom":
             params["zoom_counter"] = 0  # Start the zoom effect counter
+        elif self.effect in ["fade_in", "fade_out"]:
+            params["fade_in"] = True
+            params["fade_out"] = False
+            params["fade_counter"] = 0
 
         return params
 
@@ -326,9 +322,7 @@ class TextAnimator:
         if not self.effect:
             return
 
-        if self.effect == "fade":
-            self.apply_fade_effect()
-        elif self.effect == "blink":
+        if self.effect == "blink":
             self.apply_blink_effect()
         elif self.effect == "color_cycle":
             self.apply_color_cycle_effect()
@@ -350,6 +344,8 @@ class TextAnimator:
             self.apply_zoom_effect()
         elif self.effect == "particle":
             self.apply_particle_effect()
+        elif self.effect in ["fade_in", "fade_out"]:
+            self.apply_fade_effect()
 
 
     def enable_dynamic_text(self, text_sequence, interval):
@@ -374,29 +370,6 @@ class TextAnimator:
             self.text_image = self.create_text_image()
             self.next_text_change = current_time + self.text_interval
 
-
-    def apply_fade_effect(self):
-        """Applies fade in/out effect."""
-        if self.effect_params.get("fade_in"):
-            if self.effect_params["current_opacity"] < 255 * self.opacity:
-                self.effect_params["current_opacity"] += self.effect_params["fade_step"]
-                if self.effect_params["current_opacity"] >= 255 * self.opacity:
-                    self.effect_params["current_opacity"] = int(255 * self.opacity)
-                    self.effect_params["fade_in"] = False
-                    self.effect_params["fade_out"] = True  # Start fade-out after fade-in completes
-        elif self.effect_params.get("fade_out"):
-            if self.effect_params["current_opacity"] > 0:
-                self.effect_params["current_opacity"] -= self.effect_params["fade_step"]
-                if self.effect_params["current_opacity"] <= 0:
-                    self.effect_params["current_opacity"] = 0
-                    self.effect_params["fade_out"] = False
-                    self.effect_params["fade_in"] = True  # Start fade-in after fade-out completes
-
-        # Update text_image opacity
-        alpha = int(self.effect_params.get("current_opacity", int(255 * self.opacity)))
-        text_with_alpha = self.text_image.copy()
-        text_with_alpha.putalpha(alpha)
-        self.text_image = text_with_alpha
 
     def apply_blink_effect(self):
         """Applies blink effect."""
@@ -496,6 +469,30 @@ class TextAnimator:
         # Update the counter to animate the zoom in/out
         self.effect_params["zoom_counter"] += zoom_speed
 
+    def apply_fade_effect(self):
+        """Applies fade-in and fade-out effects with looping capability."""
+        fade_duration = self.fps * 2  # Adjust fade duration (in frames)
+
+        # Calculate the fade factor (0.0 to 1.0)
+        if self.effect_params.get("fade_in"):
+            fade_factor = min(1.0, self.effect_params["fade_counter"] / fade_duration)
+            if fade_factor >= 1.0:
+                self.select_fade_effect(False, True)
+        elif self.effect_params.get("fade_out"):
+            fade_factor = max(0.0, 1.0 - (self.effect_params["fade_counter"] / fade_duration))
+            if fade_factor <= 0.0:
+                self.select_fade_effect(True, False)
+        else:
+            return
+
+        self.effect_params["fade_counter"] += 1
+        self.text_image = self.create_text_image(opacity=fade_factor)
+
+    def select_fade_effect(self, f_in, f_out):
+        self.effect_params["fade_in"] = f_in
+        self.effect_params["fade_out"] = f_out
+        self.effect_params["fade_counter"] = 0
+
     def apply_particle_effect(self):
         """Adds particles around the text for a sparkly effect."""
 
@@ -520,28 +517,34 @@ class TextAnimator:
         self.effect_params["explode_counter"] += 1
 
     def explode_text(self):
-        """Splits text into fragments for explosion effect."""
-
+        """Splits text into fragments for explosion effect, adjusting for alignment."""
         self.effect_params["fragments"] = []
-        # Use create_text_image with overrides to generate a temporary image for explosion, preserving current state
         image = self.create_text_image(text=self.text, color=self.color, opacity=self.opacity, shadow=self.shadow)
         image_width, image_height = image.size
         char_width = image_width // len(self.text)
 
+        if self.alignment == "right":
+            start_x = self.width - image_width
+        elif self.alignment == "center":
+            start_x = (self.width - image_width) // 2
+        else:
+            start_x = 0
+
         top = 0
         for i, char in enumerate(self.text):
-            left = i * char_width
-            right = (i + 1) * char_width
+            left = start_x + (i * char_width)
+            right = start_x + ((i + 1) * char_width)
             bottom = image_height
 
-            char_image = image.crop((left, top, right, bottom))
+            char_image = image.crop((left - start_x, top, right - start_x, bottom))
             self.effect_params["fragments"].append(
                 {
                     "image": char_image,
                     "position": [left, top],
                     "velocity": [
                         np.random.uniform(-self.effect_params["explode_speed"], self.effect_params["explode_speed"]),
-                        np.random.uniform(-self.effect_params["explode_speed"] * 2, self.effect_params["explode_speed"]),
+                        np.random.uniform(-self.effect_params["explode_speed"] * 2,
+                                          self.effect_params["explode_speed"]),
                     ],
                 }
             )

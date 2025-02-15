@@ -1158,8 +1158,6 @@ class AnimatedElement:
 
 """
 When this env var exist, this mean run from the one-file compressed executable.
-Load of the config is not possible, folder config should not exist.
-This avoid FileNotFoundError.
 This env not exist when run from the extracted program.
 Expected way to work.
 """
