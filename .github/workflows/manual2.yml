@@ -173,16 +173,6 @@ jobs:
             coldtype-nuitka-package.config.yml
             yt_dlp-fix-nuitka-package.config.yml
 
-      - name: Upload Artifacts Win/Linux
-        if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{runner.os}} ${{ env.ARCHITECTURE }} Build
-          if-no-files-found: warn
-          overwrite: true
-          include-hidden-files: true
-          path: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**'
-
 
       # use find as macOS latest do not support -cr
       - name: MacOS prepare app from Nuitka
@@ -191,16 +181,8 @@ jobs:
           find build/WLEDVideoSync.app -exec xattr -c {} +
           chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}**
           mv build/WLEDVideoSync.app build/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app
-
-      - name: Upload Artifacts MacOS
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{runner.os}} ${{ env.ARCHITECTURE }} Build
-          if-no-files-found: warn
-          overwrite: true
-          include-hidden-files: true
-          path: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app**'
+          cd build
+          zip -r WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.zip WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app
 
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka for Win/Linux
         if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
@@ -218,4 +200,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: ${{runner.os}} ${{ env.ARCHITECTURE }} Build
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.zip'
