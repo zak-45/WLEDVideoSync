@@ -2,8 +2,6 @@
 # nuitka-project: --nofollow-import-to=doctest
 # nuitka-project: --noinclude-default-mode=error
 # nuitka-project: --include-raw-dir=xtra=xtra
-# nuitka-project: --standalone
-# nuitka-project: --onefile
 # nuitka-project-if: {OS} == "Windows":
 #   nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
 # nuitka-project-if: os.getenv("DEBUG_COMPILATION", "no") == "yes":

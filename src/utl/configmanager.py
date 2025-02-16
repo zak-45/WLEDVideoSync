@@ -6,9 +6,25 @@ v:1.0.0
 Manages configuration settings for the application across different environments.
 
 """
+import os
+import sys
 
-from os import environ
 from src.utl.utils import CASTUtils
+
+def get_resource_path(filename):
+    """Returns the correct path for resources, handling different OS structures."""
+
+    if getattr(sys, 'frozen', False):  # Running from a compiled binary (Nuitka, PyInstaller)
+        if sys.platform == "darwin":  # macOS
+            base_path = os.path.dirname(os.path.dirname(sys.executable))  # Contents/
+            return os.path.join(base_path, "Resources", filename)
+        else:  # Windows/Linux (Nuitka puts files in the same dir as the binary)
+            base_path = os.path.dirname(sys.executable)
+            return os.path.join(base_path, filename)
+
+    # Running in development mode (not compiled)
+    return os.path.abspath(filename)
+
 
 class ConfigManager:
     """
@@ -62,7 +78,7 @@ class ConfigManager:
         This env does not exist when running from the extracted program.
         Expected way to work.
         """
-        if "NUITKA_ONEFILE_PARENT" not in environ:
+        if "NUITKA_ONEFILE_PARENT" not in os.environ:
             self.setup()
 
     def setup(self):
