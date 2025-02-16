@@ -184,12 +184,13 @@ jobs:
           path: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**'
 
 
+      # use find as macOS latest do not support -cr
       - name: MacOS prepare app from Nuitka
         if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
-        run: |
-          xattr -cr build/WLEDVideoSync.app
-          chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**
-          mv build/WLEDVideoSync.app build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app
+        run: |          
+          find build/WLEDVideoSync.app -exec xattr -c {} +
+          chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}**
+          mv build/WLEDVideoSync.app build/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app
 
       - name: Upload Artifacts MacOS
         if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
