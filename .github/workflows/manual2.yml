@@ -134,7 +134,7 @@ jobs:
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
-          mode: onefile
+          mode: app
           onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}
 
