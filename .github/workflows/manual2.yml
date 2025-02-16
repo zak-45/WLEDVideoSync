@@ -183,6 +183,14 @@ jobs:
           include-hidden-files: true
           path: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**'
 
+
+      - name: MacOS prepare app from Nuitka
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
+        run: |
+          xattr -cr build/WLEDVideoSync.app
+          chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**
+          mv build/WLEDVideoSync.app build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app
+
       - name: Upload Artifacts MacOS
         if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
@@ -191,7 +199,7 @@ jobs:
           if-no-files-found: warn
           overwrite: true
           include-hidden-files: true
-          path: 'build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**'
+          path: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app**'
 
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka for Win/Linux
         if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
@@ -209,4 +217,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**'
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app**'
