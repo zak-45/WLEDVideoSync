@@ -218,4 +218,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app**'
+          artifacts: ${{runner.os}} ${{ env.ARCHITECTURE }} Build
