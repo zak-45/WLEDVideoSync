@@ -1,8 +1,10 @@
-# Compilation mode, standalone everywhere, except on macOS there app bundle
+# Compilation mode, standalone everywhere
 # nuitka-project: --mode=onefile
 # nuitka-project: --nofollow-import-to=doctest
 # nuitka-project: --noinclude-default-mode=error
 # nuitka-project: --include-raw-dir=xtra=xtra
+# nuitka-project-if: {OS} == "Darwin":
+#   nuitka-project: --mode=onefile
 # nuitka-project-if: {OS} == "Windows":
 #   nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
 # nuitka-project-if: os.getenv("DEBUG_COMPILATION", "no") == "yes":
