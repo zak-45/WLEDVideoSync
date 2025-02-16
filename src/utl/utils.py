@@ -51,7 +51,7 @@ from str2bool import str2bool
 from PIL import Image
 from pathlib import Path
 from coldtype.text.reader import Font
-
+from src.utl.confpath import get_resource_path
 
 def run_window_msg(msg: str = '', msg_type: str = 'info'):
     """
@@ -735,6 +735,8 @@ class CASTUtils:
         # Set the custom logger class
         logging.setLoggerClass(CustomLogger)
 
+        config_path = get_resource_path(config_path)
+
         if os.path.exists(config_path):
             logging.config.fileConfig(config_path, disable_existing_loggers=True)
             # trick: use the same name for all modules, ui.log will receive message from alls
@@ -754,7 +756,8 @@ class CASTUtils:
     @staticmethod
     def read_config():
         # load config file
-        cast_config = cfg.load('config/WLEDVideoSync.ini')
+        cfg_file = get_resource_path('config/WLEDVideoSync.ini')
+        cast_config = cfg.load(cfg_file)
         # config keys
         server_config = cast_config.get('server')
         app_config = cast_config.get('app')

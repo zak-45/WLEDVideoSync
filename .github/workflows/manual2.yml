@@ -176,14 +176,14 @@ jobs:
 
 
       # use find as macOS latest do not support -cr. Use tar to preserve attribute
-      #- name: MacOS prepare app from Nuitka
-      #  if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
-      #  run: |
-      #    find build/WLEDVideoSync.app -exec xattr -c {} +
-      #    chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}**
-      #    mv build/WLEDVideoSync.app build/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app
-      #    cd build
-      #    tar c WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app | gzip --best > WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz
+      - name: MacOS prepare app from Nuitka
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
+        run: |
+          find build/WLEDVideoSync.app -exec xattr -c {} +
+          chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}**
+          mv build/WLEDVideoSync.app build/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app
+          cd build
+          tar c WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app | gzip --best > WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz
 
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka for Win/Linux
         if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
@@ -201,4 +201,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.bin'
+          artifacts: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz'
