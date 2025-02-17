@@ -143,7 +143,7 @@ jobs:
             coldtype
 
           include-module: |
-            src.gui.CastAPI
+            CastAPI
             src.txt.textanimator
             zeroconf._utils.ipaddress
             zeroconf._handlers.answers
