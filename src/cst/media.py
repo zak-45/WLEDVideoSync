@@ -36,7 +36,7 @@ from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils, ImageUtils
 from src.utl.multicast import IPSwapper
 from src.utl.multicast import MultiUtils as Multi
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 from src.net.e131_queue import E131Queue
 from src.net.artnet_queue import ArtNetQueue
 

@@ -14,7 +14,7 @@ import threading
 import queue
 import numpy as np
 from stupidArtnet import StupidArtnet
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.artnet')
 

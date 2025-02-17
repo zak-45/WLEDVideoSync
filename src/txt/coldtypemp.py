@@ -7,7 +7,7 @@ from datetime import datetime
 from coldtype.renderer import Renderer
 from multiprocessing.shared_memory import ShareableList
 from src.utl.utils import CASTUtils as Utils
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
@@ -72,11 +72,17 @@ class RUNColdtype(multiprocessing.Process):
             # Extract the file name without extension
             script_name = os.path.splitext(os.path.basename(self.script_file))[0]
             # folder to store img
-            render_folder = f'media/coldtype/{script_name}'
+            render_folder = cfg_mgr.app_root_path(f'media/coldtype/{script_name}')
             #
             # call Coldtype with arguments
-            keyboard = cfg_mgr.app_config['keyboard']
-            editor = cfg_mgr.app_config['py_editor']
+            if cfg_mgr.app_config is not None:
+                keyboard = cfg_mgr.app_config['keyboard']
+            else:
+                keyboard = 'uk'
+            if cfg_mgr.app_config is not None:
+                editor = cfg_mgr.app_config['py_editor']
+            else:
+                editor = 'notepad'
             _, parser = Renderer.Argparser()
             args =[self.script_file, "-kl", keyboard, "-wcs", "1", "-ec", editor, "-of", render_folder]
             print(f"Using arguments: {args}")

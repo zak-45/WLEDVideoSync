@@ -22,7 +22,7 @@ from src.utl.cv2utils import VideoThumbnailExtractor
 from PIL import Image
 from pathlib import Path
 from typing import Optional
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
 
@@ -790,6 +790,7 @@ class LocalFilePicker(ui.dialog):
         super().__init__()
 
         self.drives_toggle = None
+        directory = cfg_mgr.app_root_path(directory)
         self.path = Path(directory).expanduser()
         if upper_limit is None:
             self.upper_limit = None

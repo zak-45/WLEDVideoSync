@@ -3,7 +3,7 @@ import socket
 import numpy as np
 from queue import Queue
 from threading import Thread
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.ddp')
 

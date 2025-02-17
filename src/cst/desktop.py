@@ -58,7 +58,7 @@ from src.utl.multicast import IPSwapper
 from src.utl.multicast import MultiUtils as Multi
 from src.net.e131_queue import E131Queue
 from src.net.artnet_queue import ArtNetQueue
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
 

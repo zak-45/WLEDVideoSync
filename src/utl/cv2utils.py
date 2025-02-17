@@ -25,9 +25,9 @@ import os
 from datetime import datetime
 from str2bool import str2bool
 from src.utl.utils import CASTUtils as Utils
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
+cfg_mgr = ConfigManager(config_file='config/WLEDVideoSync.ini',logger_name='WLEDLogger.utils')
 
 class CV2Utils:
     """Provides utility functions for OpenCV (cv2) operations.
@@ -75,9 +75,8 @@ class CV2Utils:
         cfg_mgr.logger.debug(f'{t_name} Stop window preview if any')
         window_name = f"{server_port}-{t_name}-{str(t_viinput)}"
 
-        # check if window run into sub process to instruct it by ShareableList
-        config_data = Utils.read_config()
-        if preview_proc := str2bool(config_data[1]['preview_proc']):
+        # check if window run into sub process so data come from ShareableList
+        if str2bool(cfg_mgr.app_config['preview_proc']):
             cfg_mgr.logger.debug('Window on sub process')
             try:
                 # attach to a shareable list by name

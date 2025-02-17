@@ -24,7 +24,6 @@ import inspect
 import logging
 import logging.config
 import traceback
-import concurrent_log_handler
 import json
 import re
 import platform
@@ -37,7 +36,6 @@ import tkinter as tk
 import socket
 import ipaddress
 import requests
-import cfg_load as cfg
 
 import av
 import numpy as np
@@ -47,84 +45,11 @@ from wled import WLED
 from zeroconf import ServiceBrowser, Zeroconf
 from nicegui import ui, run
 from screeninfo import get_monitors
-from str2bool import str2bool
 from PIL import Image
-from pathlib import Path
 from coldtype.text.reader import Font
-from src.utl.confpath import get_resource_path
+from configmanager import ConfigManager
 
-def run_window_msg(msg: str = '', msg_type: str = 'info'):
-    """
-    Displays a custom message using an external info window executable across different platforms.
-    Launches a separate process to show an error or informational message in a platform-specific manner.
-
-    Args:
-        msg (str): The message text to be displayed.
-        msg_type (str, optional): The type of message, defaults to 'info'.
-        Can specify message type like 'info' or 'error'. If error, bg is 'red'
-
-    Examples:
-        >> run_window_msg("Operation completed successfully")
-        >> run_window_msg("Error occurred", msg_type='error')
-
-    """
-    # Call the separate script to show the error/info message in a Tkinter window
-    absolute_file_name = Path(info_window_exe_name()).resolve()
-    if sys.platform.lower() == "win32":
-        command = [absolute_file_name, msg, msg_type]
-    else:
-        command = ['nohup', absolute_file_name, msg, msg_type, '&']
-
-    subprocess.Popen(command)
-
-
-def info_window_exe_name():
-    """
-    Determines the appropriate executable name for displaying information windows based on the current operating system.
-    Returns the platform-specific executable path for the info window utility.
-
-    Returns:
-        str: The filename of the info window executable for the current platform.
-        Returns None if the platform is not recognized.
-
-    Examples:
-        >> info_window_exe_name()
-        'xtra/info_window.exe'  # On Windows
-        >> info_window_exe_name()
-        'xtra/info_window.bin'  # On Linux
-
-    """
-    if sys.platform.lower() == 'win32':
-        return 'xtra/info_window.exe'
-    elif sys.platform.lower() == 'linux':
-        return 'xtra/info_window.bin'
-    elif sys.platform.lower() == 'darwin':
-        return 'xtra/info_window.app'
-    else:
-        return None
-
-
-class CustomLogger(logging.Logger):
-    """
-    A custom logging class that extends the standard Python Logger to display error messages
-    in a custom window before logging. Enhances standard error logging by adding a visual notification mechanism.
-
-    The CustomLogger overrides the standard error logging method to first display an error message
-    in a separate window using run_window_msg(), and then proceeds with standard error logging.
-    This provides an additional layer of user notification for critical log events.
-
-    Methods:
-        error: Overrides the standard error logging method to display a custom error message before logging.
-
-    Examples:
-        >> logger = CustomLogger('my_logger')
-        >> logger.error('Critical system failure')  # Displays error in custom window and logs
-
-    """
-    def error(self, msg, *args, **kwargs):
-        # Custom action before logging the error
-        run_window_msg(str(msg), 'error')
-        super().error(msg, *args, **kwargs)
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
 
 
 class CASTUtils:
@@ -729,45 +654,6 @@ class CASTUtils:
         logger.warning(f'Something wrong happened. To Do list has been cleared for {class_name}')
         class_name.cast_name.todo = []
 
-    @staticmethod
-    def setup_logging(config_path='logging_config.ini', handler_name: str = None):
-
-        # Set the custom logger class
-        logging.setLoggerClass(CustomLogger)
-
-        config_path = get_resource_path(config_path)
-
-        if os.path.exists(config_path):
-            logging.config.fileConfig(config_path, disable_existing_loggers=True)
-            # trick: use the same name for all modules, ui.log will receive message from alls
-            config_data = CASTUtils.read_config()
-            if str2bool(config_data[1]['log_to_main']):
-                v_logger = logging.getLogger('WLEDLogger')
-            else:
-                v_logger = logging.getLogger(handler_name)
-            v_logger.debug(f"Logging configured using {config_path} for {handler_name}")
-        else:
-            logging.basicConfig(level=logging.INFO)
-            v_logger = logging.getLogger(handler_name)
-            v_logger.warning(f"Logging config file {config_path} not found. Using basic configuration.")
-
-        return v_logger
-
-    @staticmethod
-    def read_config():
-        # load config file
-        cfg_file = get_resource_path('config/WLEDVideoSync.ini')
-        cast_config = cfg.load(cfg_file)
-        # config keys
-        server_config = cast_config.get('server')
-        app_config = cast_config.get('app')
-        colors_config = cast_config.get('colors')
-        custom_config = cast_config.get('custom')
-        preset_config = cast_config.get('presets')
-        desktop_config = cast_config.get('desktop')
-        ws_config = cast_config.get('ws')
-
-        return server_config, app_config, colors_config, custom_config, preset_config, desktop_config, ws_config
 
     @staticmethod
     async def download_image(download_path, url, file_name, timeout: int = 3):
@@ -1046,7 +932,7 @@ class YtSearch:
         # activate 'more' button
         if number > 0:
             self.next_button.set_visibility(True)
-            # re create  result page
+            # re-create  result page
             await self.create_yt_page(self.yt_search)
         else:
             self.number_found.text = 'Nothing Found'
@@ -1167,4 +1053,4 @@ Expected way to work.
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
     # read config
     # create logger
-    logger = CASTUtils.setup_logging('config/logging.ini', 'WLEDLogger.utils')
+    logger = cfg_mgr.setup_logging()

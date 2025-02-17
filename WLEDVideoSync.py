@@ -96,7 +96,7 @@ from nicegui import native
 from str2bool import str2bool
 if sys.platform.lower() == 'win32':
     from pystray import Icon, Menu, MenuItem
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
@@ -461,6 +461,9 @@ if __name__ == '__main__':
     # test to see if executed from compressed version
     # instruct user to go to WLEDVideoSync folder to execute program
     if "NUITKA_ONEFILE_PARENT" in os.environ:
+        from configmanager import ConfigManager
+
+        cfg_mgr = ConfigManager()
 
         def on_ok_click():
             # Close the window when OK button is clicked
@@ -480,10 +483,8 @@ if __name__ == '__main__':
         native_ui_size = 1200, 720
         uvicorn = True
         """
-        abs_pth = os.path.abspath(sys.argv[0])
-        work_dir = os.path.dirname(abs_pth).replace('\\', '/')
 
-        config_file = work_dir + "/WLEDVideoSync/config/WLEDVideoSync.ini"
+        config_file =cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
 
         if sys.platform.lower() == 'win32':
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'False')
@@ -504,7 +505,7 @@ if __name__ == '__main__':
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
 
         # Change the window icon
-        icon = PhotoImage(file=f'{work_dir}/WLEDVideoSync/favicon.png')
+        icon = PhotoImage(file=cfg_mgr.app_root_path('favicon.png'))
         root.iconphoto(False, icon)
 
         # Define the window's contents
@@ -543,8 +544,9 @@ if __name__ == '__main__':
 
     # store server port info for others processes
     pid = os.getpid()
-    tmp_file = f"./tmp/{pid}_file"
-    proc_file = shelve.open(tmp_file)
+
+    pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
+    proc_file = shelve.open(pid_tmp_file)
     proc_file["server_port"] = server_port
 
     """
@@ -552,7 +554,8 @@ if __name__ == '__main__':
     """
     if sys.platform.lower() == 'win32':
         # pystray definition
-        pystray_image = Image.open('favicon.ico')
+        favicon_file=cfg_mgr.app_root_path('favicon.ico')
+        pystray_image = Image.open(favicon_file)
 
         pystray_menu = Menu(
             MenuItem('Open', on_open),
@@ -590,7 +593,7 @@ if __name__ == '__main__':
 
         """
         # uvicorn server definition
-        u_config = Config(app="src.gui.CastAPI:app",
+        u_config = Config(app="CastAPI:app",
                         host=server_ip,
                         port=server_port,
                         workers=int(cfg_mgr.server_config['workers']),
@@ -633,7 +636,7 @@ if __name__ == '__main__':
     else:
 
         # run NiceGUI app with built-in server
-        import src.gui.CastAPI
+        pass
 
     """
     STOP
@@ -644,12 +647,13 @@ if __name__ == '__main__':
     cfg_mgr.logger.debug('Remove tmp files')
 
     try:
-        if os.path.isfile(tmp_file + ".dat"):
-            os.remove(tmp_file + ".dat")
-        if os.path.isfile(tmp_file + ".bak"):
-            os.remove(tmp_file + ".bak")
-        if os.path.isfile(tmp_file + ".dir"):
-            os.remove(tmp_file + ".dir")
+        if os.path.isfile(pid_tmp_file + ".dat"):
+            os.remove(pid_tmp_file + ".dat")
+        if os.path.isfile(pid_tmp_file + ".bak"):
+            os.remove(pid_tmp_file + ".bak")
+        if os.path.isfile(pid_tmp_file + ".dir"):
+            os.remove(pid_tmp_file + ".dir")
+
         for filename in PathLib("./tmp/").glob("*_file.*"):
             filename.unlink()
 

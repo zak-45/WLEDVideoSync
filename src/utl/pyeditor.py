@@ -1,13 +1,15 @@
-import sys
+
 import ast
+import os
 
 from nicegui import ui
-from src.utl.niceutils import LocalFilePicker
+from src.gui.niceutils import LocalFilePicker
 from src.txt.coldtypemp import RUNColdtype
-from src.utl.calculator import Calculator
+from src.gui.calculator import Calculator
 from src.utl.console import ConsoleCapture
+from configmanager import ConfigManager
 
-UPLOAD_FOLDER = './xtra/coldtype'  # Set the upload folder
+cfg_mgr = ConfigManager(logger_name='WLEDVideoSync')
 
 class PythonEditor:
     """Run the Python code in the editor using Coldtype.
@@ -16,7 +18,7 @@ class PythonEditor:
     providing the file path and log queue. Displays a notification
     indicating the file is running.
     """
-    def __init__(self):
+    def __init__(self, upload_folder='xtra/coldtype'):
         """Initialize the PythonEditor.
 
         Sets up the initial state of the editor, including file name tracking,
@@ -29,6 +31,7 @@ class PythonEditor:
         self.syntax = None
         self.py_run = None
         self.log_queue = None
+        self.upload_folder = upload_folder
 
         self.capture = ConsoleCapture(show_console=False)
 
@@ -98,18 +101,18 @@ class PythonEditor:
 
     async def pick_file_to_edit(self) -> None:
         """Select a file to edit."""
-        pyfile = await LocalFilePicker(f'{UPLOAD_FOLDER}', multiple=False, thumbs=False, extension='.py')
-        if pyfile:
-            pyfile = str(pyfile[0])
-            if sys.platform.lower() == 'win32':
-                pyfile = pyfile.replace('\\', '/')
-            if not pyfile.startswith('./'):
-                pyfile = f'./{pyfile}'
-            self.current_file = pyfile
-            await self.read_file(self.current_file)
-            self.editor.set_value(self.preview.value),
-            self.editor_file.set_text(self.current_file)
-            self.syntax.set_text('')
+        if os.path.isdir(self.upload_folder):
+            pyfile = await LocalFilePicker(f'{self.upload_folder}', multiple=False, thumbs=False, extension='.py')
+            if pyfile:
+                pyfile = str(pyfile[0])
+                self.current_file = pyfile
+                await self.read_file(self.current_file)
+                self.editor.set_value(self.preview.value),
+                self.editor_file.set_text(self.current_file)
+                self.syntax.set_text('')
+        else:
+            cfg_mgr.logger.warning(f'Folder do not exist: {self.upload_folder}')
+
 
     @staticmethod
     async def show_calculator():
@@ -170,7 +173,7 @@ if __name__ in {"__main__", "__mp_main__"}:
     async def main_page():
 
         # Instantiate and run the editor
-        editor_app = PythonEditor()
+        editor_app = PythonEditor(upload_folder=r'..\..\xtra\coldtype')
         await editor_app.setup_ui()
 
         print('Editor is running')

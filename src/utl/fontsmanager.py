@@ -7,7 +7,7 @@ from coldtype.raster import *
 from nicegui import ui, app
 import fontTools.ttLib
 
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 

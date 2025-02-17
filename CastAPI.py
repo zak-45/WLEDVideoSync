@@ -34,7 +34,7 @@ import cfg_load as cfg
 from starlette.websockets import WebSocketDisconnect
 
 from src.cst import desktop, media
-from src.utl import niceutils as nice
+from src.gui import niceutils as nice
 import ast
 import tkinter as tk
 
@@ -47,7 +47,7 @@ from src.utl.utils import CASTUtils as Utils, LogElementHandler
 from src.utl.utils import HTTPDiscovery as Net
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
-from src.utl.niceutils import LocalFilePicker
+from src.gui.niceutils import LocalFilePicker
 from src.utl.utils import ScreenAreaSelection as Sa
 from src.utl.utils import YtSearch
 from src.utl.utils import AnimatedElement as Animate
@@ -56,15 +56,17 @@ from datetime import datetime
 from str2bool import str2bool
 from PIL import Image
 from fastapi.openapi.utils import get_openapi
-from fastapi import HTTPException, Path, WebSocket
+from fastapi import HTTPException, WebSocket
+from fastapi import Path as PathAPI
 from starlette.concurrency import run_in_threadpool
 from nicegui import app, ui, native, run
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 from src.utl.fontsmanager import FontPreviewManager
 from src.utl.fontsmanager import FontSetApplication
 from src.txt.coldtypemp import RUNColdtype
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
+
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
@@ -235,7 +237,7 @@ async def read_api_root():
 
 
 @app.get("/api/{class_name}/params", tags=["params"])
-async def all_params(class_name: str = Path(description=f'Class name, should be in: {class_to_test}')):
+async def all_params(class_name: str = PathAPI(description=f'Class name, should be in: {class_to_test}')):
     """
         Retrieve all 'params/attributes' from a class
     """
@@ -329,7 +331,7 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
 
 
 @app.get("/api/{class_obj}/buffer", tags=["buffer"])
-async def buffer_count(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}')):
+async def buffer_count(class_obj: str = PathAPI(description=f'Class name, should be in: {class_to_test}')):
     """
         Retrieve frame buffer length from a class (image number)
     """
@@ -341,7 +343,7 @@ async def buffer_count(class_obj: str = Path(description=f'Class name, should be
 
 
 @app.get("/api/{class_obj}/buffer/{number}", tags=["buffer"])
-async def buffer_image(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}'),
+async def buffer_image(class_obj: str = PathAPI(description=f'Class name, should be in: {class_to_test}'),
                        number: int = 0):
     """
         Retrieve image number from buffer class, result base64 image
@@ -371,7 +373,7 @@ async def buffer_image(class_obj: str = Path(description=f'Class name, should be
 
 
 @app.get("/api/{class_obj}/buffer/{number}/save", tags=["buffer"])
-async def buffer_image_save(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}'),
+async def buffer_image_save(class_obj: str = PathAPI(description=f'Class name, should be in: {class_to_test}'),
                             number: int = 0):
     """
         Retrieve image number from buffer class, save it to default folder
@@ -401,7 +403,7 @@ async def buffer_image_save(class_obj: str = Path(description=f'Class name, shou
 
 
 @app.get("/api/{class_obj}/buffer/{number}/asciiart/save", tags=["buffer"])
-async def buffer_image_save_ascii(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}'),
+async def buffer_image_save_ascii(class_obj: str = PathAPI(description=f'Class name, should be in: {class_to_test}'),
                                   number: int = 0):
     """
         Retrieve image number from buffer class, save it to default folder as ascii_art
@@ -431,7 +433,7 @@ async def buffer_image_save_ascii(class_obj: str = Path(description=f'Class name
 
 
 @app.get("/api/{class_obj}/run_cast", tags=["casts"])
-async def run_cast(class_obj: str = Path(description=f'Class name, should be in: {class_to_test}')):
+async def run_cast(class_obj: str = PathAPI(description=f'Class name, should be in: {class_to_test}')):
     """
       Run the cast() from {class_obj}
     """
@@ -605,7 +607,7 @@ async def list_cast_queues():
     return {"queues":Desktop.queue_names}
 
 @app.get("/api/{class_name}/list_actions", tags=["casts"])
-async def list_todo_actions(class_name: str = Path(description=f'Class name, should be in: {class_to_test}')):
+async def list_todo_actions(class_name: str = PathAPI(description=f'Class name, should be in: {class_to_test}')):
     """
     List to do actions for a Class name
     :param class_name:
@@ -628,12 +630,12 @@ async def list_todo_actions(class_name: str = Path(description=f'Class name, sho
 
 
 @app.put("/api/{class_name}/cast_actions", tags=["casts"])
-def action_to_thread(class_name: str = Path(description=f'Class name, should be in: {class_to_test}'),
-                           cast_name: str = None,
-                           action: str = None,
-                           params: str = 'None',
-                           clear: bool = False,
-                           execute: bool = False):
+def action_to_thread(class_name: str = PathAPI(description=f'Class name, should be in: {class_to_test}'),
+                     cast_name: str = None,
+                     action: str = None,
+                     params: str = 'None',
+                     clear: bool = False,
+                     execute: bool = False):
     """
     Add action to cast_name_todo for a specific Cast
     If clear, remove all to do
@@ -735,7 +737,7 @@ def action_to_thread(class_name: str = Path(description=f'Class name, should be 
 
 
 @app.get("/api/config/presets/{preset_type}/{file_name}/{class_name}", tags=["presets"])
-async def apply_preset_api(class_name: str = Path(description=f'Class name, should be in: {class_to_test}'),
+async def apply_preset_api(class_name: str = PathAPI(description=f'Class name, should be in: {class_to_test}'),
                            preset_type: str = None,
                            file_name: str = None):
     """
@@ -1126,8 +1128,13 @@ async def main_page():
                 dialog = ui.dialog().classes('w-full') \
                     .props(add='maximized transition-show="slide-up" transition-hide="slide-down"')
                 with (dialog, ui.card().classes('w-full')):
-                    log_filename = 'log/WLEDVideoSync.log'
-                    log_data = PathLib(log_filename).read_text()
+                    log_filename = cfg_mgr.app_root_path('log/WLEDVideoSync.log')
+                    if PathLib(log_filename).is_file():
+                        # file exists
+                        log_data = PathLib(log_filename).read_text()
+                    else:
+                        log_data = 'ERROR Log File Not Found ERROR'
+                        cfg_mgr.logger.error(f'Log File Not Found {log_filename}')
                     ui.button('Close', on_click=dialog.close, color='red')
                     log_area = ui.textarea(value=log_data).classes('w-full').props(add='bg-color=blue-grey-4')
                     log_area.props(add="rows='25'")
@@ -2308,7 +2315,7 @@ async def save_filter_preset(class_name: str) -> None:
             ui.notify(f'Preset name could not be blank: {f_name}', type='negative')
             return
 
-        f_name = f'./config/presets/filter/{class_name}/{f_name}.ini'
+        f_name = cfg_mgr.app_root_path(f'config/presets/filter/{class_name}/{f_name}.ini')
         if os.path.isfile(f_name):
             ui.notify(f'Preset {f_name} already exists', type='warning')
             return
@@ -2487,7 +2494,7 @@ async def save_cast_preset(class_name: str) -> None:
             ui.notify(f'Preset name could not be blank: {f_name}', type='negative')
             return
 
-        f_name = f'./config/presets/cast/{class_name}/{f_name}.ini'
+        f_name = cfg_mgr.app_root_path(f'config/presets/cast/{class_name}/{f_name}.ini')
         if os.path.isfile(f_name):
             ui.notify(f'Preset {f_name} already exists', type='warning')
             return
@@ -3239,12 +3246,12 @@ RUN
 
 # settings
 app.openapi = custom_openapi
-app.add_static_files('/assets', 'assets')
-app.add_media_files('/media', 'media')
-app.add_static_files('/log', 'log')
-app.add_static_files('/config', 'config')
-app.add_static_files('/tmp', 'tmp')
-app.add_static_files('/xtra', 'xtra')
+app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
+app.add_media_files('/media', cfg_mgr.app_root_path('media'))
+app.add_static_files('/log', cfg_mgr.app_root_path('log'))
+app.add_static_files('/config', cfg_mgr.app_root_path('config'))
+app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
+app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
 app.on_startup(init_actions)
 
 # choose GUI
@@ -3270,7 +3277,7 @@ except Exception as error:
 
 # run app
 ui.run(title='WLEDVideoSync',
-       favicon='favicon.ico',
+       favicon=cfg_mgr.app_root_path('favicon.ico'),
        host=server_ip,
        port=server_port,
        fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs']),

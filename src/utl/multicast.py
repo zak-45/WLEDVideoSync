@@ -12,7 +12,7 @@ import re
 from time import sleep
 from random import shuffle, randint
 from threading import Thread
-from src.utl.configmanager import ConfigManager
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
