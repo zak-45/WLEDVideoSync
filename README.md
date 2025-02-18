@@ -28,6 +28,8 @@ WLEDVideoSync is a tool designed to synchronize Net LED strips with video conten
    1. --> On Linux: chmod +x WLEDVideoSync-Linux_x86_64
    2. Execute it to extract the standalone version
    3. Go to ./WLEDVideoSync folder and run WLEDVideoSync-{OS} app.
+   
+
 2. MacOS : Take the zip 'tar/gz' from releases (arm or x86)
    1. double click to extract the app bundle
       1. --> open terminal, go to Downloads
