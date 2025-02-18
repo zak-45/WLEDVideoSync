@@ -130,7 +130,7 @@ class CASTUtils:
     def compile_info():
         """ read version info file """
 
-        with open(f'./assets/version-{sys.platform.lower()}.json', 'r') as file:
+        with open(cfg_mgr.app_root_path(f'assets/version-{sys.platform.lower()}.json'), 'r') as file:
             json_info = json.loads(file.read().replace("\\", "\\\\"))
 
         return json_info

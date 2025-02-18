@@ -24,11 +24,17 @@ WLEDVideoSync is a tool designed to synchronize Net LED strips with video conten
 - GUI: native, browser: can be accessed remotely, or even "headless": can be used as service
 
 **Portable Installation:**
-1. Take the app from releases (Unix/ Mac/ Win)
-2. --> On Mac/Linux: chmod +x WLEDVideoSync
-3. Execute it to extract the standalone version
-4. Go to ./WLEDVideoSync folder and run WLEDVideoSync-{OS} app.
-5. --> On Mac/Linux: chmod +x WLEDVideoSync-{OS}.bin
+1. Unix / Win : Take the app from releases      
+   1. --> On Linux: chmod +x WLEDVideoSync-Linux_x86_64
+   2. Execute it to extract the standalone version
+   3. Go to ./WLEDVideoSync folder and run WLEDVideoSync-{OS} app.
+2. MacOS : Take the zip 'tar/gz' from releases (arm or x86)
+   1. double click to extract the app bundle
+      1. --> open terminal, go to Downloads
+      2. --> enter this command to remove the extra attribute (replace by arm if this your PC architecture)
+      ````
+      xattr -d com.apple.quarantine WLEDVideoSync-macOS_x86_64.app 
+   2. double-click on WLEDVideoSync-macOS(arm or x86).app
 
 **Manual Installation:**
 1. Clone the repository from GitHub
