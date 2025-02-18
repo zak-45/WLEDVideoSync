@@ -24,10 +24,9 @@ import contextlib
 import os
 from datetime import datetime
 from str2bool import str2bool
-from src.utl.utils import CASTUtils as Utils
 from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(config_file='config/WLEDVideoSync.ini',logger_name='WLEDLogger.utils')
+cfg_mgr = ConfigManager(config_file='config/WLEDVideoSync.ini',logger_name='WLEDLogger.cv2utils')
 
 class CV2Utils:
     """Provides utility functions for OpenCV (cv2) operations.
@@ -122,7 +121,7 @@ class CV2Utils:
         sl = ShareableList(name=shared_list)
 
         # Default image to display in case of np.array conversion problem
-        default_img = cv2.imread('assets/Source-intro.png')
+        default_img = cv2.imread(cfg_mgr.app_root_path('assets/Source-intro.png'))
         default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
         default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
 
@@ -174,7 +173,6 @@ class CV2Utils:
                 frame_to_view = sl_frame.reshape(int(sl_frame_info[0]), int(sl_frame_info[1]), int(sl_frame_info[2]))
             else:
                 # in case of any array data/size problem
-                cfg_mgr.logger.debug(sl_frame_info, shape_bytes, sl_frame.nbytes)
                 frame_to_view = default_img
 
             sl[6], sl[11], sl[15] = CV2Utils.cv2_preview_window(

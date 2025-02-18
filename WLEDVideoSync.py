@@ -94,7 +94,8 @@ from PIL import Image
 from uvicorn import Config, Server
 from nicegui import native
 from str2bool import str2bool
-from pystray import Icon, Menu, MenuItem
+if sys.platform.lower() == 'win32':
+    from pystray import Icon, Menu, MenuItem
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
@@ -473,11 +474,13 @@ if __name__ == '__main__':
             Utils.update_ini_key(config_file, 'app', 'native_ui', 'True')
             Utils.update_ini_key(config_file, 'app', 'native_ui_size', '1200,720')
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'True')
-        else:
+            Utils.update_ini_key(config_file, 'app', 'win_first_run', 'False')
+        elif sys.platform.lower() == 'linux':
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
             Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
             Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
+            Utils.update_ini_key(config_file, 'app', 'linux_first_run', 'False')
 
         # Apply YouTube settings if yt_dlp not imported
         if 'yt_dlp' not in sys.modules:
@@ -599,30 +602,29 @@ if __name__ == '__main__':
     """
     Pystray definition
     """
+    if sys.platform.lower() == 'win32':
+        # pystray definition
+        pystray_image = Image.open('favicon.ico')
 
-    # pystray definition
-    favicon_file=cfg_mgr.app_root_path('favicon.ico')
-    pystray_image = Image.open(favicon_file)
+        pystray_menu = Menu(
+            MenuItem('Open', on_open),
+            MenuItem('Open in Browser', on_open_bro),
+            Menu.SEPARATOR,
+            MenuItem('Stop server', on_stop_srv),
+            MenuItem('ReStart server', on_restart_srv),
+            Menu.SEPARATOR,
+            MenuItem('BLACKOUT', on_blackout),
+            Menu.SEPARATOR,
+            MenuItem('Player', on_player),
+            Menu.SEPARATOR,
+            MenuItem('Cast details', on_details),
+            MenuItem('Info', on_info),
+            MenuItem('Charts', on_net),
+            Menu.SEPARATOR,
+            MenuItem(f'Exit - server :  {server_port}', on_exit)
+        )
 
-    pystray_menu = Menu(
-        MenuItem('Open', on_open),
-        MenuItem('Open in Browser', on_open_bro),
-        Menu.SEPARATOR,
-        MenuItem('Stop server', on_stop_srv),
-        MenuItem('ReStart server', on_restart_srv),
-        Menu.SEPARATOR,
-        MenuItem('BLACKOUT', on_blackout),
-        Menu.SEPARATOR,
-        MenuItem('Player', on_player),
-        Menu.SEPARATOR,
-        MenuItem('Cast details', on_details),
-        MenuItem('Info', on_info),
-        MenuItem('Charts', on_net),
-        Menu.SEPARATOR,
-        MenuItem(f'Exit - server :  {server_port}', on_exit)
-    )
-
-    WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
+        WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
 
     """
     Run uvicorn server 

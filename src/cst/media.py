@@ -776,6 +776,8 @@ class CASTMedia:
                     # We use ShareableList to share data between this thread and new process
                     #
                     if frame_count == 1:
+                        cfg_mgr.logger.debug(f'{t_name} First frame detected for SL')
+                        print(f'{t_name} First frame detected for SL')
                         # Create a (9999, 9999, 3) array with all values set to 255 to reserve memory
                         frame_info = frame.shape
                         frame_info_list = list(frame_info)
@@ -809,6 +811,7 @@ class CASTMedia:
                                 ],
                                 name=t_name
                             )
+                            cfg_mgr.logger.debug(f'{t_name} SL created ')
 
                         except OSError as e:
                             if e.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
@@ -822,11 +825,14 @@ class CASTMedia:
 
                         # run main_preview in another process
                         # create a child process, so cv2.imshow() will run from its own Main Thread
+                        cfg_mgr.logger.debug(f'Define sl_process for Preview : {t_name}')
                         sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Media',))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
-                        sl_process.start()
                         cfg_mgr.logger.debug(f'Starting Child Process for Preview : {t_name}')
+                        sl_process.start()
+                        cfg_mgr.logger.debug(f'Child Process started for Preview : {t_name}')
+                        print(f'Child Process started for Preview : {t_name}')
 
                     # working with the shared list
                     if frame_count > 1:
