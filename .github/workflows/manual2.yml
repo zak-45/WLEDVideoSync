@@ -114,6 +114,7 @@ jobs:
           ffmpeg -version
           sudo apt-get install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.1         
           sudo apt-get install gstreamer1.0-plugins-bad
+          sudo apt install gir1.2-appindicator3-0.1
           pip3 install av --no-binary av
           
       - name: Install Dependencies for All
@@ -179,9 +180,9 @@ jobs:
       - name: MacOS prepare app from Nuitka
         if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
         run: |
-          find build/WLEDVideoSync.app -exec xattr -c {} +
           chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}**
           mv build/WLEDVideoSync.app build/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app
+          find build/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app -exec xattr -c {} +          
           cd build
           tar c WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app | gzip --best > WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz
 
