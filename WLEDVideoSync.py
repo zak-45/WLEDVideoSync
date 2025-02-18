@@ -94,8 +94,7 @@ from PIL import Image
 from uvicorn import Config, Server
 from nicegui import native
 from str2bool import str2bool
-if sys.platform.lower() == 'win32':
-    from pystray import Icon, Menu, MenuItem
+from pystray import Icon, Menu, MenuItem
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
@@ -527,7 +526,7 @@ if __name__ == '__main__':
 
         sys.exit()
 
-    elif sys.platform.lower() == 'darwin' and not str2bool(cfg_mgr.app_config['init_config_done']):
+    elif sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
 
         Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
         Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
@@ -540,6 +539,8 @@ if __name__ == '__main__':
 
         # global
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
+        # global
+        Utils.update_ini_key(config_file, 'app', 'mac_first_run', 'False')
 
         def on_ok_click():
             # Close the window when OK button is clicked

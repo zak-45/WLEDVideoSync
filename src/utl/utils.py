@@ -51,7 +51,6 @@ from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
 
-
 class CASTUtils:
     """Provides utility functions for various CAST operations.
 
@@ -145,8 +144,12 @@ class CASTUtils:
         # Create a ConfigParser object
         config = configparser.ConfigParser()
 
-        # Read the existing INI file
-        cfg_mgr.logger.debug(f'in update_ini_key , ini file : {file_path}')
+        try:
+            cfg_mgr.logger.debug(f'In update_ini_key , ini file : {file_path}')
+        except (NameError, AttributeError):
+            # this will be print only during init app as logger is not yet defined (NameError)
+            print(f'In update_ini_key , ini file : {file_path}')
+
         config.read(file_path)
 
         # Check if the section exists
@@ -165,10 +168,10 @@ class CASTUtils:
             config.write(configfile)
 
         try:
-            cfg_mgr.logger.debug(f"Updated '{key}' to '{new_value}' in section '{section}'.")
-        except NameError:
+            cfg_mgr.logger.debug(f"INI Updated '{key}' to '{new_value}' in section '{section}'.")
+        except (NameError, AttributeError):
             # this will be print only during init app as logger is not yet defined (NameError)
-            print(f"file {file_path} INIT Update '{key}' to '{new_value}' in section '{section}'.")
+            print(f"INI Updated '{key}' to '{new_value}' in section '{section}'.")
 
     @staticmethod
     def mp_setup():
