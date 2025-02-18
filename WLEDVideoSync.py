@@ -458,33 +458,14 @@ if __name__ == '__main__':
 
     freeze_support()  # noqa
 
+    config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
+
     # test to see if executed from compressed version
-    # instruct user to go to WLEDVideoSync folder to execute program
+    # instruct user to go to WLEDVideoSync folder to execute program (nuitka onefile option)
     if "NUITKA_ONEFILE_PARENT" in os.environ:
-        from configmanager import ConfigManager
-
-        cfg_mgr = ConfigManager()
-
-        def on_ok_click():
-            # Close the window when OK button is clicked
-            root.destroy()
-
-        # Create the main window
-        root = tk.Tk()
-        root.title("WLEDVideoSync Information")
-        root.geometry("820x460")  # Set the size of the window
-        root.configure(bg='#657B83')  # Set the background color
 
         # Apply some default params only once
         # Apply default GUI / param , depend on platform
-        """
-        preview_proc = False
-        native_ui = False
-        native_ui_size = 1200, 720
-        uvicorn = True
-        """
-
-        config_file =cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
 
         if sys.platform.lower() == 'win32':
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'False')
@@ -504,6 +485,16 @@ if __name__ == '__main__':
         # global
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
 
+        def on_ok_click():
+            # Close the window when OK button is clicked
+            root.destroy()
+
+        # Create the main window
+        root = tk.Tk()
+        root.title("WLEDVideoSync Information")
+        root.geometry("820x460")  # Set the size of the window
+        root.configure(bg='#657B83')  # Set the background color
+
         # Change the window icon
         icon = PhotoImage(file=cfg_mgr.app_root_path('favicon.png'))
         root.iconphoto(False, icon)
@@ -515,6 +506,59 @@ if __name__ == '__main__':
         Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file\n \
         This is a portable version, nothing installed on your system and can be moved where wanted.\n\n \
         Enjoy using WLEDVideoSync\n\n \
+        -------------------------------------------------------------------------------------------------\n \
+        THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\n \
+        INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n \
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\n \
+        IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,\n \
+        DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n \
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n \
+        -------------------------------------------------------------------------------------------------\n ")
+
+        info_label = tk.Label(root, text=info_text, bg='#657B83', fg='white', justify=tk.LEFT)
+        info_label.pack(padx=10, pady=10)
+
+        # Create the OK button
+        ok_button = tk.Button(root, text="Ok", command=on_ok_click, bg='gray', fg='white')
+        ok_button.pack(pady=10)
+
+        # Start the Tkinter event loop
+        root.mainloop()
+
+        sys.exit()
+
+    elif sys.platform.lower() == 'darwin' and not str2bool(cfg_mgr.app_config['init_config_done']):
+
+        Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
+        Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
+        Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
+        Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
+
+        # Apply YouTube settings if yt_dlp not imported
+        if 'yt_dlp' not in sys.modules:
+            Utils.update_ini_key(config_file, 'custom', 'yt-enable', 'False')
+
+        # global
+        Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
+
+        def on_ok_click():
+            # Close the window when OK button is clicked
+            root.destroy()
+
+        # Create the main window
+        root = tk.Tk()
+        root.title("WLEDVideoSync Information")
+        root.geometry("820x460")  # Set the size of the window
+        root.configure(bg='#657B83')  # Set the background color
+
+        # Change the window icon
+        icon = PhotoImage(file=cfg_mgr.app_root_path('favicon.png'))
+        root.iconphoto(False, icon)
+
+        # Define the window's contents
+        info_text = ("Initial settings done for MacOS\n\n"                     
+        "This is a portable version, nothing installed on your system and can be moved where wanted.\n\n"
+        "Just Re-run it to Enjoy using WLEDVideoSync\n\n \
         -------------------------------------------------------------------------------------------------\n \
         THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\n \
         INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n \
@@ -550,32 +594,32 @@ if __name__ == '__main__':
     proc_file["server_port"] = server_port
 
     """
-    Pystray only for Windows 
+    Pystray definition
     """
-    if sys.platform.lower() == 'win32':
-        # pystray definition
-        favicon_file=cfg_mgr.app_root_path('favicon.ico')
-        pystray_image = Image.open(favicon_file)
 
-        pystray_menu = Menu(
-            MenuItem('Open', on_open),
-            MenuItem('Open in Browser', on_open_bro),
-            Menu.SEPARATOR,
-            MenuItem('Stop server', on_stop_srv),
-            MenuItem('ReStart server', on_restart_srv),
-            Menu.SEPARATOR,
-            MenuItem('BLACKOUT', on_blackout),
-            Menu.SEPARATOR,
-            MenuItem('Player', on_player),
-            Menu.SEPARATOR,
-            MenuItem('Cast details', on_details),
-            MenuItem('Info', on_info),
-            MenuItem('Charts', on_net),
-            Menu.SEPARATOR,
-            MenuItem(f'Exit - server :  {server_port}', on_exit)
-        )
+    # pystray definition
+    favicon_file=cfg_mgr.app_root_path('favicon.ico')
+    pystray_image = Image.open(favicon_file)
 
-        WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
+    pystray_menu = Menu(
+        MenuItem('Open', on_open),
+        MenuItem('Open in Browser', on_open_bro),
+        Menu.SEPARATOR,
+        MenuItem('Stop server', on_stop_srv),
+        MenuItem('ReStart server', on_restart_srv),
+        Menu.SEPARATOR,
+        MenuItem('BLACKOUT', on_blackout),
+        Menu.SEPARATOR,
+        MenuItem('Player', on_player),
+        Menu.SEPARATOR,
+        MenuItem('Cast details', on_details),
+        MenuItem('Info', on_info),
+        MenuItem('Charts', on_net),
+        Menu.SEPARATOR,
+        MenuItem(f'Exit - server :  {server_port}', on_exit)
+    )
+
+    WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
 
     """
     Run uvicorn server 
@@ -636,7 +680,7 @@ if __name__ == '__main__':
     else:
 
         # run NiceGUI app with built-in server
-        pass
+        import CastAPI
 
     """
     STOP

@@ -146,6 +146,7 @@ class CASTUtils:
         config = configparser.ConfigParser()
 
         # Read the existing INI file
+        cfg_mgr.logger.debug(f'in update_ini_key , ini file : {file_path}')
         config.read(file_path)
 
         # Check if the section exists
@@ -164,10 +165,10 @@ class CASTUtils:
             config.write(configfile)
 
         try:
-            logger.debug(f"Updated '{key}' to '{new_value}' in section '{section}'.")
+            cfg_mgr.logger.debug(f"Updated '{key}' to '{new_value}' in section '{section}'.")
         except NameError:
             # this will be print only during init app as logger is not yet defined (NameError)
-            print(f"INIT Update '{key}' to '{new_value}' in section '{section}'.")
+            print(f"file {file_path} INIT Update '{key}' to '{new_value}' in section '{section}'.")
 
     @staticmethod
     def mp_setup():
@@ -191,10 +192,10 @@ class CASTUtils:
                 # destroy the shared memory
                 sl.shm.unlink()
             if sl_process is not None:
-                logger.debug(f'Stopping Child Process for Preview if any : {t_name}')
+                cfg_mgr.logger.debug(f'Stopping Child Process for Preview if any : {t_name}')
                 sl_process.kill()
         except Exception as e:
-            logger.error(f'Error on SL clean : {e}')
+            cfg_mgr.logger.error(f'Error on SL clean : {e}')
 
     @staticmethod
     def list_av_formats():
@@ -244,13 +245,13 @@ class CASTUtils:
                 final_filename = d.get('info_dict').get('_filename')
                 CASTUtils.yt_file_name = final_filename
                 CASTUtils.yt_file_size_remain_bytes = 0
-                logger.debug(f"Finished Post Process {final_filename}")
+                cfg_mgr.logger.debug(f"Finished Post Process {final_filename}")
 
         if interactive:
             if log_ui is not None:
                 handler = LogElementHandler(log_ui)
-                logger.addHandler(handler)
-                ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
+                cfg_mgr.logger.addHandler(handler)
+                ui.context.client.on_disconnect(lambda: cfg_mgr.logger.removeHandler(handler))
 
             def progress_hook(d):
                 if d['status'] == 'downloading':
@@ -261,11 +262,11 @@ class CASTUtils:
                         CASTUtils.yt_file_size_bytes = d['total_bytes']
                         CASTUtils.yt_file_size_remain_bytes = d['total_bytes'] - d['downloaded_bytes']
 
-                    logger.debug(f"Downloading: {d['_percent_str']} of "
+                    cfg_mgr.logger.debug(f"Downloading: {d['_percent_str']} of "
                                 f"{d['_total_bytes_str']} at {d['_speed_str']} ETA {d['_eta_str']}")
 
                 elif d['status'] == 'finished':
-                    logger.debug(f"Finished downloading {d['filename']}")
+                    cfg_mgr.logger.debug(f"Finished downloading {d['filename']}")
 
             ydl_opts = {
                 f'format': f'{download_format}',  # choose format to download
@@ -301,7 +302,7 @@ class CASTUtils:
 
         except Exception as err:
             CASTUtils.yt_file_name = ''
-            logger.error(f'Youtube error : {err}')
+            cfg_mgr.logger.error(f'Youtube error : {err}')
 
         return CASTUtils.yt_file_name
 
@@ -338,11 +339,11 @@ class CASTUtils:
                 # Get WLED info's
                 response = await wled.request("/json/info")
                 matrix = response["leds"]["matrix"]
-                logger.debug(f'WLED matrix : {str(matrix["w"])} x {str(matrix["h"])}')
+                cfg_mgr.logger.debug(f'WLED matrix : {str(matrix["w"])} x {str(matrix["h"])}')
             await wled.close()
         except Exception as error:
-            logger.error(traceback.format_exc())
-            logger.error(f'An exception occurred: {error}')
+            cfg_mgr.logger.error(traceback.format_exc())
+            cfg_mgr.logger.error(f'An exception occurred: {error}')
             await wled.close()
 
         return matrix["w"], matrix["h"]
@@ -360,7 +361,7 @@ class CASTUtils:
             result = requests.get(url, timeout=timeout)
             result = result.json()
         except Exception as error:
-            logger.error(f'Not able to get WLED info : {error}')
+            cfg_mgr.logger.error(f'Not able to get WLED info : {error}')
             result = {}
 
         return result
@@ -386,11 +387,11 @@ class CASTUtils:
                 else:
                     return False
             else:
-                logger.warning(f"Not able to connect to WLED device: {host}")
+                cfg_mgr.logger.warning(f"Not able to connect to WLED device: {host}")
                 return False
         except Exception as error:
-            logger.error(traceback.format_exc())
-            logger.error(f"Not able to set WLED device {host} in 'live' mode. Got this error : {error}")
+            cfg_mgr.logger.error(traceback.format_exc())
+            cfg_mgr.logger.error(f"Not able to set WLED device {host} in 'live' mode. Got this error : {error}")
             await wled.close()
             return False
 
@@ -431,7 +432,7 @@ class CASTUtils:
             windows_by_app = json.loads(windows_all)
 
         except Exception as er:
-            logger.error(f"Error retrieving windows: {er}")
+            cfg_mgr.logger.error(f"Error retrieving windows: {er}")
             return {}
 
         return windows_by_app
@@ -454,8 +455,8 @@ class CASTUtils:
                     av.open('', 'r', format='avfoundation', options={'list_devices': 'True'})
 
             except Exception as error:
-                logger.error(traceback.format_exc())
-                logger.error(f'An exception occurred: {error}')
+                cfg_mgr.logger.error(traceback.format_exc())
+                cfg_mgr.logger.error(f'An exception occurred: {error}')
 
         # linux
         if platform.system().lower() == 'linux':
@@ -511,7 +512,7 @@ class CASTUtils:
                         CASTUtils.dev_list.append((devname, typedev, devicenumber))
 
                 else:
-                    logger.error(f"unsupported platform : {platform.system()}")
+                    cfg_mgr.logger.error(f"unsupported platform : {platform.system()}")
                     return False
 
         return True
@@ -525,24 +526,24 @@ class CASTUtils:
         """
 
         if not isinstance(input_data, dict):
-            logger.error('WEBSOCKET: input not valid format--> need dict')
+            cfg_mgr.logger.error('WEBSOCKET: input not valid format--> need dict')
             return False
 
         if "action" not in input_data:
-            logger.error('WEBSOCKET: action key is missing')
+            cfg_mgr.logger.error('WEBSOCKET: action key is missing')
             return False
 
         action = input_data["action"]
         if not isinstance(action, dict):
-            logger.error('WEBSOCKET: input not valid format--> need dict')
+            cfg_mgr.logger.error('WEBSOCKET: input not valid format--> need dict')
             return False
 
         if "type" not in action or not isinstance(action["type"], str):
-            logger.error('WEBSOCKET: need type str')
+            cfg_mgr.logger.error('WEBSOCKET: need type str')
             return False
 
         if "param" not in action or not isinstance(action["param"], dict):
-            logger.error('WEBSOCKET: missing "param" or wrong type')
+            cfg_mgr.logger.error('WEBSOCKET: missing "param" or wrong type')
             return False
 
         return True
@@ -639,8 +640,8 @@ class CASTUtils:
                 else:
                     return False  # Host is not reachable
             except Exception as error:
-                logger.error(traceback.format_exc())
-                logger.error(f'Error on check IP : {error}')
+                cfg_mgr.logger.error(traceback.format_exc())
+                cfg_mgr.logger.error(f'Error on check IP : {error}')
                 return False
             finally:
                 # Close the socket
@@ -651,7 +652,7 @@ class CASTUtils:
         """
         clean the to do list for a Class
         """
-        logger.warning(f'Something wrong happened. To Do list has been cleared for {class_name}')
+        cfg_mgr.logger.warning(f'Something wrong happened. To Do list has been cleared for {class_name}')
         class_name.cast_name.todo = []
 
 
@@ -667,17 +668,17 @@ class CASTUtils:
             file_path = download_path + file_name
 
             if os.path.isfile(file_path):
-                logger.error(f'Image already exist : {file_path}')
+                cfg_mgr.logger.error(f'Image already exist : {file_path}')
             else:
                 with open(file_path, "wb") as f:
                     image.save(f, "JPEG")
 
-                logger.debug(f'Image saved to : {file_path}')
+                cfg_mgr.logger.debug(f'Image saved to : {file_path}')
 
             return True
 
         except Exception as err:
-            logger.error(f'Error to save image from {url} :  {err}')
+            cfg_mgr.logger.error(f'Error to save image from {url} :  {err}')
 
             return False
 
@@ -692,7 +693,7 @@ class CASTUtils:
                 return True
             return False
         except requests.RequestException as err:
-            logger.error(f"Error checking URL: {err}")
+            cfg_mgr.logger.error(f"Error checking URL: {err}")
             return False
 
     @staticmethod
@@ -745,10 +746,10 @@ class HTTPDiscovery:
     def discover(self):
         zeroconf = Zeroconf()
         ServiceBrowser(zeroconf, "_http._tcp.local.", self)
-        logger.debug('Scanning network devices ...')
+        cfg_mgr.logger.debug('Scanning network devices ...')
         time.sleep(self.duration)
         zeroconf.close()
-        logger.debug('Scanning network devices ... Done')
+        cfg_mgr.logger.debug('Scanning network devices ... Done')
 
 
 class LogElementHandler(logging.Handler):
@@ -852,7 +853,7 @@ class ScreenAreaSelection:
         # Change the monitor index as needed
         monitor_index = monitor_number  # Change this to the desired monitor index (0 for first , 1 for second, etc.)
         if monitor_index >= len(monitors):
-            logger.warning(f"Monitor index {monitor_index} is out of range. Using the first monitor instead.")
+            cfg_mgr.logger.warning(f"Monitor index {monitor_index} is out of range. Using the first monitor instead.")
             monitor_index = 0
         # monitor obj
         monitor = monitors[monitor_index]
