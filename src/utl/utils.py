@@ -1048,13 +1048,3 @@ class AnimatedElement:
         # Delay the actual deletion to allow the animation to complete
         ui.timer(self.duration, lambda: element.delete(), once=True)
 
-
-"""
-When this env var exist, this mean run from the one-file compressed executable.
-This env not exist when run from the extracted program.
-Expected way to work.
-"""
-if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    # read config
-    # create logger
-    logger = cfg_mgr.setup_logging()

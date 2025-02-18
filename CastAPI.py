@@ -1230,7 +1230,7 @@ async def video_player_page():
     center_card.classes('self-center w-2/3 bg-gray-500')
     with center_card:
 
-        CastAPI.player = ui.video(cfg_mgr.app_config["video_file"]).classes('self-center')
+        CastAPI.player = ui.video(cfg_mgr.app_root_path(cfg_mgr.app_config["video_file"])).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
         CastAPI.player.on('timeupdate', lambda: get_player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
@@ -3168,9 +3168,9 @@ async def download_url(url):
         # Format the unique name with prefix, date, time, and extension
         image_name = f"image-tmp_{current_time}.jpg"
 
-        result = await Utils.download_image('media/', url, image_name)
+        result = await Utils.download_image(cfg_mgr.app_root_path('media'), url, image_name)
         if result:
-            video_img_url = f'./media/{image_name}'
+            video_img_url = cfg_mgr.app_root_path(f'media/{image_name}')
 
     ui.notify(f'Video set to : {video_img_url}')
     cfg_mgr.logger.debug(f'Video set to : {video_img_url}')

@@ -184,7 +184,7 @@ jobs:
           mv build/WLEDVideoSync.app build/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app
           find build/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app -exec xattr -c {} +          
           cd build
-          tar c WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app | gzip --best > WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz
+          tar cp WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.app | gzip --best > WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz
 
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka for Win/Linux
         if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'

@@ -21,6 +21,7 @@
 # windows : ffmpeg -f gdigrab -framerate 30 -video_size 640x480 -show_region 1 -i desktop output.mkv
 # linux   : ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0+100,200 output.mp4
 # darwin  : ffmpeg -f avfoundation -i "<screen device index>:<audio device index>" output.mkv
+(ffmpeg -hide_banner -list_devices true -f avfoundation -i dummy)
 #
 # By using PyAV, ffmpeg do not need to be installed on the OS.
 # PyAV is a Pythonic binding for ffmpeg.
@@ -168,7 +169,7 @@ class CASTDesktop:
             self.viformat: str = 'x11grab'
 
         elif sys.platform.lower() == 'darwin':
-            self.viinput = '"<screen device index>:<audio device index>"'
+            self.viinput = '"0:0"'
             self.viformat: str = 'avfoundation'
 
         else:

@@ -6,6 +6,7 @@ v:1.0.0
 Manages configuration settings for the application across different environments.
 
 """
+
 import os
 import logging
 import subprocess
@@ -13,6 +14,7 @@ import sys
 import cfg_load as app_cfg
 import concurrent_log_handler
 
+import contextlib
 from logging import config
 from str2bool import str2bool
 
@@ -46,15 +48,19 @@ def run_window_msg(msg: str = '', msg_type: str = 'info'):
         >> run_window_msg("Operation completed successfully")
         >> run_window_msg("Error occurred", msg_type='error')
 
+    In case of error, just bypass.
+
     """
     # Call the separate script to show the error/info message in a Tkinter window
     absolute_file_name = info_window_exe_name()
-    if sys.platform.lower() == "win32":
-        command = [absolute_file_name, msg, msg_type]
-    else:
-        command = ['nohup', absolute_file_name, msg, msg_type, '&']
 
-    subprocess.Popen(command)
+    with contextlib.suppress(Exception):
+        command = (
+            [absolute_file_name, msg, msg_type]
+            if sys.platform.lower() == "win32"
+            else ['nohup', absolute_file_name, msg, msg_type, '&']
+        )
+        subprocess.Popen(command)
 
 
 def info_window_exe_name():
@@ -162,6 +168,7 @@ class ConfigManager:
         When this env var exists, this means running from the one-file compressed executable.
         This env does not exist when running from the extracted program.
         Expected way to work.
+        We initialize only if running from the main compiled program.
         """
         if "NUITKA_ONEFILE_PARENT" not in os.environ:
             self.setup()
@@ -182,9 +189,6 @@ class ConfigManager:
         """
 
         # read config
-        # create logger
-        self.logger = self.setup_logging()
-
         # load config file
         cast_config =self.read_config()
 
@@ -198,7 +202,13 @@ class ConfigManager:
             self.desktop_config = cast_config[5]  # desktop key
             self.ws_config = cast_config[6]  # websocket key
         else:
-            self.logger.warning('Config file not found')
+            if self.logger is not None:
+                self.logger.warning('Config file not found')
+            else:
+                print('Config file not found')
+
+        # create logger
+        self.logger = self.setup_logging()
 
 
     def setup_logging(self):
@@ -206,19 +216,24 @@ class ConfigManager:
         # Set the custom logger class
         logging.setLoggerClass(CustomLogger)
 
+        # read the config file
         if os.path.exists(self.logging_config_path):
-            logging.config.fileConfig(self.logging_config_path, disable_existing_loggers=True)
+
+            logging.config.fileConfig(self.logging_config_path, disable_existing_loggers=False)
             # trick: use the same name for all modules, ui.log will receive message from alls
-            config_data = self.read_config()
-            if str2bool(config_data[1]['log_to_main']):
+            if str2bool(self.app_config['log_to_main']):
                 logger = logging.getLogger('WLEDLogger')
             else:
                 logger = logging.getLogger(self.logger_name)
             # take basename from config file and add root_path + log ( from the config file we want only the name )
+            # handler[0] should be stdout, handler[1] should be ConcurrentRotatingFileHandler
             logger.handlers[1].baseFilename=self.app_root_path(f"log/{os.path.basename(logger.handlers[1].baseFilename)}")
             logger.handlers[1].lockFilename=self.app_root_path(f"log/{os.path.basename(logger.handlers[1].lockFilename)}")
             logger.debug(f"Logging configured using {self.logging_config_path} for {self.logger_name}")
+
         else:
+
+            # if not found config, set default param
             logging.basicConfig(level=logging.INFO)
             logger = logging.getLogger(self.logger_name)
             logger.warning(f"Logging config file {self.logging_config_path} not found. Using basic configuration.")

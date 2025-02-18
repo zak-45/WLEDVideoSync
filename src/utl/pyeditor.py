@@ -18,7 +18,7 @@ class PythonEditor:
     providing the file path and log queue. Displays a notification
     indicating the file is running.
     """
-    def __init__(self, upload_folder='xtra/coldtype'):
+    def __init__(self, upload_folder=cfg_mgr.app_root_path('xtra/coldtype')):
         """Initialize the PythonEditor.
 
         Sets up the initial state of the editor, including file name tracking,
