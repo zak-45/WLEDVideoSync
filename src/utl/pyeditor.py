@@ -44,6 +44,7 @@ class PythonEditor:
         """
         my_python=RUNColdtype(script_file=self.editor_file.text, log_queue=self.capture.log_queue)
         my_python.start()
+        cfg_mgr.logger.debug(f'File "{self.editor_file.text}" running in Coldtype.')
         ui.notify(f'File "{self.editor_file.text}" running in Coldtype. Wait ...', color='green')
 
     async def read_file(self, file_path):

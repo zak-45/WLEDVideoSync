@@ -2441,7 +2441,9 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
                 ui.label(f'{class_name} Preset').classes('self-center')
                 ui.separator()
                 ui.button('EXIT', on_click=dialog.close)
-                result = await LocalFilePicker(f'config/presets/filter/{class_name}', multiple=False, thumbs=False)
+                result = await LocalFilePicker(directory=cfg_mgr.app_root_path(f'config/presets/filter/{class_name}'),
+                                               multiple=False,
+                                               thumbs=False)
                 if result is not None:
                     preset_filter_data = cfg.load(result[0]).to_dict()
                     ui.label(f'Preset name: {result}')
@@ -2458,7 +2460,7 @@ async def load_filter_preset(class_name: str, interactive: bool = True, file_nam
     else:
 
         try:
-            preset_filter_data = cfg.load(f'config/presets/filter/{class_name}/{file_name}')
+            preset_filter_data = cfg.load(cfg_mgr.app_root_path(f'config/presets/filter/{class_name}/{file_name}'))
             return apply_preset_filter(preset_filter_data)
 
         except Exception as e:
@@ -2616,7 +2618,9 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
                 ui.label(f'{class_name} Preset').classes('self-center')
                 ui.separator()
                 ui.button('EXIT', on_click=dialog.close)
-                result = await LocalFilePicker(f'config/presets/cast/{class_name}', multiple=False, thumbs=False)
+                result = await LocalFilePicker(directory=cfg_mgr.app_root_path(f'config/presets/cast/{class_name}'),
+                                               multiple=False,
+                                               thumbs=False)
                 if result is not None:
                     preset_data = cfg.load(result[0]).to_dict()
                     ui.label(f'Preset name: {result}')
@@ -2632,7 +2636,7 @@ async def load_cast_preset(class_name: str, interactive: bool = True, file_name:
     else:
 
         try:
-            preset_data = cfg.load(f'config/presets/cast/{class_name}/{file_name}')
+            preset_data = cfg.load(cfg_mgr.app_root_path(f'config/presets/cast/{class_name}/{file_name}'))
             return apply_preset_cast(preset_data)
         except Exception as e:
             cfg_mgr.logger.error(f'Error loading preset: {e}')

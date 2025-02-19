@@ -20,7 +20,22 @@ from str2bool import str2bool
 
 
 def root_path(filename):
-    """Returns the correct path for resources, handling different OS structures."""
+    """
+    Determines the root path of the application based on whether it's running from a compiled binary or in development mode.
+    Returns the appropriate root path for accessing application resources, handling different OS structures.
+
+    Args:
+        filename (str): The name of the file or directory relative to the application's root.
+
+    Returns:
+        str: The absolute path to the specified file or directory.
+
+    Examples:
+        >> root_path('data/config.ini')
+        '/path/to/app/data/config.ini'
+
+    Handles different execution environments (compiled vs. development) to ensure consistent resource access.
+    """
 
     if getattr(sys, 'frozen', False):  # Running from a compiled binary (Nuitka, PyInstaller)
         if sys.platform == "darwin":  # macOS
@@ -84,7 +99,7 @@ def info_window_exe_name():
     elif sys.platform.lower() == 'linux':
         return ConfigManager.app_root_path('xtra/info_window.bin')
     elif sys.platform.lower() == 'darwin':
-        return ConfigManager.app_root_path('xtra/info_window.app')
+        return ConfigManager.app_root_path('xtra/info_window.bin')
     else:
         return None
 
@@ -161,6 +176,22 @@ class ConfigManager:
 
     @staticmethod
     def app_root_path(file):
+        """
+        Provides a static method to access the root path of the application.
+        This method simply calls the root_path function to determine the application's root directory.
+
+        Args:
+            file (str): The name of the file or directory relative to the application's root.
+
+        Returns:
+            str: The absolute path to the specified file or directory.
+
+        Examples:
+            >> ConfigManager.app_root_path('data/config.ini')
+            '/path/to/app/data/config.ini'
+
+        This static method provides a convenient way to access the root_path functionality within the ConfigManager class.
+        """
         return root_path(file)
 
     def initialize(self):
@@ -212,7 +243,20 @@ class ConfigManager:
 
 
     def setup_logging(self):
+        """
+        Sets up the logging system for the application based on a configuration file or default settings.
+        Configures logging handlers and formatters according to the specified configuration file, or falls back to basic
+        configuration if the file is not found.
 
+        Returns:
+            logging.Logger: The configured logger instance.
+
+        Examples:
+            >> logger = config_manager.setup_logging()
+            >> logger.info('Application started')
+
+        Ensures that logging is properly configured, even if the specified configuration file is missing.
+        """
         # Set the custom logger class
         logging.setLoggerClass(CustomLogger)
 
@@ -242,6 +286,20 @@ class ConfigManager:
 
 
     def read_config(self):
+        """
+        Reads and parses the application's configuration file.
+        Loads configuration data from the specified INI file and organizes it into separate dictionaries for different
+        configuration sections.
+
+        Returns:
+            tuple: A tuple containing dictionaries for server, app, colors, custom, presets, desktop, and websocket configurations.
+            Returns None if the configuration file cannot be loaded or parsed.
+
+        Examples:
+            >> server_config, app_config, ..., ws_config = config_manager.read_config()
+
+        Handles potential exceptions during file loading and returns None if any error occurs.
+        """
         # load config file
         try:
             cast_config = app_cfg.load(self.config_file)
@@ -255,6 +313,7 @@ class ConfigManager:
             ws_config = cast_config.get('ws')
 
             return server_config, app_config, colors_config, custom_config, preset_config, desktop_config, ws_config
+
         except Exception:
             return None
 

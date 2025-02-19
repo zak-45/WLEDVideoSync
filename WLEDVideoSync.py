@@ -81,14 +81,13 @@ System Tray: Implements a system tray icon with menu options to manage the appli
 import asyncio
 import sys
 import shelve
+from subprocess import Popen
+
 import webview
 import webview.menu as wm
 import os
 import webbrowser
 import tkinter as tk
-
-
-
 
 from tkinter import PhotoImage
 from src.utl.utils import CASTUtils as Utils
@@ -489,11 +488,15 @@ if __name__ == '__main__':
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'True')
             Utils.update_ini_key(config_file, 'app', 'win_first_run', 'False')
         elif sys.platform.lower() == 'linux':
+            # ini settings
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
             Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
             Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
             Utils.update_ini_key(config_file, 'app', 'linux_first_run', 'False')
+            # chmod +x info window
+            cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window.bin")}'
+            proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
         # Apply YouTube settings if yt_dlp not imported
         if 'yt_dlp' not in sys.modules:
@@ -550,6 +553,10 @@ if __name__ == '__main__':
         Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
         Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
         Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
+
+        # chmod +x info window
+        cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window.bin")}'
+        proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
         # Apply YouTube settings if yt_dlp not imported
         if 'yt_dlp' not in sys.modules:
