@@ -9,7 +9,7 @@ from src.gui.calculator import Calculator
 from src.utl.console import ConsoleCapture
 from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDVideoSync')
+cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 class PythonEditor:
     """Run the Python code in the editor using Coldtype.
@@ -52,16 +52,22 @@ class PythonEditor:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             self.preview.set_value(content)
+            cfg_mgr.logger.debug(f'Pyeditor File "{self.current_file}" loaded.')
             ui.notify(f'File "{self.current_file}" loaded.', color='green')
         except Exception as e:
+            cfg_mgr.logger.error(f'Pyeditor Error to load File "{self.current_file}".')
             ui.notify(f'Error loading file: {e}', color='red')
 
     def save_file(self, editor_file):
         """Save the current content of the editor back to the specified file."""
         if editor_file:
-            with open(editor_file, 'w', encoding='utf-8') as f:
-                f.write(self.editor.value)
-            ui.notify(f'File "{editor_file}" saved successfully!', color='green')
+            try:
+                with open(editor_file, 'w', encoding='utf-8') as f:
+                    f.write(self.editor.value)
+                cfg_mgr.logger.debug(f'File "{editor_file}" saved successfully!')
+                ui.notify(f'File "{editor_file}" saved successfully!', color='green')
+            except Exception as e:
+                cfg_mgr.logger.error(f'File "{editor_file}" not saved: {e} ')
         else:
             ui.notify('No file to save. Please upload a file first.', color='red')
 

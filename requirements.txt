@@ -27,6 +27,7 @@ pywebview[qt]==5.4 ; sys_platform == "linux"
 pycairo ; sys_platform == "linux"
 PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
+winloop ; sys_platform == "win32"
 
 # any version & Common to all OS
 yt-dlp==2024.12.23
@@ -46,3 +47,4 @@ av==14.1.0
 pywebview==5.4
 librosa==0.10.2.post1
 pydantic==2.7.0
+a2wsgi

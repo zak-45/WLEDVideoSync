@@ -78,6 +78,7 @@ Webview Integration: Uses pywebview to provide a native OS window for the applic
 System Tray: Implements a system tray icon with menu options to manage the application on Windows.
 
 """
+import asyncio
 import sys
 import shelve
 import webview
@@ -85,6 +86,9 @@ import webview.menu as wm
 import os
 import webbrowser
 import tkinter as tk
+
+
+
 
 from tkinter import PhotoImage
 from src.utl.utils import CASTUtils as Utils
@@ -94,9 +98,11 @@ from PIL import Image
 from uvicorn import Config, Server
 from nicegui import native
 from str2bool import str2bool
-if sys.platform.lower() == 'win32':
-    from pystray import Icon, Menu, MenuItem
 from configmanager import ConfigManager
+
+if sys.platform.lower() == 'win32':
+    import winloop
+    from pystray import Icon, Menu, MenuItem
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
@@ -450,6 +456,8 @@ def on_exit():
 
 """
 MAIN Logic 
+if you use reload=True or workers=NUM,
+you should put uvicorn.run into if __name__ == '__main__' clause in the main module.
 """
 
 if __name__ == '__main__':
@@ -457,6 +465,11 @@ if __name__ == '__main__':
     from multiprocessing import freeze_support  # noqa
 
     freeze_support()  # noqa
+
+    # The correct event loop is now installed and ready to use.
+    if sys.platform.lower() == 'win32':
+        winloop.install()
+        loop = asyncio.new_event_loop()
 
     config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
 
@@ -649,11 +662,13 @@ if __name__ == '__main__':
                         log_level=cfg_mgr.server_config['log_level'],
                         access_log=False,
                         reload=False,
+                        loop=cfg_mgr.server_config['loop'],
                         timeout_keep_alive=10,
                         timeout_graceful_shutdown=3)
 
-        instance = UvicornServer(config=u_config)
 
+        instance = UvicornServer(config=u_config)
+        cfg_mgr.logger.debug(f'uvicorn config : {u_config.__dict__}')
         """
         START
         """
