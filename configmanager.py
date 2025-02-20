@@ -7,17 +7,18 @@ Manages configuration settings for the application across different environments
 
 """
 
+
 import os
 import logging
 import subprocess
 import sys
 import cfg_load as app_cfg
 import concurrent_log_handler
+import psutil
 
 import contextlib
 from logging import config
 from str2bool import str2bool
-
 
 def root_path(filename):
     """
@@ -49,6 +50,29 @@ def root_path(filename):
     return os.path.join(os.path.dirname(sys.argv[0]),filename)
 
 
+def count_processes_by_name(name):
+    """
+    Counts the number of running processes with a given name.
+    Iterates through all active processes and checks if their name matches the provided name.
+
+    Args:
+        name (str): The name of the process to count.
+
+    Returns:
+        int: The number of processes with the specified name.
+
+    Examples:
+        >> count = count_processes_by_name('chrome')
+        >> print(f"Number of Chrome processes: {count}")
+
+    Provides a utility function to monitor the number of instances of a specific process running on the system.
+    """
+    return sum(
+        name in proc.info['name']
+        for proc in psutil.process_iter(attrs=['name'])
+        if proc.info['name']  # Avoid NoneType errors
+    )
+
 def run_window_msg(msg: str = '', msg_type: str = 'info'):
     """
     Displays a custom message using an external info window executable across different platforms.
@@ -64,19 +88,23 @@ def run_window_msg(msg: str = '', msg_type: str = 'info'):
         >> run_window_msg("Error occurred", msg_type='error')
 
     In case of error, just bypass.
-
     """
-    # Call the separate script to show the error/info message in a Tkinter window
+    # window_info full path
     absolute_file_name = info_window_exe_name()
+    # number of already running processes
+    process_count = count_processes_by_name("info_window")
 
-    with contextlib.suppress(Exception):
-        command = (
-            [absolute_file_name, msg, msg_type]
-            if sys.platform.lower() == "win32"
-            else ['nohup', absolute_file_name, msg, msg_type, '&']
-        )
-        subprocess.Popen(command)
-
+    # in case of many errors, we stop display error window after 15 processes found
+    # safeguard to not take all OS resources
+    if process_count < 15:
+        with contextlib.suppress(Exception):
+            command = (
+                [absolute_file_name, msg, msg_type]
+                if sys.platform.lower() == "win32"
+                else [absolute_file_name, msg, msg_type, '&']
+            )
+            # Call the separate script to show the error/info message in a Tkinter window
+            subprocess.Popen(command)
 
 def info_window_exe_name():
     """
