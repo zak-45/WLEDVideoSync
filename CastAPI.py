@@ -304,26 +304,25 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
         raise HTTPException(status_code=400,
                             detail=f"Unsupported attribute type '{expected_type}' for attribute '{param}'")
 
-    # special case for viinput , str or int, depend on the entry
-    if param == 'viinput':
+    # special case for viinput , str or int, depend on the entry, only for Media, Desktop all is str
+    if param == 'viinput' and class_name == 'Media':
         try:
             value = int(value)
         except ValueError:
             cfg_mgr.logger.debug("viinput act as string only")
 
     # check valid IP
-    if param == 'host':
-        is_valid = Utils.validate_ip_address(value)
-        if not is_valid:
-            raise HTTPException(status_code=400,
-                                detail=f"Value '{value}' for attribute '{param}' must be IP address")
-
-    # check cast devices comply to [(0,'IP'), ... ]
     if param == 'cast_devices':
         is_valid = Multi.is_valid_cast_device(str(value))
         if not is_valid:
             raise HTTPException(status_code=400,
                                 detail=f"Value '{value}' for attribute '{param}' not comply to list [(0,'IP'),...]")
+
+    elif param == 'host':
+        is_valid = Utils.validate_ip_address(value)
+        if not is_valid:
+            raise HTTPException(status_code=400,
+                                detail=f"Value '{value}' for attribute '{param}' must be IP address")
 
     # set new value to class attribute
     setattr(class_obj, param, value)
