@@ -76,7 +76,7 @@ jobs:
           brew install fileicon
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
-          curl -L -o xtra/info_window.app https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_arm64          
+          curl -L -o xtra/info_window.bin https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_arm64.bin     
 
       - name: MacOS specific Intel
         if: matrix.os == 'macos-13'
@@ -89,7 +89,7 @@ jobs:
           brew install fileicon
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
-          curl -L -o xtra/info_window.app https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_x86_64         
+          curl -L -o xtra/info_window.bin https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_x86_64.bin      
 
       - name: Setup Python x64
         uses: actions/setup-python@v5
