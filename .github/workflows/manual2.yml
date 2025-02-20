@@ -189,7 +189,7 @@ jobs:
         run: |
           chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}**
           mkdir WLEDVideoSync
-          fileicon set WLEDVideoSync build/WLEDVideoSync.app/Contents/MacOS/favicon.ico
+          fileicon set WLEDVideoSync build/WLEDVideoSync.app/Contents/MacOS/assets/mac_folder.png
           mv build/WLEDVideoSync.app WLEDVideoSync/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app                    
           tar cp WLEDVideoSync | gzip --best > WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz
 
