@@ -32,7 +32,7 @@ WLEDVideoSync is a tool designed to synchronize Net LED strips with video conten
 
 2. MacOS : Take the zip 'tar/gz' from releases (arm or x86)
    1. double click to extract the app bundle
-      1. --> open terminal, go to Downloads
+      1. --> open terminal, go to Downloads/WLEDVideoSync
       2. --> enter this command to remove the extra attribute (replace by arm if this your PC architecture)
       ````
       xattr -d com.apple.quarantine WLEDVideoSync-macOS_x86_64.app 
