@@ -79,7 +79,7 @@ jobs:
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
           curl -L -o xtra/info_window https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_arm64
           chmod +x xtra/info_window
-          xattr -d com.apple.quarantine xtra/info_window
+          xattr -c xtra/info_window
 
       - name: MacOS specific Intel
         if: matrix.os == 'macos-13'
@@ -94,7 +94,7 @@ jobs:
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
           curl -L -o xtra/info_window https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_x86_64
           chmod +x xtra/info_window
-          xattr -d com.apple.quarantine xtra/info_window
+          xattr -c xtra/info_window
 
       - name: Setup Python x64
         uses: actions/setup-python@v5
