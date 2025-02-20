@@ -97,9 +97,9 @@ def info_window_exe_name():
     if sys.platform.lower() == 'win32':
         return ConfigManager.app_root_path('xtra/info_window.exe')
     elif sys.platform.lower() == 'linux':
-        return ConfigManager.app_root_path('xtra/info_window.bin')
+        return ConfigManager.app_root_path('xtra/info_window')
     elif sys.platform.lower() == 'darwin':
-        return ConfigManager.app_root_path('xtra/info_window.bin')
+        return ConfigManager.app_root_path('xtra/info_window')
     else:
         return None
 

@@ -64,7 +64,8 @@ jobs:
           sudo apt-get install libfontconfig1 libgl1-mesa-dri
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV   
-          curl -L -o xtra/info_window.bin https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-Linux_x86_64       
+          curl -L -o xtra/info_window https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-Linux_x86_64
+          chmod +x xtra/info_window
 
       - name: MacOS specific Apple(Mx)
         if: matrix.os == 'macos-latest'
@@ -76,7 +77,8 @@ jobs:
           brew install fileicon
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
-          curl -L -o xtra/info_window.bin https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_arm64     
+          curl -L -o xtra/info_window https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_arm64
+          chmod +x xtra/info_window
 
       - name: MacOS specific Intel
         if: matrix.os == 'macos-13'
@@ -89,7 +91,8 @@ jobs:
           brew install fileicon
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
-          curl -L -o xtra/info_window.bin https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_x86_64      
+          curl -L -o xtra/info_window https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_x86_64
+          chmod +x xtra/info_window          
 
       - name: Setup Python x64
         uses: actions/setup-python@v5
