@@ -954,7 +954,7 @@ class CASTDesktop:
 
                     cfg_mgr.logger.debug('process from queue')
                     # Default image to display when queue is empty
-                    default_img = cv2.imread('assets/Source-intro.png')
+                    default_img = cv2.imread(cfg_mgr.app_root_path('assets/Source-intro.png'))
                     default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
                     default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
                     frame = default_img
@@ -982,6 +982,7 @@ class CASTDesktop:
                         # we read all data from the queue
                         #
                         while not queue_buffer.empty():
+                            # safeguard to not eat all memory
                             if queue_buffer.qsize() < 50000 :
                                 try:
                                     frame = queue_buffer.get(timeout=0.1)  # Use get() with timeout
