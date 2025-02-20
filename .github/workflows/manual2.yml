@@ -73,6 +73,7 @@ jobs:
           brew install portaudio
           brew reinstall libsndfile
           brew install ffmpeg
+          brew install fileicon
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
           curl -L -o xtra/info_window.app https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_arm64          
@@ -85,6 +86,7 @@ jobs:
           brew install portaudio
           brew reinstall libsndfile
           brew install ffmpeg
+          brew install fileicon
           ARCHITECTURE=$(uname -m)
           echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
           curl -L -o xtra/info_window.app https://github.com/zak-45/InfoWindow/releases/download/0.0.0.0/info_window-macOS_x86_64         
@@ -182,7 +184,8 @@ jobs:
         run: |
           chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}**
           mkdir WLEDVideoSync
-          mv build/WLEDVideoSync.app WLEDVideoSync/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app
+          fileicon set WLEDVideoSync build/WLEDVideoSync.app/Contents/MacOS/favicon.ico
+          mv build/WLEDVideoSync.app WLEDVideoSync/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app                    
           tar cp WLEDVideoSync | gzip --best > WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz
 
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka for Win/Linux
