@@ -176,7 +176,7 @@ jobs:
             yt_dlp-fix-nuitka-package.config.yml
 
 
-      # use find as macOS latest do not support -cr. Use tar to preserve attribute
+      #  Use tar to preserve attribute
       - name: MacOS prepare app from Nuitka
         if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
         run: |
@@ -201,4 +201,4 @@ jobs:
           allowUpdates: true
           commit: main
           tag: ${{github.event.inputs.mytag}}
-          artifacts: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz'
+          artifacts: 'WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz'
