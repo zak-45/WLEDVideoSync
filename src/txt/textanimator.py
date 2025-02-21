@@ -68,11 +68,17 @@ class BackgroundOverlay:
 
 
 class TextAnimator:
-    """Animates text on a canvas with various effects.
+    """
+    The TextAnimator class creates and manages text animations.
+    It supports various effects like blinking, color cycling, explosions, and scrolling.
+    The class generates animation frames as numpy arrays, allowing for video export and integration with other display
+    methods.
 
-    Supports scrolling, blinking, color cycling, fading, rainbow cycling, and
-    exploding text.
-
+    The class initializes with text, dimensions, speed, color, font, and effect parameters.
+    It uses PIL to create text images and OpenCV for image manipulation and effects.
+    The generate() method creates animation frames based on the specified direction and speed, applying any chosen effects.
+    Helper methods manage specific effects, dynamic text updates, and video export.
+    The class also includes pause, resume, and stop functionality
     """
     def __init__(
         self,
@@ -626,7 +632,7 @@ class TextAnimator:
 
         frame_bgra = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
 
-        return self.generate_combine(frame_bgra, overlay)
+        return self.add_text_to_bg(frame_bgra, overlay)
 
 
     def generate_explode(self, frame):
@@ -654,10 +660,10 @@ class TextAnimator:
         if frame_bgra.shape[2] == 3:
             frame_bgra = cv2.cvtColor(frame_bgra, cv2.COLOR_BGR2BGRA)
 
-        return self.generate_combine(frame_bgra, frame_cv)
+        return self.add_text_to_bg(frame_bgra, frame_cv)
 
 
-    def generate_combine(self, text_frame, overlay):
+    def add_text_to_bg(self, text_frame, overlay):
         """Combines the text image with the background frame.
 
         Adds the text image to the background frame and converts the result to BGR format.
@@ -691,10 +697,10 @@ class TextAnimator:
     def send_frame_to_queue(self, frame_queue: Queue):
         """Sends the current animation frame to a multiprocessing queue."""
         frame = self.current_frame
+        self.logger.info("Frame sent to queue.")
         if frame is not None:
             try:
                 frame_queue.put(frame, block=False)
-                self.logger.info("Frame sent to queue.")
             except Exception as e:
                 self.logger.error(f"Failed to send frame to queue: {e}")
 
