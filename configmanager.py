@@ -197,6 +197,7 @@ class ConfigManager:
         self.preset_config = None
         self.desktop_config = None
         self.ws_config = None
+        self.text_config = None
         self.logging_config_path = self.app_root_path(logging_config_path)
         self.config_file = self.app_root_path(config_file)
         self.logger_name = logger_name
@@ -260,6 +261,7 @@ class ConfigManager:
             self.preset_config = cast_config[4]  # presets key
             self.desktop_config = cast_config[5]  # desktop key
             self.ws_config = cast_config[6]  # websocket key
+            self.text_config = cast_config[7]  # text anim key
         else:
             if self.logger is not None:
                 self.logger.warning('Config file not found')
@@ -339,9 +341,16 @@ class ConfigManager:
             preset_config = cast_config.get('presets')
             desktop_config = cast_config.get('desktop')
             ws_config = cast_config.get('ws')
+            text_config = cast_config.get('text')
 
-            return server_config, app_config, colors_config, custom_config, preset_config, desktop_config, ws_config
+            return (server_config,
+                    app_config,
+                    colors_config,
+                    custom_config,
+                    preset_config,
+                    desktop_config,
+                    ws_config,
+                    text_config)
 
         except Exception:
             return None
-

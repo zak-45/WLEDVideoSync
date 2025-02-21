@@ -1,13 +1,16 @@
 import librosa
-import logging
 import time
 from typing import Optional, Tuple
 import math
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from multiprocessing import Queue
+from PIL import Image, ImageDraw, ImageFont
+from src.utl.utils import CASTUtils as Utils
+from configmanager import ConfigManager
 
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.text')
+
+Process, Queue = Utils.mp_setup()
 
 class BackgroundOverlay:
     """
@@ -103,6 +106,7 @@ class TextAnimator:
         color_change_interval: int = 1,  # Color change interval in seconds
         explode_pre_delay: float = 0.0  # Delay before explosion in seconds
     ):
+        self.font = None
         self.next_text_change = None
         self.text_index = None
         self.text_interval = None
@@ -111,7 +115,7 @@ class TextAnimator:
         self.delta_x = None
         self.y_pos = None
         self.x_pos = None
-        self.logger = logging.getLogger("TextAnimator")
+        self.logger = cfg_mgr.logger
         self.text = text
         self.width = width
         self.height = height
@@ -137,14 +141,7 @@ class TextAnimator:
                         "velocity": [np.random.uniform(-1, 1), np.random.uniform(-1, 1)]} for _ in range(50)]
 
         # Initialize font using PIL
-        try:
-            if self.font_path:
-                self.font = ImageFont.truetype(self.font_path, self.font_size)
-            else:
-                self.font = ImageFont.load_default()
-        except Exception as e:
-            self.logger.error(f"Failed to load font: {e}")
-            self.font = ImageFont.load_default()
+        self.init_font()
 
         # Initialize effect parameters
         self.effect_params = self.init_effect_params()
@@ -158,6 +155,29 @@ class TextAnimator:
 
         self.paused = False
         self.last_frame_time = time.perf_counter()
+
+
+    def init_font(self):
+        """Initializes the font.
+
+        Loads a TrueType font if a path is provided, otherwise uses a default font.
+        Handles potential font loading errors and logs them.
+        """
+        # if not font provided, try to see in ini
+        if self.font_path is None and cfg_mgr.text_config is not None:
+            if cfg_mgr.text_config['font_path'] is not None:
+                self.font_path = cfg_mgr.text_config['font_path']
+            if cfg_mgr.text_config['font_size'] is not None:
+                self.font_path = cfg_mgr.text_config['font_size']
+
+        try:
+            if self.font_path:
+                self.font = ImageFont.truetype(self.font_path, self.font_size)
+            else:
+                self.font = ImageFont.load_default(size=self.font_size)
+        except Exception as e:
+            self.logger.error(f"Failed to load font: {e}")
+            self.font = ImageFont.load_default(size=self.font_size)
 
     def create_text_image(self, text=None, color=None, opacity=None, shadow=None) -> Image.Image:
         """Creates an image of the text with optional effects.
