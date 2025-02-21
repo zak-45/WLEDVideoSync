@@ -18,10 +18,8 @@ uvicorn[standard]==0.34.0
 psutil==6.1.1
 requests==2.32.3
 screeninfo==0.8.1
-youtube-search-python==1.6.6
 
 # Platform dependant
-av==14.1.0 ; sys_platform != "linux"
 pywebview==5.4 ; sys_platform != "linux"
 pywebview[qt]==5.4 ; sys_platform == "linux"
 pycairo ; sys_platform == "linux"
@@ -30,21 +28,21 @@ qtpy ; sys_platform == "linux"
 winloop ; sys_platform == "win32"
 
 # any version & Common to all OS
-yt-dlp==2024.12.23
+yt-dlp
 linuxpy
-imageio==2.37.0
+imageio
 pygrabber
 concurrent-log-handler
 cfg-load
 async-timeout
-sacn==1.10.0
-stupidArtnet==1.5.0
-fonttools==4.55.6
-coldtype[viewer]==0.11.3
+sacn
+stupidArtnet
+fonttools
+coldtype[viewer]
 noise
-simpleeval==1.0.3
-av==14.1.0
-pywebview==5.4
-librosa==0.10.2.post1
-pydantic==2.7.0
+simpleeval
+av
+librosa
+pydantic
 a2wsgi
+pytubefix

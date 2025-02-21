@@ -11,7 +11,6 @@
 #
 """
 try:
-    from youtubesearchpython.__future__ import VideosSearch
     from yt_dlp import YoutubeDL
 except Exception as e:
     print(f'INFO : this is Not a YT version: {e}')
@@ -40,6 +39,7 @@ import requests
 import av
 import numpy as np
 
+from pytubefix import Search
 from asyncio import create_task
 from wled import WLED
 from zeroconf import ServiceBrowser, Zeroconf
@@ -237,11 +237,10 @@ class CASTUtils:
 
     @staticmethod
     async def youtube_download(yt_url: str = None, interactive: bool = True, log_ui=None):
-        """download video from youtube"""
+        """download video from YouTube"""
 
         # select from ini file
-        config_data = CASTUtils.read_config()
-        download_format = config_data[3]['yt-format']
+        download_format = cfg_mgr.custom_config['yt-format']
 
         def post_hook(d):
             if d['status'] == 'finished':
@@ -875,7 +874,6 @@ class YtSearch:
     """
 
     def __init__(self, anime: bool = False):
-        self.yt_stream = None
         self.yt_search = None
         self.yt_anime = anime
         self.videos_search = None
@@ -927,17 +925,17 @@ class YtSearch:
     async def py_search(self, data):
         """ Search for YT from input """
 
-        self.videos_search = VideosSearch(data, limit=self.limit)
-        self.yt_search = await self.videos_search.next()
+        self.videos_search = Search(data)
+        self.yt_search = self.videos_search.videos
 
         # number found
-        number = len(self.yt_search['result'])
+        number = len(self.yt_search)
         self.number_found.text = f'Number found: {number}'
         # activate 'more' button
         if number > 0:
             self.next_button.set_visibility(True)
             # re-create  result page
-            await self.create_yt_page(self.yt_search)
+            await self.create_yt_page()
         else:
             self.number_found.text = 'Nothing Found'
 
@@ -949,35 +947,28 @@ class YtSearch:
         self.limit += 5
         # await ui.context.client.connected()
         self.search_button.props('loading')
-        tmp_dict = await self.videos_search.next()
-        if len(tmp_dict['result']) > 0:
-            # search additional data
-            self.yt_search.update(tmp_dict)
-            # update number
-            self.number_found.text = f'Number found: {len(tmp_dict["result"])}'
-            # re create  result page
-            await self.create_yt_page(self.yt_search)
-        else:
-            ui.notify('No more to search', position='center', type='negative', close_button=True)
-
+        await run.io_bound(self.videos_search.get_next_results)
+        self.yt_search = self.videos_search.videos
+        self.number_found.text = f'Number found: {len(self.yt_search)}'
+        await self.create_yt_page()
         self.search_button.props(remove='loading')
 
-    async def create_yt_page(self, data):
+    async def create_yt_page(self):
         """ Create YT search result """
 
         # clear as we recreate
         self.search_result.clear()
         # create
         with self.search_result.classes('w-full self-center'):
-            for self.yt_stream in data['result']:
+            for i in range(len(self.yt_search)):
                 ui.separator()
-                ui.label(self.yt_stream['title'])
+                ui.label(self.yt_search[i].title)
                 with ui.row(wrap=False).classes('w-1/2'):
-                    yt_image = ui.image(self.yt_stream['thumbnails'][0]['url']).classes('self-center w-1/2')
-                    yt_image.on('mouseenter', lambda yt_str=self.yt_stream: self.youtube_player(yt_str['id']))
+                    yt_image = ui.image(self.yt_search[i].thumbnail_url).style(add='width: 150px;')
+                    yt_image.on('mouseenter', lambda yt_str=self.yt_search[i]: self.youtube_player(yt_str.video_id))
                     with ui.column():
-                        ui.label(f'Length: {self.yt_stream["duration"]}')
-                        yt_url = ui.label(self.yt_stream['link'])
+                        ui.label(f'Length: {self.yt_search[i].length}')
+                        yt_url = ui.label(self.yt_search[i].watch_url)
                         yt_url.tooltip('Click to copy')
                         yt_url.style('text-decoration: underline; cursor: pointer;')
                         yt_url.on('click', lambda my_yt=yt_url: (ui.clipboard.write(my_yt.text),
@@ -990,8 +981,11 @@ class YtSearch:
                             yt_watch = ui.icon('smart_display', size='sm')
                             yt_watch.tooltip('Player On')
                             yt_watch.style('cursor: pointer')
-                            yt_watch.on('click', lambda yt_str=self.yt_stream: self.youtube_player(yt_str['id']))
+                            yt_watch.on('click', lambda yt_str=self.yt_search[i]: self.youtube_player(yt_str.video_id))
 
+"""
+Animate css class
+"""
 
 class AnimatedElement:
     """

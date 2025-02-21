@@ -3151,7 +3151,7 @@ async def download_url(url):
     CastAPI.progress_bar.update()
 
     # check if YT Url
-    if 'https://www.youtu' in url:
+    if 'youtube' in url:
 
         # this will run async loop in background and continue...
         create_task(bar_get_size())
