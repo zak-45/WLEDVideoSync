@@ -194,7 +194,7 @@ jobs:
           tar cp WLEDVideoSync | gzip --best > WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz
 
       - name: Linux prepare app from Nuitka
-        if: matrix.os == 'linux-latest'
+        if: matrix.os == 'ubuntu-latest'
         run: |
           gio set -t string build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }} metadata::custom-icon file://`pwd`/favicon.png 
 
