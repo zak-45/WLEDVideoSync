@@ -193,6 +193,11 @@ jobs:
           mv build/WLEDVideoSync.app WLEDVideoSync/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}.app                    
           tar cp WLEDVideoSync | gzip --best > WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}.tar.gz
 
+      - name: Linux prepare app from Nuitka
+        if: matrix.os == 'linux-latest'
+        run: |
+          gio set -t string build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }} metadata::custom-icon file://`pwd`/favicon.png 
+
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka for Win/Linux
         if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
         uses: ncipollo/release-action@v1
