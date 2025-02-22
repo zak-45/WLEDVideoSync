@@ -487,6 +487,7 @@ if __name__ == '__main__':
             Utils.update_ini_key(config_file, 'app', 'native_ui_size', '1200,720')
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'True')
             Utils.update_ini_key(config_file, 'app', 'win_first_run', 'False')
+
         elif sys.platform.lower() == 'linux':
             # ini settings
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
@@ -494,9 +495,14 @@ if __name__ == '__main__':
             Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
             Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
             Utils.update_ini_key(config_file, 'app', 'linux_first_run', 'False')
+
             # chmod +x info window
-            cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window.bin")}'
+            cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
             proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+
+            # change folder icon
+            cmd_str = f'gio set -t string "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("WLEDVideoSync/assets/mac_folder.png")}'
+            proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
         # Apply YouTube settings if yt_dlp not imported
         if 'yt_dlp' not in sys.modules:
