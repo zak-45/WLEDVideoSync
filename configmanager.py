@@ -322,7 +322,8 @@ class ConfigManager:
         configuration sections.
 
         Returns:
-            tuple: A tuple containing dictionaries for server, app, colors, custom, presets, desktop, and websocket configurations.
+            tuple: A tuple containing dictionaries for server, app, colors, custom, presets, desktop,
+                    and websocket configurations.
             Returns None if the configuration file cannot be loaded or parsed.
 
         Examples:

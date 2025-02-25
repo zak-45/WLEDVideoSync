@@ -39,6 +39,34 @@ class CV2Utils:
     def __init__(self):
         pass
 
+
+    @staticmethod
+    def frame_add_one(frame):
+        """Appends a non-zero byte to a frame's byte representation.
+
+        This workaround addresses a ShareableList bug where zero-sized byte strings cause issues.  It converts the
+        NumPy array representing the frame to bytes, appends a non-zero byte, and returns the modified bytes.
+        see https://github.com/python/cpython/issues/106939
+        """
+        frame = frame.tobytes()
+        frame = bytearray(frame)
+        frame.append(1)
+        return bytes(frame)
+
+    @staticmethod
+    def frame_remove_one(frame):
+        """Removes the last byte from a frame's byte representation.
+
+        This function reverses the workaround applied by frame_add_1, removing the extra byte appended to handle a
+        ShareableList bug.  It converts the byte string to a bytearray, removes the last byte, and returns the
+        modified byte string.
+        """
+        # remove the last byte and convert back to numpy
+        frame = bytearray(frame)
+        frame = frame[:-1]
+        return bytes(frame)
+
+
     @staticmethod
     def set_black_bg(image):
         """
@@ -131,10 +159,8 @@ class CV2Utils:
         while True:
             # Data from shared List
             sl_total_frame = sl[0]
-            # remove the last byte and convert back to numpy
-            sl_frame = bytearray(sl[1])
-            sl_frame = sl_frame[:-1]
-            sl_frame = bytes(sl_frame)
+            # remove the last byte and convert back to numpy (1D)
+            sl_frame = CV2Utils.frame_remove_one(sl[1])
             sl_frame = np.frombuffer(sl_frame, dtype=np.uint8)
             #
             sl_server_port = sl[2]
@@ -162,7 +188,7 @@ class CV2Utils:
             # ( w * h * (colors number)) e.g. 640(w) * 360()h * 3(rgb)
             shape_bytes = int(sl_frame_info[0]) * int(sl_frame_info[1]) * int(sl_frame_info[2])
 
-            # Generate new frame from ShareableList. Display default img in case of problem
+            # Generate new frame (2D) from ShareableList. Display default img in case of problem
             # original np.array has been transformed to bytes with 'tobytes()'
             # re-created as array with 'frombuffer()'
             # ... looks like some data can miss (ShareableList bug)  !!!

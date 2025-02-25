@@ -35,7 +35,7 @@
 
 """
 import errno
-import queue
+import ast
 import sys
 import os
 import time
@@ -61,6 +61,9 @@ from src.net.e131_queue import E131Queue
 from src.net.artnet_queue import ArtNetQueue
 from configmanager import ConfigManager
 
+from src.utl.sharedlistclient import SharedListClient
+from src.utl.sharedlistmanager import SharedListManager
+
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
 
 Process, Queue = Utils.mp_setup()
@@ -76,7 +79,8 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     """
     Retrieve  config keys
     """
-    cfg_text = str2bool(cfg_mgr.app_config['text']) is True
+    if cfg_mgr.app_config is not None:
+        cfg_text = str2bool(cfg_mgr.app_config['text']) is True
 
 
 """
@@ -108,9 +112,6 @@ class CASTDesktop:
     server_port = Utils.get_server_port()
 
     total_packet = 0  # net packets number
-
-    queue_names = {}  # queues dict
-    queues_list = []  # list of all queues obj
 
     def __init__(self):
         self.rate: int = 25
@@ -213,10 +214,11 @@ class CASTDesktop:
         frame_count = 0
 
         frame = None
-        queue_buffer = None
+        sl_buffer = None
 
         sl = None
         sl_process = None
+        sl_client = None
 
         t_todo_stop = False
 
@@ -523,11 +525,7 @@ class CASTDesktop:
                     #
                     # append not zero value to bytes to solve ShareableList bug
                     # see https://github.com/python/cpython/issues/106939
-                    new_frame = frame.tobytes()
-                    new_frame = bytearray(new_frame)
-                    new_frame.append(1)
-                    new_frame = bytes(new_frame)
-                    sl[1] = new_frame
+                    sl[1] = CV2Utils.frame_add_one(frame)
                     #
                     sl[5] = self.preview_top
                     sl[7] = self.preview_w
@@ -604,7 +602,7 @@ class CASTDesktop:
                         i_grid,
                         str(list(frame_info))
                     ],
-                    name=t_name)
+                    name=f'{t_name}_p')
 
             except OSError as er:
                 if er.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
@@ -795,13 +793,21 @@ class CASTDesktop:
 
         elif self.viinput == 'queue':
 
-            queue_buffer =  queue.Queue()
-            CASTDesktop.queue_names[f"{t_name}_q"] = CASTDesktop.count
-            CASTDesktop.queues_list.append(queue_buffer)
+            sl_client = SharedListClient()
+            sl_manager =  SharedListManager()
 
-            if not isinstance(queue_buffer, queue.Queue):
-                cfg_mgr.logger.error(f"{t_name} Queue buffer not initialized for queue input.")
+            # check server is running
+            try:
+                sl_client.connect()
+            except ConnectionRefusedError:
+                sl_manager.start()
+                sl_client.connect()
+            except Exception as e:
+                print(f'error {e}')
                 return
+            finally:
+                # create ShareAbleList
+                sl_buffer = sl_client.create_shared_list(t_name,t_scale_width,t_scale_height,start_time)
 
         cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
 
@@ -810,7 +816,7 @@ class CASTDesktop:
                     desktop or :0 ...  : to stream full screen or a part of the screen
                     title=<window name> : to stream only window content for win
                     window_id : to stream only window content for Linux 
-                    queue to read np frame from (e.g: coldtype)           
+                    queue to read np frame from a ShareAbleList (e.g: coldtype)           
                     or str
         """
 
@@ -822,7 +828,7 @@ class CASTDesktop:
             t_viinput = self.viinput
 
         # Open av input container in read mode
-        if queue_buffer is None:
+        if sl_buffer is None:
             try:
 
                 input_container = av.open(t_viinput, 'r', format=self.viformat, options=input_options)
@@ -876,7 +882,7 @@ class CASTDesktop:
         #
         # Main loop
         #
-        if input_container is not None or queue_buffer is not None:
+        if input_container is not None or sl_buffer is not None:
 
             cfg_mgr.logger.info(f"{t_name} Capture from {t_viinput}")
             cfg_mgr.logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
@@ -950,23 +956,27 @@ class CASTDesktop:
                         if CASTDesktop.t_todo_event.is_set():
                             t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
 
-                elif queue_buffer is not None:
+                elif sl_buffer is not None:
 
-                    cfg_mgr.logger.debug('process from queue')
-                    # Default image to display when queue is empty
+                    cfg_mgr.logger.debug('process from queue-ShareAbleList')
+                    # Default image to display when no more frame
                     default_img = cv2.imread(cfg_mgr.app_root_path('assets/Source-intro.png'))
                     default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
                     default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
                     frame = default_img
-                    # create ShareableList if necessary
+                    # create ShareableList for preview if necessary
                     if t_preview and str2bool(cfg_mgr.app_config['preview_proc']):
                         sl, sl_process = create_shareable_list(frame, i_grid=False)
                         if sl is None or sl_process is None:
-                            cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
+                            cfg_mgr.logger.error(f'{t_name} Error on SharedList creation for Preview')
                             raise ExitFromLoop
 
-                    # infinite loop for queue
-                    while True:
+                    # infinite loop for queue-ShareAbleList
+                    while sl_buffer:
+
+                        # check to see if something to do
+                        if CASTDesktop.t_todo_event.is_set():
+                            t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
 
                         """
                         instruct the thread to exit 
@@ -979,37 +989,30 @@ class CASTDesktop:
                             raise ExitFromLoop
 
                         #
-                        # we read all data from the queue
+                        # we read data from the ShareAbleList
                         #
-                        while not queue_buffer.empty():
-                            # safeguard to not eat all memory
-                            if queue_buffer.qsize() < 50000 :
-                                try:
-                                    frame = queue_buffer.get(timeout=0.1)  # Use get() with timeout
-                                    # process frame
-                                    frame_count += 1
-                                    CASTDesktop.total_frame += 1
-                                    frame, grid = process_frame(frame)
-                                    queue_buffer.task_done()
-                                    if t_preview:
-                                        t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
-                                except queue.Empty:
-                                    frame, grid = process_frame(default_img)
-                                    if t_preview:
-                                        t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
-                            else:
-
-                                cfg_mgr.logger.error(f'frame Queue size too big: {queue_buffer.qsize()}')
-                                self.stopcast = True
-                                raise ExitFromLoop
-
-                        # check to see if something to do
-                        if CASTDesktop.t_todo_event.is_set():
-                            t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
-
-                        # preview default
-                        if t_preview:
-                            t_preview, t_todo_stop = process_preview(default_img, t_preview, t_todo_stop, i_grid=False)
+                        time_frame = sl_buffer[1]
+                        # check if recent frame that we need to proces (some frames can be skipped in busy system)
+                        if time_frame + 2 > time.time():
+                            frame = CV2Utils.frame_remove_one(sl_buffer[0])
+                            # process frame
+                            # 1D array
+                            frame = np.frombuffer(frame, dtype=np.uint8)
+                            # 2D array
+                            frame = frame.reshape(int(t_scale_width), int(t_scale_height), 3)
+                            #
+                            frame_count += 1
+                            CASTDesktop.total_frame += 1
+                            frame, grid = process_frame(frame)
+                            if t_preview:
+                                t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
+                        else:
+                            # preview default
+                            if t_preview:
+                                t_preview, t_todo_stop = process_preview(default_img,
+                                                                         t_preview,
+                                                                         t_todo_stop,
+                                                                         i_grid=False)
 
                         # some sleep until next, this could add some delay to stream next available frame
                         time.sleep(0.1)
@@ -1070,11 +1073,14 @@ class CASTDesktop:
         elif t_protocol == 'artnet':
             artnet_host.deactivate()
 
-        # remove queue from dict list and memory
-        if queue_buffer is not None:
-            del CASTDesktop.queue_names[f"{t_name}_q"]
-            CASTDesktop.queues_list.remove(queue_buffer)
-            del queue_buffer
+        # cleanup SL
+        if sl_buffer is not None:
+            sl_client.delete_shared_list(t_name)
+            # check if last SL
+            sl_list = ast.literal_eval(sl_client.get_shared_lists())
+            if len(sl_list) == 0:
+                # stop manager
+                sl_manager.stop_manager()
 
         cfg_mgr.logger.debug("_" * 50)
         cfg_mgr.logger.debug(f'Cast {t_name} end using this input: {t_viinput}')
