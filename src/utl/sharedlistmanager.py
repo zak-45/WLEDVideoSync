@@ -1,3 +1,45 @@
+"""
+a: zak-45
+d: 25/02/2025
+v: 1.0.0.0
+
+Overview
+This Python code implements a SharedListManager class that facilitates the creation, access,
+and management of shared memory lists in a multiprocessing environment.
+It leverages the multiprocessing.shared_memory and multiprocessing.managers modules to allow multiple processes
+to concurrently access and modify the same data. This is particularly useful for sharing large data structures,
+such as images or video frames, between processes without the overhead of copying data.
+The manager runs as a separate process, providing a centralized service for managing these shared lists.
+
+Key Components
+SharedListManager Class: This class is the core of the code, providing methods for:
+
+start(): Starts the manager server, making it available for client connections.
+create_shared_list(): Creates a new shared list with a specified name, width, and height.
+    It initializes the shared memory with a numpy array filled with 255 values (white image).
+get_shared_lists(): Returns a list of names of the currently managed shared lists.
+get_shared_lists_info(): Returns a dictionary containing information (width and height) about each shared list.
+get_shared_list_info(): Returns the width and height of a specific shared list.
+delete_shared_list(): Deletes a shared list, freeing the associated shared memory.
+stop_manager(): Stops the manager server and cleans up resources.
+is_alive(): Checks if the manager process is still running.
+SLManager Class: A custom SyncManager that registers the SharedListManager's methods,
+                enabling remote access from other processes.
+
+Use of ShareableList:
+The code utilizes multiprocessing.shared_memory.ShareableList to create and manage the shared lists.
+This ensures that the underlying memory is properly shared and synchronized between processes.
+
+Error Handling and Resource Management:
+The code includes error handling to gracefully manage situations like attempting to create a list with a name
+that already exists or deleting a non-existent list.
+It also ensures proper cleanup of shared memory when the manager is stopped or a list is deleted.
+
+Main Execution Block (if __name__ == "__main__":):
+This block demonstrates how to instantiate and use the SharedListManager.
+It starts the manager, waits for clients to connect, and then shuts down the manager gracefully.
+"""
+
 from multiprocessing.managers import SyncManager
 from multiprocessing.shared_memory import ShareableList
 import os
@@ -101,12 +143,14 @@ class SharedListManager:
 
         # Create a (x, y, 3) array with all values set to 255 to reserve memory
         full_array = np.full((width,height,3), 255, dtype=np.uint8)
-        full_array_bytes = CV2Utils.frame_add_one(full_array)
+        size = full_array.nbytes
+        # to bypass ShareAbleList bug
+        full_array = CV2Utils.frame_add_one(full_array)
 
         try:
-            self.shared_lists[name] = ShareableList([full_array_bytes, start], name=name)
+            self.shared_lists[name] = ShareableList([full_array, start], name=name)
             self.shared_lists_info[name] = {"w":width, "h":height}
-            print(f"Created shared list '{name}'  for : {width} - {height} of size {full_array.nbytes}.")
+            print(f"Created shared list '{name}'  for : {width} - {height} of size {size}.")
             return True
 
         except Exception as e:
@@ -130,16 +174,22 @@ class SharedListManager:
 
         if name in self.shared_lists:
             try:
-                self.shared_lists[name].shm.close()
-                self.shared_lists[name].shm.unlink()
-                del self.shared_lists[name]
-                del self.shared_lists_info[name]
-                print(f"Deleted shared list '{name}'.")
+                return self.clean_shared_list(name)
             except Exception as e:
                 print(f"Error deleting shared list '{name}': {e}")
+                return False
         else:
             print(f"Shared list '{name}' does not exist.")
+            return False
 
+
+    def clean_shared_list(self, name):
+        self.shared_lists[name].shm.close()
+        self.shared_lists[name].shm.unlink()
+        del self.shared_lists[name]
+        del self.shared_lists_info[name]
+        print(f"Deleted shared list '{name}'.")
+        return True
 
     def is_alive(self):
         """Checks if the manager process is alive."""

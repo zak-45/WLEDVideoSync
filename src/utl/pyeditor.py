@@ -7,9 +7,18 @@ from src.gui.niceutils import LocalFilePicker
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.calculator import Calculator
 from src.utl.console import ConsoleCapture
+from src.utl.sharedlistclient import SharedListClient
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+
+client=SharedListClient()
+try:
+    client = client.connect()
+except ConnectionRefusedError:
+    print('No SL manager')
+except Exception as e:
+    print(f'Error with  SL client : {e}')
 
 class PythonEditor:
     """Run the Python code in the editor using Coldtype.

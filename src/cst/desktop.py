@@ -793,21 +793,23 @@ class CASTDesktop:
 
         elif self.viinput == 'queue':
 
-            sl_client = SharedListClient()
-            sl_manager =  SharedListManager()
+            if cfg_mgr.manager_config is not None:
+                sl_client = SharedListClient(cfg_mgr.manager_config['manager_ip'],
+                                             int(cfg_mgr.manager_config['manager_port']))
+                sl_manager =  SharedListManager(cfg_mgr.manager_config['manager_ip'],
+                                             int(cfg_mgr.manager_config['manager_port']))
+            else:
+                sl_client = SharedListClient()
+                sl_manager =  SharedListManager()
 
             # check server is running
-            try:
-                sl_client.connect()
-            except ConnectionRefusedError:
+            result = sl_client.connect()
+            if not result:
                 sl_manager.start()
                 sl_client.connect()
-            except Exception as e:
-                print(f'error {e}')
-                return
-            finally:
-                # create ShareAbleList
-                sl_buffer = sl_client.create_shared_list(t_name,t_scale_width,t_scale_height,start_time)
+
+            # create ShareAbleList
+            sl_buffer = sl_client.create_shared_list(t_name, t_scale_width, t_scale_height, start_time)
 
         cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
 
@@ -827,7 +829,7 @@ class CASTDesktop:
         else:
             t_viinput = self.viinput
 
-        # Open av input container in read mode
+        # Open av input container in read mode if not SL
         if sl_buffer is None:
             try:
 
@@ -901,18 +903,20 @@ class CASTDesktop:
                             out_file = iio.imopen(self.output_file, "w", plugin="pyav")
                             out_file.init_video_stream(self.vo_codec, fps=frame_interval)
 
-                        frame_count += 1
-                        CASTDesktop.total_frame += 1
-
+                        """
+                        instruct the thread to exit 
+                        """
                         # if global stop or local stop
                         if self.stopcast or t_todo_stop:
                             raise ExitFromLoop
 
-                        """
-                        instruct the thread to exit 
-                        """
                         if CASTDesktop.t_exit_event.is_set():
                             raise ExitFromLoop
+                        """
+                        """
+
+                        frame_count += 1
+                        CASTDesktop.total_frame += 1
 
                         if output_container:
                             # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
@@ -953,6 +957,7 @@ class CASTDesktop:
 
                                 t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
 
+                        # check here as frame is an array now
                         if CASTDesktop.t_todo_event.is_set():
                             t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
 
@@ -964,7 +969,9 @@ class CASTDesktop:
                     default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
                     default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
                     frame = default_img
+                    #
                     # create ShareableList for preview if necessary
+                    #
                     if t_preview and str2bool(cfg_mgr.app_config['preview_proc']):
                         sl, sl_process = create_shareable_list(frame, i_grid=False)
                         if sl is None or sl_process is None:
@@ -987,13 +994,15 @@ class CASTDesktop:
 
                         if CASTDesktop.t_exit_event.is_set():
                             raise ExitFromLoop
-
+                        """
+                        """
                         #
                         # we read data from the ShareAbleList
                         #
                         time_frame = sl_buffer[1]
                         # check if recent frame that we need to proces (some frames can be skipped in busy system)
                         if time_frame + 2 > time.time():
+                            # ShareAbleList bug
                             frame = CV2Utils.frame_remove_one(sl_buffer[0])
                             # process frame
                             # 1D array
@@ -1003,11 +1012,13 @@ class CASTDesktop:
                             #
                             frame_count += 1
                             CASTDesktop.total_frame += 1
+                            #
                             frame, grid = process_frame(frame)
+                            #
                             if t_preview:
                                 t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
                         else:
-                            # preview default
+                            # preview default image
                             if t_preview:
                                 t_preview, t_todo_stop = process_preview(default_img,
                                                                          t_preview,

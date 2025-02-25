@@ -39,7 +39,7 @@ def root_path(filename):
     """
 
     if getattr(sys, 'frozen', False):  # Running from a compiled binary (Nuitka, PyInstaller)
-        if sys.platform == "darwin":  # macOS
+        if sys.platform == "darwin":  # macOS with APP
             base_path = os.path.dirname(os.path.dirname(sys.argv[0]))  # Contents/
             return os.path.join(base_path, "MacOS", filename)
         else:  # Windows/Linux (Nuitka puts files in the same dir as the binary)
@@ -189,6 +189,7 @@ class ConfigManager:
         The method initializes configuration-related attributes to None and sets the provided logging configuration path
         and logger name. It then calls the initialize method to set up the configuration based on the current environment.
         """
+        self.manager_config = None
         self.logger = None
         self.server_config = None
         self.app_config = None
@@ -262,9 +263,11 @@ class ConfigManager:
             self.desktop_config = cast_config[5]  # desktop key
             self.ws_config = cast_config[6]  # websocket key
             self.text_config = cast_config[7]  # text anim key
+            self.manager_config = cast_config[8]  # SL manager key
+
         else:
             if self.logger is not None:
-                self.logger.warning('Config file not found')
+                self.logger.debug('Config file not found')
             else:
                 print('Config file not found')
 
@@ -343,6 +346,7 @@ class ConfigManager:
             desktop_config = cast_config.get('desktop')
             ws_config = cast_config.get('ws')
             text_config = cast_config.get('text')
+            manager_config = cast_config.get('shared-list')
 
             return (server_config,
                     app_config,
@@ -351,7 +355,9 @@ class ConfigManager:
                     preset_config,
                     desktop_config,
                     ws_config,
-                    text_config)
+                    text_config,
+                    manager_config)
 
-        except Exception:
+        except Exception as e:
+            print(f'Error : {e}')
             return None

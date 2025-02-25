@@ -1,10 +1,13 @@
 from coldtype import *
 from coldtype.raster import *
+from src.utl.sharedlistclient import SharedListClient
+from src.utl.cv2utils import CV2Utils as img_utils
+import time
 
-#from multiprocessing.shared_memory import ShareableList
-# sl = ShareableList(name="shared_list")
-# fnt = Font.List("")
-# fnt = Font.Find("Roboto Serif 20pt")
+client = SharedListClient()
+client.connect()
+sl = client.attach_to_shared_list('Thread-21 (t_desktop_cast)')
+sl_info = client.get_shared_list_info('Thread-21 (t_desktop_cast)')
 
 states = [
     dict(wdth=0, rotate=-10),

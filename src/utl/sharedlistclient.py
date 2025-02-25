@@ -1,3 +1,53 @@
+"""
+a: zak-45
+d: 25/02/2025
+v: 1.0.0.0
+
+Overview
+This Python code defines a client (SharedListClient) for interacting with a separate server process that manages
+shared memory lists. These shared lists, implemented using multiprocessing.shared_memory.ShareableList,
+allow multiple processes (like a video processing pipeline and a WLED controller) to efficiently share data,
+such as LED frame information. The client provides methods to create, access, delete, and get information about
+these shared lists on the server.
+
+Key Components
+SharedListClient Class: This is the core of the file, providing the interface for client applications to interact with
+the shared list server.
+
+Its key methods include:
+
+connect(): Establishes a connection to the server.
+create_shared_list(): Requests the server to create a new shared list with a specified name, width, and height.
+                    It returns a ShareableList object that can be used to access the shared memory.
+attach_to_shared_list(): Attaches to an existing shared list by name.
+get_shared_lists(): Retrieves a list of names of existing shared lists on the server.
+get_shared_lists_info(): Retrieves information (likely size and dimensions) about all shared lists.
+get_shared_list_info(): Retrieves information about a specific shared list.
+delete_shared_list(): Requests the server to delete a specific shared list.
+stop_server(): Requests the server to shut down.
+
+SLManager Class:
+This class, inheriting from BaseManager, handles the remote procedure calls (RPC) to the server.
+It registers methods like create_shared_list, get_shared_lists, etc., which correspond to functions on the server side.
+This allows the client to call these functions remotely as if they were local.
+
+ShareableList:
+This class from the multiprocessing.shared_memory module is used to represent the actual shared memory lists.
+The client receives names/handles to these lists from the server and uses ShareableList to attach to and interact
+with the shared memory.
+
+Proxy Objects (AutoProxy):
+The code explicitly handles proxy objects returned by the manager.
+These proxies stand in for the actual return values from the server-side functions.
+The code uses f'{proxy_object}' to resolve the proxy and get the real string value.
+This is crucial for correctly interpreting the server's responses.
+
+The 'if __name__ == "__main__"':
+block provides example usage of the SharedListClient, demonstrating how to connect to the server,
+create and manipulate shared lists, and finally clean up by deleting the list and closing the shared memory.
+
+"""
+
 from multiprocessing.managers import BaseManager
 from multiprocessing.shared_memory import ShareableList
 
@@ -26,8 +76,16 @@ class SharedListClient:
         SLManager.register("stop_manager")
 
         self.manager = SLManager(address=self.address, authkey=self.authkey)
-        self.manager.connect()
-        print("Connected to SharedListManager.")
+        try:
+            self.manager.connect()
+            print("Connected to SharedListManager.")
+            return True
+        except ConnectionRefusedError as con:
+            print(f'No SL manager server: {con}')
+            return False
+        except Exception as er:
+            print(f'Error with  SL client : {er}')
+            return None
 
     def create_shared_list(self, name, width, height, start=0):
         """Requests the server to create a shared list and returns a ShareableList."""
@@ -90,45 +148,35 @@ class SharedListClient:
         """Requests the server to stop."""
         try:
             self.manager.stop_manager()  # This method now shuts down the server
-            print("Server shutdown request sent.")
+            print("SL manager shutdown request sent.")
         except ConnectionResetError:
             pass
         except Exception as e:
-            print(f"Error stopping the server: {e}")
+            print(f"Error stopping the SL manager: {e}")
 
 if __name__ == "__main__":
     client = SharedListClient()
 
     try:
         client.connect()
-
-
         # Create a shared list
         shared_list = client.create_shared_list("mylist", 128, 128, 3)
-
         if shared_list:
-            print("Initial shared list:", list(shared_list))
-
             # List shared lists
             print("Current SLs lists:", client.get_shared_lists())
-
             # List shared lists info
             print("Current shared lists info :", client.get_shared_lists_info())
-
             # List shared lists info
             print("Current shared list info for 'mylist' :", client.get_shared_list_info('mylist'))
-
-
             # Attach to SL
-            print("Attach to 'mylist' :", client.attach_to_shared_list('mylist'))
-
-
+            client.attach_to_shared_list('mylist')
+            print("Attach to 'mylist': ok" )
             # Cleanup
             client.delete_shared_list("mylist")
             shared_list.shm.close()  # Manually close shared memory
 
     except Exception as e:
-        print("Error:", e)
+        print("Client Error:", e)
 
     finally:
         print("Client shutting down.")

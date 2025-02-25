@@ -119,3 +119,10 @@
 # font_size     : size for font
 #
 [text]
+
+# ShareAbleList Manager
+# here to manage objects between processes
+#
+# manager_ip    : 127.0.0.1, IP address for the manager server
+# manager_port  : 50000 , port number
+[shared-list]
