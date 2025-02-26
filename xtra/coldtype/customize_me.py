@@ -6,8 +6,8 @@ import time
 
 client = SharedListClient(sl_ip_address="127.0.0.1", sl_port=50001)
 client.connect()
-sl = client.attach_to_shared_list('Thread-12 (t_desktop_cast)')
-sl_info = client.get_shared_list_info('Thread-12 (t_desktop_cast)')
+sl = client.attach_to_shared_list('Thread-2 (t_desktop_cast)')
+sl_info = client.get_shared_list_info('Thread-2 (t_desktop_cast)')
 print(sl_info)
 
 # Example 16: Exploding text with pre-delay
@@ -30,7 +30,7 @@ animator = TextAnimator(
 for _ in range(110):  # Adjust number of frames as needed
     frame = animator.generate()
     if frame is not None:
-        frame_to_send = img_utils.resize_image(frame,128,128, keep_ratio=False)
+        frame_to_send = img_utils.resize_image(frame,32,32, keep_ratio=False)
         frame_to_send = img_utils.frame_add_one(frame_to_send)
         sl[0] = frame_to_send
         sl[1] = time.time()

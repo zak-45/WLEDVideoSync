@@ -104,14 +104,15 @@ class CV2Utils:
 
         # check if window run into sub process so data come from ShareableList
         if str2bool(cfg_mgr.app_config['preview_proc']):
-            cfg_mgr.logger.debug('Window on sub process')
+            cfg_mgr.logger.debug('Preview Window on sub process')
+            sl_name = f'{t_name}_p'
             try:
                 # attach to a shareable list by name
-                sl = ShareableList(name=t_name)
+                sl = ShareableList(name=sl_name)
                 sl[6] = False
                 sl[18] = '0,0,0'
             except Exception as e:
-                cfg_mgr.logger.error(f'Error to access SharedList  {t_name} with error : {e} ')
+                cfg_mgr.logger.error(f'Error to access SharedList  {sl_name} with error : {e} ')
 
         else:
             # for window into thread

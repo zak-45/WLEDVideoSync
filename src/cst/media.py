@@ -783,7 +783,8 @@ class CASTMedia:
                         frame_info_list = list(frame_info)
                         frame_info = tuple(frame_info_list)
                         full_array = np.full(frame_info, 255, dtype=np.uint8)
-                        # create a shared list, name is thread name
+                        # create a shared list, name is thread name + _p
+                        sl_name = f'{t_name}_p'
                         try:
                             sl = ShareableList(
                                 [
@@ -809,14 +810,14 @@ class CASTMedia:
                                     grid,
                                     str(list(frame_info))
                                 ],
-                                name=t_name
+                                name=sl_name
                             )
                             cfg_mgr.logger.debug(f'{t_name} SL created ')
 
                         except OSError as e:
                             if e.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
-                                cfg_mgr.logger.warning(f"Shared memory '{t_name}' already exists. Attaching to it.")
-                                sl = ShareableList(name=t_name)
+                                cfg_mgr.logger.warning(f"Shared memory '{sl_name}' already exists. Attaching to it.")
+                                sl = ShareableList(name=sl_name)
 
                         except Exception as e:
                             cfg_mgr.logger.error(traceback.format_exc())
@@ -825,14 +826,14 @@ class CASTMedia:
 
                         # run main_preview in another process
                         # create a child process, so cv2.imshow() will run from its own Main Thread
-                        cfg_mgr.logger.debug(f'Define sl_process for Preview : {t_name}')
-                        sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Media',))
+                        cfg_mgr.logger.debug(f'Define sl_process for Preview : {sl_name}')
+                        sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name, 'Media',))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
-                        cfg_mgr.logger.debug(f'Starting Child Process for Preview : {t_name}')
+                        cfg_mgr.logger.debug(f'Starting Child Process for Preview : {sl_name}')
                         sl_process.start()
-                        cfg_mgr.logger.debug(f'Child Process started for Preview : {t_name}')
-                        print(f'Child Process started for Preview : {t_name}')
+                        cfg_mgr.logger.debug(f'Child Process started for Preview : {sl_name}')
+                        print(f'Child Process started for Preview : {sl_name}')
 
                     # working with the shared list
                     if frame_count > 1:
@@ -848,11 +849,7 @@ class CASTMedia:
                             #
                             # append not zero value to bytes to solve ShareableList bug
                             # see https://github.com/python/cpython/issues/106939
-                            new_frame = frame.tobytes()
-                            new_frame = bytearray(new_frame)
-                            new_frame.append(1)
-                            new_frame = bytes(new_frame)
-                            sl[1] = new_frame
+                            sl[1] = CV2Utils.frame_add_one(frame)
                             #
                             sl[5] = self.preview_top
                             sl[7] = self.preview_w

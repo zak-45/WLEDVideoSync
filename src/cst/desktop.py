@@ -576,7 +576,8 @@ class CASTDesktop:
             frame_info_list = list(frame_info)
             frame_info = tuple(frame_info_list)
             full_array = np.full(frame_info, 255, dtype=np.uint8)
-            # create a shared list, name is thread name
+            # create a shared list, name is thread name + _p
+            sl_name = f'{t_name}_p'
             try:
                 i_sl = ShareableList(
                     [
@@ -602,24 +603,24 @@ class CASTDesktop:
                         i_grid,
                         str(list(frame_info))
                     ],
-                    name=f'{t_name}_p')
+                    name=sl_name)
 
             except OSError as er:
                 if er.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
-                    cfg_mgr.logger.warning(f"Shared memory '{t_name}' already exists. Attaching to it.")
-                    i_sl = ShareableList(name=t_name)
+                    cfg_mgr.logger.warning(f"Shared memory '{sl_name}' already exists. Attaching to it.")
+                    i_sl = ShareableList(name=sl_name)
 
             except Exception as er:
                 cfg_mgr.logger.error(traceback.format_exc())
-                cfg_mgr.logger.error(f'{t_name} Exception on shared list creation : {er}')
+                cfg_mgr.logger.error(f'{t_name} Exception on shared list {sl_name} creation : {er}')
 
             # run main_preview in another process
             # create a child process, so cv2.imshow() will run from its Main Thread
-            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(t_name, 'Desktop',))
+            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name, 'Desktop',))
             # start the child process
             # small delay should occur, OS take some time to initiate the new process
             i_sl_process.start()
-            cfg_mgr.logger.debug(f'Starting Child Process for Preview : {t_name}')
+            cfg_mgr.logger.debug(f'Starting Child Process for Preview : {sl_name}')
 
             return i_sl, i_sl_process
 

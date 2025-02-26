@@ -1133,7 +1133,7 @@ async def main_page():
                         log_data = PathLib(log_filename).read_text()
                     else:
                         log_data = 'ERROR Log File Not Found ERROR'
-                        cfg_mgr.logger.error(f'Log File Not Found {log_filename}')
+                        cfg_mgr.logger.warning(f'Log File Not Found {log_filename}')
                     ui.button('Close', on_click=dialog.close, color='red')
                     log_area = ui.textarea(value=log_data).classes('w-full').props(add='bg-color=blue-grey-4')
                     log_area.props(add="rows='25'")
