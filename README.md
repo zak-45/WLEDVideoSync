@@ -5,7 +5,7 @@ Cross-Platform (Win / Linux / macOS) Portable Application
 
 `
 19/09/2024
-This is a BETA release. Tested on Win & Linux. All main features there. 
+This is a BETA release. Tested on Win (11) & Linux (ubuntu 24.04). All main features there. 
 No python installation required. Can run with GUI (made with NiceGUI) or without so act as service.
 Portable version give you flexibility and nothing installed into your OS.
 `

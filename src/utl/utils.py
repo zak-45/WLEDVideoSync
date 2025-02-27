@@ -272,8 +272,8 @@ class CASTUtils:
 
             ydl_opts = {
                 f'format': f'{download_format}',  # choose format to download
-                'paths': {'temp': './tmp'},  # temp folder
-                'outtmpl': './media/yt-tmp-%(title)s.%(ext)s',  # Output file name format
+                'paths': {'temp': cfg_mgr.app_root_path('tmp')},  # temp folder
+                'outtmpl': cfg_mgr.app_root_path('media/yt-tmp-%(title)s.%(ext)s'),  # Output file name format
                 'progress_hooks': [progress_hook],  # Hook for progress
                 'postprocessor_hooks': [post_hook],  # Hook for postprocessor
                 'noplaylist': True,  # Do not download playlists
@@ -286,8 +286,8 @@ class CASTUtils:
             ydl_opts = {
                 # 'format': '134/18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]' single stream
                 f'format': f'{download_format}',  # choose format to download
-                'paths': {'temp': './tmp'},  # temp folder
-                'outtmpl': './media/yt-tmp-%(title)s.%(ext)s',  # Output file name format
+                'paths': {'temp': cfg_mgr.app_root_path('tmp')},  # temp folder
+                'outtmpl': cfg_mgr.app_root_path('media/yt-tmp-%(title)s.%(ext)s'),  # Output file name format
                 'postprocessor_hooks': [post_hook],  # Hook for postprocessor
                 'noplaylist': True,  # Do not download playlists
                 'ignoreerrors': True,  # Ignore errors, such as unavailable formats
@@ -315,11 +315,11 @@ class CASTUtils:
         try:
             # server running from another process (e.g. Uvicorn)
             p_pid = os.getppid()
-            tmp_file = f"./tmp/{p_pid}_file"
-            if os.path.isfile(tmp_file + ".dat"):
+            tmp_file = cfg_mgr.app_root_path(f"tmp/{p_pid}_file")
+            if os.path.isfile(f"{tmp_file}.dat"):
                 infile = shelve.open(tmp_file)
                 server_port = infile["server_port"]
-        except:
+        except Exception:
             server_port = 99
 
         return server_port
@@ -667,7 +667,7 @@ class CASTUtils:
             image_file = io.BytesIO(image_content)
             image = Image.open(image_file)
             image = image.convert('RGB')
-            file_path = download_path + file_name
+            file_path = f'{download_path}/{file_name}'
 
             if os.path.isfile(file_path):
                 cfg_mgr.logger.error(f'Image already exist : {file_path}')
@@ -995,7 +995,7 @@ class AnimatedElement:
     Following is necessary as it's based on Animate.css
     # Add Animate.css to the HTML head
     ui.add_head_html(""
-    <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+    <link rel="stylesheet" href="assets/css/animate.min.css"/>
     "")
     app.add_static_files('/assets', 'assets')
     Param:

@@ -557,17 +557,11 @@ async def cast_devices_view(class_name):
 async def player_pick_file(CastAPI) -> None:
     """ Select file to read for video CastAPI.player """
 
-    result = await LocalFilePicker('./', multiple=False)
+    result = await LocalFilePicker(cfg_mgr.app_root_path('/'), multiple=False)
     ui.notify(f'Selected :  {result}')
 
     if result is not None:
-        if sys.platform.lower() == 'win32' and len(result) > 0:
-            result = str(result[0]).replace('\\', '/')
-        else:
-            result = str(result[0])
-
-        if result != "":
-            result = f'./{result}'
+        result = str(result[0])
 
         CastAPI.player.set_source(result)
         CastAPI.player.update()

@@ -975,7 +975,7 @@ async def main_page():
     if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
-        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
 
     """
@@ -1210,7 +1210,7 @@ async def run_video_player_page():
     if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
-        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
     ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
     await video_player_page()
@@ -1382,7 +1382,7 @@ async def main_page_desktop():
     if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
-        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
 
     columns_a = [
@@ -1616,7 +1616,7 @@ async def main_page_media():
     if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
-        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
 
     columns_a = [
@@ -1859,7 +1859,7 @@ async def info_page():
     if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
-        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
     ui.timer(int(cfg_mgr.app_config['timer']), callback=info_timer_action)
     await cast_manage_page()
@@ -2046,7 +2046,7 @@ async def animate_toggle(img):
     else:
         # Add Animate.css to the HTML head
         ui.add_head_html("""
-        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
         # put animation True
         cfg_mgr.custom_config['animate-ui'] = 'True'
@@ -2778,7 +2778,7 @@ async def tabs_info_page():
     if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
-        <link rel="stylesheet" href="./assets/css/animate.min.css"/>
+        <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
         tabs_anim = Animate(ui.tabs, animation_name_in='backInDown', duration=1)
         tabs = tabs_anim.create_element()
@@ -3146,41 +3146,47 @@ async def bar_get_size():
 async def download_url(url):
     """ Download video/image from Web url """
 
+    #  this can be Web or local
     video_img_url = url
+    # init value for progress bar
     CastAPI.progress_bar.value = 0
     CastAPI.progress_bar.update()
 
-    # check if YT Url
-    if 'youtube' in url:
+    # we check if this is Web url
+    if 'http' in url:
+        # check if YT Url, so will download to media
+        if 'youtube' in url:
 
-        # this will run async loop in background and continue...
-        create_task(bar_get_size())
+            # this will run async loop in background and continue...
+            create_task(bar_get_size())
 
-        # wait YT download finished
-        yt = await Utils.youtube_download(url, interactive=True)
+            # wait YT download finished
+            yt = await Utils.youtube_download(url, interactive=True)
 
-        # if no error, set local YT file name to video player
-        if yt != '':
-            video_img_url = yt
+            # if no error, set local YT file name to video player
+            if yt != '':
+                video_img_url = yt
 
-    elif await Utils.is_image_url(url):
+        # check if this is an image, so will download to media
+        elif await Utils.is_image_url(url):
 
-        # generate a unique name
-        # Get the current date and time
-        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        # Format the unique name with prefix, date, time, and extension
-        image_name = f"image-tmp_{current_time}.jpg"
+            # generate a unique name
+            # Get the current date and time
+            current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+            # Format the unique name with prefix, date, time, and extension
+            image_name = f"image-tmp_{current_time}.jpg"
 
-        result = await Utils.download_image(cfg_mgr.app_root_path('media'), url, image_name)
-        if result:
-            video_img_url = cfg_mgr.app_root_path(f'media/{image_name}')
+            result = await Utils.download_image(cfg_mgr.app_root_path('media'), url, image_name)
+            if result:
+                video_img_url = cfg_mgr.app_root_path(f'media/{image_name}')
 
-    ui.notify(f'Video set to : {video_img_url}')
-    cfg_mgr.logger.debug(f'Video set to : {video_img_url}')
+    ui.notify(f'Player set to : {video_img_url}')
+    cfg_mgr.logger.debug(f'Player set to : {video_img_url}')
 
     # put max value to progress bar
     CastAPI.progress_bar.value = 1
     CastAPI.progress_bar.update()
+
     # set video player media
     CastAPI.player.set_source(video_img_url)
     CastAPI.player.update()
