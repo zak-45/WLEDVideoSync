@@ -219,6 +219,8 @@ class CASTDesktop:
         sl = None
         sl_process = None
         sl_client = None
+        sl_manager = None
+        sl_name_q = f'{t_name}_q'
 
         t_todo_stop = False
 
@@ -569,7 +571,7 @@ class CASTDesktop:
         """
         create shareable list        
         """
-        def create_shareable_list(i_frame, i_grid):
+        def create_preview_sl(i_frame, i_grid):
             i_sl = None
             # Create a (9999, 9999, 3) array with all values set to 255 to reserve memory
             frame_info = i_frame.shape
@@ -577,7 +579,7 @@ class CASTDesktop:
             frame_info = tuple(frame_info_list)
             full_array = np.full(frame_info, 255, dtype=np.uint8)
             # create a shared list, name is thread name + _p
-            sl_name = f'{t_name}_p'
+            sl_name_p = f'{t_name}_p'
             try:
                 i_sl = ShareableList(
                     [
@@ -603,24 +605,24 @@ class CASTDesktop:
                         i_grid,
                         str(list(frame_info))
                     ],
-                    name=sl_name)
+                    name=sl_name_p)
 
             except OSError as er:
                 if er.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
-                    cfg_mgr.logger.warning(f"Shared memory '{sl_name}' already exists. Attaching to it.")
-                    i_sl = ShareableList(name=sl_name)
+                    cfg_mgr.logger.warning(f"Shared memory '{sl_name_p}' already exists. Attaching to it.")
+                    i_sl = ShareableList(name=sl_name_p)
 
             except Exception as er:
                 cfg_mgr.logger.error(traceback.format_exc())
-                cfg_mgr.logger.error(f'{t_name} Exception on shared list {sl_name} creation : {er}')
+                cfg_mgr.logger.error(f'{t_name} Exception on shared list {sl_name_p} creation : {er}')
 
             # run main_preview in another process
             # create a child process, so cv2.imshow() will run from its Main Thread
-            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name, 'Desktop',))
+            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop',))
             # start the child process
             # small delay should occur, OS take some time to initiate the new process
             i_sl_process.start()
-            cfg_mgr.logger.debug(f'Starting Child Process for Preview : {sl_name}')
+            cfg_mgr.logger.debug(f'Starting Child Process for Preview : {sl_name_p}')
 
             return i_sl, i_sl_process
 
@@ -810,7 +812,7 @@ class CASTDesktop:
                 sl_client.connect()
 
             # create ShareAbleList
-            sl_buffer = sl_client.create_shared_list(t_name, t_scale_width, t_scale_height, start_time)
+            sl_buffer = sl_client.create_shared_list(sl_name_q, t_scale_width, t_scale_height, start_time)
 
         cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
 
@@ -951,7 +953,7 @@ class CASTDesktop:
                             if t_preview:
                                 # create ShareableList if necessary
                                 if frame_count == 1 and str2bool(cfg_mgr.app_config['preview_proc']):
-                                    sl, sl_process = create_shareable_list(frame, grid)
+                                    sl, sl_process = create_preview_sl(frame, grid)
                                     if sl is None or sl_process is None:
                                         cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
                                         raise ExitFromLoop
@@ -964,7 +966,7 @@ class CASTDesktop:
 
                 elif sl_buffer is not None:
 
-                    cfg_mgr.logger.debug('process from queue-ShareAbleList')
+                    cfg_mgr.logger.debug('process from ShareAbleList-queue')
                     # Default image to display when no more frame
                     default_img = cv2.imread(cfg_mgr.app_root_path('assets/Source-intro.png'))
                     default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
@@ -974,7 +976,7 @@ class CASTDesktop:
                     # create ShareableList for preview if necessary
                     #
                     if t_preview and str2bool(cfg_mgr.app_config['preview_proc']):
-                        sl, sl_process = create_shareable_list(frame, i_grid=False)
+                        sl, sl_process = create_preview_sl(frame, i_grid=False)
                         if sl is None or sl_process is None:
                             cfg_mgr.logger.error(f'{t_name} Error on SharedList creation for Preview')
                             raise ExitFromLoop
@@ -1087,7 +1089,7 @@ class CASTDesktop:
 
         # cleanup SL
         if sl_buffer is not None:
-            sl_client.delete_shared_list(t_name)
+            sl_client.delete_shared_list(sl_name_q)
             # check if last SL
             sl_list = ast.literal_eval(sl_client.get_shared_lists())
             if len(sl_list) == 0:

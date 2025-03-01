@@ -64,6 +64,7 @@ from configmanager import ConfigManager
 from src.utl.fontsmanager import FontPreviewManager
 from src.utl.fontsmanager import FontSetApplication
 from src.txt.coldtypemp import RUNColdtype
+from src.utl.pyeditor import PythonEditor
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 
@@ -1981,7 +1982,6 @@ async def coldtype_test_page():
 
 @ui.page('/Pyeditor')
 async def pyeditor_test_page():
-    from src.utl.pyeditor import PythonEditor
 
     ui.dark_mode(CastAPI.dark_mode)
 

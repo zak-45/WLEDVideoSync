@@ -170,7 +170,7 @@ class SharedListManager:
         return self.shared_lists_info[name]
 
     def delete_shared_list(self, name):
-        """Deletes a ShareableList and frees shared memory."""
+        """Deletes a ShareableList and free shared memory."""
 
         if name in self.shared_lists:
             try:

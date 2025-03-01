@@ -268,8 +268,6 @@ class ConfigManager:
         else:
             if self.logger is not None:
                 self.logger.debug('Config file not found')
-            else:
-                print('Config file not found')
 
         # create logger
         self.logger = self.setup_logging()
@@ -313,7 +311,7 @@ class ConfigManager:
             # if not found config, set default param
             logging.basicConfig(level=logging.INFO)
             logger = logging.getLogger(self.logger_name)
-            logger.warning(f"Logging config file {self.logging_config_path} not found. Using basic configuration.")
+            logger.debug(f"Logging config file {self.logging_config_path} not found. Using basic configuration.")
 
         return logger
 
@@ -359,5 +357,7 @@ class ConfigManager:
                     manager_config)
 
         except Exception as e:
-            print(f'Error : {e}')
+            if self.logger is not None:
+                self.logger.debug(f'Error : {e}')
+
             return None

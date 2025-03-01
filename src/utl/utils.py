@@ -10,6 +10,8 @@
 # pywinctl provide a cross-platform window mgt.
 #
 """
+
+import contextlib
 try:
     from yt_dlp import YoutubeDL
 except Exception as e:
@@ -72,6 +74,43 @@ class CASTUtils:
 
     def __init__(self):
         pass
+
+    @staticmethod
+    def get_queue_manager_settings():
+        
+        ip = '127.0.0.1'
+        port = 50000
+        with contextlib.suppress(Exception):
+            if cfg_mgr.manager_config is not None:
+                if cfg_mgr.manager_config['manager_ip'] != '':
+                    ip = cfg_mgr.manager_config['manager_ip']
+                if int(cfg_mgr.manager_config['manager_port']) != 0: 
+                    port = int(cfg_mgr.manager_config['manager_port'])
+                    
+        return ip, port
+
+    @staticmethod
+    def attach_to_queue_manager():
+        from src.utl.sharedlistclient import SharedListClient
+
+        ip, port = CASTUtils.get_queue_manager_settings()
+        return SharedListClient(sl_ip_address=ip, sl_port=port)
+
+    @staticmethod
+    def attach_to_manager_queue(queue_name):
+
+        sl = None
+        width = None
+        height = None
+        with contextlib.suppress(Exception):
+            client =  CASTUtils.attach_to_queue_manager()
+            if status := client.connect():
+                sl = client.attach_to_shared_list(queue_name)
+                sl_info = client.get_shared_list_info(queue_name)
+                width = sl_info['w']
+                height = sl_info['h']
+
+        return sl, width, height
 
     @staticmethod
     def get_system_fonts():

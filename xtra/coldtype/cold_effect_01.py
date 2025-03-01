@@ -4,10 +4,13 @@ from src.utl.sharedlistclient import SharedListClient
 from src.utl.cv2utils import CV2Utils as img_utils
 import time
 
-client = SharedListClient()
-client.connect()
-sl = client.attach_to_shared_list('Thread-21 (t_desktop_cast)')
-sl_info = client.get_shared_list_info('Thread-21 (t_desktop_cast)')
+try:
+    client = SharedListClient()
+    client.connect()
+    sl = client.attach_to_shared_list('Thread-21 (t_desktop_cast)')
+    sl_info = client.get_shared_list_info('Thread-21 (t_desktop_cast)')
+except:
+    pass
 
 states = [
     dict(wdth=0, rotate=-10),

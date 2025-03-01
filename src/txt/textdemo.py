@@ -2,6 +2,7 @@ import cv2
 from src.txt.textanimator import TextAnimator
 
 
+
 # Example 1: Basic scrolling text
 animator = TextAnimator(
     text="Basic scrolling text",

@@ -13,6 +13,7 @@
 """
 
 import ast
+import time
 
 import cv2
 from multiprocessing.shared_memory import ShareableList
@@ -39,6 +40,14 @@ class CV2Utils:
     def __init__(self):
         pass
 
+    @staticmethod
+    def send_to_queue(frame, sl, w, h):
+
+        frame = CV2Utils.resize_image(frame, w, h, keep_ratio=False)
+        frame = CV2Utils.frame_add_one(frame)
+
+        sl[0] = frame
+        sl[1] = time.time()
 
     @staticmethod
     def frame_add_one(frame):

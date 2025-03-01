@@ -1,6 +1,6 @@
 from coldtype import *
 
-@animation((800, 240), timeline=100, bg=hsl(.8))
+@animation((800, 240), timeline=100, bg=hsl(.9))
 def cold_demo_01(f):
     return (StSt("CDELOPTY",
         Font.ColdtypeObviously(), 150,

@@ -7,18 +7,11 @@ from src.gui.niceutils import LocalFilePicker
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.calculator import Calculator
 from src.utl.console import ConsoleCapture
-from src.utl.sharedlistclient import SharedListClient
+from src.utl.utils import CASTUtils as Utils
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
-client=SharedListClient()
-try:
-    client = client.connect()
-except ConnectionRefusedError:
-    print('No SL manager')
-except Exception as e:
-    print(f'Error with  SL client : {e}')
 
 class PythonEditor:
     """Run the Python code in the editor using Coldtype.
@@ -44,6 +37,21 @@ class PythonEditor:
 
         self.capture = ConsoleCapture(show_console=False)
 
+    async def get_manager_queues(self):
+        
+        client = Utils.attach_to_queue_manager()
+        return client.get_shared_lists_info() if (status := client.connect()) else {}
+
+
+    async def show_queues(self):
+        queues = await self.get_manager_queues()
+        print(queues)
+        with ui.dialog() as dialog, ui.card():
+            dialog.open()
+            editor = ui.json_editor({'content': {'json': queues}}) \
+                .run_editor_method('updateProps', {'readOnly': True})
+            ui.button('Close', on_click=dialog.close, color='red')
+            
     async def run_py(self):
         """Run the Python code in the editor using Coldtype.
 
@@ -68,7 +76,7 @@ class PythonEditor:
             cfg_mgr.logger.error(f'Pyeditor Error to load File "{self.current_file}".')
             ui.notify(f'Error loading file: {e}', color='red')
 
-    def save_file(self, editor_file):
+    async def save_file(self, editor_file):
         """Save the current content of the editor back to the specified file."""
         if editor_file:
             try:
@@ -144,19 +152,16 @@ class PythonEditor:
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
         with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):
 
-            self.syntax = ui.label().classes('text-red-500 whitespace-pre-wrap')
-            self.syntax.set_visibility(False)
-
             # Toolbar
             with ui.row().classes('w-full justify-between'):
                 ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit)
                 ui.button('Check Syntax',icon='check', on_click=self.check_code_syntax).classes('bg-blue-500 text-white')
-                self.py_run = ui.button(icon='settings', on_click=self.run_py)
-                self.py_run.set_visibility(False)
                 ui.button('Fullscreen', icon='fullscreen', on_click=self.toggle_fullscreen).classes('bg-gray-700 text-white')
 
             ui.label('Current Editor File:').classes('text-sm text-gray-500')
             self.editor_file = ui.label(self.current_file).classes('text-sm')
+            self.syntax = ui.label().classes('text-red-500 whitespace-pre-wrap')
+            self.syntax.set_visibility(False)
 
             # File content preview area
             # 09/02/2025 : use it in this way to prevent NiceGUI bug :https://github.com/zauberzeug/nicegui/issues/3337
@@ -169,9 +174,12 @@ class PythonEditor:
                 with ui.row():
                     save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
                     save_file.classes('bg-green-500 text-white')
+                    self.py_run = ui.button(icon='settings', on_click=self.run_py)
+                    self.py_run.set_visibility(False)
                     with ui.button(icon='palette'):
                         ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
                     ui.button(icon='calculate', on_click=self.show_calculator)
+                    ui.button(icon='queue', on_click=self.show_queues)
 
                 self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
                 self.editor.style(add='font-family:Roboto !important')

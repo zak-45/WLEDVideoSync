@@ -47,7 +47,7 @@ block provides example usage of the SharedListClient, demonstrating how to conne
 create and manipulate shared lists, and finally clean up by deleting the list and closing the shared memory.
 
 """
-
+import ast
 from multiprocessing.managers import BaseManager
 from multiprocessing.shared_memory import ShareableList
 
@@ -108,15 +108,15 @@ class SharedListClient:
                 try:
                     print(f'Attach to SL : {name}')
                     return ShareableList(name=name)  # Attach to the existing list
-                except Exception as e:
-                    print(f"Error attaching to SL '{name}': {e}")
+                except Exception as er:
+                    print(f"Error attaching to SL '{name}': {er}")
                     return None
             else:
                 print(f"Failed to create SL '{name}'. Received unexpected response: {proxy_result}")
                 return None
 
-        except Exception as e:
-            print(f"Failed to resolve proxy value: {e}")
+        except Exception as er:
+            print(f"Failed to resolve proxy value: {er}")
             return None
 
     @staticmethod
@@ -129,20 +129,31 @@ class SharedListClient:
         return f'{self.manager.get_shared_lists()}'
 
     def get_shared_lists_info(self):
-        """Retrieves all shared list names with h & w."""
+        """Retrieves all shared list names with width and height."""
         print('Request to receive existing SLs info dict')
-        return f'{self.manager.get_shared_lists_info()}'
+        shared_lists_info_proxy = self.manager.get_shared_lists_info()
+        shared_lists_info_str = f'{shared_lists_info_proxy}'
+        try:
+            return ast.literal_eval(shared_lists_info_str)
+        except (SyntaxError, ValueError) as er:
+            print(f"Error parsing shared list info: {er}")
+            return None
 
     def get_shared_list_info(self, name):
-        """Retrieves all shared list names with h & w."""
+        """Retrieves size information for a specific shared list."""
         print(f'Request to receive existing SL info dict for: {name}')
-        return f'{self.manager.get_shared_list_info(name)}'
+        shared_list_info_proxy = self.manager.get_shared_list_info(name)
+        shared_list_info_str = f'{shared_list_info_proxy}'
+        try:
+            return ast.literal_eval(shared_list_info_str)
+        except (SyntaxError, ValueError) as er:
+            print(f"Error parsing shared list info: {er}")
+            return None
 
     def delete_shared_list(self, name):
         """Deletes a shared list."""
         print(f"Request to delete SL '{name}'.")
         self.manager.delete_shared_list(name)
-
 
     def stop_server(self):
         """Requests the server to stop."""
@@ -151,17 +162,15 @@ class SharedListClient:
             print("SL manager shutdown request sent.")
         except ConnectionResetError:
             pass
-        except Exception as e:
-            print(f"Error stopping the SL manager: {e}")
+        except Exception as er:
+            print(f"Error stopping the SL manager: {er}")
 
 if __name__ == "__main__":
     client = SharedListClient()
 
     try:
         client.connect()
-        # Create a shared list
-        shared_list = client.create_shared_list("mylist", 128, 128, 3)
-        if shared_list:
+        if shared_list := client.create_shared_list("mylist", 128, 128, 3):
             # List shared lists
             print("Current SLs lists:", client.get_shared_lists())
             # List shared lists info
@@ -171,6 +180,11 @@ if __name__ == "__main__":
             # Attach to SL
             client.attach_to_shared_list('mylist')
             print("Attach to 'mylist': ok" )
+            if mylist_info := client.get_shared_list_info('mylist'):
+                width = mylist_info['w']
+                height = mylist_info['h']
+                print(f"Size of 'mylist' (using get_shared_list_info): {width}x{height}")
+
             # Cleanup
             client.delete_shared_list("mylist")
             shared_list.shm.close()  # Manually close shared memory
