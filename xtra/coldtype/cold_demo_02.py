@@ -1,4 +1,10 @@
+import cv2
 from coldtype import *
+from coldtype.raster import *
+from src.utl.utils import CASTUtils as Utils
+from src.utl.cv2utils import CV2Utils as ImgUtils
+
+sl, w, h = Utils.attach_to_manager_queue('Thread-2 (t_desktop_cast)_q')
 
 # Define the string to cycle through
 s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -43,8 +49,10 @@ def cold_demo_02(f):
                  .f(info_text_color))  # set the info text color
 
     # Return the styled text
-    return P(
+    gen_image  = P(
         P().rect(f.a.r).f(bg_color),  # set the background color
         txt,
         info_text,  # add the info text
     )
+
+    return 

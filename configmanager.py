@@ -47,7 +47,7 @@ def root_path(filename):
             return os.path.join(base_path, filename)
 
     # Running in development mode (not compiled)
-    return os.path.join(os.path.dirname(sys.argv[0]),filename)
+    return os.path.join(os.path.dirname(__file__),filename)
 
 
 def count_processes_by_name(name):

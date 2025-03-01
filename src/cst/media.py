@@ -106,7 +106,7 @@ class CASTMedia:
         self.frame_index: int = 0
         self.put_to_buffer: bool = False
         self.frame_max: int = 8
-        self.text: bool = str2bool(cfg_mgr.app_config['text'])
+        self.text: bool = str2bool(cfg_mgr.app_config['text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
         self.multicast: bool = False
         self.cast_x: int = 1

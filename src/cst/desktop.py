@@ -141,7 +141,7 @@ class CASTDesktop:
         self.preview_top: bool = False
         self.preview_w: int = 640
         self.preview_h: int = 360
-        self.text = cfg_text
+        self.text = str2bool(cfg_mgr.app_config['text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
         self.voformat: str = 'mpeg'
         self.vo_codec: str = 'h264'

@@ -94,25 +94,27 @@ Expected way to work.
 if "NUITKA_ONEFILE_PARENT" not in os.environ:
 
     # load optional modules
-    if str2bool(cfg_mgr.custom_config['player']) or str2bool(cfg_mgr.custom_config['system-stats']):
-        pass
+
+    # if str2bool(cfg_mgr.custom_config['player']) or str2bool(cfg_mgr.custom_config['system-stats']):
+    #    pass
 
     #  validate network config
-    server_ip = cfg_mgr.server_config['server_ip']
-    if not Utils.validate_ip_address(server_ip):
-        cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
-        sys.exit(1)
+    if cfg_mgr.server_config is not None:
+        server_ip = cfg_mgr.server_config['server_ip']
+        if not Utils.validate_ip_address(server_ip):
+            cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
+            sys.exit(1)
 
-    server_port = cfg_mgr.server_config['server_port']
+        server_port = cfg_mgr.server_config['server_port']
 
-    if server_port == 'auto':
-        server_port = native.find_open_port()
-    else:
-        server_port = int(cfg_mgr.server_config['server_port'])
+        if server_port == 'auto':
+            server_port = native.find_open_port()
+        else:
+            server_port = int(cfg_mgr.server_config['server_port'])
 
-    if server_port not in range(1, 65536):
-        cfg_mgr.logger.error(f'Bad server Port: {server_port}')
-        sys.exit(2)
+        if server_port not in range(1, 65536):
+            cfg_mgr.logger.error(f'Bad server Port: {server_port}')
+            sys.exit(2)
 
 """
 Actions to do at application initialization 
@@ -1040,7 +1042,7 @@ async def main_page():
 
                 ui.icon('info') \
                     .tooltip('Show details') \
-                    .on('click', lambda: show_thread_info()) \
+                    .on('click', lambda: show_threads_info()) \
                     .classes('self-center') \
                     .style('cursor: pointer')
                 with ui.row().classes('self-center'):
@@ -2954,8 +2956,8 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
             ui.notification(f'Initiate {action} with params {params} for {cast_name}...', type='info', timeout=1)
 
 
-async def show_thread_info():
-    """ show all info from running cats """
+async def show_threads_info():
+    """ show all info from running cast """
 
     dialog = ui.dialog().props(add='transition-show="slide-down" transition-hide="slide-up"')
     with dialog, ui.card():
@@ -3252,7 +3254,6 @@ def apply_custom():
 """
 RUN
 """
-
 # settings
 app.openapi = custom_openapi
 app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
@@ -3264,8 +3265,8 @@ app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
 app.on_startup(init_actions)
 
 # choose GUI
-native_ui = cfg_mgr.app_config['native_ui']
-native_ui_size = cfg_mgr.app_config['native_ui_size']
+native_ui = cfg_mgr.app_config['native_ui'] if cfg_mgr.app_config is not None else 'False'
+native_ui_size = cfg_mgr.app_config['native_ui_size'] if cfg_mgr.app_config is not None else ''
 show = None
 try:
     if native_ui.lower() == 'none':
@@ -3289,9 +3290,9 @@ ui.run(title='WLEDVideoSync',
        favicon=cfg_mgr.app_root_path('favicon.ico'),
        host=server_ip,
        port=server_port,
-       fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs']),
+       fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
        show=show,
-       reconnect_timeout=int(cfg_mgr.server_config['reconnect_timeout']),
+       reconnect_timeout=int(cfg_mgr.server_config['reconnect_timeout'] if cfg_mgr.server_config is not None else '3'),
        reload=False,
        native=native_ui,
        window_size=native_ui_size,
