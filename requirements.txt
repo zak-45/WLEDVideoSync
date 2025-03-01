@@ -46,3 +46,4 @@ librosa
 pydantic
 a2wsgi
 pytubefix
+moviepy

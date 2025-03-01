@@ -161,6 +161,7 @@ jobs:
             av.opaque
             coldtype.raster
             fontgoggles.font.otfFont
+            moviepy
             PIL.Image
             PIL.ImageDraw
             PIL.ImageFont
