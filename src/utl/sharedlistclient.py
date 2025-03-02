@@ -87,11 +87,11 @@ class SharedListClient:
             print(f'Error with  SL client : {er}')
             return None
 
-    def create_shared_list(self, name, width, height, start=0):
+    def create_shared_list(self, name, w, h, start_time=0):
         """Requests the server to create a shared list and returns a ShareableList."""
 
-        print(f"Request to Create SL '{name}' for  {width}-{height}.")
-        shm_name_proxy = self.manager.create_shared_list(name, width, height, start)  # This is an AutoProxy object
+        print(f"Request to Create SL '{name}' for  {w}-{h}.")
+        shm_name_proxy = self.manager.create_shared_list(name, w, h, start_time)  # This is an AutoProxy object
 
         # Instead of treating the proxy as a normal string, access its actual value using 'shm_name_proxy'
         try:

@@ -1011,15 +1011,16 @@ class CASTDesktop:
                             # 1D array
                             frame = np.frombuffer(frame, dtype=np.uint8)
                             # 2D array
-                            frame = frame.reshape(int(t_scale_width), int(t_scale_height), 3)
-                            #
-                            frame_count += 1
-                            CASTDesktop.total_frame += 1
-                            #
-                            frame, grid = process_frame(frame)
-                            #
-                            if t_preview:
-                                t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
+                            if frame.nbytes > 0:
+                                frame = frame.reshape(int(t_scale_width), int(t_scale_height), 3)
+                                #
+                                frame_count += 1
+                                CASTDesktop.total_frame += 1
+                                #
+                                frame, grid = process_frame(frame)
+                                #
+                                if t_preview:
+                                    t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
                         else:
                             # preview default image
                             if t_preview:

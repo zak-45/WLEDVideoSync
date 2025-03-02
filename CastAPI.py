@@ -602,11 +602,14 @@ async def util_casts_info(img: bool = False):
 @app.get("/api/util/queues", tags=["casts"])
 async def list_cast_queues():
     """
-        Get all queues from Desktop cast
-        These queues wait for an image in numpy array (y,x,3)
+        Get all queues (SL) from Desktop cast
+        These SharedList are based on numpy array (y,x,3)
     """
-
-    return {"queues":Desktop.queue_names}
+    client = Utils.attach_to_queue_manager()
+    if status := client.connect():
+        return {"queues":ast.literal_eval(client.get_shared_lists())}
+    else:
+        raise HTTPException(status_code=400, detail="No Queues defined in Desktop")
 
 @app.get("/api/{class_name}/list_actions", tags=["casts"])
 async def list_todo_actions(class_name: str = PathAPI(description=f'Class name, should be in: {class_to_test}')):
@@ -1598,7 +1601,7 @@ async def main_page_desktop():
             with ui.dialog() as dialog, ui.card():
                 dialog.open()
                 editor = ui.json_editor({'content': {'json': Desktop.windows_titles}}) \
-                    .run_editor_method('updateProps', {'readOnly': False})
+                    .run_editor_method('updateProps', {'readOnly': True})
                 ui.button('Close', on_click=dialog.close, color='red')
 
         ui.button('Win TITLES', on_click=display_windows, color='bg-red-800').tooltip('View windows titles')
@@ -1977,7 +1980,7 @@ async def coldtype_test_page():
         cold = RUNColdtype()
         cold.start()
 
-    ui.button('run Coldtype', on_click=cold_run).classes('self-cnter')
+    ui.button('run Coldtype', on_click=cold_run).classes('self-center')
 
     print('end of coldtype page load')
 
@@ -3287,7 +3290,7 @@ except Exception as error:
 
 # run app
 ui.run(title='WLEDVideoSync',
-       favicon=cfg_mgr.app_root_path('favicon.ico'),
+       favicon='favicon.ico',
        host=server_ip,
        port=server_port,
        fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),

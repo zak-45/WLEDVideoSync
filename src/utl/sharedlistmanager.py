@@ -130,7 +130,7 @@ class SharedListManager:
                 print("Manager process was already stopped or not initialized.")
 
 
-    def create_shared_list(self, name, width, height, start=0):
+    def create_shared_list(self, name, width, height, start_time=0):
         """Creates a new shared list.
 
         Creates a shared list with the given name, size, and default value, using
@@ -138,9 +138,10 @@ class SharedListManager:
         """
 
         if name in self.shared_lists:
-            print(f"Shared list '{name}' already exists.")
-            return False
+            print(f"Shared list '{name}' already exists, nothing to do.")
+            return None  # Return None if exist
 
+        # ShareAbleList need a fixed amount of memory, size need to be calculated for max
         # Create a (x, y, 3) array with all values set to 255 to reserve memory
         full_array = np.full((width,height,3), 255, dtype=np.uint8)
         size = full_array.nbytes
@@ -148,14 +149,14 @@ class SharedListManager:
         full_array = CV2Utils.frame_add_one(full_array)
 
         try:
-            self.shared_lists[name] = ShareableList([full_array, start], name=name)
+            self.shared_lists[name] = ShareableList([full_array, start_time], name=name)
             self.shared_lists_info[name] = {"w":width, "h":height}
             print(f"Created shared list '{name}'  for : {width} - {height} of size {size}.")
             return True
 
         except Exception as e:
             print(f"Error creating shared list '{name}': {e}")
-            return None  # Return None on failure
+            return False  # Return False on failure
 
     def get_shared_lists(self):
         """Return the list of shared list names."""
