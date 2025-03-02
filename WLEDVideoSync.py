@@ -476,7 +476,7 @@ if __name__ == '__main__':
     # instruct user to go to WLEDVideoSync folder to execute program (nuitka onefile option)
     if "NUITKA_ONEFILE_PARENT" in os.environ:
 
-        config_file = cfg_mgr.app_root_path('WLEDVideoSync/config/WLEDVideoSync.ini')
+        config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
 
         # Apply some default params only once
         # Apply default GUI / param , depend on platform
@@ -501,11 +501,11 @@ if __name__ == '__main__':
             proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
             # change folder icon
-            cmd_str = f'gio set -t string "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("WLEDVideoSync/assets/mac_folder.png")}'
+            cmd_str = f'gio set -t string "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/mac_folder.png")}'
             proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
             # change app icon
-            cmd_str = f'gio set -t string "WLEDVideoSync/WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("WLEDVideoSync/favicon.png")}'
+            cmd_str = f'gio set -t string "WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("favicon.png")}'
             proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
 
@@ -527,7 +527,7 @@ if __name__ == '__main__':
         root.configure(bg='#657B83')  # Set the background color
 
         # Change the window icon
-        icon = PhotoImage(file=cfg_mgr.app_root_path('WLEDVideoSync/favicon.png'))
+        icon = PhotoImage(file=cfg_mgr.app_root_path('favicon.png'))
         root.iconphoto(False, icon)
 
         # Define the window's contents
