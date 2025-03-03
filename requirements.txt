@@ -14,7 +14,6 @@ pillow==11.1.0
 fastapi==0.115.8
 starlette==0.45.3
 pystray==0.19.5
-uvicorn[standard]==0.34.0
 psutil==6.1.1
 requests==2.32.3
 screeninfo==0.8.1
