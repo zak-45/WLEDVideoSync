@@ -78,7 +78,7 @@ Webview Integration: Uses pywebview to provide a native OS window for the applic
 System Tray: Implements a system tray icon with menu options to manage the application on Windows.
 
 """
-import asyncio
+
 import sys
 import shelve
 from subprocess import Popen
@@ -91,7 +91,6 @@ import tkinter as tk
 
 from tkinter import PhotoImage
 from src.utl.utils import CASTUtils as Utils
-from pathlib import Path as PathLib
 from multiprocessing import active_children
 from PIL import Image
 from uvicorn import Config, Server
@@ -100,7 +99,6 @@ from str2bool import str2bool
 from configmanager import ConfigManager
 
 if sys.platform.lower() == 'win32':
-    import winloop
     from pystray import Icon, Menu, MenuItem
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
@@ -465,11 +463,6 @@ if __name__ == '__main__':
 
     freeze_support()  # noqa
 
-    # The correct event loop is now installed and ready to use.
-    if sys.platform.lower() == 'win32':
-        winloop.install()
-        loop = asyncio.new_event_loop()
-
     config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
 
     # test to see if executed from compressed version
@@ -498,14 +491,16 @@ if __name__ == '__main__':
 
             # chmod +x info window
             cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
-            proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+            proc1 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
             # change folder icon
-            cmd_str = f'gio set -t string "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/mac_folder.png")}'
+            cmd_str = f'gio set -t string \
+            "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/mac_folder.png")}'
             proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
             # change app icon
-            cmd_str = f'gio set -t string "WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("favicon.png")}'
+            cmd_str = f'gio set -t string \
+            "WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("favicon.png")}'
             proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
 
@@ -635,7 +630,7 @@ if __name__ == '__main__':
     """
     if sys.platform.lower() == 'win32':
         # pystray definition
-        pystray_image = Image.open('favicon.ico')
+        pystray_image = Image.open(cfg_mgr.app_root_path('favicon.ico'))
 
         pystray_menu = Menu(
             MenuItem('Open', on_open),
@@ -655,7 +650,7 @@ if __name__ == '__main__':
             MenuItem(f'Exit - server :  {server_port}', on_exit)
         )
 
-        WLEDVideoSync_icon = Icon('Pystray', pystray_image, menu=pystray_menu)
+        WLEDVideoSync_icon = Icon('Pystray', icon=pystray_image, menu=pystray_menu)
 
     """
     Run uvicorn server 
@@ -726,36 +721,15 @@ if __name__ == '__main__':
 
     # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     proc_file.close()
-    cfg_mgr.logger.debug('Remove tmp files')
 
-    try:
-        if os.path.isfile(pid_tmp_file + ".dat"):
-            os.remove(pid_tmp_file + ".dat")
-        if os.path.isfile(pid_tmp_file + ".bak"):
-            os.remove(pid_tmp_file + ".bak")
-        if os.path.isfile(pid_tmp_file + ".dir"):
-            os.remove(pid_tmp_file + ".dir")
-
-        for filename in PathLib("./tmp/").glob("*_file.*"):
-            filename.unlink()
-
-        # remove yt files
-        if str2bool(cfg_mgr.app_config['keep_yt']) is not True:
-            for filename in PathLib("./media/").glob("yt-tmp-*.*"):
-                filename.unlink()
-        # remove image files
-        if str2bool(cfg_mgr.app_config['keep_image']) is not True:
-            for filename in PathLib("./media/").glob("image_*_*.jpg"):
-                filename.unlink()
-
-    except Exception as error:
-        cfg_mgr.logger.error(f'Error to remove tmp files : {error}')
+    Utils.clean_tmp()
 
     # stop initial server
     cfg_mgr.logger.info('Stop app')
     if instance is not None:
         instance.stop()
     cfg_mgr.logger.info('Server is stopped')
+
     # in case server has been restarted
     if new_instance is not None:
         # get all active child processes (should be only one)
@@ -764,6 +738,7 @@ if __name__ == '__main__':
         for child in active_proc:
             child.terminate()
         cfg_mgr.logger.info(f'Active Children: {len(active_proc)} stopped')
+
     # stop webview if any
     if webview_process is not None:
         cfg_mgr.logger.info(f'Found webview process...stopping')

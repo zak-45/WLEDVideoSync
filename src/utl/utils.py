@@ -12,6 +12,10 @@
 """
 
 import contextlib
+
+from str2bool import str2bool
+from pathlib import Path as PathLib
+
 try:
     from yt_dlp import YoutubeDL
 except Exception as e:
@@ -74,6 +78,33 @@ class CASTUtils:
 
     def __init__(self):
         pass
+
+
+    @staticmethod
+    def clean_tmp():
+        cfg_mgr.logger.debug('Remove tmp files')
+        try:
+
+            # some cleaning
+            cfg_mgr.logger.info('Cleaning ...')
+            cfg_mgr.logger.debug('Remove tmp files')
+            for tmp_filename in PathLib("tmp/").glob("*_file.*"):
+                tmp_filename.unlink()
+
+            # remove yt files
+            if str2bool(cfg_mgr.app_config['keep_yt']) is not True:
+                for media_filename in PathLib("media/").glob("yt-tmp-*.*"):
+                    media_filename.unlink()
+
+            # remove image files
+            if str2bool(cfg_mgr.app_config['keep_image']) is not True:
+                for img_filename in PathLib("media/").glob("image-tmp_*_*.jpg"):
+                    img_filename.unlink()
+
+
+        except Exception as error:
+            cfg_mgr.logger.error(f'Error to remove tmp files : {error}')
+
 
     @staticmethod
     def get_queue_manager_settings():

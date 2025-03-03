@@ -4,7 +4,7 @@ from coldtype.raster import *
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils as ImgUtils
 
-sl, w, h = Utils.attach_to_manager_queue('Thread-15 (t_desktop_cast)_q')
+sl, w, h = Utils.attach_to_manager_queue('Thread-2 (t_desktop_cast)_q')
 
 # Define the string to cycle through
 s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
