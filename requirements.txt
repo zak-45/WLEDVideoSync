@@ -25,7 +25,6 @@ pywebview[qt]==5.4 ; sys_platform == "linux"
 pycairo ; sys_platform == "linux"
 PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
-winloop ; sys_platform == "win32"
 
 # any version & Common to all OS
 yt-dlp
