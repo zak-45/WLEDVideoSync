@@ -24,6 +24,7 @@ Web GUI based on NiceGUI
 
 """
 
+
 import time
 import sys
 import os
@@ -31,6 +32,7 @@ import traceback
 import configparser
 import queue
 import cfg_load as cfg
+import contextlib
 from starlette.websockets import WebSocketDisconnect
 
 from src.cst import desktop, media
@@ -78,43 +80,6 @@ if sys.platform.lower() == 'win32':
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview', 'reset', 'multicast']
-
-app.debug = False
-log_ui = None
-server_port = None
-server_ip = None
-
-"""
-When this env var exist, this mean run from the one-file compressed executable.
-Load of the config is not possible, folder config should not exist yet.
-This avoid FileNotFoundError.
-This env not exist when run from the extracted program.
-Expected way to work.
-"""
-if "NUITKA_ONEFILE_PARENT" not in os.environ:
-
-    # load optional modules
-
-    # if str2bool(cfg_mgr.custom_config['player']) or str2bool(cfg_mgr.custom_config['system-stats']):
-    #    pass
-
-    #  validate network config
-    if cfg_mgr.server_config is not None:
-        server_ip = cfg_mgr.server_config['server_ip']
-        if not Utils.validate_ip_address(server_ip):
-            cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
-            sys.exit(1)
-
-        server_port = cfg_mgr.server_config['server_port']
-
-        if server_port == 'auto':
-            server_port = native.find_open_port()
-        else:
-            server_port = int(cfg_mgr.server_config['server_port'])
-
-        if server_port not in range(1, 65536):
-            cfg_mgr.logger.error(f'Bad server Port: {server_port}')
-            sys.exit(2)
 
 """
 Actions to do at application initialization 
@@ -701,7 +666,15 @@ def action_to_thread(class_name: str = PathAPI(description=f'Class name, should 
             raise HTTPException(status_code=400,
                                 detail=f"Invalid Cast/Thread name or action not set")
         else:
-            class_obj.cast_name_todo.append(str(cast_name) + '||' + str(action) + '||'  + str(params) + '||' + str(time.time()))
+            class_obj.cast_name_todo.append(
+                cast_name
+                + '||'
+                + action
+                + '||'
+                + str(params)
+                + '||'
+                + str(time.time())
+            )
             if class_name == 'Desktop':
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
@@ -1168,8 +1141,7 @@ async def main_page():
         CastAPI.charts_row.set_visibility(False)
         ui.button('Fonts', on_click=font_select, color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('Pyeditor'), color='bg-red-800')
-        if sys.platform.lower() != 'win32':
-            ui.button('shutdown', on_click=app.shutdown)
+        ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \
                 .classes('text-white')
@@ -1346,8 +1318,8 @@ async def video_player_page():
             video_url_icon.on('click', lambda: download_url(video_img_url.value))
             video_url_icon.bind_visibility_from(CastAPI.player)
 
-            # if yt-enable is True display YT info icon
-            if str2bool(cfg_mgr.custom_config['yt-enable']):
+            # if yt-enabled is True display YT info icon
+            if str2bool(cfg_mgr.custom_config['yt-enabled']):
                 video_url_info = ui.icon('info')
                 video_url_info.style("cursor: pointer")
                 video_url_info.tooltip("Youtube/Url information's, including formats etc ...")
@@ -1357,8 +1329,8 @@ async def video_player_page():
             # Progress bar
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False, size='8px')
 
-        # if yt-enable is True display YT search buttons
-        if str2bool(cfg_mgr.custom_config['yt-enable']):
+        # if yt-enabled is True display YT search buttons
+        if str2bool(cfg_mgr.custom_config['yt-enabled']):
             with ui.row(wrap=True).classes('w-full'):
                 # YT search
                 yt_icon = ui.chip('YT Search',
@@ -2661,10 +2633,8 @@ def str2bool_ini(value: str) -> bool:
 
 
 def str2intstr_ini(value: str):
-    try:
+    with contextlib.suppress(Exception):
         value = int(value)
-    except Exception:
-        pass
     return value
 
 def str2list_ini(value: str):
@@ -3137,15 +3107,10 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
 async def bar_get_size():
     """ Read data from YT download, loop until no more data to download """
 
-    while True:
-        if Utils.yt_file_size_remain_bytes == 0:
-            break
-
-        else:
-
-            CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
-            CastAPI.progress_bar.update()
-            await sleep(.1)
+    while Utils.yt_file_size_remain_bytes != 0:
+        CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
+        CastAPI.progress_bar.update()
+        await sleep(.1)
 
 
 async def download_url(url):
@@ -3254,56 +3219,93 @@ def apply_custom():
                            'background-position: center;')
 
 
-"""
-RUN
-"""
-# settings
-app.openapi = custom_openapi
-app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
-app.add_media_files('/media', cfg_mgr.app_root_path('media'))
-app.add_static_files('/log', cfg_mgr.app_root_path('log'))
-app.add_static_files('/config', cfg_mgr.app_root_path('config'))
-app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
-app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
-app.on_startup(init_actions)
 
-# choose GUI
-native_ui = cfg_mgr.app_config['native_ui'] if cfg_mgr.app_config is not None else 'False'
-native_ui_size = cfg_mgr.app_config['native_ui_size'] if cfg_mgr.app_config is not None else ''
-show = None
-try:
-    if native_ui.lower() == 'none':
-        native_ui_size = None
-        native_ui = False
-        show = False
-    elif str2bool(native_ui):
-        native_ui = True
-        native_ui_size = tuple(native_ui_size.split(','))
-        native_ui_size = (int(native_ui_size[0]), int(native_ui_size[1]))
-    else:
-        show = True
-        native_ui_size = None
-        native_ui = False
-except Exception as error:
-    cfg_mgr.logger.error(f'Error in config file for native_ui : {native_ui} - {error}')
-    sys.exit(1)
+if __name__ in "__main__":
+    # packaging support (compile)
+    from multiprocessing import freeze_support  # noqa
+    freeze_support()  # noqa
 
-# run app
-ui.run(title='WLEDVideoSync',
-       favicon='favicon.ico',
-       host=server_ip,
-       port=server_port,
-       fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
-       show=show,
-       reconnect_timeout=int(cfg_mgr.server_config['reconnect_timeout'] if cfg_mgr.server_config is not None else '3'),
-       reload=False,
-       native=native_ui,
-       window_size=native_ui_size,
-       access_log=False)
+    log_ui = None
+    server_port = None
+    server_ip = None
 
-"""
-END
-"""
+    print('start NiceGui')
 
-# some cleaning
-Utils.clean_tmp()
+    """
+    When this env var exist, this mean run from the one-file compressed executable.
+    This env not exist when run from the extracted program.
+    Expected way to work.
+    """
+    if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
+        server_ip = cfg_mgr.server_config['server_ip']
+        if not Utils.validate_ip_address(server_ip):
+            cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
+            sys.exit(1)
+    
+        server_port = cfg_mgr.server_config['server_port']
+    
+        if server_port == 'auto':
+            server_port = native.find_open_port()
+        else:
+            server_port = int(cfg_mgr.server_config['server_port'])
+    
+        if server_port not in range(1, 65536):
+            cfg_mgr.logger.error(f'Bad server Port: {server_port}')
+            sys.exit(2)
+
+
+    # choose GUI
+    native_ui = cfg_mgr.app_config['native_ui'] if cfg_mgr.app_config is not None else 'False'
+    native_ui_size = cfg_mgr.app_config['native_ui_size'] if cfg_mgr.app_config is not None else '800,600'
+    show = None
+    try:
+        if native_ui.lower() == 'none' or (str2bool(native_ui) and sys.platform.lower() == 'win32'):
+            native_ui_size = None
+            native_ui = False
+            show = False
+        elif str2bool(native_ui) and sys.platform.lower() != 'win32':
+            native_ui = True
+            native_ui_size = tuple(native_ui_size.split(','))
+            native_ui_size = (int(native_ui_size[0]), int(native_ui_size[1]))
+        else:
+            show = True
+            native_ui_size = None
+            native_ui = False
+    except Exception as error:
+        cfg_mgr.logger.error(f'Error in config file for native_ui : {native_ui} - {error}')
+        sys.exit(1)
+
+    """
+    RUN
+    """
+    # settings
+    app.openapi = custom_openapi
+    app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
+    app.add_media_files('/media', cfg_mgr.app_root_path('media'))
+    app.add_static_files('/log', cfg_mgr.app_root_path('log'))
+    app.add_static_files('/config', cfg_mgr.app_root_path('config'))
+    app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
+    app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
+    app.on_startup(init_actions)
+
+    # run app
+    ui.run(title='WLEDVideoSync',
+           favicon='favicon.ico',
+           host=server_ip,
+           port=server_port,
+           fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
+           show=show,
+           reconnect_timeout=int(cfg_mgr.server_config['reconnect_timeout'] if cfg_mgr.server_config is not None else '3'),
+           reload=False,
+           native=native_ui,
+           window_size=native_ui_size,
+           access_log=False)
+
+    """
+    END
+    this is executed only if shutdown from CastAPI (app.shutdown)
+    """
+    # some cleaning
+    Utils.clean_tmp()
+
+    print('End NiceGUI')

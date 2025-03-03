@@ -48,9 +48,7 @@ Sets a default error mode for missing includes.
 Main Application Logic:
 
 Handles different processes for web view, server management, and system tray functionality using pywebview and pystray.
-Uvicorn Server Management:
 
-Defines a class for managing an Uvicorn server instance (used for running ASGI applications).
 Webview Windows:
 
 Functions for creating and managing different windows using pywebview.
@@ -62,7 +60,7 @@ Main Execution Block:
 
 Handles different behaviors based on whether the script is run as a standalone executable or not.
 
-Starts the Uvicorn server and manages webview and system tray interactions.
+Manages webview and system tray interactions.
 Cleans up temporary files and stops the server gracefully on exit.
 
 Key Functionalities
@@ -71,14 +69,12 @@ on the operating system and environment variables.
 
 Multiprocessing Setup: Utilizes Python's multiprocessing library to manage different processes for the application.
 
-Server Configuration: Configures and manages an Uvicorn server for hosting the application's backend.
-
 Webview Integration: Uses pywebview to provide a native OS window for the application's web interface.
 
 System Tray: Implements a system tray icon with menu options to manage the application on Windows.
 
 """
-
+import signal
 import sys
 import shelve
 from subprocess import Popen
@@ -91,9 +87,7 @@ import tkinter as tk
 
 from tkinter import PhotoImage
 from src.utl.utils import CASTUtils as Utils
-from multiprocessing import active_children
 from PIL import Image
-from uvicorn import Config, Server
 from nicegui import native
 from str2bool import str2bool
 from configmanager import ConfigManager
@@ -103,67 +97,6 @@ if sys.platform.lower() == 'win32':
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
-Process, Queue = Utils.mp_setup()
-
-"""
-When this env var exist, this mean run from the one-file executable (compressed file).
-This env not exist when running from the decompressed program.
-Expected way to work.
-"""
-if "NUITKA_ONEFILE_PARENT" not in os.environ:
-
-    #  validate network config
-    server_ip = cfg_mgr.server_config['server_ip']
-    if not Utils.validate_ip_address(server_ip):
-        cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
-        sys.exit(1)
-
-    server_port = cfg_mgr.server_config['server_port']
-
-    if server_port == 'auto':
-        server_port = native.find_open_port()
-    else:
-        server_port = int(cfg_mgr.server_config['server_port'])
-
-    if server_port not in range(1, 65536):
-        cfg_mgr.logger.error(f'Bad server Port: {server_port}')
-        sys.exit(2)
-
-    # systray
-    put_on_systray = str2bool(cfg_mgr.app_config['put_on_systray'])
-
-
-"""
-Params
-"""
-#
-webview_process = None
-instance = None
-new_instance = None
-main_window = None
-netstat_process = None
-
-"""
-Uvicorn class    
-"""
-
-class UvicornServer(Process):
-    """
-    This allows to do stop / run server and define programmatically Config
-    """
-
-    def __init__(self, config: Config):
-        super().__init__()
-        self.server = Server(config=config)
-        self.config = config
-
-    def stop(self):
-        self.server.should_exit = True
-        self.server.force_exit = True
-        self.terminate()
-
-    def run(self, *args, **kwargs):
-        self.server.run()
 
 """
 Webview : local OS native Window
@@ -307,21 +240,19 @@ def dialog_stop_server(my_window):
     :param my_window:
     :return:
     """
+
+    """
+    A None value indicates that the process hasn't terminated yet.
+    """
+
     result = my_window.create_confirmation_dialog(f'Confirm-{server_port}', 'Do you really want to stop the Server?')
-    if result:
-        # initial instance
-        if instance.is_alive():
-            cfg_mgr.logger.warning('Server stopped')
-            instance.terminate()
-        # if server has been restarted
-        if new_instance is not None:
-            # get all active child processes
-            active_child = active_children()
-            # terminate all active children
-            # this work here as we have only server instance as child
-            for srv_child in active_child:
-                srv_child.terminate()
-            cfg_mgr.logger.warning('"Child" Server stopped')
+
+    if result and server_is_alive(server_proc):
+        os.kill(server_proc.pid, signal.SIGTERM)
+        cfg_mgr.logger.warning('Server stopped')
+
+    elif not server_is_alive(server_proc):
+        cfg_mgr.logger.error('No Running Server')
 
     else:
 
@@ -372,16 +303,14 @@ def on_restart_srv():
     Menu restart  server option
     :return:
     """
-    global new_instance
+    global server_proc
 
-    if instance.is_alive():
-        cfg_mgr.logger.warning(f'Already running instance : {instance}')
-        return
-    new_instance = UvicornServer(config=u_config)
-    if not new_instance.is_alive():
-        cfg_mgr.logger.warning('Server restarted')
-        new_instance.start()
-
+    if not server_is_alive(server_proc):
+        # Run CastAPI into its own process
+        server_proc = Popen([sys.executable, "-m", "CastAPI"])
+        cfg_mgr.logger.info(f'WLEDVideoSync Started...Server run in separate process {server_proc.pid}')
+    else:
+        cfg_mgr.logger.error(f'Server already run in separate process {server_proc.pid}')
 
 def on_blackout():
     """
@@ -451,17 +380,24 @@ def on_exit():
     WLEDVideoSync_icon.stop()
 
 
+def server_is_alive(i_proc):
+    return True if  i_proc.poll() is None else False
+
 """
 MAIN Logic 
-if you use reload=True or workers=NUM,
-you should put uvicorn.run into if __name__ == '__main__' clause in the main module.
 """
 
-if __name__ == '__main__':
+if __name__ in "__main__":
     # packaging support (compile)
     from multiprocessing import freeze_support  # noqa
-
     freeze_support()  # noqa
+
+    """
+    Params
+    """
+    #
+    webview_process = None
+    main_window = None
 
     config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
 
@@ -478,7 +414,6 @@ if __name__ == '__main__':
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'False')
             Utils.update_ini_key(config_file, 'app', 'native_ui', 'True')
             Utils.update_ini_key(config_file, 'app', 'native_ui_size', '1200,720')
-            Utils.update_ini_key(config_file, 'app', 'uvicorn', 'True')
             Utils.update_ini_key(config_file, 'app', 'win_first_run', 'False')
 
         elif sys.platform.lower() == 'linux':
@@ -486,7 +421,6 @@ if __name__ == '__main__':
             Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
             Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
             Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
-            Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
             Utils.update_ini_key(config_file, 'app', 'linux_first_run', 'False')
 
             # chmod +x info window
@@ -506,7 +440,7 @@ if __name__ == '__main__':
 
         # Apply YouTube settings if yt_dlp not imported
         if 'yt_dlp' not in sys.modules:
-            Utils.update_ini_key(config_file, 'custom', 'yt-enable', 'False')
+            Utils.update_ini_key(config_file, 'custom', 'yt-enabled', 'False')
 
         # global
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
@@ -553,12 +487,34 @@ if __name__ == '__main__':
 
         sys.exit()
 
-    elif sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
+    else:
+
+        #  validate network config
+        server_ip = cfg_mgr.server_config['server_ip']
+        if not Utils.validate_ip_address(server_ip):
+            cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
+            sys.exit(1)
+
+        server_port = cfg_mgr.server_config['server_port']
+
+        if server_port == 'auto':
+            server_port = native.find_open_port()
+        else:
+            server_port = int(cfg_mgr.server_config['server_port'])
+
+        if server_port not in range(1, 65536):
+            cfg_mgr.logger.error(f'Bad server Port: {server_port}')
+            sys.exit(2)
+
+        # systray
+        put_on_systray = str2bool(cfg_mgr.app_config['put_on_systray'])
+
+    if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
 
         Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
         Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
         Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
-        Utils.update_ini_key(config_file, 'app', 'uvicorn', 'False')
+
 
         # chmod +x info window
         cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
@@ -566,7 +522,7 @@ if __name__ == '__main__':
 
         # Apply YouTube settings if yt_dlp not imported
         if 'yt_dlp' not in sys.modules:
-            Utils.update_ini_key(config_file, 'custom', 'yt-enable', 'False')
+            Utils.update_ini_key(config_file, 'custom', 'yt-enabled', 'False')
 
         # global
         Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
@@ -615,7 +571,7 @@ if __name__ == '__main__':
     """
     Main Params
     """
-
+    server_proc = None
     show_window = str2bool((cfg_mgr.app_config['show_window']))
 
     # store server port info for others processes
@@ -628,6 +584,7 @@ if __name__ == '__main__':
     """
     Pystray definition
     """
+
     if sys.platform.lower() == 'win32':
         # pystray definition
         pystray_image = Image.open(cfg_mgr.app_root_path('favicon.ico'))
@@ -652,54 +609,24 @@ if __name__ == '__main__':
 
         WLEDVideoSync_icon = Icon('Pystray', icon=pystray_image, menu=pystray_menu)
 
-    """
-    Run uvicorn server 
-    """
-
-    if str2bool(cfg_mgr.app_config['uvicorn']) is True:
-        """
-        Uvicorn
-
-            app : CastAPI.py
-            host : 0.0.0.0 for all network interfaces
-            port : Bind to a socket with this port
-            log_level :  Set the log level. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'.
-            timeout_graceful_shutdown : After this timeout, the server will start terminating requests
-
-        """
-        # uvicorn server definition
-        u_config = Config(app="CastAPI:app",
-                        host=server_ip,
-                        port=server_port,
-                        workers=int(cfg_mgr.server_config['workers']),
-                        log_level=cfg_mgr.server_config['log_level'],
-                        access_log=False,
-                        reload=False,
-                        loop=cfg_mgr.server_config['loop'],
-                        timeout_keep_alive=10,
-                        timeout_graceful_shutdown=3)
-
-
-        instance = UvicornServer(config=u_config)
-        cfg_mgr.logger.debug(f'uvicorn config : {u_config.__dict__}')
         """
         START
         """
 
-        # start server
-        instance.start()
-        cfg_mgr.logger.debug('WLEDVideoSync Started...Server run in separate process')
+        # Run CastAPI into its own process
+        server_proc = Popen([sys.executable, "-m", "CastAPI"])
+
+        cfg_mgr.logger.debug(f'WLEDVideoSync Started...Server run in separate process {server_proc.pid}')
 
         """
         systray and webview only if OS win32
         """
-
-        if sys.platform.lower() == 'win32':
+        if sys.platform.lower() == 'win32' and str2bool(cfg_mgr.app_config['native_ui']):
 
             # start pywebview process
             # this will start native OS window and block main thread
+            cfg_mgr.logger.debug('Starting webview loop...')
             if show_window:
-                cfg_mgr.logger.debug('Starting webview loop...')
                 start_webview_process()
             else:
                 start_webview_process('Main')
@@ -710,34 +637,21 @@ if __name__ == '__main__':
                 cfg_mgr.logger.debug('Starting systray loop...')
                 WLEDVideoSync_icon.run()
 
-    else:
+        else:
 
-        # run NiceGUI app with built-in server
-        import CastAPI
+            server_proc.wait()
 
+
+    # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     """
     STOP
     """
+    if server_is_alive(server_proc):
+        os.kill(server_proc.pid, signal.SIGTERM)
 
-    # Once Exit option selected from the systray Menu, loop closed ... OR no systray ... continue ...
     proc_file.close()
 
     Utils.clean_tmp()
-
-    # stop initial server
-    cfg_mgr.logger.info('Stop app')
-    if instance is not None:
-        instance.stop()
-    cfg_mgr.logger.info('Server is stopped')
-
-    # in case server has been restarted
-    if new_instance is not None:
-        # get all active child processes (should be only one)
-        active_proc = active_children()
-        # terminate all active children
-        for child in active_proc:
-            child.terminate()
-        cfg_mgr.logger.info(f'Active Children: {len(active_proc)} stopped')
 
     # stop webview if any
     if webview_process is not None:
