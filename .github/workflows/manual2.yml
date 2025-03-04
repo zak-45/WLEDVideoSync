@@ -151,7 +151,6 @@ jobs:
             coldtype
 
           include-module: |
-            CastAPI
             src.txt.textanimator
             zeroconf._utils.ipaddress
             zeroconf._handlers.answers
