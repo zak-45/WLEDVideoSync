@@ -68,8 +68,6 @@ class CASTMedia:
 
     t_media_lock = threading.Lock()  # define lock for to do
 
-    server_port = Utils.get_server_port()
-
     total_packet = 0  # net packets number
 
     def __init__(self):
@@ -139,7 +137,7 @@ class CASTMedia:
     Cast Thread
     """
 
-    def t_media_cast(self, shared_buffer=None):
+    def t_media_cast(self, shared_buffer=None, port=0):
         """Cast media to DDP devices in a separate thread.
 
         This method handles the core logic for capturing, processing, and sending
@@ -206,6 +204,8 @@ class CASTMedia:
             return False
 
         t_viinput = self.viinput
+
+        port = port
 
         """
         MultiCast inner function protected from what happens outside.
@@ -790,7 +790,7 @@ class CASTMedia:
                                 [
                                     CASTMedia.total_frame,
                                     full_array.tobytes(),
-                                    self.server_port,
+                                    port,
                                     t_viinput,
                                     t_name,
                                     self.preview_top,
@@ -870,7 +870,7 @@ class CASTMedia:
                     t_preview, t_todo_stop, self.text = CV2Utils.cv2_preview_window(
                         CASTMedia.total_frame,
                         frame,
-                        CASTMedia.server_port,
+                        port,
                         t_viinput,
                         t_name,
                         self.preview_top,
@@ -944,7 +944,7 @@ class CASTMedia:
             if is_image:
                 time.sleep(2)
 
-            CV2Utils.cv2_win_close(CASTMedia.server_port, 'Media', t_name, t_viinput)
+            CV2Utils.cv2_win_close(port, 'Media', t_name, t_viinput)
 
         # release media
         try:
@@ -981,7 +981,7 @@ class CASTMedia:
             root_logger = cfg_mgr.logger.getLogger()
             if log_ui not in root_logger:
                 cfg_mgr.logger.addHandler(log_ui)
-        thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,))
+        thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,Utils.get_server_port(),))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         cfg_mgr.logger.debug('Child Media cast initiated')

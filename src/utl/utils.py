@@ -381,15 +381,17 @@ class CASTUtils:
     @staticmethod
     def get_server_port():
         """ Retrieve server port number """
+
         server_port = 0
         try:
-            # server running from another process (e.g. Uvicorn)
-            p_pid = os.getppid()
+            # get pid
+            p_pid = os.getpid()
             tmp_file = cfg_mgr.app_root_path(f"tmp/{p_pid}_file")
+            # read file
             if os.path.isfile(f"{tmp_file}.dat"):
                 infile = shelve.open(tmp_file)
                 server_port = infile["server_port"]
-        except Exception:
+        except Exception as er:
             server_port = 99
 
         return server_port

@@ -109,8 +109,6 @@ class CASTDesktop:
     t_todo_event = threading.Event()  # thread listen event for task to do
     t_desktop_lock = threading.Lock()  # define lock for to do
 
-    server_port = Utils.get_server_port()
-
     total_packet = 0  # net packets number
 
     def __init__(self):
@@ -188,7 +186,7 @@ class CASTDesktop:
         self.channel_offset = 0  # The channel offset within the universe. e131/artnet
         self.channels_per_pixel = 3  # Channels to use for e131/artnet
 
-    def t_desktop_cast(self, shared_buffer=None):
+    def t_desktop_cast(self, shared_buffer=None, port=0):
         """
             Cast desktop screen or a window content based on the title
         """
@@ -229,6 +227,7 @@ class CASTDesktop:
         ddp_host = None
         artnet_host = None
 
+        port = port
         """
         Cast devices
         """
@@ -543,7 +542,7 @@ class CASTDesktop:
                 i_preview, i_todo_stop, self.text = CV2Utils.cv2_preview_window(
                     CASTDesktop.total_frame,
                     iframe,
-                    CASTDesktop.server_port,
+                    port,
                     t_viinput,
                     t_name,
                     self.preview_top,
@@ -585,7 +584,7 @@ class CASTDesktop:
                     [
                         CASTDesktop.total_frame,
                         full_array.tobytes(),
-                        self.server_port,
+                        port,
                         t_viinput,
                         t_name,
                         self.preview_top,
@@ -1066,7 +1065,7 @@ class CASTDesktop:
                     output_container.close()
                 # close preview
                 if t_preview is True:
-                    CV2Utils.cv2_win_close(CASTDesktop.server_port, 'Desktop', t_name, t_viinput)
+                    CV2Utils.cv2_win_close(port, 'Desktop', t_name, t_viinput)
         else:
 
             cfg_mgr.logger.error(f'{t_name} av input_container not defined or no queue')
@@ -1115,7 +1114,7 @@ class CASTDesktop:
             root_logger = cfg_mgr.logger.getLogger()
             if log_ui not in root_logger:
                 cfg_mgr.logger.addHandler(log_ui)
-        thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,))
+        thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,Utils.get_server_port()))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         cfg_mgr.logger.debug('Child Desktop cast initiated')

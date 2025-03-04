@@ -15,6 +15,7 @@ from src.utl.cv2utils import CV2Utils, ImageUtils
 from src.net.ddp_queue import DDPDevice
 from str2bool import str2bool
 from threading import current_thread
+from src.utl.utils import  CASTUtils as Utils
 
 def execute_actions(class_obj,
                     frame,
@@ -154,7 +155,7 @@ def execute_actions(class_obj,
     def handle_preview_control(t_action):
         nonlocal t_preview
         if t_action == 'close-preview':
-            CV2Utils.cv2_win_close(str(class_obj.server_port), class_obj.__class__.__name__, t_name, t_viinput)
+            CV2Utils.cv2_win_close(str(Utils.get_server_port()), class_obj.__class__.__name__, t_name, t_viinput)
             t_preview = False
         elif t_action == 'open-preview':
             t_preview = True

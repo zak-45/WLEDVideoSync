@@ -107,12 +107,6 @@ async def init_actions():
         root.configure(bg='#657B83')  # Set the background color
 
         # Apply default GUI / param , depend on platform
-        """
-        preview_proc = False
-        native_ui = False
-        native_ui_size = 1200, 720
-        uvicorn = True
-        """
         if sys.platform.lower() == 'win32':
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
@@ -161,7 +155,11 @@ async def init_actions():
     except Exception as e:
         cfg_mgr.logger.error(f"Error on app startup {e}")
 
+"""
+Class
+"""
 class CastAPI:
+
     dark_mode = False
     netstat_process = None
     charts_row = None
@@ -185,11 +183,12 @@ class CastAPI:
     w_image = None
     windows_titles = {}
 
+    def __init__(self):
+        pass
 
 """
 FastAPI
 """
-
 
 @app.get("/api", tags=["root"])
 async def read_api_root():
