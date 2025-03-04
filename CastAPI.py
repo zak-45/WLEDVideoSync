@@ -81,11 +81,13 @@ if sys.platform.lower() == 'win32':
 class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview', 'reset', 'multicast']
 
+# to share data between threads and main
+t_data_buffer = queue.Queue()  # create a thread safe queue
+
+
 """
 Actions to do at application initialization 
 """
-
-
 async def init_actions():
     """ Done at start of app and before GUI available """
 
@@ -115,12 +117,10 @@ async def init_actions():
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'True')
         else:
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
             Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'uvicorn', 'False')
 
         Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
 
@@ -160,10 +160,6 @@ async def init_actions():
 
     except Exception as e:
         cfg_mgr.logger.error(f"Error on app startup {e}")
-
-# to share data between threads and main
-t_data_buffer = queue.Queue()  # create a thread safe queue
-
 
 class CastAPI:
     dark_mode = False
@@ -3219,93 +3215,3 @@ def apply_custom():
                            'background-position: center;')
 
 
-
-if __name__ in {"__main__","__mp_main__"}:
-    # packaging support (compile)
-    from multiprocessing import freeze_support  # noqa
-    freeze_support()  # noqa
-
-    log_ui = None
-    server_port = None
-    server_ip = None
-
-    print('start NiceGui')
-
-    """
-    When this env var exist, this mean run from the one-file compressed executable.
-    This env not exist when run from the extracted program.
-    Expected way to work.
-    """
-    if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
-        server_ip = cfg_mgr.server_config['server_ip']
-        if not Utils.validate_ip_address(server_ip):
-            cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
-            sys.exit(1)
-    
-        server_port = cfg_mgr.server_config['server_port']
-    
-        if server_port == 'auto':
-            server_port = native.find_open_port()
-        else:
-            server_port = int(cfg_mgr.server_config['server_port'])
-    
-        if server_port not in range(1, 65536):
-            cfg_mgr.logger.error(f'Bad server Port: {server_port}')
-            sys.exit(2)
-
-
-    # choose GUI
-    native_ui = cfg_mgr.app_config['native_ui'] if cfg_mgr.app_config is not None else 'False'
-    native_ui_size = cfg_mgr.app_config['native_ui_size'] if cfg_mgr.app_config is not None else '800,600'
-    show = None
-    try:
-        if native_ui.lower() == 'none' or (str2bool(native_ui) and sys.platform.lower() == 'win32'):
-            native_ui_size = None
-            native_ui = False
-            show = False
-        elif str2bool(native_ui) and sys.platform.lower() != 'win32':
-            native_ui = True
-            native_ui_size = tuple(native_ui_size.split(','))
-            native_ui_size = (int(native_ui_size[0]), int(native_ui_size[1]))
-        else:
-            show = True
-            native_ui_size = None
-            native_ui = False
-    except Exception as error:
-        cfg_mgr.logger.error(f'Error in config file for native_ui : {native_ui} - {error}')
-        sys.exit(1)
-
-    """
-    RUN
-    """
-    # settings
-    app.openapi = custom_openapi
-    app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
-    app.add_media_files('/media', cfg_mgr.app_root_path('media'))
-    app.add_static_files('/log', cfg_mgr.app_root_path('log'))
-    app.add_static_files('/config', cfg_mgr.app_root_path('config'))
-    app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
-    app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
-    app.on_startup(init_actions)
-
-    # run app
-    ui.run(title='WLEDVideoSync',
-           favicon='favicon.ico',
-           host=server_ip,
-           port=server_port,
-           fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
-           show=show,
-           reconnect_timeout=int(cfg_mgr.server_config['reconnect_timeout'] if cfg_mgr.server_config is not None else '3'),
-           reload=False,
-           native=native_ui,
-           window_size=native_ui_size,
-           access_log=False)
-
-    """
-    END
-    this is executed only if shutdown from CastAPI (app.shutdown)
-    """
-    # some cleaning
-    Utils.clean_tmp()
-
-    print('End NiceGUI')
