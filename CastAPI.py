@@ -106,16 +106,6 @@ async def init_actions():
         root.geometry("820x460")  # Set the size of the window
         root.configure(bg='#657B83')  # Set the background color
 
-        # Apply default GUI / param , depend on platform
-        if sys.platform.lower() == 'win32':
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'False')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'True')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '1200,720')
-        else:
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'preview_proc', 'True')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui', 'False')
-            Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'native_ui_size', '')
-
         Utils.update_ini_key('config/WLEDVideoSync.ini', 'app', 'init_config_done', 'True')
 
         # Define the window's contents
@@ -1964,6 +1954,17 @@ async def pyeditor_test_page():
     await editor_app.setup_ui()
 
     print('end of pyeditor page load')
+
+
+@ui.page('/ShutDown')
+async def stop_app():
+
+    ui.dark_mode(CastAPI.dark_mode)
+
+    apply_custom()
+
+    ui.button('ShutDown', on_click=app.shutdown).classes('flex h-screen m-auto')
+
 
 """
 helpers /Commons

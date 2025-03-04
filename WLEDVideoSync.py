@@ -34,6 +34,7 @@ from src.utl.utils import CASTUtils as Utils
 from str2bool import str2bool
 from configmanager import ConfigManager
 
+
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 Process, Queue = Utils.mp_setup()
@@ -63,12 +64,30 @@ def run_gui():
             cfg_mgr.logger.error(f'Bad server Port: {server_port}')
             sys.exit(2)
 
+    # store server port info for others processes
+    pid = os.getpid()
+
+    pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
+    proc_file = shelve.open(pid_tmp_file)
+    proc_file["server_port"] = server_port
+
+    """
+    Pystray
+    """
+    if str2bool(cfg_mgr.app_config['put_on_systray']):
+        from src.gui.wledtray import WLEDVideoSync_icon
+
+        WLEDVideoSync_icon.run_detached()
+
+    """
+    GUI
+    """
     # choose GUI
     native_ui = cfg_mgr.app_config['native_ui'] if cfg_mgr.app_config is not None else 'False'
     native_ui_size = cfg_mgr.app_config['native_ui_size'] if cfg_mgr.app_config is not None else '800,600'
     show = None
     try:
-        if native_ui.lower() == 'none':
+        if native_ui.lower() == 'none' or str2bool(cfg_mgr.app_config['put_on_systray']):
             native_ui_size = None
             native_ui = False
             show = False
@@ -84,13 +103,6 @@ def run_gui():
         cfg_mgr.logger.error(f'Error in config file for native_ui : {native_ui} - {error}')
         sys.exit(1)
 
-
-    # store server port info for others processes
-    pid = os.getpid()
-
-    pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
-    proc_file = shelve.open(pid_tmp_file)
-    proc_file["server_port"] = server_port
 
     """
     RUN
@@ -126,6 +138,10 @@ def run_gui():
 
     # some cleaning
     Utils.clean_tmp()
+
+    # stop pystray
+    if str2bool(cfg_mgr.app_config['put_on_systray']):
+        WLEDVideoSync_icon.stop()
 
     print('End NiceGUI')
 
@@ -293,6 +309,7 @@ if __name__ in "__main__":
     # Update necessary params and exit
     if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
         init_darwin()
+
 
     """
     Start infinite loop
