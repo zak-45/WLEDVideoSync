@@ -19,8 +19,6 @@ requests==2.32.3
 screeninfo==0.8.1
 
 # Platform dependant
-pywebview==5.4 ; sys_platform != "linux"
-pywebview[qt]==5.4 ; sys_platform == "linux"
 pycairo ; sys_platform == "linux"
 PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
