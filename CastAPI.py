@@ -3220,7 +3220,7 @@ def apply_custom():
 
 
 
-if __name__ in "__main__":
+if __name__ in {"__main__","__mp_main__"}:
     # packaging support (compile)
     from multiprocessing import freeze_support  # noqa
     freeze_support()  # noqa
