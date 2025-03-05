@@ -76,7 +76,7 @@ Pystray definition
 pystray_image = Image.open(cfg_mgr.app_root_path('favicon.ico'))
 
 pystray_menu = Menu(
-    MenuItem('Open in Browser', on_open_bro),
+    MenuItem('Open in Browser', on_open_bro, visible=True,default=True),
     Menu.SEPARATOR,
     MenuItem('BLACKOUT', on_blackout),
     Menu.SEPARATOR,
