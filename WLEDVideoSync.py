@@ -84,7 +84,9 @@ def run_gui():
     """
     # choose GUI
     native_ui = cfg_mgr.app_config['native_ui'] if cfg_mgr.app_config is not None else 'False'
-    native_ui_size = cfg_mgr.app_config['native_ui_size'] if cfg_mgr.app_config is not None else '800,600'
+    native_ui_size = '800,600'
+    if cfg_mgr.app_config['native_ui_size'] == '':
+        native_ui_size = '1200,720'
     show = None
     try:
         if native_ui.lower() == 'none' or str2bool(cfg_mgr.app_config['put_on_systray']):
