@@ -288,13 +288,17 @@ See ``WLEDVideoSync/config/WLEDVideoSync.readme`` for in-deep information.
 The logging configuration file is : ``WLEDVideoSync/config/logging.ini``. Logs can be found under ``log/`` folder.
 
 Default behaviour:
-  - Win OS: app will start on "native" windows mode with a 'selection' window and uvicorn server on different process.
-    - Closing App will put it on 'systray', terminate it need to be done from : ``Exit - server:xxx``
+- Win OS: app will start on "native" windows.
+  - To terminate the app, click on shutdown into footer
   
-- Mac/Linux: app will start on 'default' browser, no systray options.
+- Mac/Linux: app will start on 'default' browser.
     -  use SHUTDOWN in footer to stop application
     - "native" mode has not been deeply tested on these platforms, so may provide some trouble.
-    
+
+Put on Systray:
+- To use the systray:
+  - modify put_on_systray in the config file. Once set, no GUI will be launched: you need to click on systray for that.
+  >this work out-of-box for win, but some additional lib could be necessary for linux/mac 
 
 ### WebSocket
 endpoint : ``/ws`` e.g: 127.0.0.1:8000/ws
