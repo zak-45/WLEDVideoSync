@@ -37,6 +37,20 @@ def on_player():
     """
     webbrowser.open(f"http://{server_ip}:{server_port}/Player", new=0, autoraise=True)
 
+def on_api():
+    """
+    Open API
+    :return:
+    """
+    webbrowser.open(f"http://{server_ip}:{server_port}/docs", new=0, autoraise=True)
+
+def on_py():
+    """
+    Open Python Editor
+    :return:
+    """
+    webbrowser.open(f"http://{server_ip}:{server_port}/Pyeditor", new=0, autoraise=True)
+
 def on_info():
     """
     Menu Info option : show cast information in native OS Window
@@ -82,9 +96,12 @@ pystray_menu = Menu(
     Menu.SEPARATOR,
     MenuItem('Player', on_player),
     Menu.SEPARATOR,
+    MenuItem('API', on_api),
+    Menu.SEPARATOR,
     MenuItem('Cast details', on_details),
     MenuItem('Info', on_info),
     MenuItem('Charts', on_net),
+    MenuItem('PyEditor', on_py),
     Menu.SEPARATOR,
     MenuItem(f'Exit - server :  {server_port}', on_exit)
 )

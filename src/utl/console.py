@@ -77,7 +77,7 @@ class ConsoleCapture:
 
 
 
-if __name__ in {"__main__", "__mp_main__"}:
+if __name__ in "__main__":
     # NiceGUI app
     @ui.page('/')
     async def main_page():
@@ -91,6 +91,10 @@ if __name__ in {"__main__", "__mp_main__"}:
             ui.button('Restore Console', on_click=capture.restore)
 
         capture.setup_ui()
+
+        # ui.context.client.on_disconnect(lambda: print('client disconnected'))
+        # ui.context.client.on_connect(lambda: print('client connected'))
+
 
     ui.run(reload=False)
 

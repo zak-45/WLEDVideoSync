@@ -189,6 +189,20 @@ async def read_api_root():
     return {"info": Utils.compile_info()}
 
 
+@app.get("/api/shutdown", tags=["root"])
+async def shutdown_root():
+    """
+        Status: stop app
+    """
+    app.shutdown()
+    # stop pystray
+    if str2bool(cfg_mgr.app_config['put_on_systray']):
+        from src.gui.wledtray import WLEDVideoSync_icon
+        WLEDVideoSync_icon.stop()
+
+    return {"shutdown":"done"}
+
+
 @app.get("/api/{class_name}/params", tags=["params"])
 async def all_params(class_name: str = PathAPI(description=f'Class name, should be in: {class_to_test}')):
     """

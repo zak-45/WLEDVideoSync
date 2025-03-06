@@ -105,11 +105,9 @@ def run_gui():
         cfg_mgr.logger.error(f'Error in config file for native_ui : {native_ui} - {error}')
         sys.exit(1)
 
-
     """
     RUN
     """
-    
     # settings
     app.openapi = CastAPI.custom_openapi
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
@@ -121,7 +119,7 @@ def run_gui():
     app.on_startup(CastAPI.init_actions)
 
     ui.run(title=f'WLEDVideoSync - {server_port}',
-           favicon='favicon.ico',
+           favicon="favicon.ico",
            host=server_ip,
            port=server_port,
            fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
@@ -311,7 +309,6 @@ if __name__ in "__main__":
     # Update necessary params and exit
     if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
         init_darwin()
-
 
     """
     Start infinite loop
