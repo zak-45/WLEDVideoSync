@@ -17,6 +17,49 @@ v : 1.0.0
 
 Main WLEDVideoSync.
 
+Overview
+This Python script, WLEDVideoSync.py, is the main entry point for the WLEDVideoSync application. 
+It uses the nicegui library to create a user interface for controlling WLED devices. 
+The application supports different operating systems (Windows, Linux, macOS) and handles platform-specific configurations. 
+It also manages a server for the UI and provides features like system tray integration. 
+The script initializes settings, starts the GUI, and performs cleanup operations upon exit.
+
+Key Components
+Configuration Management (configmanager.ConfigManager): 
+    Handles reading and writing application settings from the WLEDVideoSync.ini file. 
+    This allows users to customize the application's behavior. 
+    The cfg_mgr instance is used throughout the script to access configuration values.
+
+Multiprocessing Setup (Utils.mp_setup): 
+    Initializes multiprocessing components (Process and Queue) likely used for background tasks or communication.    
+
+Platform-Specific Initialization (init_linux_win, linux_settings, init_darwin, init_common): 
+    These functions handle OS-specific configurations, such as setting default parameters for the GUI, 
+    handling file permissions, and setting up the system tray icon. 
+    They ensure the application runs correctly on different platforms.
+
+GUI Management (run_gui): 
+    This function is the core of the UI setup. 
+    It starts the nicegui server, configures static file serving, handles system tray integration using pystray, 
+    and sets various GUI parameters like title, icon, and port. It also manages cleanup tasks when the GUI is closed.
+
+CastAPI: 
+    This module (not shown in the provided code) likely contains the core logic for interacting with WLED devices 
+    and handling video synchronization. It's initialized on startup using app.on_startup(CastAPI.init_actions).
+
+src.gui.niceutils: 
+    This module provides custom utilities for the NiceGUI framework, including a custom OpenAPI implementation.
+
+Nuitka Compilation Support: 
+    The file includes several comments related to Nuitka compilation, 
+    indicating that the project is designed to be compiled into a standalone executable. 
+    This improves performance and distribution.
+
+Temporary File Handling: 
+    The script uses temporary files (stored in a tmp directory) for inter-process communication, 
+    specifically for sharing the server port between the main process and the system tray icon. 
+    It also cleans up these temporary files on exit.
+
 """
 import sys
 import shelve
@@ -36,14 +79,36 @@ cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 Process, Queue = Utils.mp_setup()
 
+# Global configuration file initialization.
+# This global variable is used by several functions throughout the application.
+config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
 
 def cfg_settings(preview_subprocess, native_ui, native_size, first_run_os):
+    """Update configuration settings based on OS and user preferences.
+
+    This function updates specific keys in the configuration file related to the
+    preview subprocess, native UI usage, UI size, and first-run status for
+    different operating systems.
+
+    Args:
+        preview_subprocess (str): Whether to use a subprocess for preview.
+        native_ui (str): Whether to use native UI elements.
+        native_size (str): Size of the native UI window (if used).
+        first_run_os (str): Key indicating the first run status for the OS.
+    """
     Utils.update_ini_key(config_file, 'app', 'preview_proc', preview_subprocess)
     Utils.update_ini_key(config_file, 'app', 'native_ui', native_ui)
     Utils.update_ini_key(config_file, 'app', 'native_ui_size', native_size)
     Utils.update_ini_key(config_file, 'app', first_run_os, 'False')
 
 def init_linux_win():
+    """Initialize settings for Linux and Windows platforms.
+
+    This function applies default parameters and configurations specific to
+    Linux and Windows operating systems, including GUI settings and
+    platform-dependent initializations. It also initializes common settings
+    and runs the tk initialization process.
+    """
 
     # Apply some default params only once
     # Apply default GUI / param , depend on platform
@@ -55,11 +120,23 @@ def init_linux_win():
     # common all OS
     init_common()
 
-    # run webview and close
-    import src.gui.webviewinit
+    # run tk and close
+    from src.gui.tkwininit import init
+    init()
+
 
 def linux_settings():
+    """Apply Linux-specific settings and configurations.
+
+    This function sets configuration parameters specific to Linux environments,
+    including preview process settings and native UI settings. It also
+    performs actions like setting file permissions and changing folder/app icons.
+    
+    These are no blocking actions...
+    
+    """
     cfg_settings('True', 'False', '', 'linux_first_run')
+
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
     proc1 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
@@ -75,6 +152,15 @@ def linux_settings():
     proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
 
 def init_darwin():
+    """Initialize settings for Darwin (macOS) platform.
+
+    This function applies default parameters and configurations specific to
+    macOS, including preview process settings, native UI settings, and
+    sets the 'mac_first_run' flag to False after the initial setup.
+
+    These are no blocking actions...
+        
+    """
     Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
     Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
     Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
@@ -90,11 +176,17 @@ def init_darwin():
     init_common()
 
     # run webview and close
-    import src.gui.webviewinitmac
+    from src.gui.tkmacinit import init
+    init()
 
 
 def init_common():
+    """Initialize common settings across all platforms.
 
+    This function performs initialization tasks common to all operating systems,
+    such as disabling YouTube features if yt-dlp is not installed, and
+    setting flags for initialization completion and system tray usage.
+    """
     # Apply YouTube settings if yt_dlp not imported
     if 'yt_dlp' not in sys.modules:
         Utils.update_ini_key(config_file, 'custom', 'yt-enabled', 'False')
@@ -103,16 +195,30 @@ def init_common():
     Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
     Utils.update_ini_key(config_file, 'app', 'put_on_systray', 'False')
 
+def parse_native_ui_size(size_str):
+    try:
+        size_tuple = tuple(map(int, size_str.split(',')))
+        if len(size_tuple) != 2:
+            raise ValueError("native_ui_size must have two comma-separated integer values.")
+        return size_tuple
+    except Exception as e:
+        raise ValueError(f"Invalid native_ui_size format: {size_str}") from e
 
 def run_gui():
+    """Run the main graphical user interface (GUI).
 
+    This function initializes and runs the NiceGUI application, handling server
+    configurations, system tray icon, GUI settings, and cleanup operations.
+    """
     server_port = None
     server_ip = None
 
-    print('start NiceGui')
+    print('Start WLEDVideoSync - NiceGui')
 
     if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
+
         server_ip = cfg_mgr.server_config['server_ip']
+
         if not Utils.validate_ip_address(server_ip):
             cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
             sys.exit(1)
@@ -132,8 +238,8 @@ def run_gui():
     pid = os.getpid()
 
     pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
-    proc_file = shelve.open(pid_tmp_file)
-    proc_file["server_port"] = server_port
+    with shelve.open(pid_tmp_file) as proc_file:
+        proc_file["server_port"] = server_port
 
     """
     Pystray
@@ -148,12 +254,14 @@ def run_gui():
     GUI
     """
     # choose GUI
+    show = None
     native_ui = cfg_mgr.app_config['native_ui'] if cfg_mgr.app_config is not None else 'False'
-    if cfg_mgr.app_config['native_ui_size'] == '':
+    if ((cfg_mgr.app_config is not None and cfg_mgr.app_config['native_ui_size'] == '')
+             or (cfg_mgr.app_config is None)):
         native_ui_size = '800,600'
     else:
         native_ui_size = cfg_mgr.app_config['native_ui_size']
-    show = None
+
     try:
         if native_ui.lower() == 'none' or str2bool(cfg_mgr.app_config['put_on_systray']):
             native_ui_size = None
@@ -161,8 +269,7 @@ def run_gui():
             show = False
         elif str2bool(native_ui):
             native_ui = True
-            native_ui_size = tuple(native_ui_size.split(','))
-            native_ui_size = (int(native_ui_size[0]), int(native_ui_size[1]))
+            native_ui_size = parse_native_ui_size(native_ui_size)
         else:
             show = True
             native_ui_size = None
@@ -207,34 +314,31 @@ def run_gui():
 
     # stop pystray
     if str2bool(cfg_mgr.app_config['put_on_systray']):
+        from src.gui.wledtray import WLEDVideoSync_icon
         WLEDVideoSync_icon.stop()
 
-    print('End NiceGUI')
+    print('End WLEDVideoSync - NiceGUI')
 
 """
 MAIN Logic 
 """
 if __name__ in "__main__":
 
-    config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
-
-    # test to see if executed from compressed version (linux & win)
     # instruct user to go to WLEDVideoSync folder to execute program (nuitka onefile option) and exit
+    # We check if executed from compressed version (linux & win)
     if "NUITKA_ONEFILE_PARENT" in os.environ:
         """
         When this env var exist, this mean run from the one-file compressed executable.
         This env not exist when run from the extracted program.
         Expected way to work.
         """
-        # On macOS, there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run
-        # Update necessary params and exit
-        if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
+        init_linux_win()
 
-            init_darwin()
-            
-        else:
+    # On macOS, there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run
+    # Update necessary params and exit
+    if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
 
-            init_linux_win()
+        init_darwin()
 
     """
     Start infinite loop

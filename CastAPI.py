@@ -62,7 +62,7 @@ from fastapi import Path as PathAPI
 from starlette.concurrency import run_in_threadpool
 from nicegui import app, ui, run
 from configmanager import ConfigManager
-from src.utl.fontsmanager import FontPreviewManager
+from src.txt.fontsmanager import FontPreviewManager
 from src.txt.coldtypemp import RUNColdtype
 from src.utl.pyeditor import PythonEditor
 

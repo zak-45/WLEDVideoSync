@@ -18,7 +18,7 @@ from nicegui import ui, events, app
 from datetime import datetime
 from str2bool import str2bool
 
-from src.utl.fontsmanager import FontSetApplication
+from src.txt.fontsmanager import FontSetApplication
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils
 from src.utl.cv2utils import VideoThumbnailExtractor
