@@ -150,6 +150,9 @@ All of this could be configured later, for the moment focus on default.
                 'area' --> see SCREENAREA
             To cast a specific window content:
                 'win=xxxxxxxxx'  where xxxxxx should be for Win the window title and for Linux window ID/or window title
+            To cast from a 'queue':
+                select 'queue', this will open a preview window with default image and waiting to receive images 
+                from other processes (e.g: text animation ...)
         Preview: True or False, if True a cast preview window will be displayed
         Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop
         Codec: PyAV codec used, let it to 'libx264rgb' for now
