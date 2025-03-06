@@ -44,7 +44,6 @@ from asyncio import set_event_loop_policy,sleep,create_task
 from threading import current_thread
 from subprocess import Popen
 from src.net.ddp_queue import DDPDevice
-from pathlib import Path as PathLib
 from src.utl.utils import CASTUtils as Utils, LogElementHandler
 from src.utl.utils import HTTPDiscovery as Net
 from src.utl.cv2utils import ImageUtils
@@ -64,7 +63,7 @@ from nicegui import app, ui, run
 from configmanager import ConfigManager
 from src.txt.fontsmanager import FontPreviewManager
 from src.txt.coldtypemp import RUNColdtype
-from src.utl.pyeditor import PythonEditor
+from src.gui.pyeditor import PythonEditor
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 
@@ -82,6 +81,7 @@ action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
+log_ui=ui.log()
 
 """
 Actions to do at application initialization 
@@ -1102,9 +1102,10 @@ async def main_page():
                     .props(add='maximized transition-show="slide-up" transition-hide="slide-down"')
                 with (dialog, ui.card().classes('w-full')):
                     log_filename = cfg_mgr.app_root_path('log/WLEDVideoSync.log')
-                    if PathLib(log_filename).is_file():
+                    if os.path.isfile(log_filename):
                         # file exists
-                        log_data = PathLib(log_filename).read_text()
+                        with open(log_filename) as my_file:
+                            log_data = my_file.read()
                     else:
                         log_data = 'ERROR Log File Not Found ERROR'
                         cfg_mgr.logger.warning(f'Log File Not Found {log_filename}')
@@ -3152,4 +3153,3 @@ async def download_url(url):
     # set video player media
     CastAPI.player.set_source(video_img_url)
     CastAPI.player.update()
-
