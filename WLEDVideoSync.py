@@ -25,19 +25,82 @@ from subprocess import Popen
 from nicegui import ui, app , native
 
 import os
-
-import tkinter as tk
 import CastAPI
 
-from tkinter import PhotoImage
 from src.utl.utils import CASTUtils as Utils
 from str2bool import str2bool
 from configmanager import ConfigManager
 
-
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 Process, Queue = Utils.mp_setup()
+
+
+def cfg_settings(arg0, arg1, arg2, arg3):
+    Utils.update_ini_key(config_file, 'app', 'preview_proc', arg0)
+    Utils.update_ini_key(config_file, 'app', 'native_ui', arg1)
+    Utils.update_ini_key(config_file, 'app', 'native_ui_size', arg2)
+    Utils.update_ini_key(config_file, 'app', arg3, 'False')
+
+def init_linux_win():
+
+    # Apply some default params only once
+    # Apply default GUI / param , depend on platform
+
+    if sys.platform.lower() == 'win32':
+        cfg_settings('False', 'True', '1200,720', 'win_first_run')
+    elif sys.platform.lower() == 'linux':
+        linux_settings()
+    # common all OS
+    init_common()
+
+    # run webview and close
+    import src.gui.webviewinit
+
+def linux_settings():
+    cfg_settings('True', 'False', '', 'linux_first_run')
+    # chmod +x info window
+    cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
+    proc1 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+
+    # change folder icon
+    cmd_str = f'gio set -t string \
+        "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/mac_folder.png")}'
+    proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+
+    # change app icon
+    cmd_str = f'gio set -t string \
+        "WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("favicon.png")}'
+    proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+
+def init_darwin():
+    Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
+    Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
+    Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
+
+    # chmod +x info window
+    cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
+    proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+
+    # global
+    Utils.update_ini_key(config_file, 'app', 'mac_first_run', 'False')
+
+    # common all OS
+    init_common()
+
+    # run webview and close
+    import src.gui.webviewinitmac
+
+
+def init_common():
+
+    # Apply YouTube settings if yt_dlp not imported
+    if 'yt_dlp' not in sys.modules:
+        Utils.update_ini_key(config_file, 'custom', 'yt-enabled', 'False')
+
+    # global
+    Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
+    Utils.update_ini_key(config_file, 'app', 'put_on_systray', 'False')
 
 
 def run_gui():
@@ -77,6 +140,7 @@ def run_gui():
     if str2bool(cfg_mgr.app_config['put_on_systray']):
         from src.gui.wledtray import WLEDVideoSync_icon
 
+        # run systray in no blocking mode
         WLEDVideoSync_icon.run_detached()
 
     """
@@ -145,152 +209,9 @@ def run_gui():
 
     print('End NiceGUI')
 
-
-def init_linux_win():
-
-    # Apply some default params only once
-    # Apply default GUI / param , depend on platform
-
-    if sys.platform.lower() == 'win32':
-        Utils.update_ini_key(config_file, 'app', 'preview_proc', 'False')
-        Utils.update_ini_key(config_file, 'app', 'native_ui', 'True')
-        Utils.update_ini_key(config_file, 'app', 'native_ui_size', '1200,720')
-        Utils.update_ini_key(config_file, 'app', 'win_first_run', 'False')
-
-    elif sys.platform.lower() == 'linux':
-        # ini settings
-        Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
-        Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
-        Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
-        Utils.update_ini_key(config_file, 'app', 'linux_first_run', 'False')
-
-        # chmod +x info window
-        cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
-        proc1 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-
-        # change folder icon
-        cmd_str = f'gio set -t string \
-        "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/mac_folder.png")}'
-        proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-
-        # change app icon
-        cmd_str = f'gio set -t string \
-        "WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("favicon.png")}'
-        proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-
-    # common all OS
-    init_common()
-
-    def on_ok_click():
-        # Close the window when OK button is clicked
-        root.destroy()
-
-    # Create the main window
-    root = tk.Tk()
-    root.title("WLEDVideoSync Information")
-    root.geometry("820x460")  # Set the size of the window
-    root.configure(bg='#657B83')  # Set the background color
-
-    # Change the window icon
-    icon = PhotoImage(file=cfg_mgr.app_root_path('favicon.png'))
-    root.iconphoto(False, icon)
-
-    # Define the window's contents
-    info_text = ("Extracted executable to WLEDVideoSync folder.....\n\n \
-    You can safely delete this file after extraction finished to save some space.\n \
-    (the same for WLEDVideoSync.out.txt and err.txt if there ...)\n\n \
-    Go to WLEDVideoSync folder and run WLEDVideoSync-{OS} file\n \
-    This is a portable version, nothing installed on your system and can be moved where wanted.\n\n \
-    Enjoy using WLEDVideoSync\n\n \
-    -------------------------------------------------------------------------------------------------\n \
-    THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\n \
-    INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n \
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\n \
-    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,\n \
-    DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n \
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n \
-    -------------------------------------------------------------------------------------------------\n ")
-
-    info_label = tk.Label(root, text=info_text, bg='#657B83', fg='white', justify=tk.LEFT)
-    info_label.pack(padx=10, pady=10)
-
-    # Create the OK button
-    ok_button = tk.Button(root, text="Ok", command=on_ok_click, bg='gray', fg='white')
-    ok_button.pack(pady=10)
-
-    # Start the Tkinter event loop
-    root.mainloop()
-
-    sys.exit()
-
-
-def init_darwin():
-    Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
-    Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
-    Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
-
-    # chmod +x info window
-    cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
-    proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-
-    # global
-    Utils.update_ini_key(config_file, 'app', 'mac_first_run', 'False')
-
-    # common all OS
-    init_common()
-
-    def on_ok_click():
-        # Close the window when OK button is clicked
-        root.destroy()
-
-    # Create the main window
-    root = tk.Tk()
-    root.title("WLEDVideoSync Information")
-    root.geometry("820x460")  # Set the size of the window
-    root.configure(bg='#657B83')  # Set the background color
-
-    # Change the window icon
-    icon = PhotoImage(file=cfg_mgr.app_root_path('favicon.png'))
-    root.iconphoto(False, icon)
-
-    # Define the window's contents
-    info_text = ("Initial settings done for MacOS\n\n"
-                 "This is a portable version, nothing installed on your system and can be moved where wanted.\n\n"
-                 "Just Re-run it to Enjoy using WLEDVideoSync\n\n \
-                 -------------------------------------------------------------------------------------------------\n \
-                 THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,\n \
-                 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n \
-                 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\n \
-                 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,\n \
-                 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n \
-                 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n \
-                 -------------------------------------------------------------------------------------------------\n ")
-
-    info_label = tk.Label(root, text=info_text, bg='#657B83', fg='white', justify=tk.LEFT)
-    info_label.pack(padx=10, pady=10)
-
-    # Create the OK button
-    ok_button = tk.Button(root, text="Ok", command=on_ok_click, bg='gray', fg='white')
-    ok_button.pack(pady=10)
-
-    # Start the Tkinter event loop
-    root.mainloop()
-
-    sys.exit()
-
-def init_common():
-
-    # Apply YouTube settings if yt_dlp not imported
-    if 'yt_dlp' not in sys.modules:
-        Utils.update_ini_key(config_file, 'custom', 'yt-enabled', 'False')
-
-    # global
-    Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
-
 """
 MAIN Logic 
 """
-
 if __name__ in "__main__":
 
     config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
@@ -303,12 +224,15 @@ if __name__ in "__main__":
         This env not exist when run from the extracted program.
         Expected way to work.
         """
-        init_linux_win()
+        # On macOS, there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run
+        # Update necessary params and exit
+        if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
 
-    # On macOS, there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run
-    # Update necessary params and exit
-    if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
-        init_darwin()
+            init_darwin()
+            
+        else:
+
+            init_linux_win()
 
     """
     Start infinite loop
