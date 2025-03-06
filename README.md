@@ -73,9 +73,6 @@ Contributions to the project are welcome. Please follow the standard GitHub fork
 MIT
 
 
-![image](https://github.com/zak-45/WLEDVideoSync/assets/121941293/9ec42abd-657e-447e-9ef0-075c425bdd47)
-
-
 ![image](https://github.com/zak-45/WLEDVideoSync/assets/121941293/519584f8-af39-442a-9faf-55bf5e0b0a7c)
 
 
@@ -97,7 +94,6 @@ MIT
 
 - Go into and click on `WLEDVideoSync-{OS}`(exe/bin) to execute the main program.
   - If you are on Win system, this should open "native" windows
-
 
 ![native](docs/img/native.png)
 
