@@ -26,6 +26,7 @@ from nicegui import ui, app , native
 
 import os
 import CastAPI
+import src.gui.niceutils
 
 from src.utl.utils import CASTUtils as Utils
 from str2bool import str2bool
@@ -36,11 +37,11 @@ cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 Process, Queue = Utils.mp_setup()
 
 
-def cfg_settings(arg0, arg1, arg2, arg3):
-    Utils.update_ini_key(config_file, 'app', 'preview_proc', arg0)
-    Utils.update_ini_key(config_file, 'app', 'native_ui', arg1)
-    Utils.update_ini_key(config_file, 'app', 'native_ui_size', arg2)
-    Utils.update_ini_key(config_file, 'app', arg3, 'False')
+def cfg_settings(preview_subprocess, native_ui, native_size, first_run_os):
+    Utils.update_ini_key(config_file, 'app', 'preview_proc', preview_subprocess)
+    Utils.update_ini_key(config_file, 'app', 'native_ui', native_ui)
+    Utils.update_ini_key(config_file, 'app', 'native_ui_size', native_size)
+    Utils.update_ini_key(config_file, 'app', first_run_os, 'False')
 
 def init_linux_win():
 
@@ -148,9 +149,10 @@ def run_gui():
     """
     # choose GUI
     native_ui = cfg_mgr.app_config['native_ui'] if cfg_mgr.app_config is not None else 'False'
-    native_ui_size = '800,600'
     if cfg_mgr.app_config['native_ui_size'] == '':
-        native_ui_size = '1200,720'
+        native_ui_size = '800,600'
+    else:
+        native_ui_size = cfg_mgr.app_config['native_ui_size']
     show = None
     try:
         if native_ui.lower() == 'none' or str2bool(cfg_mgr.app_config['put_on_systray']):
@@ -173,7 +175,7 @@ def run_gui():
     RUN
     """
     # settings
-    app.openapi = CastAPI.custom_openapi
+    app.openapi = src.gui.niceutils.custom_openapi
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     app.add_media_files('/media', cfg_mgr.app_root_path('media'))
     app.add_static_files('/log', cfg_mgr.app_root_path('log'))

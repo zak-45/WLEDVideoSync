@@ -12,10 +12,13 @@
 """
 import sys
 import psutil
+from fastapi.openapi.utils import get_openapi
 
-from nicegui import ui, events
+from nicegui import ui, events, app
 from datetime import datetime
 from str2bool import str2bool
+
+from src.utl.fontsmanager import FontSetApplication
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils
 from src.utl.cv2utils import VideoThumbnailExtractor
@@ -762,6 +765,74 @@ async def edit_artnet(class_obj):
     new_channels_per_pixel.classes('w-40')
     new_channels_per_pixel.tooltip('Channels to use for e131/artnet, RGB = 3 RGBW = 4.')
     """
+
+def apply_custom():
+    """
+    Layout Colors come from config file
+    bg image can be customized
+    :return:
+    """
+    ui.colors(primary=cfg_mgr.color_config['primary'],
+              secondary=cfg_mgr.color_config['secondary'],
+              accent=cfg_mgr.color_config['accent'],
+              dark=cfg_mgr.color_config['dark'],
+              positive=cfg_mgr.color_config['positive'],
+              negative=cfg_mgr.color_config['negative'],
+              info=cfg_mgr.color_config['info'],
+              warning=cfg_mgr.color_config['warning']
+              )
+
+    # custom font (experimental)
+    font_file = cfg_mgr.app_config['font_file']
+    if font_file != '':
+        FontSetApplication(font_path=font_file, size_adjust='100%')
+
+    # custom bg
+    ui.query('body').style(f'background-image: url({cfg_mgr.custom_config["bg-image"]}); '
+                           'background-size: cover;'
+                           'background-repeat: no-repeat;'
+                           'background-position: center;')
+
+
+def custom_openapi():
+    """ got ws page into FastAPI docs """
+
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="WLEDVideoSync",
+        version="1.0.0",
+        description="API docs",
+        routes=app.routes,
+    )
+    # Add WebSocket route to the schema
+    openapi_schema["paths"]["/ws/docs"] = {
+        "get": {
+            "summary": "webSocket - only for reference",
+            "description": "websocket_info",
+            "responses": {200: {}},
+            "tags": ["websocket"]
+        }
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+async def media_dev_view_page():
+    """
+    Display media devices into the Json Editor
+    :return:
+    """
+    def fetch_dev():
+        with ui.dialog() as dialog, ui.card():
+            dialog.open()
+            editor = ui.json_editor({'content': {'json': Utils.dev_list}}) \
+                .run_editor_method('updateProps', {'readOnly': True})
+            ui.button('Close', on_click=dialog.close, color='red')
+
+    ui.button('Media devices', on_click=fetch_dev, color='bg-red-800').tooltip('View Media devices')
+
+
 
 class LocalFilePicker(ui.dialog):
     """Local File Picker

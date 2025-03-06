@@ -49,7 +49,7 @@ from src.utl.utils import CASTUtils as Utils, LogElementHandler
 from src.utl.utils import HTTPDiscovery as Net
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
-from src.gui.niceutils import LocalFilePicker
+from src.gui.niceutils import LocalFilePicker, apply_custom, media_dev_view_page
 from src.utl.utils import ScreenAreaSelection as Sa
 from src.utl.utils import YtSearch
 from src.utl.utils import AnimatedElement as Animate
@@ -57,14 +57,12 @@ from src.utl.multicast import MultiUtils as Multi
 from datetime import datetime
 from str2bool import str2bool
 from PIL import Image
-from fastapi.openapi.utils import get_openapi
 from fastapi import HTTPException, WebSocket
 from fastapi import Path as PathAPI
 from starlette.concurrency import run_in_threadpool
-from nicegui import app, ui, native, run
+from nicegui import app, ui, run
 from configmanager import ConfigManager
 from src.utl.fontsmanager import FontPreviewManager
-from src.utl.fontsmanager import FontSetApplication
 from src.txt.coldtypemp import RUNColdtype
 from src.utl.pyeditor import PythonEditor
 
@@ -763,8 +761,6 @@ async def apply_preset_api(class_name: str = PathAPI(description=f'Class name, s
 """
 FastAPI WebSockets
 """
-
-websocket_info = 'These are the websocket end point calls and result'
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -1984,45 +1980,6 @@ async def stop_app():
 helpers /Commons
 """
 
-async def grab_windows():
-    """Retrieves and displays window titles.
-
-    This function retrieves all window titles and displays a notification.
-    """
-
-    ui.notification('Retrieved all windows information', close_button=True, timeout=3)
-    Desktop.windows_titles = Utils.windows_titles()
-
-
-async def media_dev_view_page():
-    """
-    Display media devices into the Json Editor
-    :return:
-    """
-    def fetch_dev():
-        with ui.dialog() as dialog, ui.card():
-            dialog.open()
-            editor = ui.json_editor({'content': {'json': Utils.dev_list}}) \
-                .run_editor_method('updateProps', {'readOnly': True})
-            ui.button('Close', on_click=dialog.close, color='red')
-
-    ui.button('Media devices', on_click=fetch_dev, color='bg-red-800').tooltip('View Media devices')
-
-
-async def net_view_page():
-    """
-    Display network devices into the Json Editor
-    :return:
-    """
-    def fetch_net():
-        with ui.dialog() as dialog, ui.card():
-            dialog.open()
-            editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
-                .run_editor_method('updateProps', {'readOnly': True})
-            ui.button('Close', on_click=dialog.close, color='red')
-
-    ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
-
 async def animate_toggle(img):
     """ toggle animation """
 
@@ -2041,6 +1998,31 @@ async def animate_toggle(img):
 
     ui.notify(f'Animate :{cfg_mgr.custom_config["animate-ui"]}')
     cfg_mgr.logger.debug(f'Animate :{cfg_mgr.custom_config["animate-ui"]}')
+
+
+async def grab_windows():
+    """Retrieves and displays window titles.
+
+    This function retrieves all window titles and displays a notification.
+    """
+
+    ui.notification('Retrieved all windows information', close_button=True, timeout=3)
+    Desktop.windows_titles = Utils.windows_titles()
+
+
+async def net_view_page():
+    """
+    Display network devices into the Json Editor
+    :return:
+    """
+    def fetch_net():
+        with ui.dialog() as dialog, ui.card():
+            dialog.open()
+            editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
+                .run_editor_method('updateProps', {'readOnly': True})
+            ui.button('Close', on_click=dialog.close, color='red')
+
+    ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
 
 
 async def youtube_search():
@@ -3170,62 +3152,4 @@ async def download_url(url):
     # set video player media
     CastAPI.player.set_source(video_img_url)
     CastAPI.player.update()
-
-
-"""
-Customization
-"""
-
-
-def custom_openapi():
-    """ got ws page into FastAPI docs """
-
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi(
-        title="WLEDVideoSync",
-        version="1.0.0",
-        description="API docs",
-        routes=app.routes,
-    )
-    # Add WebSocket route to the schema
-    openapi_schema["paths"]["/ws/docs"] = {
-        "get": {
-            "summary": "webSocket - only for reference",
-            "description": websocket_info,
-            "responses": {200: {}},
-            "tags": ["websocket"]
-        }
-    }
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-
-def apply_custom():
-    """
-    Layout Colors come from config file
-    bg image can be customized
-    :return:
-    """
-    ui.colors(primary=cfg_mgr.color_config['primary'],
-              secondary=cfg_mgr.color_config['secondary'],
-              accent=cfg_mgr.color_config['accent'],
-              dark=cfg_mgr.color_config['dark'],
-              positive=cfg_mgr.color_config['positive'],
-              negative=cfg_mgr.color_config['negative'],
-              info=cfg_mgr.color_config['info'],
-              warning=cfg_mgr.color_config['warning']
-              )
-
-    # custom font (experimental)
-    font_file = cfg_mgr.app_config['font_file']
-    if font_file != '':
-        FontSetApplication(font_path=font_file, size_adjust='100%')
-
-    # custom bg
-    ui.query('body').style(f'background-image: url({cfg_mgr.custom_config["bg-image"]}); '
-                           'background-size: cover;'
-                           'background-repeat: no-repeat;'
-                           'background-position: center;')
-
 
