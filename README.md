@@ -296,7 +296,8 @@ Default behaviour:
 
 Put on Systray:
 - To use the systray:
-  - modify put_on_systray in the config file. Once set, no GUI will be launched: you need to click on systray for that.
+  - modify put_on_systray in the config file. Once set, no GUI will be launched: you need to click on systray icon 
+for that.
   >this work out-of-box for win, but some additional lib could be necessary for linux/mac 
 
 ### WebSocket

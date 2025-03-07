@@ -82,7 +82,7 @@ def on_open_main():
     Opens the main application URL in a native webview window if
     native_ui is True, otherwise opens it in the default browser.
     """
-    select_win(f"http://{server_ip}:{server_port}", 'Main Window', 1200, 720)
+    select_win(f"http://{server_ip}:{server_port}", f'WLEDVideoSync Main Window : {server_port}', 1200, 720)
 
 def on_open_main_bro():
     """Force open the main application in the default browser.
@@ -98,7 +98,7 @@ def on_blackout():
     Stop all casts
 
     """
-    select_win(f"http://{server_ip}:{server_port}/api/util/blackout",'BLACKOUT', 400, 150)
+    select_win(f"http://{server_ip}:{server_port}/api/util/blackout",f'WLEDVideoSync BLACKOUT : {server_port}', 400, 150)
 
 
 def on_player():
@@ -108,28 +108,28 @@ def on_player():
     browser, depending on the native_ui setting.
     """
 
-    select_win(f"http://{server_ip}:{server_port}/Player", 'Player', 1200, 720)
+    select_win(f"http://{server_ip}:{server_port}/Player", f'WLEDVideoSync Player: {server_port}', 1200, 720)
 
 def on_api():
     """
     Open API
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/docs", 'API')
+    select_win(f"http://{server_ip}:{server_port}/docs", f'WLEDVideoSync API: {server_port}')
 
 def on_py():
     """
     Open Python Editor
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/Pyeditor", 'Python Editor')
+    select_win(f"http://{server_ip}:{server_port}/Pyeditor", f'WLEDVideoSync Python Editor: {server_port}')
 
 def on_info():
     """
     Menu Info option : show cast information
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/info", 'Infos', 480, 220)
+    select_win(f"http://{server_ip}:{server_port}/info", f'WLEDVideoSync Infos: {server_port}', 480, 220)
 
 
 def on_net():
@@ -137,7 +137,7 @@ def on_net():
     Menu Net  option : show charts
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/RunCharts",'Charts')
+    select_win(f"http://{server_ip}:{server_port}/RunCharts",f'WLEDVideoSync Charts: {server_port}')
 
 
 def on_details():
@@ -145,7 +145,7 @@ def on_details():
     Menu Info Details option : show details cast information
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/DetailsInfo",'Cast(s) Details')
+    select_win(f"http://{server_ip}:{server_port}/DetailsInfo",f'WLEDVideoSync Cast(s) Details: {server_port}')
 
 
 def on_exit():
@@ -153,7 +153,7 @@ def on_exit():
     Menu Exit option : stop main Loop and continue
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/ShutDown",'SHUTDOWN', 100, 50)
+    select_win(f"http://{server_ip}:{server_port}/ShutDown",f'WLEDVideoSync SHUTDOWN: {server_port}', 100, 50)
 
 
 """

@@ -5,7 +5,9 @@ import math
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from moviepy import *
+from moviepy.editor import *
+from moviepy.video.tools.segmenting import findObjects
+
 from src.utl.utils import CASTUtils as Utils
 from configmanager import ConfigManager
 
