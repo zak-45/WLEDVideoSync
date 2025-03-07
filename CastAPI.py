@@ -195,8 +195,8 @@ async def shutdown_root():
     app.shutdown()
     # stop pystray
     if str2bool(cfg_mgr.app_config['put_on_systray']):
-        from src.gui.wledtray import WLEDVideoSync_icon
-        WLEDVideoSync_icon.stop()
+        from src.gui.wledtray import WLEDVideoSync_systray
+        WLEDVideoSync_systray.stop()
 
     return {"shutdown":"done"}
 

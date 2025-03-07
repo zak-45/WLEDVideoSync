@@ -62,17 +62,21 @@ Temporary File Handling:
 
 """
 import sys
+import os
+# disable not used costly import (from nicegui)
+os.environ['MATPLOTLIB'] = 'false'
+
+#
 import shelve
 from subprocess import Popen
+from str2bool import str2bool
 
-from nicegui import ui, app , native
-
-import os
+from nicegui import ui, app, native
 import CastAPI
 import src.gui.niceutils
 
 from src.utl.utils import CASTUtils as Utils
-from str2bool import str2bool
+
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
@@ -245,10 +249,10 @@ def run_gui():
     Pystray
     """
     if str2bool(cfg_mgr.app_config['put_on_systray']):
-        from src.gui.wledtray import WLEDVideoSync_icon
+        from src.gui.wledtray import WLEDVideoSync_systray
 
         # run systray in no blocking mode
-        WLEDVideoSync_icon.run_detached()
+        WLEDVideoSync_systray.run_detached()
 
     """
     GUI
@@ -314,8 +318,10 @@ def run_gui():
 
     # stop pystray
     if str2bool(cfg_mgr.app_config['put_on_systray']):
-        from src.gui.wledtray import WLEDVideoSync_icon
-        WLEDVideoSync_icon.stop()
+        from src.gui.wledtray import WLEDVideoSync_systray
+        from src.gui.wledtray import WLEDVideoSync_gui
+        WLEDVideoSync_systray.stop()
+        WLEDVideoSync_gui.close_all_webviews()
 
     print('End WLEDVideoSync - NiceGUI')
 
