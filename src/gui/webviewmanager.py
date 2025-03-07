@@ -1,8 +1,57 @@
+"""
+a: zak-45
+d: 07/03/2025
+v: 1.0.0.0
+
+Overview
+This Python file provides a WebviewManager class for managing multiple webview windows using the pywebview library.
+It allows opening, closing, and tracking the status of multiple webview windows, each running in a separate process.
+This is useful for applications that need to display multiple web pages or web-based interfaces concurrently.
+
+Key Components
+    WebviewManager Class: This class is the core of the file. It encapsulates the logic for managing webview windows.
+
+open_webview(url, title, width, height):
+    Opens a new webview window in a separate process with the specified URL, title, width, and height.
+    It uses multiprocessing to avoid blocking the main application thread.
+
+close_all_webviews():
+    Closes all running webview windows managed by the instance.
+    It iterates through the list of processes and terminates them.
+
+get_running_webviews():
+    Returns a list of process IDs for all currently active webview windows.
+
+start_webview(url, title, width, height) Function:
+    This helper function is the target for the multiprocessing.
+    It creates and starts a single webview window using the provided parameters.
+    It's called within a separate process by the open_webview method.
+
+Multiprocessing:
+    The code utilizes Python's multiprocessing library to run each webview in its own process.
+    This prevents one webview from blocking others and improves the responsiveness of the application.
+
+pywebview Library:
+    This file depends on the pywebview library, which is used to create and manage the webview windows.
+    It abstracts the underlying webview technologies (like Qt or GTK) and provides a consistent interface.
+
+The example usage at the end of the file demonstrates how to create a WebviewManager instance,
+open a couple of webview windows, and retrieve the PIDs of the running windows.
+The commented-out code shows how to close all webviews.
+
+"""
+
+
 import multiprocessing
 import webview
 
 
 class WebviewManager:
+    """Manages multiple webview windows in separate processes.
+
+    Provides methods for opening, closing, and tracking the status
+    of multiple webview windows concurrently.
+    """
     def __init__(self):
         # List to hold all running webview processes
         self.webview_processes = []
@@ -19,7 +68,7 @@ class WebviewManager:
         for process in self.webview_processes:
             if process.is_alive():
                 process.terminate()
-                process.join()
+                process.join(timeout=5)
         self.webview_processes.clear()
 
     def get_running_webviews(self):

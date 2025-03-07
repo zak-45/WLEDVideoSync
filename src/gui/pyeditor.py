@@ -1,4 +1,16 @@
+"""
+a: zak-45
+d: 01/02/2025
+v: 1.0.0.0
 
+Python Editor
+use the built-in python
+This editor is mainly for advanced text animation effect.
+You can use module Coldetype, class TextAnimator, module moviepy ...
+CV2 provide a way to have a preview window.
+Desktop queues could be used to send frames (numpy array) to any net devices (art-net/e131/DDP)
+
+"""
 import ast
 import os
 
@@ -38,12 +50,22 @@ class PythonEditor:
         self.capture = ConsoleCapture(show_console=False)
 
     async def get_manager_queues(self):
-        
+        """Retrieve information about Desktop queues from the queue manager.
+
+        Connects to the queue manager and retrieves information about
+        available shared Lists . Returns an empty dictionary if the
+        connection fails.
+        """
         client = Utils.attach_to_queue_manager()
         return client.get_shared_lists_info() if (status := client.connect()) else {}
 
 
     async def show_queues(self):
+        """Display shared queues information in a dialog.
+
+        Retrieves queue information and presents it in a read-only
+        JSON editor within a dialog box.
+        """
         queues = await self.get_manager_queues()
         print(queues)
         with ui.dialog() as dialog, ui.card():
