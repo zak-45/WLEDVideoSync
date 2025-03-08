@@ -228,6 +228,7 @@ class CASTDesktop:
         artnet_host = None
 
         port = port
+
         """
         Cast devices
         """
@@ -539,6 +540,9 @@ class CASTDesktop:
             else:
 
                 # for win, not necessary to use child process as this work from thread (avoid overhead)
+                if not CV2Utils.window_exists(win_name):
+                    cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+
                 i_preview, i_todo_stop, self.text = CV2Utils.cv2_preview_window(
                     CASTDesktop.total_frame,
                     iframe,
@@ -617,7 +621,8 @@ class CASTDesktop:
 
             # run main_preview in another process
             # create a child process, so cv2.imshow() will run from its Main Thread
-            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop',))
+            win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
+            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop', win_name,))
             # start the child process
             # small delay should occur, OS take some time to initiate the new process
             i_sl_process.start()
@@ -830,6 +835,9 @@ class CASTDesktop:
             t_viinput = os.getenv('DISPLAY')
         else:
             t_viinput = self.viinput
+
+
+        win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
 
         # Open av input container in read mode if not SL
         if sl_buffer is None:

@@ -207,6 +207,8 @@ class CASTMedia:
 
         port = port
 
+        window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
+
         """
         MultiCast inner function protected from what happens outside.
         """
@@ -827,7 +829,8 @@ class CASTMedia:
                         # run main_preview in another process
                         # create a child process, so cv2.imshow() will run from its own Main Thread
                         cfg_mgr.logger.debug(f'Define sl_process for Preview : {sl_name}')
-                        sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name, 'Media',))
+                        window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
+                        sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name, 'Media', window_name,))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
                         cfg_mgr.logger.debug(f'Starting Child Process for Preview : {sl_name}')
@@ -867,6 +870,9 @@ class CASTMedia:
                 else:
 
                     # for win, not necessary to use child process as this work from this thread (avoid overhead)
+                    if not CV2Utils.window_exists(window_name):
+                        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+
                     t_preview, t_todo_stop, self.text = CV2Utils.cv2_preview_window(
                         CASTMedia.total_frame,
                         frame,

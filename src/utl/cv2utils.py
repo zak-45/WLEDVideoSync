@@ -103,6 +103,11 @@ class CV2Utils:
 
         return image_with_black_bg
 
+    @staticmethod
+    def window_exists(win_name):
+        """Returns True if the window exists, False otherwise"""
+
+        return cv2.getWindowProperty(win_name, cv2.WND_PROP_VISIBLE) > 0
 
     @staticmethod
     def cv2_win_close(server_port, class_name, t_name, t_viinput):
@@ -133,7 +138,7 @@ class CV2Utils:
                 cfg_mgr.logger.error(f'Error on thread  {t_name} closing window with error : {e} ')
 
     @staticmethod
-    def sl_main_preview(shared_list, class_name):
+    def sl_main_preview(shared_list, class_name, window_name):
         """Used by platform <> win32, in this way cv2.imshow() will run on MainThread from a subprocess
         This one will read data from a ShareAbleList created by cast thread.
                 
@@ -150,6 +155,7 @@ class CV2Utils:
         The loop terminates when t_todo_stop is set or t_preview is cleared.        
 
         Updated data are: t_preview, to_todo_stop and text caught from user entry on preview window
+        :param window_name:
         :param class_name:  Desktop or Media
         :param shared_list:
         :return:
@@ -164,6 +170,8 @@ class CV2Utils:
         default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
 
         cfg_mgr.logger.info('Preview from ShareAbleList')
+
+        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
         # Display image on preview window
         while True:
