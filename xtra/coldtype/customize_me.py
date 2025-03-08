@@ -25,7 +25,7 @@ animator = TextAnimator(
 for _ in range(150):  # Adjust number of frames as needed
     frame = animator.generate()
     if frame is not None:
-        if sl is not None and w is not None and h is not None:
+        if all(item is not None for item in [sl, w, h]):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             ImgUtils.send_to_queue(frame, sl, w, h)
         cv2.imshow("Exploding Text Animation", frame)

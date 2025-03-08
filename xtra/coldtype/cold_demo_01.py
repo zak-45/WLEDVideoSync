@@ -20,7 +20,7 @@ def cold_demo_01(f):
     frame = gen_image.toarray()
     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
 
-    if sl is not None and w is not None and h is not None:
+    if all(item is not None for item in [sl, w, h]):
         ImgUtils.send_to_queue(frame, sl, w, h)
 
     return SkiaImage(gen_image)
