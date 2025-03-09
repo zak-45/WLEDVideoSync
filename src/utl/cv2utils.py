@@ -106,8 +106,10 @@ class CV2Utils:
     @staticmethod
     def window_exists(win_name):
         """Returns True if the window exists, False otherwise"""
-
-        return cv2.getWindowProperty(win_name, cv2.WND_PROP_VISIBLE) > 0
+        try:
+            return cv2.getWindowProperty(win_name, cv2.WND_PROP_VISIBLE) > 0
+        except cv2.error:
+            return False
 
     @staticmethod
     def cv2_win_close(server_port, class_name, t_name, t_viinput):

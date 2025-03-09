@@ -144,16 +144,19 @@ def linux_settings():
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
     proc1 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+    cfg_mgr.logger.debug(f'info_window : {proc1.pid}')
 
     # change folder icon
     cmd_str = f'gio set -t string \
         "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/mac_folder.png")}'
     proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+    cfg_mgr.logger.debug(f'mac_folder : {proc2.pid}')
 
     # change app icon
     cmd_str = f'gio set -t string \
         "WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("favicon.png")}'
     proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+    cfg_mgr.logger.debug(f'favicon : {proc3.pid}')
 
 def init_darwin():
     """Initialize settings for Darwin (macOS) platform.
@@ -172,6 +175,7 @@ def init_darwin():
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
     proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
+    cfg_mgr.logger.debug(f'info_window : {proc.pid}')
 
     # global
     Utils.update_ini_key(config_file, 'app', 'mac_first_run', 'False')
@@ -330,7 +334,7 @@ MAIN Logic
 """
 if __name__ in "__main__":
 
-    # instruct user to go to WLEDVideoSync folder to execute program (nuitka onefile option) and exit
+    # instruct user to go to WLEDVideoSync folder to execute program and exit
     # We check if executed from compressed version (linux & win)
     if "NUITKA_ONEFILE_PARENT" in os.environ:
         """
@@ -340,7 +344,7 @@ if __name__ in "__main__":
         """
         init_linux_win()
 
-    # On macOS, there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run
+    # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run
     # Update necessary params and exit
     if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
 

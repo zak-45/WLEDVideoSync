@@ -383,6 +383,8 @@ class CASTUtils:
         """ Retrieve server port number """
 
         server_port = 0
+        tmp_file = 'unknown'
+
         try:
             # get pid
             p_pid = os.getpid()
@@ -393,6 +395,9 @@ class CASTUtils:
                 server_port = infile["server_port"]
         except Exception as er:
             server_port = 99
+        finally:
+            if server_port == 0:
+                cfg_mgr.logger.error(f'Server Port should not be 0 from {tmp_file}')
 
         return server_port
 
