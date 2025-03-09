@@ -264,6 +264,7 @@ def run_gui():
     # choose GUI
     show = None
     native_ui = cfg_mgr.app_config['native_ui'] if cfg_mgr.app_config is not None else 'False'
+
     if ((cfg_mgr.app_config is not None and cfg_mgr.app_config['native_ui_size'] == '')
              or (cfg_mgr.app_config is None)):
         native_ui_size = '800,600'
@@ -283,7 +284,7 @@ def run_gui():
             native_ui_size = None
             native_ui = False
     except Exception as error:
-        cfg_mgr.logger.error(f'Error in config file for native_ui : {native_ui} - {error}')
+        cfg_mgr.logger.error(f'Error in config file to select GUI from native_ui : {native_ui} - {error}')
         sys.exit(1)
 
     """

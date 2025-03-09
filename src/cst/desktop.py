@@ -836,7 +836,6 @@ class CASTDesktop:
         else:
             t_viinput = self.viinput
 
-
         win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
 
         # Open av input container in read mode if not SL
@@ -907,69 +906,74 @@ class CASTDesktop:
                     # input video stream from container (for decode)
                     input_stream = input_container.streams.get(video=0)
 
-                    for frame in input_container.decode(input_stream):
+                    try:
+                        for frame in input_container.decode(input_stream):
 
-                        if self.record and out_file is None:
-                            out_file = iio.imopen(self.output_file, "w", plugin="pyav")
-                            out_file.init_video_stream(self.vo_codec, fps=frame_interval)
+                            if self.record and out_file is None:
+                                out_file = iio.imopen(self.output_file, "w", plugin="pyav")
+                                out_file.init_video_stream(self.vo_codec, fps=frame_interval)
 
-                        """
-                        instruct the thread to exit 
-                        """
-                        # if global stop or local stop
-                        if self.stopcast or t_todo_stop:
-                            raise ExitFromLoop
+                            """
+                            instruct the thread to exit 
+                            """
+                            # if global stop or local stop
+                            if self.stopcast or t_todo_stop:
+                                raise ExitFromLoop
 
-                        if CASTDesktop.t_exit_event.is_set():
-                            raise ExitFromLoop
-                        """
-                        """
+                            if CASTDesktop.t_exit_event.is_set():
+                                raise ExitFromLoop
+                            """
+                            """
 
-                        frame_count += 1
-                        CASTDesktop.total_frame += 1
+                            frame_count += 1
+                            CASTDesktop.total_frame += 1
 
-                        if output_container:
-                            # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
-                            # Convert the frame to rgb format
-                            frame_rgb = frame.reformat(width=output_stream.width, height=output_stream.height,
-                                                       format='rgb24')
+                            if output_container:
+                                # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
+                                # Convert the frame to rgb format
+                                frame_rgb = frame.reformat(width=output_stream.width, height=output_stream.height,
+                                                           format='rgb24')
 
-                            # Encode the frame
-                            for packet in output_stream.encode(frame_rgb):
-                                output_container.mux(packet)
-                                """
-                                Record
-                                """
-                                if self.record and out_file is not None:
-                                    # convert frame to np array
-                                    frame_np = frame.to_ndarray(format="rgb24")
-                                    out_file.write_frame(frame_np)
+                                # Encode the frame
+                                for packet in output_stream.encode(frame_rgb):
+                                    output_container.mux(packet)
+                                    """
+                                    Record
+                                    """
+                                    if self.record and out_file is not None:
+                                        # convert frame to np array
+                                        frame_np = frame.to_ndarray(format="rgb24")
+                                        out_file.write_frame(frame_np)
 
-                        else:
+                            else:
 
-                            # resize to requested size
-                            frame = frame.reformat(t_scale_width, t_scale_height)
+                                # resize to requested size
+                                frame = frame.reformat(t_scale_width, t_scale_height)
 
-                            # convert frame to np array
-                            frame = frame.to_ndarray(format="rgb24")
+                                # convert frame to np array
+                                frame = frame.to_ndarray(format="rgb24")
 
-                            # process frame
-                            frame, grid = process_frame(frame)
+                                # process frame
+                                frame, grid = process_frame(frame)
 
-                            # preview on fixed size window and receive back value from keyboard
-                            if t_preview:
-                                # create ShareableList if necessary
-                                if frame_count == 1 and str2bool(cfg_mgr.app_config['preview_proc']):
-                                    sl, sl_process = create_preview_sl(frame, grid)
-                                    if sl is None or sl_process is None:
-                                        cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
-                                        raise ExitFromLoop
+                                # preview on fixed size window and receive back value from keyboard
+                                if t_preview:
+                                    # create ShareableList if necessary
+                                    if frame_count == 1 and str2bool(cfg_mgr.app_config['preview_proc']):
+                                        sl, sl_process = create_preview_sl(frame, grid)
+                                        if sl is None or sl_process is None:
+                                            cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
+                                            raise ExitFromLoop
 
-                                t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
+                                    t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
 
-                        # check here as frame is an array now
-                        if CASTDesktop.t_todo_event.is_set():
-                            t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
+                            # check here as frame is an array now
+                            if CASTDesktop.t_todo_event.is_set():
+                                t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
+
+                    except av.BlockingIOError as av_err:
+                        if sys.platform.lower() != 'darwin':
+                            cfg_mgr.logger.error(f'{t_name} An exception occurred: {av_err}')
 
                 elif sl_buffer is not None:
 
