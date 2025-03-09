@@ -21,7 +21,7 @@ screeninfo==0.8.1
 pywebview==5.4 ; sys_platform != "linux"
 pywebview[qt]==5.4 ; sys_platform == "linux"
 pycairo ; sys_platform == "linux"
-PyGObject==3.50.0 ; sys_platform == "linux"
+PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
 
 # any version & Common to all OS
