@@ -390,10 +390,10 @@ class CASTUtils:
             p_pid = os.getpid()
             tmp_file = cfg_mgr.app_root_path(f"tmp/{p_pid}_file")
             # read file
-            if os.path.isfile(f"{tmp_file}.dat"):
-                infile = shelve.open(tmp_file)
-                server_port = infile["server_port"]
+            with shelve.open(tmp_file) as db:
+                server_port = db['server_port']
         except Exception as er:
+            cfg_mgr.logger.error(f'Error to retrieve Server Port  from {tmp_file}')
             server_port = 99
         finally:
             if server_port == 0:
