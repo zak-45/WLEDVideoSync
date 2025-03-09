@@ -119,7 +119,7 @@ jobs:
           sudo apt update
           sudo apt install ffmpeg
           ffmpeg -version
-          sudo apt-get install libgirepository2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.1         
+          sudo apt-get install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.1         
           sudo apt-get install gstreamer1.0-plugins-bad
           sudo apt install gir1.2-appindicator3-0.1
           pip3 install av --no-binary av
