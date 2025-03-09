@@ -6,7 +6,6 @@
 numpy==1.26.4
 opencv-python==4.11.0.86
 PyWinCtl==0.4.1
-wled==0.21.0
 zeroconf==0.143.0
 nicegui==2.11.1
 str2bool==1.1
@@ -26,6 +25,7 @@ PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
 
 # any version & Common to all OS
+wled
 yt-dlp
 linuxpy
 imageio

@@ -5,7 +5,7 @@
 
  CASTDesktop class
 
-           Cast your screen or frame (np) from queue to Artnet/e131/ddp device (e.g.WLED)
+           Cast your screen or frame (np) from sl-queue to Artnet/e131/ddp device (e.g.WLED)
                                or others
 
  logger.info(av.codec.codecs_available)
@@ -212,7 +212,7 @@ class CASTDesktop:
         frame_count = 0
 
         frame = None
-        sl_buffer = None
+        sl_queue = None
 
         sl = None
         sl_process = None
@@ -298,7 +298,7 @@ class CASTDesktop:
         """
         actions processing
         """
-        def process_action(iframe, i_preview, i_todo_stop):
+        def do_action(iframe, i_preview, i_todo_stop):
             """
             check if something to do
             manage concurrent access to the list by using lock feature
@@ -506,7 +506,7 @@ class CASTDesktop:
         preview process
         Manage preview window, depend on the platform
         """
-        def process_preview(iframe, i_preview, i_todo_stop, i_grid):
+        def show_preview(iframe, i_preview, i_todo_stop, i_grid):
             # preview on fixed size window
 
             if str2bool(cfg_mgr.app_config['preview_proc']):
@@ -621,8 +621,8 @@ class CASTDesktop:
 
             # run main_preview in another process
             # create a child process, so cv2.imshow() will run from its Main Thread
-            win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
-            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop', win_name,))
+            w_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
+            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop', w_name,))
             # start the child process
             # small delay should occur, OS take some time to initiate the new process
             i_sl_process.start()
@@ -801,13 +801,13 @@ class CASTDesktop:
         elif self.viinput == 'queue':
 
             if cfg_mgr.manager_config is not None:
+                sl_manager = SharedListManager(cfg_mgr.manager_config['manager_ip'],
+                                             int(cfg_mgr.manager_config['manager_port']))
                 sl_client = SharedListClient(cfg_mgr.manager_config['manager_ip'],
                                              int(cfg_mgr.manager_config['manager_port']))
-                sl_manager =  SharedListManager(cfg_mgr.manager_config['manager_ip'],
-                                             int(cfg_mgr.manager_config['manager_port']))
             else:
+                sl_manager = SharedListManager()
                 sl_client = SharedListClient()
-                sl_manager =  SharedListManager()
 
             # check server is running
             result = sl_client.connect()
@@ -816,7 +816,7 @@ class CASTDesktop:
                 sl_client.connect()
 
             # create ShareAbleList
-            sl_buffer = sl_client.create_shared_list(sl_name_q, t_scale_width, t_scale_height, start_time)
+            sl_queue = sl_client.create_shared_list(sl_name_q, t_scale_width, t_scale_height, start_time)
 
         cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
 
@@ -839,7 +839,7 @@ class CASTDesktop:
         win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
 
         # Open av input container in read mode if not SL
-        if sl_buffer is None:
+        if sl_queue is None:
             try:
 
                 input_container = av.open(t_viinput, 'r', format=self.viformat, options=input_options)
@@ -893,7 +893,7 @@ class CASTDesktop:
         #
         # Main loop
         #
-        if input_container is not None or sl_buffer is not None:
+        if input_container is not None or sl_queue is not None:
 
             cfg_mgr.logger.info(f"{t_name} Capture from {t_viinput}")
             cfg_mgr.logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
@@ -965,17 +965,17 @@ class CASTDesktop:
                                             cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
                                             raise ExitFromLoop
 
-                                    t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
+                                    t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
 
                             # check here as frame is an array now
                             if CASTDesktop.t_todo_event.is_set():
-                                t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
+                                t_preview, t_todo_stop = do_action(frame,t_preview,t_todo_stop)
 
                     except av.BlockingIOError as av_err:
                         if sys.platform.lower() != 'darwin':
                             cfg_mgr.logger.error(f'{t_name} An exception occurred: {av_err}')
 
-                elif sl_buffer is not None:
+                elif sl_queue is not None:
 
                     cfg_mgr.logger.debug('process from ShareAbleList-queue')
                     # Default image to display when no more frame
@@ -987,17 +987,17 @@ class CASTDesktop:
                     # create ShareableList for preview if necessary
                     #
                     if t_preview and str2bool(cfg_mgr.app_config['preview_proc']):
-                        sl, sl_process = create_preview_sl(frame, i_grid=False)
+                        sl, sl_process = create_preview_sl(i_frame=frame, i_grid=False)
                         if sl is None or sl_process is None:
                             cfg_mgr.logger.error(f'{t_name} Error on SharedList creation for Preview')
                             raise ExitFromLoop
 
                     # infinite loop for queue-ShareAbleList
-                    while sl_buffer:
+                    while sl_queue:
 
                         # check to see if something to do
                         if CASTDesktop.t_todo_event.is_set():
-                            t_preview, t_todo_stop = process_action(frame,t_preview,t_todo_stop)
+                            t_preview, t_todo_stop = do_action(frame,t_preview,t_todo_stop)
 
                         """
                         instruct the thread to exit 
@@ -1013,16 +1013,18 @@ class CASTDesktop:
                         #
                         # we read data from the ShareAbleList
                         #
-                        time_frame = sl_buffer[1]
+                        time_frame = sl_queue[1]
                         # check if recent frame that we need to proces (some frames can be skipped in busy system)
+                        # this adds also 2s delay before display default image
                         if time_frame + 2 > time.time():
                             # ShareAbleList bug
-                            frame = CV2Utils.frame_remove_one(sl_buffer[0])
+                            frame = CV2Utils.frame_remove_one(sl_queue[0])
                             # process frame
                             # 1D array
                             frame = np.frombuffer(frame, dtype=np.uint8)
                             # 2D array
                             if frame.nbytes > 0:
+                                # rgb
                                 frame = frame.reshape(int(t_scale_width), int(t_scale_height), 3)
                                 #
                                 frame_count += 1
@@ -1031,11 +1033,14 @@ class CASTDesktop:
                                 frame, grid = process_frame(frame)
                                 #
                                 if t_preview:
-                                    t_preview, t_todo_stop = process_preview(frame, t_preview, t_todo_stop, grid)
+                                    t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
+
+                            else:
+                                cfg_mgr.logger.debug('skip frame of size = 0')
                         else:
                             # preview default image
                             if t_preview:
-                                t_preview, t_todo_stop = process_preview(default_img,
+                                t_preview, t_todo_stop = show_preview(default_img,
                                                                          t_preview,
                                                                          t_todo_stop,
                                                                          i_grid=False)
@@ -1044,7 +1049,6 @@ class CASTDesktop:
                         time.sleep(0.1)
 
                 else:
-
                     cfg_mgr.logger.error(f'Do not know what to do from this input: {t_viinput}')
                     raise ExitFromLoop
 
@@ -1100,7 +1104,7 @@ class CASTDesktop:
             artnet_host.deactivate()
 
         # cleanup SL
-        if sl_buffer is not None:
+        if sl_queue is not None:
             sl_client.delete_shared_list(sl_name_q)
             # check if last SL
             sl_list = ast.literal_eval(sl_client.get_shared_lists())
