@@ -39,7 +39,7 @@ import ast
 import sys
 import os
 import time
-# import imageio.v3 as iio
+import imageio.v3 as iio
 import concurrent.futures
 import threading
 import cv2
@@ -926,14 +926,14 @@ class CASTDesktop:
 
         """
         Record
-
+        """
         out_file = None
 
         if self.record:
             out_file = iio.imopen(self.output_file, "w", plugin="pyav")
             out_file.init_video_stream(self.vo_codec, fps=frame_interval)
 
-
+        """
         End Record
         """
 
@@ -963,11 +963,10 @@ class CASTDesktop:
                     try:
                         for frame in input_container.decode(input_stream):
 
-                            """
+
                             if self.record and out_file is None:
                                 out_file = iio.imopen(self.output_file, "w", plugin="pyav")
                                 out_file.init_video_stream(self.vo_codec, fps=frame_interval)
-                            """
 
                             """
                             instruct the thread to exit 
