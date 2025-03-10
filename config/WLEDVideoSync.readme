@@ -97,12 +97,14 @@
 # specific to Desktop Cast
 # multi_thread      :   True or False, if True will use AUTO
                     """
+                    --> this is for av module
                     Which multithreading methods to use.
                     Use of FF_THREAD_FRAME will increase decoding delay by one frame per thread,
                     so clients which cannot provide future frames should not use it.
                     ThreadType Name Meaning in FFmpeg (NONE FRAME SLICE AUTO)
                     Decode using both FRAME and SLICE methods if True
                     """
+# capture           : av or mss  module to use for desktop capture (mainly for macOS)
 [desktop]
 
 # Websocket

@@ -49,7 +49,7 @@ from src.utl.utils import HTTPDiscovery as Net
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
 from src.gui.niceutils import LocalFilePicker, apply_custom, media_dev_view_page
-from src.utl.utils import ScreenAreaSelection as Sa
+from src.gui.tkarea import ScreenAreaSelection as Sa
 from src.utl.utils import YtSearch
 from src.utl.utils import AnimatedElement as Animate
 from src.utl.multicast import MultiUtils as Multi
@@ -1470,7 +1470,7 @@ async def main_page_desktop():
                 new_vi_codec = ui.input('Codec', value=Desktop.vi_codec)
                 new_vi_codec.bind_value(Desktop, 'vi_codec')
                 with ui.row():
-                    ui.number('', value=Desktop.monitor_number, min=0, max=1).classes('w-10') \
+                    ui.number('', value=Desktop.monitor_number, min=-1, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number', forward=lambda value: int(value or 0)) \
                         .tooltip('Enter monitor number')
                     ui.button('ScreenArea', on_click=select_sc_area) \

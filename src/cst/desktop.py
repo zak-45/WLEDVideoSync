@@ -44,7 +44,6 @@ import concurrent.futures
 import threading
 import cv2
 import traceback
-import av
 import numpy as np
 
 from src.utl import actionutils
@@ -64,9 +63,20 @@ from configmanager import ConfigManager
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
 
+Process, Queue = Utils.mp_setup()
+
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
 
-Process, Queue = Utils.mp_setup()
+# how capture desktop
+if cfg_mgr.desktop_config['capture'] == 'av':
+    import av
+    capture_methode = 'av'
+elif cfg_mgr.desktop_config['capture'] == 'mss':
+    import mss
+    capture_methode = 'mss'
+else:
+    cfg_mgr.logger.error('Unknown capture method to use, exit')
+    sys.exit(3)
 
 """
 When this env var exist, this mean run from the one-file executable.
@@ -152,7 +162,7 @@ class CASTDesktop:
         self.cast_y: int = 1
         self.cast_devices: list = []
         self.cast_frame_buffer = []
-        self.monitor_number: int = 0  # monitor to use for area selection
+        self.monitor_number: int = 0  # monitor to use for area selection / mss
         self.screen_coordinates = []
         self.reset_total = False
         self.preview = True
@@ -241,6 +251,12 @@ class CASTDesktop:
         input_container = None
         output_container = False
         output_stream = None
+
+        """
+        mss
+        """
+
+        monitor = self.monitor_number
 
         """
         MultiCast inner function protected from what happens outside.
@@ -349,6 +365,9 @@ class CASTDesktop:
         """
         def process_frame(iframe):
 
+            # resize frame for sending to device
+            iframe = CV2Utils.resize_image(iframe, t_scale_width, t_scale_height)
+
             # adjust gamma
             iframe = cv2.LUT(iframe, ImageUtils.gamma_correct_frame(self.gamma))
             # auto brightness contrast
@@ -436,8 +455,7 @@ class CASTDesktop:
 
                 i_grid = False
 
-                # resize frame for sending to device
-                frame_to_send = CV2Utils.resize_image(iframe, t_scale_width, t_scale_height)
+                frame_to_send = iframe
                 # resize frame to pixelart
                 iframe = CV2Utils.pixelart_image(iframe, t_scale_width, t_scale_height)
 
@@ -623,6 +641,7 @@ class CASTDesktop:
             # create a child process, so cv2.imshow() will run from its Main Thread
             w_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
             i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop', w_name,))
+            i_sl_process.daemon = True
             # start the child process
             # small delay should occur, OS take some time to initiate the new process
             i_sl_process.start()
@@ -829,17 +848,20 @@ class CASTDesktop:
                     or str
         """
 
-        if self.viinput in ['desktop', 'area'] and sys.platform.lower() == 'win32':
-            t_viinput = 'desktop'
-        elif (self.viinput in ['area'] or self.viinput.lower().startswith('win=')) and sys.platform.lower() == 'linux':
-            t_viinput = os.getenv('DISPLAY')
+        if capture_methode == 'av':
+            if sys.platform.lower() == 'win32':
+                if self.viinput in ['desktop', 'area']:
+                    t_viinput = 'desktop'
+            elif sys.platform.lower() == 'linux':
+                if self.viinput in ['area'] or self.viinput.lower().startswith('win='):
+                    t_viinput = os.getenv('DISPLAY')
         else:
             t_viinput = self.viinput
 
         win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
 
-        # Open av input container in read mode if not SL
-        if sl_queue is None:
+        # Open av input container in read mode if not SL and not mss
+        if sl_queue is None and capture_methode == 'av':
             try:
 
                 input_container = av.open(t_viinput, 'r', format=self.viformat, options=input_options)
@@ -893,10 +915,11 @@ class CASTDesktop:
         #
         # Main loop
         #
-        if input_container is not None or sl_queue is not None:
+        if input_container is not None or sl_queue is not None or capture_methode == 'mss':
 
             cfg_mgr.logger.info(f"{t_name} Capture from {t_viinput}")
             cfg_mgr.logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
+            cfg_mgr.logger.debug(f"{t_name} used methode : {capture_methode}")
 
             # Main frame loop
             # Stream loop
@@ -1048,6 +1071,69 @@ class CASTDesktop:
                         # some sleep until next, this could add some delay to stream next available frame
                         time.sleep(0.1)
 
+                elif capture_methode == 'mss':
+                    with mss.mss() as sct:
+
+                        if t_viinput == 'area':
+
+                            # specific area
+                            # Calculate crop parameters : ; 19/06/2024 coordinates for 2 monitor need to be reviewed
+                            x1 = int(self.screen_coordinates[0])
+                            y1 = int(self.screen_coordinates[1])
+                            x2 = int(self.screen_coordinates[2])
+                            y2 = int(self.screen_coordinates[3])
+                            # Define the screen region to capture
+                            # monitor = {"top": 100, "left": 100, "width": 800, "height": 600}
+                            sc_monitor = {'top': y1, 'left': x1, 'width': x2 - x1, 'height': y2 - y1}
+
+                        elif t_viinput == 'desktop':
+
+                            # Get monitor dimensions for full-screen capture
+                            # [0] is the virtual screen, [1] is the primary monitor [2] second one
+                            monitor += 1
+                            sc_monitor = sct.monitors[monitor]
+
+                        while True:
+
+                            # check to see if something to do
+                            if CASTDesktop.t_todo_event.is_set():
+                                t_preview, t_todo_stop = do_action(frame, t_preview, t_todo_stop)
+
+                            """
+                            instruct the thread to exit 
+                            """
+                            # if global stop or local stop
+                            if self.stopcast or t_todo_stop:
+                                raise ExitFromLoop
+
+                            if CASTDesktop.t_exit_event.is_set():
+                                raise ExitFromLoop
+                            """
+                            """
+
+                            # Capture full-screen
+                            frame = sct.grab(sc_monitor)
+
+                            # Convert to NumPy array and format for OpenCV
+                            frame = np.array(frame)  # RGBA format
+
+                            frame_count += 1
+                            CASTDesktop.total_frame += 1
+                            #
+                            frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+                            frame, grid = process_frame(frame)
+
+                            #
+                            if t_preview:
+                                # create ShareableList if necessary
+                                if frame_count == 1 and str2bool(cfg_mgr.app_config['preview_proc']):
+                                    sl, sl_process = create_preview_sl(frame, grid)
+                                    if sl is None or sl_process is None:
+                                        cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
+                                        raise ExitFromLoop
+
+                                t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
+
                 else:
                     cfg_mgr.logger.error(f'Do not know what to do from this input: {t_viinput}')
                     raise ExitFromLoop
@@ -1093,6 +1179,9 @@ class CASTDesktop:
         CASTDesktop.count -= 1
         CASTDesktop.cast_names.remove(t_name)
         CASTDesktop.t_exit_event.clear()
+
+        if capture_methode == 'mss':
+            sct.close()
 
         # Clean ShareableList
         Utils.sl_clean(sl, sl_process, t_name)

@@ -184,7 +184,13 @@ WLEDVideoSync_systray = Icon('WLEDVideoSync', icon=pystray_image, menu=pystray_m
 
 
 if __name__ == "__main__":
+    import time
 
     native_view = WebviewManager()
     native_view.open_webview('https://example.com', 'Example Window', 800, 600)
+    while True:
+        time.sleep(10)
+        break
+
+
 

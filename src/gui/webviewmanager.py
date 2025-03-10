@@ -60,6 +60,7 @@ class WebviewManager:
         """Open a new webview window."""
         # Create a new process and pass the parameters to it
         process = multiprocessing.Process(target=start_webview, args=(url, title, width, height))
+        process.daemon = True
         process.start()
         self.webview_processes.append(process)
 
@@ -90,6 +91,8 @@ def start_webview(url: str, title: str, width: int, height: int):
 
 # Example usage of WebviewManager
 if __name__ == '__main__':
+    import time
+
     webview_manager = WebviewManager()
 
     # Open a couple of windows
@@ -97,6 +100,10 @@ if __name__ == '__main__':
     webview_manager.open_webview('https://another-example.com', 'Another Window', 800, 600)
 
     print("Running webview windows:", webview_manager.get_running_webviews())
+
+    while True:
+        time.sleep(10)
+        break
 
     # Close all windows after some time
     # webview_manager.close_all_webviews()
