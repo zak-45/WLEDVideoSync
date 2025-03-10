@@ -471,6 +471,23 @@ class CASTUtils:
             cfg_mgr.logger.error(f"Not able to set WLED device {host} in 'live' mode. Got this error : {error}")
             await wled.close()
             return False
+        
+    @staticmethod
+    def get_window_rect(title):
+        """Find window position and size using pywinctl (cross-platform)."""
+        try:
+            if win := pwc.getWindowsWithTitle(title):
+                win = win[0]  # Get the first matching window
+                if win.isMinimized:
+                    win.restore()  # Restore if minimized
+
+                win.activate()  # Bring window to front
+                time.sleep(0.1)  # Wait for the window to be active
+
+                return win.left, win.top, win.width, win.height
+        except Exception as e:
+            print(f"Error: {e}")
+        return None
 
     @staticmethod
     def active_window():

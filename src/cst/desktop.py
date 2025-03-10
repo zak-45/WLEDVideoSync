@@ -254,7 +254,7 @@ class CASTDesktop:
         """
         mss
         """
-
+        mss_window_name = ''
         monitor = self.monitor_number
         """
         """
@@ -782,66 +782,11 @@ class CASTDesktop:
         self.cast_frame_buffer = []
         frame_interval = self.rate
 
-        # Open video device (desktop / window)
-        input_options = {'c:v': self.vi_codec, 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
-                         'framerate': str(frame_interval), 'probesize': '100M'}
-
-        if self.viinput == 'area':
-            # specific area
-            # Calculate crop parameters : ; 19/06/2024 coordinates for 2 monitor need to be reviewed
-            width = int(self.screen_coordinates[2] - self.screen_coordinates[0])
-            height = int(self.screen_coordinates[3] - self.screen_coordinates[1])
-            x = int(self.screen_coordinates[0])
-            y = int(self.screen_coordinates[1])
-
-            area_options = {'offset_x': str(x), 'offset_y': str(y),
-                            'video_size': f'{width}x{height}',
-                            'show_region': '1'}
-
-            input_options |= area_options
-
-        elif self.viinput.lower().startswith('win='):
-            # specific window content
-            # append title (win) if needed
-            if sys.platform.lower() == 'win32':
-                self.viinput = f'title={self.viinput[4:]}'
-            elif sys.platform.lower() == 'linux':
-                try:
-                    # list all id for a title name (should be only one ...)
-                    window_ids = []
-                    # Iterate through each process
-                    for process_name, process_details in self.windows_titles.items():
-                        # Get the windows dictionary
-                        windows = process_details.get("windows", {})
-                        # Iterate through each window in the windows dictionary
-                        for window_name, window_details in windows.items():
-                            # Check if the window name matches the title
-                            if window_name == self.viinput[4:]:
-                                window_ids.append(window_details["id"])
-                    # if no title found, we consider user pass ID by himself
-                    if len(window_ids) == 0:
-                        win_id = hex(int(self.viinput.lower()[4:]))
-                        window_options = {'window_id': str(win_id)}
-                    # if found only one, that's cool
-                    elif len(window_ids) == 1:
-                        win_id = hex(int(window_ids[0]))
-                        window_options = {'window_id': str(win_id)}
-                    # more than one, do not know what to do
-                    else:
-                        cfg_mgr.logger.warning(f'More than one hWnd (ID) returned, you need to put it by yourself: {window_ids}')
-                        return
-
-                    input_options |= window_options
-
-                except Exception as e:
-                    cfg_mgr.logger.error(f'Not able to retrieve Window ID (hWnd) : {e}')
-                    return
-
-        elif self.viinput == 'queue':
+        if self.viinput == 'queue':
 
             if cfg_mgr.manager_config is not None:
                 sl_manager = SharedListManager(cfg_mgr.manager_config['manager_ip'],
-                                             int(cfg_mgr.manager_config['manager_port']))
+                                               int(cfg_mgr.manager_config['manager_port']))
                 sl_client = SharedListClient(cfg_mgr.manager_config['manager_ip'],
                                              int(cfg_mgr.manager_config['manager_port']))
             else:
@@ -857,7 +802,68 @@ class CASTDesktop:
             # create ShareAbleList
             sl_queue = sl_client.create_shared_list(sl_name_q, t_scale_width, t_scale_height, time.time())
 
-        cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
+        elif capture_methode == 'av':
+            # Open video device (desktop / window)
+            input_options = {'c:v': self.vi_codec, 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
+                             'framerate': str(frame_interval), 'probesize': '100M'}
+
+            if self.viinput == 'area':
+                # specific area
+                # Calculate crop parameters : ; 19/06/2024 coordinates for 2 monitor need to be reviewed
+                width = int(self.screen_coordinates[2] - self.screen_coordinates[0])
+                height = int(self.screen_coordinates[3] - self.screen_coordinates[1])
+                x = int(self.screen_coordinates[0])
+                y = int(self.screen_coordinates[1])
+
+                area_options = {'offset_x': str(x), 'offset_y': str(y),
+                                'video_size': f'{width}x{height}',
+                                'show_region': '1'}
+
+                input_options |= area_options
+
+            elif self.viinput.lower().startswith('win='):
+                # specific window content
+                # append title (win) if needed
+                if sys.platform.lower() == 'win32':
+                    self.viinput = f'title={self.viinput[4:]}'
+                elif sys.platform.lower() == 'linux':
+                    try:
+                        # list all id for a title name (should be only one ...)
+                        window_ids = []
+                        # Iterate through each process
+                        for process_name, process_details in self.windows_titles.items():
+                            # Get the windows dictionary
+                            windows = process_details.get("windows", {})
+                            # Iterate through each window in the windows dictionary
+                            for window_name, window_details in windows.items():
+                                # Check if the window name matches the title
+                                if window_name == self.viinput[4:]:
+                                    window_ids.append(window_details["id"])
+                        # if no title found, we consider user pass ID by himself
+                        if len(window_ids) == 0:
+                            win_id = hex(int(self.viinput.lower()[4:]))
+                            window_options = {'window_id': str(win_id)}
+                        # if found only one, that's cool
+                        elif len(window_ids) == 1:
+                            win_id = hex(int(window_ids[0]))
+                            window_options = {'window_id': str(win_id)}
+                        # more than one, do not know what to do
+                        else:
+                            cfg_mgr.logger.warning(f'More than one hWnd (ID) returned, you need to put it by yourself: {window_ids}')
+                            return
+
+                        input_options |= window_options
+
+                    except Exception as e:
+                        cfg_mgr.logger.error(f'Not able to retrieve Window ID (hWnd) : {e}')
+                        return
+
+
+            cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
+
+        elif capture_methode == 'mss' and self.viinput.lower().startswith('win='):
+            # for mss we need only the window name
+            mss_window_name = self.viinput[4:]
 
         """
         viinput can be:
@@ -1116,6 +1122,19 @@ class CASTDesktop:
                             # [0] is the virtual screen, [1] is the primary monitor [2] second one
                             monitor += 1
                             sc_monitor = sct.monitors[monitor]
+
+
+                        elif t_viinput.lower().startswith('win='):
+
+                            rect = Utils.get_window_rect(mss_window_name)
+
+                            if rect:
+                                left, top, width, height = rect
+                                sc_monitor = {"top": top, "left": left, "width": width, "height": height}
+
+                            else:
+                                cfg_mgr.logger.error(f"Window '{mss_window_name}' not found.")
+                                raise ExitFromLoop
 
                         else:
                             cfg_mgr.logger.error('Not available with mss')
