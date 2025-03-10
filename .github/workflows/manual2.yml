@@ -60,6 +60,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
+          sudo apt-get upgrade
           sudo apt-get install libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0
           sudo apt-get install libfontconfig1 libgl1-mesa-dri
           ARCHITECTURE=$(uname -m)
@@ -117,6 +118,7 @@ jobs:
         run: |
           sudo apt-get -y install libavdevice-dev
           sudo apt update
+          sudo apt upgrade
           sudo apt install ffmpeg
           ffmpeg -version
           sudo apt-get install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.1         
