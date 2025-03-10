@@ -40,7 +40,6 @@ coldtype[viewer]
 noise
 simpleeval
 av
-librosa
 pydantic
 a2wsgi
 pytubefix

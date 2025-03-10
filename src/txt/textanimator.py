@@ -1,4 +1,3 @@
-import librosa
 import time
 from typing import Optional, Tuple
 import math
@@ -694,13 +693,6 @@ class TextAnimator:
         self.current_frame = final_frame
 
         return final_frame
-
-    def sync_with_audio(self, audio_file):
-        """Adjust animation speed or effects based on audio beat."""
-        y, sr = librosa.load(audio_file)
-        tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
-        self.logger.info(f"Detected tempo: {tempo} BPM")
-        self.speed = tempo / 60  # Adjust speed based on tempo
 
     def export_as_video(self, output_file, duration=10):
         """Exports the animation as a video file."""
