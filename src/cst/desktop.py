@@ -1093,6 +1093,10 @@ class CASTDesktop:
                             monitor += 1
                             sc_monitor = sct.monitors[monitor]
 
+                        else:
+                            cfg_mgr.logger.error('Not available with mss')
+                            raise ExitFromLoop
+
                         while True:
 
                             # check to see if something to do
