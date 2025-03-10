@@ -210,7 +210,6 @@ class CASTDesktop:
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
 
-        start_time = time.time()
         t_preview = self.preview
         t_scale_width = self.scale_width
         t_scale_height = self.scale_height
@@ -257,6 +256,14 @@ class CASTDesktop:
         """
 
         monitor = self.monitor_number
+        """
+        """
+        # Calculate the interval between frames in seconds (fps)
+        if self.rate != 0:
+            interval: float = 1.0 / self.rate
+        else:
+            cfg_mgr.logger.error(f'{t_name} Rate could not be zero')
+            return False
 
         """
         MultiCast inner function protected from what happens outside.
@@ -649,6 +656,19 @@ class CASTDesktop:
 
             return i_sl, i_sl_process
 
+        def need_to_sleep():
+            """
+            do we need to sleep to be compliant with selected rate (fps)
+            """
+            # Calculate the current time
+            current_time = time.time()
+
+            # Calculate the time to sleep to maintain the desired FPS
+            sleep_time = expected_time - current_time
+
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
         """
         First, check devices 
         """
@@ -835,7 +855,7 @@ class CASTDesktop:
                 sl_client.connect()
 
             # create ShareAbleList
-            sl_queue = sl_client.create_shared_list(sl_name_q, t_scale_width, t_scale_height, start_time)
+            sl_queue = sl_client.create_shared_list(sl_name_q, t_scale_width, t_scale_height, time.time())
 
         cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
 
@@ -848,6 +868,8 @@ class CASTDesktop:
                     or str
         """
 
+        t_viinput = self.viinput
+
         if capture_methode == 'av':
             if sys.platform.lower() == 'win32':
                 if self.viinput in ['desktop', 'area']:
@@ -855,8 +877,6 @@ class CASTDesktop:
             elif sys.platform.lower() == 'linux':
                 if self.viinput in ['area'] or self.viinput.lower().startswith('win='):
                     t_viinput = os.getenv('DISPLAY')
-        else:
-            t_viinput = self.viinput
 
         win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
 
@@ -911,6 +931,8 @@ class CASTDesktop:
         # List to keep all running cast objects
         CASTDesktop.cast_names.append(t_name)
         CASTDesktop.count += 1
+
+        start_time = time.time()
 
         #
         # Main loop
@@ -993,6 +1015,8 @@ class CASTDesktop:
                             # check here as frame is an array now
                             if CASTDesktop.t_todo_event.is_set():
                                 t_preview, t_todo_stop = do_action(frame,t_preview,t_todo_stop)
+
+                            need_to_sleep()
 
                     except av.BlockingIOError as av_err:
                         if sys.platform.lower() != 'darwin':
@@ -1099,6 +1123,9 @@ class CASTDesktop:
 
                         while True:
 
+                            # Calculate the expected time for the current frame
+                            expected_time = start_time + frame_count * interval
+
                             # check to see if something to do
                             if CASTDesktop.t_todo_event.is_set():
                                 t_preview, t_todo_stop = do_action(frame, t_preview, t_todo_stop)
@@ -1137,6 +1164,8 @@ class CASTDesktop:
                                         raise ExitFromLoop
 
                                 t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
+
+                            need_to_sleep()
 
                 else:
                     cfg_mgr.logger.error(f'Do not know what to do from this input: {t_viinput}')

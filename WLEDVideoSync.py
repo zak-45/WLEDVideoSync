@@ -148,7 +148,7 @@ def linux_settings():
 
     # change folder icon
     cmd_str = f'gio set -t string \
-        "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/mac_folder.png")}'
+        "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/custom_folder.png")}'
     proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
     cfg_mgr.logger.debug(f'mac_folder : {proc2.pid}')
 
@@ -171,14 +171,13 @@ def init_darwin():
     Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
     Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
     Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
+    Utils.update_ini_key(config_file, 'app', 'mac_first_run', 'False')
+    Utils.update_ini_key(config_file, 'desktop', 'capture', 'mss')
 
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
     proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
     cfg_mgr.logger.debug(f'info_window : {proc.pid}')
-
-    # global
-    Utils.update_ini_key(config_file, 'app', 'mac_first_run', 'False')
 
     # common all OS
     init_common()

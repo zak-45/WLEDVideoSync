@@ -153,7 +153,6 @@ class CASTMedia:
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp (for synchro used by multicast)
 
-        start_time = time.time()
         t_preview = self.preview
         t_scale_width = self.scale_width
         t_scale_height = self.scale_height
@@ -423,6 +422,8 @@ class CASTMedia:
         auto_expected_time = current_time
 
         cfg_mgr.logger.debug(f'{t_name} Cast running ...')
+
+        start_time = time.time()
 
         """
             Media Loop
