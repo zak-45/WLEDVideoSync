@@ -26,8 +26,6 @@ import shelve
 import os
 import sys
 import inspect
-import logging
-import logging.config
 import traceback
 import json
 import re
@@ -44,11 +42,9 @@ import requests
 import av
 import numpy as np
 
-from pytubefix import Search
-from asyncio import create_task
 from wled import WLED
 from zeroconf import ServiceBrowser, Zeroconf
-from nicegui import ui, run
+from nicegui import run
 from PIL import Image
 from coldtype.text.reader import Font
 from configmanager import ConfigManager
@@ -318,11 +314,12 @@ class CASTUtils:
                 cfg_mgr.logger.debug(f"Finished Post Process {final_filename}")
 
         if interactive:
+            """
             if log_ui is not None:
                 handler = LogElementHandler(log_ui)
                 cfg_mgr.logger.addHandler(handler)
                 ui.context.client.on_disconnect(lambda: cfg_mgr.logger.removeHandler(handler))
-
+            """
             def progress_hook(d):
                 if d['status'] == 'downloading':
                     if 'total_bytes_estimate' in d:
@@ -339,27 +336,26 @@ class CASTUtils:
                     cfg_mgr.logger.debug(f"Finished downloading {d['filename']}")
 
             ydl_opts = {
-                f'format': f'{download_format}',  # choose format to download
-                'paths': {'temp': cfg_mgr.app_root_path('tmp')},  # temp folder
-                'outtmpl': cfg_mgr.app_root_path('media/yt-tmp-%(title)s.%(ext)s'),  # Output file name format
-                'progress_hooks': [progress_hook],  # Hook for progress
-                'postprocessor_hooks': [post_hook],  # Hook for postprocessor
-                'noplaylist': True,  # Do not download playlists
-                'ignoreerrors': True,  # Ignore errors, such as unavailable formats
-                'quiet': True,  # Suppress unnecessary output
+                'format': f'{download_format}',
+                'paths': {'temp': cfg_mgr.app_root_path('tmp')},
+                'outtmpl': cfg_mgr.app_root_path('media/yt-tmp-%(title)s.%(ext)s'),
+                'progress_hooks': [progress_hook],
+                'postprocessor_hooks': [post_hook],
+                'noplaylist': True,
+                'ignoreerrors': True,
+                'quiet': True,
             }
 
         else:
 
             ydl_opts = {
-                # 'format': '134/18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]' single stream
-                f'format': f'{download_format}',  # choose format to download
-                'paths': {'temp': cfg_mgr.app_root_path('tmp')},  # temp folder
-                'outtmpl': cfg_mgr.app_root_path('media/yt-tmp-%(title)s.%(ext)s'),  # Output file name format
-                'postprocessor_hooks': [post_hook],  # Hook for postprocessor
-                'noplaylist': True,  # Do not download playlists
-                'ignoreerrors': True,  # Ignore errors, such as unavailable formats
-                'quiet': True,  # Suppress unnecessary output
+                'format': f'{download_format}',
+                'paths': {'temp': cfg_mgr.app_root_path('tmp')},
+                'outtmpl': cfg_mgr.app_root_path('media/yt-tmp-%(title)s.%(ext)s'),
+                'postprocessor_hooks': [post_hook],
+                'noplaylist': True,
+                'ignoreerrors': True,
+                'quiet': True,
             }
 
         try:
@@ -372,7 +368,7 @@ class CASTUtils:
 
         except Exception as err:
             CASTUtils.yt_file_name = ''
-            cfg_mgr.logger.error(f'Youtube error : {err}')
+            cfg_mgr.logger.error(f'Youtube download error : {err}')
 
         return CASTUtils.yt_file_name
 
@@ -458,11 +454,12 @@ class CASTUtils:
             wled.request_timeout = timeout
             await wled.connect()
             if wled.connected:
-                if await wled.request(uri='/json', method='POST', data={'on': on, 'live': live}):
-                    await wled.close()
-                    return True
-                else:
+                if not await wled.request(
+                    uri='/json', method='POST', data={'on': on, 'live': live}
+                ):
                     return False
+                await wled.close()
+                return True
             else:
                 cfg_mgr.logger.warning(f"Not able to connect to WLED device: {host}")
                 return False
@@ -475,6 +472,7 @@ class CASTUtils:
     @staticmethod
     def get_window_rect(title):
         """Find window position and size using pywinctl (cross-platform)."""
+        
         try:
             if win := pwc.getWindowsWithTitle(title):
                 win = win[0]  # Get the first matching window
@@ -485,8 +483,10 @@ class CASTUtils:
                 time.sleep(0.1)  # Wait for the window to be active
 
                 return win.left, win.top, win.width, win.height
-        except Exception as e:
-            print(f"Error: {e}")
+            
+        except Exception as er:
+            cfg_mgr.logger.error(f"Not able to retrieve info for window name {title}. Error: {er}")
+            
         return None
 
     @staticmethod
@@ -500,7 +500,7 @@ class CASTUtils:
         """ Provide a list of all window titles / hWnd by applications """
 
         try:
-            # Assuming these are your custom classes
+            
             class Point:
                 def __init__(self, x, y):
                     self.x = x
@@ -522,8 +522,8 @@ class CASTUtils:
             # Your dictionary
             data = pwc.getAllWindowsDict()
             # Convert dictionary to JSON
-            windows_all = json.dumps(data, default=custom_serializer, ensure_ascii=False, indent=4)
-            windows_by_app = json.loads(windows_all)
+            all_windows = json.dumps(data, default=custom_serializer, ensure_ascii=False, indent=4)
+            windows_by_app = json.loads(all_windows)
 
         except Exception as er:
             cfg_mgr.logger.error(f"Error retrieving windows: {er}")
@@ -650,14 +650,13 @@ class CASTUtils:
         # >>> bytes2human(100001221)
         # '95.4M'
         symbols = ('K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y')
-        prefix = {}
-        for i, s in enumerate(symbols):
-            prefix[s] = 1 << (i + 1) * 10
+        prefix = {s: 1 << (i + 1) * 10 for i, s in enumerate(symbols)}
         for s in reversed(symbols):
             if abs(n) >= prefix[s]:
                 value = float(n) / prefix[s]
                 return '%.1f%s' % (value, s)
-        return "%sB" % n
+
+        return f"{n}B"
 
     @staticmethod
     def validate_ip_address(ip_string):
@@ -679,12 +678,9 @@ class CASTUtils:
             return all(allowed.match(x) for x in hostname.split("."))
 
         # Check if it's a valid IP address
-        try:
+        with contextlib.suppress(ValueError):
             ipaddress.ip_address(ip_string)
             return True
-        except ValueError:
-            pass
-
         # Check if it's a valid hostname
         if is_valid_hostname(ip_string):
             try:
@@ -729,10 +725,7 @@ class CASTUtils:
                 # Attempt to connect to the IP address and port
                 result = sock.connect_ex((ip_address, port))
                 # Check if the connection was successful
-                if result == 0:
-                    return True  # Host is reachable
-                else:
-                    return False  # Host is not reachable
+                return result == 0
             except Exception as error:
                 cfg_mgr.logger.error(traceback.format_exc())
                 cfg_mgr.logger.error(f'Error on check IP : {error}')
@@ -783,9 +776,7 @@ class CASTUtils:
         try:
             response = requests.get(url, stream=True, timeout=timeout)
             content_type = response.headers.get('Content-Type')
-            if content_type and content_type.startswith('image/'):
-                return True
-            return False
+            return bool(content_type and content_type.startswith('image/'))
         except requests.RequestException as err:
             cfg_mgr.logger.error(f"Error checking URL: {err}")
             return False
@@ -844,201 +835,3 @@ class HTTPDiscovery:
         time.sleep(self.duration)
         zeroconf.close()
         cfg_mgr.logger.debug('Scanning network devices ... Done')
-
-
-class LogElementHandler(logging.Handler):
-    """ A logging handler that emits messages to a log element."""
-
-    def __init__(self, element: ui.log, level: int = logging.NOTSET) -> None:
-        self.element = element
-        super().__init__(level)
-        # define format for the LogRecord
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        # set format
-        self.setFormatter(formatter)
-
-
-    def emit(self, record: logging.LogRecord) -> None:
-        try:
-            msg = self.format(record)
-            self.element.push(msg)
-        except Exception:
-            self.handleError(record)
-
-
-class YtSearch:
-    """
-    Search YT Video from input
-    Display thumb and YT Plyer
-    On click, copy YT Url to clipboard
-    """
-
-    def __init__(self, anime: bool = False):
-        self.yt_search = None
-        self.yt_anime = anime
-        self.videos_search = None
-        self.limit = 5
-        ui.separator()
-        with ui.row():
-            self.my_search = ui.input('YT search')
-            self.search_button = ui.button('search', icon='restore_page', color='blue') \
-                .tooltip('Click to Validate')
-            self.search_button.on_click(lambda: self.search_youtube())
-            self.next_button = ui.button('More', on_click=lambda: self.next_search())
-            self.next_button.set_visibility(False)
-            self.number_found = ui.label('Result : ')
-
-        self.search_result = ui.card()
-        with self.search_result:
-            ui.label('Search could take some time ....').classes('animate-pulse')
-
-        self.yt_player = ui.page_sticky()
-
-    def youtube_player(self, yt_id):
-        """ YT Player in iframe """
-
-        self.yt_player.clear()
-        with self.yt_player:
-            player = ui.card()
-            if self.yt_anime:
-                player.classes(add='animate__animated animate__slideInRight')
-            youtube_url = f"https://www.youtube.com/embed/{yt_id}"
-            with player:
-                ui.html('<iframe width="350" height="230" '
-                        f'src="{youtube_url}" '
-                        'title="YouTube video player" '
-                        'frameborder="0" '
-                        'allow="autoplay;clipboard-write;encrypted-media;picture-in-picture" '
-                        'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>'
-                        '</iframe>')
-
-    async def search_youtube(self):
-        """ Run Search YT from input """
-
-        async def run_search():
-            await create_task(self.py_search(self.my_search.value))
-
-        self.search_button.props('loading')
-        self.search_result.clear()
-        ui.timer(.5, run_search, once=True)
-
-    async def py_search(self, data):
-        """ Search for YT from input """
-
-        self.videos_search = Search(data)
-        self.yt_search = self.videos_search.videos
-
-        # number found
-        number = len(self.yt_search)
-        self.number_found.text = f'Number found: {number}'
-        # activate 'more' button
-        if number > 0:
-            self.next_button.set_visibility(True)
-            # re-create  result page
-            await self.create_yt_page()
-        else:
-            self.number_found.text = 'Nothing Found'
-
-        self.search_button.props(remove='loading')
-
-    async def next_search(self):
-        """ Next if you want more """
-
-        self.limit += 5
-        # await ui.context.client.connected()
-        self.search_button.props('loading')
-        await run.io_bound(self.videos_search.get_next_results)
-        self.yt_search = self.videos_search.videos
-        self.number_found.text = f'Number found: {len(self.yt_search)}'
-        await self.create_yt_page()
-        self.search_button.props(remove='loading')
-
-    async def create_yt_page(self):
-        """ Create YT search result """
-
-        # clear as we recreate
-        self.search_result.clear()
-        # create
-        with self.search_result.classes('w-full self-center'):
-            for i in range(len(self.yt_search)):
-                ui.separator()
-                ui.label(self.yt_search[i].title)
-                with ui.row(wrap=False).classes('w-1/2'):
-                    yt_image = ui.image(self.yt_search[i].thumbnail_url).style(add='width: 150px;')
-                    yt_image.on('mouseenter', lambda yt_str=self.yt_search[i]: self.youtube_player(yt_str.video_id))
-                    with ui.column():
-                        ui.label(f'Length: {self.yt_search[i].length}')
-                        yt_url = ui.label(self.yt_search[i].watch_url)
-                        yt_url.tooltip('Click to copy')
-                        yt_url.style('text-decoration: underline; cursor: pointer;')
-                        yt_url.on('click', lambda my_yt=yt_url: (ui.clipboard.write(my_yt.text),
-                                                                 ui.notify('YT Url copied')))
-                        with ui.row():
-                            yt_watch_close = ui.icon('videocam_off', size='sm')
-                            yt_watch_close.tooltip('Player OFF')
-                            yt_watch_close.style('cursor: pointer')
-                            yt_watch_close.on('click', lambda: self.yt_player.clear())
-                            yt_watch = ui.icon('smart_display', size='sm')
-                            yt_watch.tooltip('Player On')
-                            yt_watch.style('cursor: pointer')
-                            yt_watch.on('click', lambda yt_str=self.yt_search[i]: self.youtube_player(yt_str.video_id))
-
-"""
-Animate css class
-"""
-
-class AnimatedElement:
-    """
-    Add animation to UI Element, in / out
-        In for create element
-        Out for delete element
-    Following is necessary as it's based on Animate.css
-    # Add Animate.css to the HTML head
-    ui.add_head_html(""
-    <link rel="stylesheet" href="assets/css/animate.min.css"/>
-    "")
-    app.add_static_files('/assets', 'assets')
-    Param:
-        element_type : nicegui element e.g. card, label, ...
-        animation_name : see https://animate.style/
-        duration : custom animation delay
-    """
-
-    def __init__(self, element_type:type[any], animation_name_in='fadeIn', animation_name_out='fadeOut', duration=1.5):
-        self.element_type = element_type
-        self.animation_name_in = animation_name_in
-        self.animation_name_out = animation_name_out
-        self.duration = duration
-
-    def generate_animation_classes(self, animation_name):
-        # Generate the animation and duration classes
-        animation_class = f'animate__{animation_name}'
-        duration_class = f'custom-duration-{self.duration}s'
-        return animation_class, duration_class
-
-    def add_custom_css(self):
-        # Add custom CSS for animation duration
-        custom_css = f"""
-        <style>
-        .custom-duration-{self.duration}s {{
-          animation-duration: {self.duration}s;
-        }}
-        </style>
-        """
-        ui.add_head_html(custom_css)
-
-    def create_element(self, *args, **kwargs):
-        """ Add class for in """
-        self.add_custom_css()
-        animation_class, duration_class = self.generate_animation_classes(self.animation_name_in)
-        element = self.element_type(*args, **kwargs)
-        element.classes(f'animate__animated {animation_class} {duration_class}')
-        return element
-
-    def delete_element(self, element):
-        """ Add class for out and delete """
-        animation_class, duration_class = self.generate_animation_classes(self.animation_name_out)
-        element.classes(f'animate__animated {animation_class} {duration_class}')
-        # Delay the actual deletion to allow the animation to complete
-        ui.timer(self.duration, lambda: element.delete(), once=True)
-

@@ -44,14 +44,14 @@ from asyncio import set_event_loop_policy,sleep,create_task
 from threading import current_thread
 from subprocess import Popen
 from src.net.ddp_queue import DDPDevice
-from src.utl.utils import CASTUtils as Utils, LogElementHandler
+from src.utl.utils import CASTUtils as Utils
 from src.utl.utils import HTTPDiscovery as Net
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
-from src.gui.niceutils import LocalFilePicker, apply_custom, media_dev_view_page
+from src.gui.niceutils import LocalFilePicker, LogElementHandler, apply_custom, media_dev_view_page
 from src.gui.tkarea import ScreenAreaSelection as Sa
-from src.utl.utils import YtSearch
-from src.utl.utils import AnimatedElement as Animate
+from src.gui.niceutils import YtSearch
+from src.gui.niceutils import AnimatedElement as Animate
 from src.utl.multicast import MultiUtils as Multi
 from datetime import datetime
 from str2bool import str2bool
