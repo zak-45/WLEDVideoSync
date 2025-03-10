@@ -67,17 +67,6 @@ Process, Queue = Utils.mp_setup()
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
 
-# how capture desktop
-if cfg_mgr.desktop_config['capture'] == 'av':
-    import av
-    capture_methode = 'av'
-elif cfg_mgr.desktop_config['capture'] == 'mss':
-    import mss
-    capture_methode = 'mss'
-else:
-    cfg_mgr.logger.error('Unknown capture method to use, exit')
-    sys.exit(3)
-
 """
 When this env var exist, this mean run from the one-file executable.
 Load of the config is not possible, folder config should not exist.
@@ -237,6 +226,19 @@ class CASTDesktop:
         artnet_host = None
 
         port = port
+
+        if cfg_mgr.desktop_config is not None:
+            if cfg_mgr.desktop_config['capture'] != '':
+                capture_methode = cfg_mgr.desktop_config['capture']
+            else:
+                capture_methode = 'av'
+        else:
+            capture_methode = 'av'
+
+        if capture_methode == 'av':
+            import av
+        elif capture_methode == 'mss':
+            import mss
 
         """
         Cast devices
@@ -803,6 +805,7 @@ class CASTDesktop:
             sl_queue = sl_client.create_shared_list(sl_name_q, t_scale_width, t_scale_height, time.time())
 
         elif capture_methode == 'av':
+
             # Open video device (desktop / window)
             input_options = {'c:v': self.vi_codec, 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
                              'framerate': str(frame_interval), 'probesize': '100M'}
@@ -1022,8 +1025,6 @@ class CASTDesktop:
                             if CASTDesktop.t_todo_event.is_set():
                                 t_preview, t_todo_stop = do_action(frame,t_preview,t_todo_stop)
 
-                            need_to_sleep()
-
                     except av.BlockingIOError as av_err:
                         if sys.platform.lower() != 'darwin':
                             cfg_mgr.logger.error(f'{t_name} An exception occurred: {av_err}')
@@ -1102,6 +1103,7 @@ class CASTDesktop:
                         time.sleep(0.1)
 
                 elif capture_methode == 'mss':
+
                     with mss.mss() as sct:
 
                         if t_viinput == 'area':
