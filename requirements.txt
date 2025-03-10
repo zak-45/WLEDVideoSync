@@ -28,7 +28,7 @@ qtpy ; sys_platform == "linux"
 wled
 yt-dlp
 linuxpy
-imageio
+# imageio
 pygrabber
 concurrent-log-handler
 cfg-load

@@ -114,11 +114,12 @@ jobs:
 
       - name: Ubuntu specific bis
         if: matrix.os == 'ubuntu-latest'
-        # sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg7
+        #
         run: |
-          sudo apt-get -y install libavdevice-dev
           sudo apt update
           sudo apt upgrade
+          sudo apt-get -y install libavdevice-dev
+          sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg7
           sudo apt install ffmpeg
           ffmpeg -version
           sudo apt-get install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.1         
