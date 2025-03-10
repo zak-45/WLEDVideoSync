@@ -113,9 +113,9 @@ jobs:
 
       - name: Ubuntu specific bis
         if: matrix.os == 'ubuntu-latest'
+        # sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg7
         run: |
           sudo apt-get -y install libavdevice-dev
-          sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg7
           sudo apt update
           sudo apt install ffmpeg
           ffmpeg -version
