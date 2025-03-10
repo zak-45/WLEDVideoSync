@@ -152,6 +152,8 @@ jobs:
 
           include-module: |
             src.txt.textanimator
+            src.txt.textmovie
+            src.txt.coldtypemp
             zeroconf._utils.ipaddress
             zeroconf._handlers.answers
             pygments.formatters.html

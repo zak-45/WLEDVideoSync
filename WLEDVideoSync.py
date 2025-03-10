@@ -1,5 +1,6 @@
 # Compilation mode, standalone everywhere
 # nuitka-project: --nofollow-import-to=doctest
+# nuitka-project: --nofollow-import-to=matplotlib
 # nuitka-project: --noinclude-default-mode=error
 # nuitka-project: --include-raw-dir=xtra=xtra
 # nuitka-project-if: {OS} == "Windows":
