@@ -1,10 +1,11 @@
 from nicegui import ui
+from src.utl.utils import  CASTUtils as Utils
 import sys
 from multiprocessing import freeze_support
 import threading
 import time
 
-freeze_support()
+Process, Queue = Utils.mp_setup()
 
 class ConsoleCapture:
     """Captures and displays console output in a NiceGUI UI.
@@ -27,7 +28,7 @@ class ConsoleCapture:
             self.setup_ui()
         else:
             self.log_ui = None
-        self.log_queue = multiprocessing.Queue()
+        self.log_queue = Queue()
 
         sys.stdout = self
         sys.stderr = self
@@ -80,6 +81,8 @@ class ConsoleCapture:
 
 
 if __name__ in "__main__":
+    freeze_support()
+
     # NiceGUI app
     @ui.page('/')
     async def main_page():

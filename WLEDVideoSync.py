@@ -69,15 +69,14 @@ os.environ['MATPLOTLIB'] = 'false'
 
 #
 import shelve
-from subprocess import Popen
-from str2bool import str2bool
-
-from nicegui import ui, app, native
 import CastAPI
 import src.gui.niceutils
 
+from multiprocessing import freeze_support
+from subprocess import Popen
+from str2bool import str2bool
+from nicegui import ui, app, native
 from src.utl.utils import CASTUtils as Utils
-
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
@@ -334,6 +333,8 @@ def run_gui():
 MAIN Logic 
 """
 if __name__ in "__main__":
+    freeze_support()
+
     # instruct user to go to WLEDVideoSync folder to execute program and exit
     # We check if executed from compressed version (linux & win)
     if "NUITKA_ONEFILE_PARENT" in os.environ:

@@ -64,6 +64,7 @@ from configmanager import ConfigManager
 from src.txt.fontsmanager import FontPreviewManager
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
+from multiprocessing import freeze_support
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 
@@ -3156,6 +3157,8 @@ async def download_url(url):
 
 
 if __name__ in {"__main__", "__mp_main__"}:
+    freeze_support()
+
     from nicegui import app
     from src.gui.niceutils import custom_openapi
     import shelve
