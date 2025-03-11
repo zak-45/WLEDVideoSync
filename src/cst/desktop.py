@@ -45,6 +45,8 @@ import threading
 import cv2
 import traceback
 import numpy as np
+from multiprocessing import freeze_support
+
 
 from src.utl import actionutils
 
@@ -64,6 +66,8 @@ from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
 
 Process, Queue = Utils.mp_setup()
+
+freeze_support()
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
 
@@ -89,6 +93,9 @@ class ExitFromLoop(Exception):
     """ Raise when need to exit from loop """
     pass
 
+"""
+Main class
+"""
 class CASTDesktop:
     """Casts desktop screen or window content to DDP devices.
 
@@ -158,6 +165,7 @@ class CASTDesktop:
         self.record = False  # put True to record to file
         self.output_file = "" # Name of the file to save video recording
 
+        # Put some defaults on init
         if sys.platform.lower() == 'win32':
             self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>' or 'area' for portion of screen
             self.viformat: str = 'gdigrab'  # 'gdigrab' for win
@@ -167,13 +175,13 @@ class CASTDesktop:
             self.viformat: str = 'x11grab'
 
         elif sys.platform.lower() == 'darwin':
-            self.viinput = '"0:0"'
+            self.viinput = '"0"'
             self.viformat: str = 'avfoundation'
 
         else:
             self.viinput = ''
             self.viformat = ''
-
+        #
         self.vi_codec: str = 'libx264rgb'
         self.windows_titles = {}
 
@@ -258,6 +266,7 @@ class CASTDesktop:
         """
         mss_window_name = ''
         monitor = self.monitor_number
+
         """
         """
         # Calculate the interval between frames in seconds (fps)
@@ -348,7 +357,7 @@ class CASTDesktop:
                                                                  start_time,
                                                                  i_todo_stop,
                                                                  i_preview,
-                                                                 frame_interval,
+                                                                 t_fps,
                                                                  frame_count,
                                                                  media_length,
                                                                  swapper,
@@ -584,7 +593,7 @@ class CASTDesktop:
                     self.pixel_h,
                     i_todo_stop,
                     frame_count,
-                    frame_interval,
+                    t_fps,
                     ip_addresses,
                     self.text,
                     self.custom_text,
@@ -626,7 +635,7 @@ class CASTDesktop:
                         self.pixel_h,
                         t_todo_stop,
                         frame_count,
-                        frame_interval,
+                        t_fps,
                         str(ip_addresses),
                         self.text,
                         self.custom_text,
@@ -782,7 +791,7 @@ class CASTDesktop:
 
         self.frame_buffer = []
         self.cast_frame_buffer = []
-        frame_interval = self.rate
+        t_fps = self.rate
 
         if self.viinput == 'queue':
 
@@ -808,7 +817,7 @@ class CASTDesktop:
 
             # Open video device (desktop / window)
             input_options = {'c:v': self.vi_codec, 'crf': '0', 'preset': 'ultrafast', 'pix_fmt': 'rgb24',
-                             'framerate': str(frame_interval), 'probesize': '100M'}
+                             'framerate': str(t_fps), 'probesize': '100M'}
 
             if self.viinput == 'area':
                 # specific area
@@ -864,9 +873,18 @@ class CASTDesktop:
 
             cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
 
-        elif capture_methode == 'mss' and self.viinput.lower().startswith('win='):
-            # for mss we need only the window name
-            mss_window_name = self.viinput[4:]
+        elif capture_methode == 'mss':
+
+            if self.viinput.lower().startswith('win='):
+                # for mss we need only the window name
+                mss_window_name = self.viinput[4:]
+            elif self.viinput == '':
+                self.viinput = 'desktop'
+
+        else:
+            cfg_mgr.logger.error(f'Do not know what to do from {self.viinput} with this capture : {capture_methode}')
+            return
+
 
         """
         viinput can be:
@@ -879,10 +897,13 @@ class CASTDesktop:
 
         t_viinput = self.viinput
 
+        # Need to put some last value due what 'av'  request
         if capture_methode == 'av':
+            # in win32 gdigrab need 'desktop' for full screen or area
             if sys.platform.lower() == 'win32':
                 if self.viinput in ['desktop', 'area']:
                     t_viinput = 'desktop'
+            # for linux, x11grab need the DISPLAY value for area or window title
             elif sys.platform.lower() == 'linux':
                 if self.viinput in ['area'] or self.viinput.lower().startswith('win='):
                     t_viinput = os.getenv('DISPLAY')
@@ -931,7 +952,7 @@ class CASTDesktop:
 
         if self.record:
             out_file = iio.imopen(self.output_file, "w", plugin="pyav")
-            out_file.init_video_stream(self.vo_codec, fps=frame_interval)
+            out_file.init_video_stream(self.vo_codec, fps=t_fps)
 
         """
         End Record
@@ -966,7 +987,7 @@ class CASTDesktop:
 
                             if self.record and out_file is None:
                                 out_file = iio.imopen(self.output_file, "w", plugin="pyav")
-                                out_file.init_video_stream(self.vo_codec, fps=frame_interval)
+                                out_file.init_video_stream(self.vo_codec, fps=t_fps)
 
                             """
                             instruct the thread to exit 

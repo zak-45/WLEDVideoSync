@@ -334,7 +334,6 @@ def run_gui():
 MAIN Logic 
 """
 if __name__ in "__main__":
-
     # instruct user to go to WLEDVideoSync folder to execute program and exit
     # We check if executed from compressed version (linux & win)
     if "NUITKA_ONEFILE_PARENT" in os.environ:

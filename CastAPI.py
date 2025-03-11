@@ -3153,3 +3153,29 @@ async def download_url(url):
     # set video player media
     CastAPI.player.set_source(video_img_url)
     CastAPI.player.update()
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    from nicegui import app
+    from src.gui.niceutils import custom_openapi
+    import shelve
+
+    # store fake server port info for others processes
+    pid = os.getpid()
+    server_port = 12345
+
+    pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
+    with shelve.open(pid_tmp_file) as proc_file:
+        proc_file["server_port"] = server_port
+
+
+    app.openapi = custom_openapi
+    app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
+    app.add_media_files('/media', cfg_mgr.app_root_path('media'))
+    app.add_static_files('/log', cfg_mgr.app_root_path('log'))
+    app.add_static_files('/config', cfg_mgr.app_root_path('config'))
+    app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
+    app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
+    app.on_startup(init_actions)
+
+    ui.run(fastapi_docs=True)

@@ -1,8 +1,10 @@
 from nicegui import ui
 import sys
-import multiprocessing
+from multiprocessing import freeze_support
 import threading
 import time
+
+freeze_support()
 
 class ConsoleCapture:
     """Captures and displays console output in a NiceGUI UI.

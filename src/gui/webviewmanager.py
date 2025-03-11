@@ -41,10 +41,14 @@ The commented-out code shows how to close all webviews.
 
 """
 
-
-import multiprocessing
 import webview
 
+from multiprocessing import freeze_support
+from src.utl.utils import CASTUtils as Utils
+
+Process, Queue = Utils.mp_setup()
+
+freeze_support()
 
 class WebviewManager:
     """Manages multiple webview windows in separate processes.
@@ -59,7 +63,7 @@ class WebviewManager:
     def open_webview(self, url: str, title: str, width: int, height: int):
         """Open a new webview window."""
         # Create a new process and pass the parameters to it
-        process = multiprocessing.Process(target=start_webview, args=(url, title, width, height))
+        process = Process(target=start_webview, args=(url, title, width, height))
         process.daemon = True
         process.start()
         self.webview_processes.append(process)

@@ -1,17 +1,20 @@
 import sys
 import os
 import time
-import multiprocessing
 
 from datetime import datetime
 from coldtype.renderer import Renderer
 from multiprocessing.shared_memory import ShareableList
+from multiprocessing import freeze_support
 from src.utl.utils import CASTUtils as Utils
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 Process, Queue = Utils.mp_setup()
+
+# enable support for multiprocessing
+freeze_support()
 
 class DualStream:
     def __init__(self, original_stream, queue, stream_name="stdout"):

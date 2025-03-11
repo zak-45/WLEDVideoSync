@@ -10,8 +10,6 @@ from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.text')
 
-Process, Queue = Utils.mp_setup()
-
 class BackgroundOverlay:
     """
     The BackgroundOverlay class manages a background image and provides methods to create a tiled version of it
@@ -706,16 +704,6 @@ class TextAnimator:
 
         out.release()
         self.logger.info(f"Video saved to {output_file}")
-
-    def send_frame_to_queue(self, frame_queue: Queue):
-        """Sends the current animation frame to a multiprocessing queue."""
-        frame = self.current_frame
-        self.logger.info("Frame sent to queue.")
-        if frame is not None:
-            try:
-                frame_queue.put(frame, block=False)
-            except Exception as e:
-                self.logger.error(f"Failed to send frame to queue: {e}")
 
     def pause(self):
         """Pauses the animation."""
