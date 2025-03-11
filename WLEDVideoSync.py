@@ -53,7 +53,7 @@ src.gui.niceutils:
 
 Nuitka Compilation Support: 
     The file includes several comments related to Nuitka compilation, 
-    indicating that the project is designed to be compiled into a standalone executable. 
+    This project is designed to be compiled into a standalone executable.
     This improves performance and distribution.
 
 Temporary File Handling: 
@@ -145,19 +145,19 @@ def linux_settings():
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
     proc1 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    cfg_mgr.logger.debug(f'info_window : {proc1.pid}')
+    print(f'info_window : {proc1.pid}')
 
     # change folder icon
     cmd_str = f'gio set -t string \
         "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/custom_folder.png")}'
     proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    cfg_mgr.logger.debug(f'mac_folder : {proc2.pid}')
+    print(f'mac_folder : {proc2.pid}')
 
     # change app icon
     cmd_str = f'gio set -t string \
         "WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("favicon.png")}'
     proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    cfg_mgr.logger.debug(f'favicon : {proc3.pid}')
+    print(f'favicon : {proc3.pid}')
 
 def init_darwin():
     """Initialize settings for Darwin (macOS) platform.
@@ -178,7 +178,7 @@ def init_darwin():
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
     proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    cfg_mgr.logger.debug(f'info_window : {proc.pid}')
+    print(f'info_window : {proc.pid}')
 
     # common all OS
     init_common()
