@@ -104,6 +104,7 @@ def cfg_settings(preview_subprocess, native_ui, native_size, first_run_os):
     Utils.update_ini_key(config_file, 'app', 'native_ui', native_ui)
     Utils.update_ini_key(config_file, 'app', 'native_ui_size', native_size)
     Utils.update_ini_key(config_file, 'app', first_run_os, 'False')
+    Utils.update_ini_key(config_file, 'desktop', 'capture', 'av')
 
 def init_linux_win():
     """Initialize settings for Linux and Windows platforms.
@@ -127,7 +128,6 @@ def init_linux_win():
     # run tk and close
     from src.gui.tkwininit import init
     init()
-
 
 def linux_settings():
     """Apply Linux-specific settings and configurations.
