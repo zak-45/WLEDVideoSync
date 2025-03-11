@@ -11,7 +11,7 @@ nicegui==2.11.1
 str2bool==1.1
 pillow==11.1.0
 fastapi==0.115.8
-starlette==0.45.3
+starlette==0.46.1
 pystray==0.19.5
 psutil==6.1.1
 requests==2.32.3
@@ -28,7 +28,7 @@ qtpy ; sys_platform == "linux"
 wled
 yt-dlp
 linuxpy
-# imageio
+imageio
 pygrabber
 concurrent-log-handler
 cfg-load
@@ -41,7 +41,6 @@ noise
 simpleeval
 av
 pydantic
-a2wsgi
 pytubefix
 moviepy
 mss
