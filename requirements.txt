@@ -10,7 +10,7 @@ zeroconf==0.143.0
 nicegui==2.11.1
 str2bool==1.1
 pillow==11.1.0
-fastapi==0.115.8
+fastapi==0.115.11
 starlette==0.46.1
 pystray==0.19.5
 psutil==6.1.1
