@@ -576,7 +576,7 @@ class CASTDesktop:
                 if not CV2Utils.window_exists(win_name):
                     cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
 
-                i_preview, i_todo_stop, self.text = CV2Utils.cv2_preview_window(
+                i_preview, i_todo_stop, self.text = CV2Utils.cv2_display_frame(
                     CASTDesktop.total_frame,
                     iframe,
                     port,

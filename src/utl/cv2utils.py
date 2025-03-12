@@ -222,7 +222,7 @@ class CV2Utils:
                 # in case of any array data/size problem
                 frame_to_view = default_img
 
-            sl[6], sl[11], sl[15] = CV2Utils.cv2_preview_window(
+            sl[6], sl[11], sl[15] = CV2Utils.cv2_display_frame(
                 sl_total_frame,
                 frame_to_view,
                 sl_server_port,
@@ -255,26 +255,26 @@ class CV2Utils:
         cfg_mgr.logger.debug(f'Child process exit for : {sl_t_name}')
 
     @staticmethod
-    def cv2_preview_window(total_frame,
-                           frame,
-                           server_port,
-                           t_viinput,
-                           t_name,
-                           preview_top,
-                           t_preview,
-                           preview_w,
-                           preview_h,
-                           pixel_w,
-                           pixel_h,
-                           t_todo_stop,
-                           frame_count,
-                           fps,
-                           ip_addresses,
-                           text,
-                           custom_text,
-                           cast_x,
-                           cast_y,
-                           grid=False):
+    def cv2_display_frame(total_frame,
+                          frame,
+                          server_port,
+                          t_viinput,
+                          t_name,
+                          preview_top,
+                          t_preview,
+                          preview_w,
+                          preview_h,
+                          pixel_w,
+                          pixel_h,
+                          t_todo_stop,
+                          frame_count,
+                          fps,
+                          ip_addresses,
+                          text,
+                          custom_text,
+                          cast_x,
+                          cast_y,
+                          grid=False):
         """
         CV2 preview window
         Main logic for imshow() and waitKey()
@@ -286,62 +286,15 @@ class CV2Utils:
 
         # put text on the image
         if text:
-            # common param
-            # font
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            # fontScale
-            fontscale = .4
-            original_width = 640
-            # White color in BGR
-            color = (255, 255, 255)
-            # Line thickness of x px
-            thickness = 1
-
-            # Calculate new font scale
-            new_font_scale = fontscale * (preview_w / original_width)
-
-            if custom_text == "":
-                # bottom
-                # org
-                org = (50, preview_h - 50)
-                x, y, w, h = 40, preview_h - 60, preview_w - 80, 15
-                # Draw black background rectangle
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
-                text_to_show_bottom = f"Device(s) : {str(ip_addresses)}"
-                # Using cv2.putText() method
-                frame = cv2.putText(frame,
-                                    text_to_show_bottom,
-                                    org,
-                                    font,
-                                    new_font_scale,
-                                    color,
-                                    thickness,
-                                    cv2.LINE_AA)
-
-                # Top
-                text_to_show = f"WLEDVideoSync: {server_port} - "
-                text_to_show += f"FPS: {str(fps)} - "
-                text_to_show += f"FRAME: {str(frame_count)} - "
-                text_to_show += f"TOTAL: {str(total_frame)}"
-            else:
-                text_to_show = custom_text
-
-            # Top
-            # org
-            org = (50, 50)
-            x, y, w, h = 40, 15, preview_w - 80, 40
-            # Draw black background rectangle
-            cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
-            # Using cv2.putText() method
-            frame = cv2.putText(frame,
-                                text_to_show,
-                                org,
-                                font,
-                                new_font_scale,
-                                color,
-                                thickness,
-                                cv2.LINE_AA)
-
+            frame = CV2Utils.cv2_text_on_frame(frame,
+                                               custom_text,
+                                               preview_w,
+                                               preview_h,
+                                               ip_addresses,
+                                               fps,
+                                               server_port,
+                                               frame_count,
+                                               total_frame)
         # Displaying the image
         window_name = f"{server_port}-{t_name}-{str(t_viinput)}"
         if grid:
@@ -374,6 +327,66 @@ class CV2Utils:
             text = not text
 
         return t_preview, t_todo_stop, text
+
+    @staticmethod
+    def cv2_text_on_frame(frame, custom_text, preview_w, preview_h, ip_addresses, fps, server_port, frame_count, total_frame):
+        # common param
+        # font
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        # fontScale
+        fontscale = .4
+        original_width = 640
+        # White color in BGR
+        color = (255, 255, 255)
+        # Line thickness of x px
+        thickness = 1
+
+        # Calculate new font scale
+        new_font_scale = fontscale * (preview_w / original_width)
+
+        if custom_text == "":
+            # bottom
+            # org
+            org = (50, preview_h - 50)
+            x, y, w, h = 40, preview_h - 60, preview_w - 80, 15
+            # Draw black background rectangle
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 0), -1)
+            text_to_show_bottom = f"Device(s) : {str(ip_addresses)}"
+            # Using cv2.putText() method
+            frame = cv2.putText(frame,
+                                text_to_show_bottom,
+                                org,
+                                font,
+                                new_font_scale,
+                                color,
+                                thickness,
+                                cv2.LINE_AA)
+
+            # Top
+            text_to_show = f"WLEDVideoSync: {server_port} - "
+            text_to_show += f"FPS: {str(fps)} - "
+            text_to_show += f"FRAME: {str(frame_count)} - "
+            text_to_show += f"TOTAL: {str(total_frame)}"
+        else:
+            text_to_show = custom_text
+
+        # Top
+        # org
+        org = (50, 50)
+        x, y, w, h = 40, 15, preview_w - 80, 40
+        # Draw black background rectangle
+        cv2.rectangle(frame, (x, x), (x + w, y + h), (0, 0, 0), -1)
+        # Using cv2.putText() method
+        frame = cv2.putText(frame,
+                            text_to_show,
+                            org,
+                            font,
+                            new_font_scale,
+                            color,
+                            thickness,
+                            cv2.LINE_AA)
+
+        return frame
 
     """
     END preview window

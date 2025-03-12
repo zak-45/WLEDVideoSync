@@ -874,7 +874,7 @@ class CASTMedia:
                     if not CV2Utils.window_exists(window_name):
                         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
-                    t_preview, t_todo_stop, self.text = CV2Utils.cv2_preview_window(
+                    t_preview, t_todo_stop, self.text = CV2Utils.cv2_display_frame(
                         CASTMedia.total_frame,
                         frame,
                         port,
