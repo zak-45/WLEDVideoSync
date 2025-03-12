@@ -109,3 +109,7 @@ class ScreenAreaSelection:
         ScreenAreaSelection(root, monitor)
         root.mainloop()
 
+if __name__ == '__main__':
+
+    ScreenAreaSelection.run(monitor_number=1)
+    print(ScreenAreaSelection.screen_coordinates)
