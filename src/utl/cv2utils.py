@@ -173,7 +173,8 @@ class CV2Utils:
 
         cfg_mgr.logger.info('Preview from ShareAbleList')
 
-        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        if not CV2Utils.window_exists(window_name):
+            cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
         # Display image on preview window
         while True:
