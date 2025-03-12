@@ -34,6 +34,7 @@
  to fix it, cv2.imshow can run from its own process with cost of additional overhead: set preview_proc = True
 
 """
+
 import errno
 import ast
 import sys
@@ -41,6 +42,7 @@ import os
 import time
 import imageio.v3 as iio
 import concurrent.futures
+import contextlib
 import threading
 import cv2
 import traceback
@@ -118,6 +120,14 @@ class CASTDesktop:
     total_packet = 0  # net packets number
 
     def __init__(self):
+        self.capture_methode: str = 'av'
+        if (
+            cfg_mgr.desktop_config is not None
+            and cfg_mgr.desktop_config['capture'] != ''
+        ):
+            self.capture_methode = cfg_mgr.desktop_config['capture']
+        else:
+            self.capture_methode = 'av'
         self.rate: int = 25
         self.stopcast: bool = True
         self.scale_width: int = 128
@@ -234,19 +244,6 @@ class CASTDesktop:
         artnet_host = None
 
         port = port
-
-        if cfg_mgr.desktop_config is not None:
-            if cfg_mgr.desktop_config['capture'] != '':
-                capture_methode = cfg_mgr.desktop_config['capture']
-            else:
-                capture_methode = 'av'
-        else:
-            capture_methode = 'av'
-
-        if capture_methode == 'av':
-            import av
-        elif capture_methode == 'mss':
-            import mss
 
         """
         Cast devices
@@ -784,6 +781,12 @@ class CASTDesktop:
         Second, capture media
         """
 
+        capture_methode = self.capture_methode
+        if capture_methode == 'av':
+            import av
+        elif capture_methode == 'mss':
+            import mss
+
         self.pixel_w = t_scale_height
         self.pixel_h = t_scale_height
         self.scale_width = t_scale_width
@@ -1257,7 +1260,8 @@ class CASTDesktop:
         CASTDesktop.t_exit_event.clear()
 
         if capture_methode == 'mss':
-            sct.close()
+            with contextlib.suppress(Exception):
+                sct.close()
 
         # Clean ShareableList
         Utils.sl_clean(sl, sl_process, t_name)

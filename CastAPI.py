@@ -171,6 +171,7 @@ class CastAPI:
     cpu = 0
     w_image = None
     windows_titles = {}
+    new_viinput_value = ''
 
     def __init__(self):
         pass
@@ -1349,10 +1350,20 @@ async def main_page_desktop():
     Desktop param page
     """
     ui.dark_mode(CastAPI.dark_mode)
-
     apply_custom()
-
     await nice.head_set(name='Desktop Params', target='/Desktop', icon='computer')
+
+    def on_input_new_viinput(x):
+        if x.args != '':
+            CastAPI.new_viinput_value = x.args
+
+    async def new_viinput_option():
+        if CastAPI.new_viinput_value is not None and CastAPI.new_viinput_value not in new_viinput.options:
+            new_options = new_viinput.options
+            new_options.append(CastAPI.new_viinput_value)
+            new_viinput.set_options(new_options)
+            new_viinput.value = CastAPI.new_viinput_value
+        await update_attribute_by_name('Desktop', 'viinput', str(new_viinput.value))
 
     if str2bool(cfg_mgr.custom_config['animate-ui']):
         # Add Animate.css to the HTML head
@@ -1376,12 +1387,14 @@ async def main_page_desktop():
         {'id': 0, 'wled': Desktop.wled, 'host': Desktop.host}
     ]
     columns_c = [
+        {'name': 'capture', 'label': 'Capture', 'field': 'capture_methode', 'align': 'left'},
         {'name': 'viinput', 'label': 'Input', 'field': 'viinput', 'align': 'left'},
         {'name': 'viformat', 'label': 'Method', 'field': 'viformat'},
         {'name': 'preview', 'label': 'Preview', 'field': 'preview'}
     ]
     rows_c = [
-        {'id': 0, 'viinput': Desktop.viinput, 'viformat': Desktop.viformat, 'preview': Desktop.preview}
+        {'id': 0, 'capture_methode': Desktop.capture_methode,
+         'viinput': Desktop.viinput, 'viformat': Desktop.viformat, 'preview': Desktop.preview}
     ]
     columns_d = [
         {'name': 'vooutput', 'label': 'Output', 'field': 'vooutput', 'align': 'left'},
@@ -1451,8 +1464,11 @@ async def main_page_desktop():
                 new_wled.tooltip('Is That a WLED Device ?')
                 new_host = ui.input('IP', value=Desktop.host)
                 new_host.tooltip('IP address of the device')
-                new_host.on('focusout', lambda: update_attribute_by_name('Desktop', 'host', new_host.value))
+                new_host.on('blur', lambda: update_attribute_by_name('Desktop', 'host', new_host.value))
 
+            with ui.card():
+                new_capture_methode = ui.select(options=['av','mss'], label='Capture Methode').style(add='width:120px')
+                new_capture_methode.bind_value(Desktop,'capture_methode')
 
             with ui.card():
                 input_options=['area','win=','queue']
@@ -1461,8 +1477,11 @@ async def main_page_desktop():
                 elif sys.platform.lower() == 'linux':
                     input_options.insert(0,os.getenv('DISPLAY'))
                 new_viinput = ui.select(options=input_options,label='Input', new_value_mode='add-unique')
-                new_viinput.tooltip('Type data to capture, "area" for screen selection, "win=xxxxx" for win title You will need to press ENTER Key')
-                new_viinput.on('focusout', lambda: update_attribute_by_name('Desktop', 'viinput', str(new_viinput.value)))
+                new_viinput.tooltip('Type data to capture, "area" for screen selection, "win=xxxxx" for a screen or queue')
+                # Bind the change event to trigger the update
+                new_viinput.on('input-value', lambda x: on_input_new_viinput(x))
+                new_viinput.on('blur', lambda: new_viinput_option())
+                #
                 new_preview = ui.checkbox('Preview')
                 new_preview.bind_value(Desktop, 'preview')
                 new_preview.tooltip('Show preview window')
