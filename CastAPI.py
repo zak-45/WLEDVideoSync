@@ -1471,11 +1471,11 @@ async def main_page_desktop():
                 new_capture_methode.bind_value(Desktop,'capture_methode')
 
             with ui.card():
-                input_options=['area','win=','queue']
-                if sys.platform.lower() == 'win32':
-                    input_options.insert(0,'desktop')
-                elif sys.platform.lower() == 'linux':
+                input_options=['desktop','area','win=','queue']
+                if sys.platform.lower() == 'linux':
                     input_options.insert(0,os.getenv('DISPLAY'))
+                elif sys.platform.lower() == 'darwin':
+                    input_options.insert(0,'default:none')
                 new_viinput = ui.select(options=input_options,label='Input', new_value_mode='add-unique')
                 new_viinput.tooltip('Type data to capture, "area" for screen selection, "win=xxxxx" for a screen or queue')
                 # Bind the change event to trigger the update
