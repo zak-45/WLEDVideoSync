@@ -177,8 +177,8 @@ class TextMovie:
         # Release resources when done
         cv2.destroyAllWindows()
 
+if __name__ == '__main__':
 
-if __name__ == "__main__":
     animator = TextMovie(text="WELCOME TO WLEDVIDEOSYNC")
     # Example usage with both effects
     # final_clip = animator.create_animation(effects=[animator.effect1, animator.effect2])

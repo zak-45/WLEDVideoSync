@@ -32,7 +32,7 @@ class PythonEditor:
     providing the file path and log queue. Displays a notification
     indicating the file is running.
     """
-    def __init__(self, upload_folder=cfg_mgr.app_root_path('xtra/coldtype')):
+    def __init__(self, upload_folder=cfg_mgr.app_root_path('xtra/text')):
         """Initialize the PythonEditor.
 
         Sets up the initial state of the editor, including file name tracking,
@@ -148,7 +148,7 @@ class PythonEditor:
     async def pick_file_to_edit(self) -> None:
         """Select a file to edit."""
         if os.path.isdir(self.upload_folder):
-            pyfile = await LocalFilePicker(f'{self.upload_folder}', multiple=False, thumbs=False, extension='.py')
+            pyfile = await LocalFilePicker(f'{self.upload_folder}', multiple=False, thumbs=False)
             if pyfile:
                 pyfile = str(pyfile[0])
                 self.current_file = pyfile
