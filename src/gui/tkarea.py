@@ -92,10 +92,9 @@ class ScreenAreaSelection:
             with shelve.open(pid_tmp_file, 'c') as process_file:
                 process_file["sc_area"] = ScreenAreaSelection.screen_coordinates
 
-        if sys.platform.lower() != 'darwin':
-            self.root.destroy()
-        else:
-            sys.exit()
+        self.root.quit()
+        self.root.destroy()
+
 
     @staticmethod
     def run(monitor_number: int = 0, pid_file: str = str(os.getpid())):
@@ -123,6 +122,7 @@ class ScreenAreaSelection:
         root.title("Area Selection on Monitor")
         ScreenAreaSelection(root, monitor)
         root.mainloop()
+
 
 if __name__ == '__main__':
 
