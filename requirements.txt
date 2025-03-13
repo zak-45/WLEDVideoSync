@@ -44,5 +44,5 @@ noise
 simpleeval
 pydantic
 pytubefix
-
+certifi
 
