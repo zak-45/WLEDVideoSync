@@ -335,7 +335,7 @@ def run_gui():
     app.on_startup(CastAPI.init_actions)
 
     ui.run(title=f'WLEDVideoSync - {server_port}',
-           favicon="assets/favicon.ico",
+           favicon="favicon.ico",
            host=server_ip,
            port=server_port,
            fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
