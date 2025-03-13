@@ -24,7 +24,7 @@ Web GUI based on NiceGUI
 
 """
 
-
+import asyncio
 import time
 import shelve
 import sys
@@ -2118,7 +2118,12 @@ async def select_sc_area():
 
     # run in no blocking mode, another process for macOS else thread
     if sys.platform.lower() == 'darwin':
-        await run.cpu_bound(SCArea.run, monitor,tmp_file)
+        try:
+            await run.cpu_bound(SCArea.run, monitor,tmp_file)
+        except asyncio.exceptions.CancelledError:
+            pass
+        except Exception as er:
+            cfg_mgr.logger.error(f"Error run SCArea from process: {er}")
         # Read saved screen coordinates from shelve file
         try:
             with shelve.open(tmp_file, 'r') as process_file:
