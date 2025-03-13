@@ -138,6 +138,8 @@ All of this could be configured later, for the moment focus on default.
         wled: True or False, if true the DDP device act as WLED and app will try to retreive x,y values from it.
         IP: ip address of the DDP device
 
+        Capture Methode: av or mss, av is the preferred one but mss should be necessary for macOS
+
         Input: input type to cast
             To cast entire desktop:
                 'desktop': for Win OS

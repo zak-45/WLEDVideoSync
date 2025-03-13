@@ -295,18 +295,19 @@ class CV2Utils:
                                                server_port,
                                                frame_count,
                                                total_frame)
-        # Displaying the image
+
         window_name = f"{server_port}-{t_name}-{str(t_viinput)}"
         if grid:
             frame = ImageUtils.grid_on_image(frame, cast_x, cast_y)
 
+        # Displaying the image
         cv2.imshow(window_name, frame)
         cv2.resizeWindow(window_name, preview_w, preview_h)
 
         top = 1 if preview_top is True else 0
         cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
-        key_pressed = cv2.waitKey(1)
 
+        key_pressed = cv2.waitKey(1)
         if key_pressed == ord("q"):
             with contextlib.suppress(Exception):
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)

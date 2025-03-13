@@ -2,21 +2,6 @@
 # pip requirement file
 #
 
-# Specific version & Common to all OS
-numpy==1.26.4
-opencv-python==4.11.0.86
-PyWinCtl==0.4.1
-zeroconf==0.143.0
-nicegui==2.11.1
-str2bool==1.1
-pillow==11.1.0
-fastapi==0.115.11
-starlette==0.46.1
-pystray==0.19.5
-psutil==6.1.1
-requests==2.32.3
-screeninfo==0.8.1
-
 # Platform dependant
 pywebview==5.4 ; sys_platform != "linux"
 pywebview[qt]==5.4 ; sys_platform == "linux"
@@ -24,7 +9,26 @@ pycairo ; sys_platform == "linux"
 PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
 
+# Specific version & Common to all OS
+numpy==1.26.4
+opencv-python==4.11.0.86
+zeroconf==0.143.0
+nicegui==2.11.1
+pillow==11.1.0
+fastapi==0.115.11
+starlette==0.46.1
+requests==2.32.3
+av==14.2.0
+mss==10.0.0
+moviepy==1.0.3
+coldtype[viewer]==0.11.6
+
 # any version & Common to all OS
+str2bool
+PyWinCtl
+pystray
+screeninfo
+psutil
 wled
 yt-dlp
 linuxpy
@@ -36,11 +40,9 @@ async-timeout
 sacn
 stupidArtnet
 fonttools
-coldtype[viewer]
 noise
 simpleeval
-av
 pydantic
 pytubefix
-moviepy
-mss
+
+

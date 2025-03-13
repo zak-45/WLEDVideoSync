@@ -1,6 +1,9 @@
+import os
+import sys
+import shelve
 import tkinter as tk
-from screeninfo import get_monitors
 
+from screeninfo import get_monitors
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
@@ -23,6 +26,7 @@ class ScreenAreaSelection:
     coordinates = []
     screen_coordinates = []
     monitors = []
+    pid_file = ''
 
     def __init__(self, tk_root, dk_monitor):
         self.root = tk_root
@@ -71,6 +75,8 @@ class ScreenAreaSelection:
         coordinates = self.canvas.coords(self.rect)
         ScreenAreaSelection.coordinates = coordinates
 
+        cfg_mgr.logger.debug(event)
+
         # Adjust coordinates to be relative to the screen
         screen_coordinates = [
             coordinates[0] + self.monitor.x,
@@ -81,10 +87,15 @@ class ScreenAreaSelection:
 
         ScreenAreaSelection.screen_coordinates = screen_coordinates
 
+        if sys.platform.lower() == 'darwin':
+            pid_tmp_file = ScreenAreaSelection.pid_file
+            with shelve.open(pid_tmp_file, 'c') as process_file:
+                process_file["sc_area"] = ScreenAreaSelection.screen_coordinates
+
         self.root.destroy()
 
     @staticmethod
-    def run(monitor_number: int = 0):
+    def run(monitor_number: int = 0, pid_file: str = str(os.getpid())):
         """
         Initiate tk-inter
         param : monitor number to draw selection
@@ -92,6 +103,7 @@ class ScreenAreaSelection:
         # get all monitors info
         monitors = get_monitors()
         ScreenAreaSelection.monitors = monitors
+        ScreenAreaSelection.pid_file = pid_file
         """
         for i, m in enumerate(monitors):
             print(f"Monitor {i}: {m}")
@@ -113,3 +125,11 @@ if __name__ == '__main__':
 
     ScreenAreaSelection.run(monitor_number=1)
     print(ScreenAreaSelection.screen_coordinates)
+    if sys.platform.lower() == 'darwin':
+        # Read saved screen coordinates from shelve file
+        try:
+            with shelve.open(str(os.getpid()), 'r') as proc_file:
+                if saved_screen_coordinates := proc_file.get("sc_area"):
+                    print(f'for darwin : {saved_screen_coordinates}')
+        except Exception as e:
+            cfg_mgr.logger.error(f"Error loading screen coordinates from shelve: {e}")

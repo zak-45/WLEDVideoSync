@@ -211,54 +211,46 @@ def parse_native_ui_size(size_str):
     except Exception as e:
         raise ValueError(f"Invalid native_ui_size format: {size_str}") from e
 
-def run_gui():
-    """Run the main graphical user interface (GUI).
+def check_server():
+    """Check and validate server IP and port configuration.
 
-    This function initializes and runs the NiceGUI application, handling server
-    configurations, system tray icon, GUI settings, and cleanup operations.
+    Retrieves server IP and port from configuration, validates the IP address,
+    and determines the port number. If the port is set to 'auto', it finds an
+    available port. Exits with an error code if the IP or port is invalid.
+
+    Returns:
+        tuple: A tuple containing the validated server IP and port.
     """
-    server_port = None
-    server_ip = None
 
-    print('Start WLEDVideoSync - NiceGui')
+    server_ip = cfg_mgr.server_config['server_ip']
 
-    if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
+    if not Utils.validate_ip_address(server_ip):
+        cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
+        sys.exit(1)
 
-        server_ip = cfg_mgr.server_config['server_ip']
+    server_port = cfg_mgr.server_config['server_port']
 
-        if not Utils.validate_ip_address(server_ip):
-            cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
-            sys.exit(1)
+    if server_port == 'auto':
+        server_port = native.find_open_port()
+    else:
+        server_port = int(cfg_mgr.server_config['server_port'])
 
-        server_port = cfg_mgr.server_config['server_port']
+    if server_port not in range(1, 65536):
+        cfg_mgr.logger.error(f'Bad server Port: {server_port}')
+        sys.exit(2)
 
-        if server_port == 'auto':
-            server_port = native.find_open_port()
-        else:
-            server_port = int(cfg_mgr.server_config['server_port'])
+    return server_ip, server_port
 
-        if server_port not in range(1, 65536):
-            cfg_mgr.logger.error(f'Bad server Port: {server_port}')
-            sys.exit(2)
+def select_gui():
+    """Select the appropriate GUI mode based on configuration.
 
-    # store server port info for others processes
-    pid = os.getpid()
+    Determines whether to use a native GUI, a webview-based GUI, or no GUI
+    (systray only) based on the application's configuration settings. Handles
+    parsing and validation of native UI size from the configuration.
 
-    pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
-    with shelve.open(pid_tmp_file) as proc_file:
-        proc_file["server_port"] = server_port
-
-    """
-    Pystray
-    """
-    if str2bool(cfg_mgr.app_config['put_on_systray']):
-        from src.gui.wledtray import WLEDVideoSync_systray
-
-        # run systray in no blocking mode
-        WLEDVideoSync_systray.run_detached()
-
-    """
-    GUI
+    Returns:
+        tuple: A tuple containing the show flag (bool), native_ui flag (bool),
+               and native_ui_size (tuple or None).
     """
     # choose GUI
     show = None
@@ -285,6 +277,49 @@ def run_gui():
     except Exception as error:
         cfg_mgr.logger.error(f'Error in config file to select GUI from native_ui : {native_ui} - {error}')
         sys.exit(1)
+
+    return show, native_ui, native_ui_size
+
+
+def run_gui():
+    """Run the main graphical user interface (GUI).
+
+    This function initializes and runs the NiceGUI application, handling server
+    configurations, system tray icon, GUI settings, and cleanup operations.
+    """
+
+    server_port = None
+    server_ip = None
+
+    print('Start WLEDVideoSync - NiceGui')
+
+    if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
+
+        server_ip, server_port = check_server()
+
+    # store server port info for others processes, add sc_area for macOS
+    pid = os.getpid()
+
+    pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
+    with shelve.open(pid_tmp_file) as proc_file:
+        proc_file["server_port"] = server_port
+        proc_file["sc_area"] = []
+
+    """
+    Pystray
+    """
+    if str2bool(cfg_mgr.app_config['put_on_systray']):
+        from src.gui.wledtray import WLEDVideoSync_systray
+
+        # run systray in no blocking mode
+        WLEDVideoSync_systray.run_detached()
+
+    """
+    GUI
+    """
+    # choose GUI
+
+    show, native_ui, native_ui_size = select_gui()
 
     """
     RUN

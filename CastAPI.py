@@ -26,6 +26,7 @@ Web GUI based on NiceGUI
 
 
 import time
+import shelve
 import sys
 import os
 import traceback
@@ -49,7 +50,7 @@ from src.utl.utils import HTTPDiscovery as Net
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
 from src.gui.niceutils import LocalFilePicker, LogElementHandler, apply_custom, media_dev_view_page
-from src.gui.tkarea import ScreenAreaSelection as Sa
+from src.gui.tkarea import ScreenAreaSelection as SCArea
 from src.gui.niceutils import YtSearch
 from src.gui.niceutils import AnimatedElement as Animate
 from src.utl.multicast import MultiUtils as Multi
@@ -570,7 +571,7 @@ async def list_cast_queues():
         These SharedList are based on numpy array (y,x,3)
     """
     client = Utils.attach_to_queue_manager()
-    if status := client.connect():
+    if client.connect():
         return {"queues":ast.literal_eval(client.get_shared_lists())}
     else:
         raise HTTPException(status_code=400, detail="No Queues defined in Desktop")
@@ -1254,17 +1255,17 @@ async def video_player_page():
             media_sync_delay.tooltip('Interval in sec to auto sync')
             media_sync_delay.bind_visibility_from(CastAPI.player)
 
-            media_auto_sync = ui.checkbox('Auto Sync') \
+            ui.checkbox('Auto Sync') \
                 .bind_value(Media, 'auto_sync') \
                 .tooltip('Auto Sync Cast with Time every x sec (based on interval set)') \
                 .bind_visibility_from(CastAPI.player)
 
-            media_all_sync_delay = ui.knob(1, min=-2000, max=2000, step=1, show_value=True).classes('bg-gray') \
+            ui.knob(1, min=-2000, max=2000, step=1, show_value=True).classes('bg-gray') \
                 .bind_value(Media, 'add_all_sync_delay') \
                 .tooltip('Add Delay in ms to all sync') \
                 .bind_visibility_from(CastAPI.player)
 
-            media_all_sync = ui.checkbox('Sync All') \
+            ui.checkbox('Sync All') \
                 .bind_value(Media, 'all_sync') \
                 .tooltip('Sync All Casts with selected time') \
                 .bind_visibility_from(CastAPI.player)
@@ -1276,13 +1277,13 @@ async def video_player_page():
                                                    nice.animate_wled_image(CastAPI, visible))) \
                 .tooltip("Show Video player")
 
-            hide_player = ui.icon('cancel_presentation', color='red', size='md') \
+            ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda visible=False: (CastAPI.player.set_visibility(visible),
                                                     nice.animate_wled_image(CastAPI, visible))) \
                 .tooltip("Hide Video player")
 
-            cast_player = ui.icon('cast', size='md') \
+            ui.icon('cast', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda: player_cast(CastAPI.player.source)) \
                 .tooltip('Play/Cast Video') \
@@ -1293,13 +1294,13 @@ async def video_player_page():
             cast_number.bind_value(Media, 'repeat')
             cast_number.bind_visibility_from(CastAPI.player)
 
-            media_info = ui.icon('info', size='sd') \
+            ui.icon('info', size='sd') \
                 .style("cursor: pointer") \
                 .on('click', lambda: nice.player_media_info(CastAPI.player.source)) \
                 .tooltip('Media Info') \
                 .bind_visibility_from(CastAPI.player)
 
-            video_file = ui.icon('folder', color='orange', size='md') \
+            ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda: nice.player_pick_file(CastAPI)) \
                 .tooltip('Select audio / video file') \
@@ -1588,7 +1589,7 @@ async def main_page_desktop():
         async def display_windows():
             with ui.dialog() as dialog, ui.card():
                 dialog.open()
-                editor = ui.json_editor({'content': {'json': Desktop.windows_titles}}) \
+                await ui.json_editor({'content': {'json': Desktop.windows_titles}}) \
                     .run_editor_method('updateProps', {'readOnly': True})
                 ui.button('Close', on_click=dialog.close, color='red')
 
@@ -1896,7 +1897,7 @@ async def manage_font_page():
     # init font class
     font_manager = FontPreviewManager(fonts)
 
-    with ui.column().classes('p-4 h-full w-full') as layout:
+    with ui.column().classes('p-4 h-full w-full'):
 
         async def filter_fonts(e):
             query = e.value.lower()
@@ -2039,7 +2040,7 @@ async def net_view_page():
     def fetch_net():
         with ui.dialog() as dialog, ui.card():
             dialog.open()
-            editor = ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
+            ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
                 .run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog.close, color='red')
 
@@ -2113,14 +2114,28 @@ async def select_sc_area():
     """ with mouse, draw rectangle to monitor x """
 
     monitor = int(Desktop.monitor_number)
-    # run in no blocking way
-    await run.io_bound(Sa.run, monitor)
+    tmp_file = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
+
+    # run in no blocking mode, another process for macOS else thread
+    if sys.platform.lower() == 'darwin':
+        await run.cpu_bound(SCArea.run, monitor,tmp_file)
+        # Read saved screen coordinates from shelve file
+        try:
+            with shelve.open(tmp_file, 'r') as process_file:
+                if saved_screen_coordinates := process_file.get("sc_area"):
+                    SCArea.screen_coordinates = saved_screen_coordinates
+                    cfg_mgr.logger.debug(f"Loaded screen coordinates from shelve: {saved_screen_coordinates}")
+        except Exception as e:
+            cfg_mgr.logger.error(f"Error loading screen coordinates from shelve: {e}")
+    else:
+        await run.io_bound(SCArea.run, monitor,tmp_file)
+
     # For Calculate crop parameters
-    Desktop.screen_coordinates = Sa.screen_coordinates
+    Desktop.screen_coordinates = SCArea.screen_coordinates
     #
-    cfg_mgr.logger.debug(f'Monitor infos: {Sa.monitors}')
-    cfg_mgr.logger.debug(f'Area Coordinates: {Sa.coordinates} from monitor {monitor}')
-    cfg_mgr.logger.debug(f'Area screen Coordinates: {Sa.screen_coordinates} from monitor {monitor}')
+    cfg_mgr.logger.debug(f'Monitor infos: {SCArea.monitors}')
+    cfg_mgr.logger.debug(f'Area Coordinates: {SCArea.coordinates} from monitor {monitor}')
+    cfg_mgr.logger.debug(f'Area screen Coordinates: {SCArea.screen_coordinates} from monitor {monitor}')
 
 
 async def player_sync():
@@ -2948,7 +2963,7 @@ async def show_threads_info():
     dialog = ui.dialog().props(add='transition-show="slide-down" transition-hide="slide-up"')
     with dialog, ui.card():
         cast_info = await util_casts_info()
-        editor = ui.json_editor({'content': {'json': cast_info}}) \
+        await ui.json_editor({'content': {'json': cast_info}}) \
             .run_editor_method('updateProps', {'readOnly': True})
         ui.button('Close', on_click=dialog.close, color='red')
         dialog.open()
@@ -2995,7 +3010,7 @@ async def cast_to_wled(class_obj, image_number):
         ui.notify('No WLED device', type='negative', position='center')
         return
 
-    if is_alive := Utils.check_ip_alive(class_obj.host):
+    if Utils.check_ip_alive(class_obj.host):
         ui.notify(f'Cast to device : {class_obj.host}')
         if class_obj.__module__ == 'desktop':
             class_name = 'Desktop'
@@ -3180,7 +3195,7 @@ if __name__ in {"__main__", "__mp_main__"}:
 
     from nicegui import app
     from src.gui.niceutils import custom_openapi
-    import shelve
+
 
     # store fake server port info for others processes
     pid = os.getpid()
