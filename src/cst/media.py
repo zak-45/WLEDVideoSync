@@ -992,3 +992,17 @@ class CASTMedia:
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         cfg_mgr.logger.debug('Child Media cast initiated')
+
+# example: this work on windows with camera set as device 0
+if __name__ == "__main__":
+
+    test = CASTMedia()
+    test.stopcast = False
+    test.viinput=0
+    test.preview=True
+    test.cast()
+    while True:
+        time.sleep(10)
+        break
+    test.stopcast=True
+    print('end')

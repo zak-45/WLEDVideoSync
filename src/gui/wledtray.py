@@ -182,15 +182,17 @@ pystray_menu = Menu(
 
 WLEDVideoSync_systray = Icon('WLEDVideoSync', icon=pystray_image, menu=pystray_menu)
 
-
+# example use
 if __name__ == "__main__":
     import time
 
-    native_view = WebviewManager()
-    native_view.open_webview('https://example.com', 'Example Window', 800, 600)
+    WLEDVideoSync_systray.run_detached()
+    print('look on systray, this will shutdown in 10s...')
     while True:
         time.sleep(10)
         break
+    WLEDVideoSync_systray.stop()
+    print('end  of systray')
 
 
 

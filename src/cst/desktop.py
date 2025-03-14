@@ -1303,3 +1303,18 @@ class CASTDesktop:
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         cfg_mgr.logger.debug('Child Desktop cast initiated')
+
+# example of screen capture using method 'mss'
+if __name__ == "__main__":
+
+    test = CASTDesktop()
+    test.stopcast = False
+    test.capture_methode='mss'
+    test.viinput='desktop'
+    test.preview=True
+    test.cast()
+    while True:
+        time.sleep(10)
+        break
+    test.stopcast=True
+    print('end')

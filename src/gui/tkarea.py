@@ -101,6 +101,7 @@ class ScreenAreaSelection:
         """
         Initiate tk-inter
         param : monitor number to draw selection
+                pid_file , shelve file name
         """
         # get all monitors info
         monitors = get_monitors()

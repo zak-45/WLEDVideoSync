@@ -152,10 +152,10 @@ All of this could be configured later, for the moment focus on default.
                 select 'queue', this will open a preview window with default image and waiting to receive images 
                 from other processes (e.g: text animation ...)
         Preview: True or False, if True a cast preview window will be displayed
-        Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop
+        Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop using av methode
         Codec: PyAV codec used, let it to 'libx264rgb' for now
         Screenarea / monitor number: select monitor number and click to SCREENAREA button to make area selection
-        
+                                    (has some trouble on macOS)
         Output: give file name or rtsp, udp etc ... to stream input. For future use.-->*Protocol
         format: Pyav format
         Codec: Pyav codec 

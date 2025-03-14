@@ -390,7 +390,7 @@ class CASTUtils:
             with shelve.open(tmp_file) as db:
                 server_port = db['server_port']
         except Exception as er:
-            cfg_mgr.logger.error(f'Error to retrieve Server Port  from {tmp_file}')
+            cfg_mgr.logger.warning(f'Error to retrieve Server Port  from {tmp_file}')
             server_port = 99
         finally:
             if server_port == 0:

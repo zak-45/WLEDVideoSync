@@ -24,7 +24,6 @@ Web GUI based on NiceGUI
 
 """
 
-import asyncio
 import time
 import shelve
 import sys
@@ -72,6 +71,8 @@ cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
+
+freeze_support()
 
 if sys.platform.lower() == 'win32':
     from asyncio import WindowsSelectorEventLoopPolicy
@@ -2118,21 +2119,21 @@ async def select_sc_area():
 
     # run in no blocking mode, another process for macOS else thread
     if sys.platform.lower() == 'darwin':
-        try:
-            await run.cpu_bound(SCArea.run, monitor,tmp_file)
-        except asyncio.exceptions.CancelledError:
-            pass
-        except Exception as er:
-            cfg_mgr.logger.error(f"Error run SCArea from process: {er}")
+
+        await run.cpu_bound(SCArea.run, monitor,tmp_file)
+
         # Read saved screen coordinates from shelve file
         try:
+
             with shelve.open(tmp_file, 'r') as process_file:
                 if saved_screen_coordinates := process_file.get("sc_area"):
                     SCArea.screen_coordinates = saved_screen_coordinates
                     cfg_mgr.logger.debug(f"Loaded screen coordinates from shelve: {saved_screen_coordinates}")
+
         except Exception as e:
             cfg_mgr.logger.error(f"Error loading screen coordinates from shelve: {e}")
     else:
+
         await run.io_bound(SCArea.run, monitor,tmp_file)
 
     # For Calculate crop parameters

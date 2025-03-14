@@ -214,6 +214,7 @@ class PythonEditor:
 
 
 if __name__ in {"__main__", "__mp_main__"}:
+    from nicegui import app
     # NiceGUI app
     @ui.page('/')
     async def main_page():
@@ -221,7 +222,7 @@ if __name__ in {"__main__", "__mp_main__"}:
         # Instantiate and run the editor
         editor_app = PythonEditor(upload_folder=r'..\..\xtra\coldtype')
         await editor_app.setup_ui()
-
+        ui.button('shutdown', on_click=app.shutdown).classes('self-center')
         print('Editor is running')
 
     ui.run(reload=False)

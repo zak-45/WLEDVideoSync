@@ -95,3 +95,12 @@ class Calculator:
                 ui.button('\u00B7', on_click=lambda: self.add_data('.'))
                 ui.button('=', on_click=self.calculate)
                 ui.button('+', on_click=lambda: self.add_data('+'))
+
+# example usage
+if __name__ in {"__main__", "__mp_main__"}:
+    from nicegui import app
+
+    ui.label('Calculator Example').classes('self-center text-2xl font-bold')
+    calculator = Calculator()
+    ui.button('shutdown', on_click=app.shutdown).classes('self-center')
+    ui.run(reload=False)
