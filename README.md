@@ -139,6 +139,7 @@ All of this could be configured later, for the moment focus on default.
         IP: ip address of the DDP device
 
         Capture Methode: av or mss, av is the preferred one but mss should be necessary for macOS
+                          mss do not run in wayland (linux)
 
         Input: input type to cast
             To cast entire desktop:
@@ -289,18 +290,20 @@ See ``WLEDVideoSync/config/WLEDVideoSync.readme`` for in-deep information.
 The logging configuration file is : ``WLEDVideoSync/config/logging.ini``. Logs can be found under ``log/`` folder.
 
 Default behaviour:
-- Win OS: app will start on "native" windows.
-  - To terminate the app, click on shutdown into footer
+- Win OS /Mac : app will start on "native" windows.
+  - To terminate the app, click on shutdown into footer or close the window
   
-- Mac/Linux: app will start on 'default' browser.
-    -  use SHUTDOWN in footer to stop application
-    - "native" mode has not been deeply tested on these platforms, so may provide some trouble.
+- Linux: app will start on 'default' browser.
+  - all features available on X11 and browser mode
+  - use SHUTDOWN in footer to stop application
+  
+- "native" mode has not been deeply tested on macOS/Linux, so may provide some trouble.
 
 Put on Systray:
 - To use the systray:
   - modify put_on_systray in the config file. Once set, no GUI will be launched: you need to click on systray icon 
 for that.
-  >this work out-of-box for win, but some additional lib could be necessary for linux/mac 
+  >this work out-of-box for win, but some additional lib/settings could be necessary for linux/mac 
 
 ### WebSocket
 endpoint : ``/ws`` e.g: 127.0.0.1:8000/ws
