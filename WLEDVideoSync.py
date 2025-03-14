@@ -10,6 +10,7 @@
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 # nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --include-module=gi
+#   nuitka-project: --include-module=gi._enum
 #   nuitka-project: --include-module=qtpy
 """
 a : zak-45
