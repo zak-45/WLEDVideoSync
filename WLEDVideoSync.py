@@ -170,8 +170,8 @@ def init_darwin():
         
     """
     Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
-    Utils.update_ini_key(config_file, 'app', 'native_ui', 'False')
-    Utils.update_ini_key(config_file, 'app', 'native_ui_size', '')
+    Utils.update_ini_key(config_file, 'app', 'native_ui', 'True')
+    Utils.update_ini_key(config_file, 'app', 'native_ui_size', '1200,720')
     Utils.update_ini_key(config_file, 'app', 'mac_first_run', 'False')
     Utils.update_ini_key(config_file, 'desktop', 'capture', 'mss')
 
@@ -388,7 +388,6 @@ if __name__ in "__main__":
     # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run
     # Update necessary params and exit
     if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
-
         init_darwin()
 
     """
