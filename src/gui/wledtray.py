@@ -153,7 +153,7 @@ def on_exit():
     Menu Exit option : stop main Loop and continue
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/ShutDown",f'WLEDVideoSync SHUTDOWN: {server_port}', 100, 50)
+    select_win(f"http://{server_ip}:{server_port}/ShutDown",f'WLEDVideoSync SHUTDOWN: {server_port}', 300, 50)
 
 
 """

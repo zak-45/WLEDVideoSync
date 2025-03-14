@@ -379,6 +379,10 @@ if __name__ in "__main__":
         Expected way to work.
         """
         init_linux_win()
+    elif sys.platform.lower() == 'win32' and str2bool(cfg_mgr.app_config['win_first_run']):
+        init_linux_win()
+    elif sys.platform.lower() == 'linux' and str2bool(cfg_mgr.app_config['linux_first_run']):
+        init_linux_win()
 
     # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run
     # Update necessary params and exit
