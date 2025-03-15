@@ -11,7 +11,7 @@ Portable version give you flexibility and nothing installed into your OS.
 `
 ## WLEDVideoSync
 
-WLEDVideoSync is a tool designed to synchronize Net LED strips with video content. This project enables users to create immersive lighting experiences that complement their video playback.
+WLEDVideoSync is a tool designed to synchronize Net LED Matrix with video content. This project enables users to create immersive lighting experiences that complement their video playback.
 
 **Key Features:**
 - Video synchronization with e131 / artNet / DDP devices e.g: WLED-controlled LED strips
@@ -304,6 +304,7 @@ Put on Systray:
   - modify put_on_systray in the config file. Once set, no GUI will be launched: you need to click on systray icon 
 for that.
   >this work out-of-box for win, but some additional lib/settings could be necessary for linux/mac 
+  > https://pystray.readthedocs.io/en/latest/usage.html#selecting-a-backend
 
 ### WebSocket
 endpoint : ``/ws`` e.g: 127.0.0.1:8000/ws
