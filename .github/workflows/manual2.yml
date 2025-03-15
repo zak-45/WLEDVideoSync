@@ -140,7 +140,7 @@ jobs:
           company-name: zak-45
           product-version: ${{github.event.inputs.mytag}}
           file-version: ${{github.event.inputs.mytag}}
-          enable-plugins: tkinter
+          enable-plugins: tk-inter
           windows-console-mode: disable
           deployment: true
           windows-icon-from-ico: assets/favicon.ico
