@@ -172,6 +172,7 @@ class PythonEditor:
 
         # UI Layout
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
+        ui.button(icon='reply', on_click=ui.navigate.back)
         with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):
 
             # Toolbar
