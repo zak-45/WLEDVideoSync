@@ -12,6 +12,7 @@
 #   nuitka-project: --include-module=gi
 #   nuitka-project: --include-module=gi._enum
 #   nuitka-project: --include-module=qtpy
+#   nuitka-project: --enable-plugins=pyqt6
 """
 a : zak-45
 d : 07/04/2024
