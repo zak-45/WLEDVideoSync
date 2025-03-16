@@ -63,7 +63,7 @@ WLEDVideoSync is a tool designed to synchronize Net LED Matrix with video conten
 - Check network connectivity between the application and WLED
 - For optimal performance, be sure to be on the same VLAN as your DDP devices
 - Verify video source compatibility
-- On linux, wayland do not work, use X11
+- On linux, wayland do not work for DESKTOP preview, use X11
 - On Mac/Linux be sure to set +x on WLEDVideoSync app
 
 **Contributing:**
@@ -296,6 +296,8 @@ Default behaviour:
 - Linux: app will start on 'default' browser.
   - all features available on X11 and browser mode
   - use SHUTDOWN in footer to stop application
+  - compiled version used qt for native mode (pyside6), if you got a blank window, try to force QT : export PYWEBVIEW_GUI=qt
+    - to use GTK, you need to do that from source, see: https://pywebview.flowrl.com/guide/web_engine.html
   
 - "native" mode has not been deeply tested on macOS/Linux, so may provide some trouble.
 
