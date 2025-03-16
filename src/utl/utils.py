@@ -78,15 +78,7 @@ class CASTUtils:
 
     @staticmethod
     def test_compiled():
-        compiled_version = False
-        try:
-            if __compiled__.containing_dir:
-                compiled_version = True
-        except NameError:
-            compiled_version = False
-
-        return compiled_version
-
+        return bool(getattr(sys, 'frozen', False))
 
     @staticmethod
     def clean_tmp():
