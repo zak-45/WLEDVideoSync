@@ -299,7 +299,7 @@ Default behaviour:
   - compiled version use ``qt`` for native mode (pyside6), if you got a blank window, try to force QT :
   
          export PYWEBVIEW_GUI=qt
-  - 
+  
   - to use GTK, you need to execute from source
     >see: https://pywebview.flowrl.com/guide/installation.html
   
