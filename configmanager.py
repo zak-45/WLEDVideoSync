@@ -38,7 +38,7 @@ def root_path(filename):
     Handles different execution environments (compiled vs. development) to ensure consistent resource access.
     """
 
-    if getattr(sys, 'frozen', False):  # Running from a compiled binary (Nuitka, PyInstaller)
+    if getattr(sys, 'frozen', False) or '__compiled__' in globals():  # Running from a compiled binary (Nuitka, PyInstaller)
         if sys.platform == "darwin":  # macOS with APP
             base_path = os.path.dirname(os.path.dirname(sys.argv[0]))  # Contents/
             return os.path.join(base_path, "MacOS", filename)

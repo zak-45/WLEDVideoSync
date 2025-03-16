@@ -145,19 +145,19 @@ def linux_settings():
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
     proc1 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'info_window : {proc1.pid}')
+    print(f'info_window process : {proc1.pid}')
 
     # change folder icon
     cmd_str = f'gio set -t string \
         "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/custom_folder.png")}'
     proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'mac_folder : {proc2.pid}')
+    print(f'custom_folder process : {proc2.pid}')
 
     # change app icon
     cmd_str = f'gio set -t string \
         "WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("favicon.png")}'
     proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'favicon : {proc3.pid}')
+    print(f'app icon process : {proc3.pid}')
 
 def init_darwin():
     """Initialize settings for Darwin (macOS) platform.
@@ -178,7 +178,7 @@ def init_darwin():
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
     proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'info_window : {proc.pid}')
+    print(f'info_window process : {proc.pid}')
 
     # common all OS
     init_common()
@@ -277,7 +277,7 @@ def select_gui():
             native_ui = False
     except Exception as error:
         cfg_mgr.logger.error(f'Error in config file to select GUI from native_ui : {native_ui} - {error}')
-        sys.exit(1)
+        sys.exit(3)
 
     return show, native_ui, native_ui_size
 
@@ -338,7 +338,7 @@ def run_gui():
     app.on_startup(CastAPI.init_actions)
 
     ui.run(title=f'WLEDVideoSync - {server_port}',
-           favicon="favicon.ico",
+           favicon=cfg_mgr.app_root_path("favicon.ico"),
            host=server_ip,
            port=server_port,
            fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
