@@ -139,17 +139,23 @@ jobs:
           # nuitka-version: 2.6.2
           nuitka-version: main
           script-name: WLEDVideoSync.py
-          company-name: zak-45
-          product-version: ${{github.event.inputs.mytag}}
-          file-version: ${{github.event.inputs.mytag}}
-          enable-plugins: tk-inter
           windows-console-mode: disable
-          deployment: true
-          windows-icon-from-ico: assets/favicon.ico
-          macos-app-icon: assets/favicon.ico
           mode: app
+          deployment: true
           onefile-tempdir-spec: ./WLEDVideoSync
           output-file: WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}
+          company-name: zak-45
+          copyright: zak-45
+          trademarks: zak-45
+          product-name: WLEDVideoSync
+          product-version: ${{github.event.inputs.mytag}}
+          file-version: ${{github.event.inputs.mytag}}
+          macos-app-version: ${{github.event.inputs.mytag}}
+          macos-sign-identity: zak-45
+          enable-plugins: tk-inter
+          windows-icon-from-ico: assets/favicon.ico
+          macos-app-icon: assets/favicon.ico
+          linux-icon: assets/favicon.ico
 
           include-package: certifi
 
