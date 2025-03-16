@@ -5,13 +5,11 @@ import time
 from datetime import datetime
 from coldtype.renderer import Renderer
 from multiprocessing.shared_memory import ShareableList
-from multiprocessing import freeze_support
-from src.utl.utils import CASTUtils as Utils
+import multiprocessing
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
-Process, Queue = Utils.mp_setup()
 
 class DualStream:
     def __init__(self, original_stream, queue, stream_name="stdout"):
@@ -41,7 +39,7 @@ class DualStream:
     def flush(self):
         self.original_stream.flush()
 
-class RUNColdtype(Process):
+class RUNColdtype(multiprocessing.Process):
     """Run the Coldtype renderer in a separate process.
 
      This method sets up the environment for the Coldtype process,
@@ -104,9 +102,6 @@ class RUNColdtype(Process):
 
 
 if __name__ == "__main__":
-    # enable support for multiprocessing
-    freeze_support()
-
     process = RUNColdtype()
     process.start()
 
