@@ -76,6 +76,17 @@ class CASTUtils:
     def __init__(self):
         pass
 
+    @staticmethod
+    def test_compiled():
+        compiled_version = False
+        try:
+            if __compiled__.containing_dir:
+                compiled_version = True
+        except NameError:
+            compiled_version = False
+
+        return compiled_version
+
 
     @staticmethod
     def clean_tmp():
