@@ -42,7 +42,6 @@ import multiprocessing
 import av
 import numpy as np
 
-from multiprocessing import freeze_support
 from wled import WLED
 from zeroconf import ServiceBrowser, Zeroconf
 from nicegui import run
@@ -51,8 +50,6 @@ from coldtype.text.reader import Font
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
-
-freeze_support()
 
 class CASTUtils:
     """Provides utility functions for various CAST operations.

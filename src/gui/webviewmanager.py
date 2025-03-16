@@ -42,13 +42,9 @@ The commented-out code shows how to close all webviews.
 """
 
 import webview
-
-from multiprocessing import freeze_support
 from src.utl.utils import CASTUtils as Utils
 
 Process, Queue = Utils.mp_setup()
-
-freeze_support()
 
 class WebviewManager:
     """Manages multiple webview windows in separate processes.

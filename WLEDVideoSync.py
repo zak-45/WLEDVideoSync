@@ -74,7 +74,6 @@ import shelve
 import CastAPI
 import src.gui.niceutils
 
-from multiprocessing import freeze_support
 from subprocess import Popen
 from str2bool import str2bool
 from nicegui import ui, app, native
@@ -372,8 +371,6 @@ def run_gui():
 MAIN Logic 
 """
 if __name__ in "__main__":
-    freeze_support()
-
     # instruct user to go to WLEDVideoSync folder to execute program and exit
     # We check if executed from compressed version (linux & win)
     if "NUITKA_ONEFILE_PARENT" in os.environ:

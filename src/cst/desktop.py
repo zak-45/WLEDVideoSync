@@ -47,8 +47,6 @@ import threading
 import cv2
 import traceback
 import numpy as np
-from multiprocessing import freeze_support
-
 
 from src.utl import actionutils
 
@@ -68,8 +66,6 @@ from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
 
 Process, Queue = Utils.mp_setup()
-
-freeze_support()
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
 

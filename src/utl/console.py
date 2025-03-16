@@ -1,7 +1,6 @@
 from nicegui import ui
 from src.utl.utils import  CASTUtils as Utils
 import sys
-from multiprocessing import freeze_support
 import threading
 import time
 
@@ -81,8 +80,6 @@ class ConsoleCapture:
 
 
 if __name__ in "__main__":
-    freeze_support()
-
     # NiceGUI app
     @ui.page('/')
     async def main_page():
