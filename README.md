@@ -296,8 +296,10 @@ Default behaviour:
 - Linux: app will start on 'default' browser.
   - all features available on X11 and browser mode
   - use SHUTDOWN in footer to stop application
-  - compiled version used qt for native mode (pyside6), if you got a blank window, try to force QT : export PYWEBVIEW_GUI=qt
-    - to use GTK, you need to do that from source, see: https://pywebview.flowrl.com/guide/web_engine.html
+  - compiled version use qt for native mode (pyside6), if you got a blank window, try to force QT : 
+    - export PYWEBVIEW_GUI=qt
+  - to use GTK, you need to execute from source
+    - see: https://pywebview.flowrl.com/guide/installation.html
   
 - "native" mode has not been deeply tested on macOS/Linux, so may provide some trouble.
 
@@ -305,7 +307,7 @@ Put on Systray:
 - To use the systray:
   - modify put_on_systray in the config file. Once set, no GUI will be launched: you need to click on systray icon 
 for that.
-  >this work out-of-box for win, but some additional lib/settings could be necessary for linux/mac 
+  >this work out-of-box for win, but some additional lib/settings should be necessary for linux/mac 
   > https://pystray.readthedocs.io/en/latest/usage.html#selecting-a-backend
 
 ### WebSocket
