@@ -93,11 +93,11 @@ MIT
   
 
 - Go into and click on `WLEDVideoSync-{OS}`(exe/bin) to execute the main program.
-  - If you are on Win system, this should open "native" windows
+  - If you are on Win/Mac system, this should open "native" windows
 
 ![native](docs/img/native.png)
 
-   - On Mac/Linux, you should see the app into your default browser
+   - On Linux, you should see the app into your default browser
 
 
 ![browser](docs/img/browser.png)
@@ -250,13 +250,13 @@ All of this could be configured later, for the moment focus on default.
   - Download Icon: click on it to initiate required action depend on previous Url/Path entry
     - if local path, this will set the player to it (video/image)
     
-          player had limited codec capacity, preview could not work but cast yes
+    >player had limited codec capacity, preview could not work but cast yes
     
     - if video WebUrl, try to directly manage it by the player
     - if YouTube, this will download the video and put it into the app media/ folder
     - if this is an image, this will download it and put it into the app media/ folder
       
-          if you want to keep downloaded video/image see configuration file
+    > if you want to keep downloaded video/image see configuration file
     
   - YT Search: click on it to open YouTube search area, more than one possible
     - just enter some keywords to search for
@@ -291,21 +291,21 @@ The logging configuration file is : ``WLEDVideoSync/config/logging.ini``. Logs c
 
 Default behaviour:
 - Win OS /Mac : app will start on "native" windows.
-  - To terminate the app, click on shutdown into footer or close the window
+  >To terminate the app, click on shutdown into footer or close the window
   
 - Linux: app will start on 'default' browser.
   - all features available on X11 and browser mode
   - use SHUTDOWN in footer to stop application
-  - compiled version use qt for native mode (pyside6), if you got a blank window, try to force QT : 
-    - export PYWEBVIEW_GUI=qt
+  - compiled version use ``qt`` for native mode (pyside6), if you got a blank window, try to force QT : 
+    ```export PYWEBVIEW_GUI=qt```
   - to use GTK, you need to execute from source
-    - see: https://pywebview.flowrl.com/guide/installation.html
+    >see: https://pywebview.flowrl.com/guide/installation.html
   
 - "native" mode has not been deeply tested on macOS/Linux, so may provide some trouble.
 
 Put on Systray:
 - To use the systray:
-  - modify put_on_systray in the config file. Once set, no GUI will be launched: you need to click on systray icon 
+  - modify ``put_on_systray`` in the config file. Once set, no GUI will be launched: you need to click on systray icon 
 for that.
   >this work out-of-box for win, but some additional lib/settings should be necessary for linux/mac 
   > https://pystray.readthedocs.io/en/latest/usage.html#selecting-a-backend
