@@ -151,7 +151,6 @@ jobs:
           product-version: ${{github.event.inputs.mytag}}
           file-version: ${{github.event.inputs.mytag}}
           macos-app-version: ${{github.event.inputs.mytag}}
-          macos-sign-identity: zak-45
           enable-plugins: tk-inter
           windows-icon-from-ico: assets/favicon.ico
           macos-app-icon: assets/favicon.ico
