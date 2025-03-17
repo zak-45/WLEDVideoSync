@@ -263,8 +263,8 @@ class CASTUtils:
             if sl_process is not None:
                 cfg_mgr.logger.debug(f'Stopping Child Process for Preview if any : {t_name}')
                 sl_process.kill()
-        except Exception as e:
-            cfg_mgr.logger.error(f'Error on SL clean : {e}')
+        except Exception as err:
+            cfg_mgr.logger.error(f'Error on SL clean : {err}')
 
     @staticmethod
     def list_av_formats():
@@ -302,7 +302,7 @@ class CASTUtils:
         return info
 
     @staticmethod
-    async def youtube_download(yt_url: str = None, interactive: bool = True, log_ui=None):
+    async def youtube_download(yt_url: str = None, interactive: bool = True):
         """download video from YouTube"""
 
         # select from ini file
@@ -389,7 +389,7 @@ class CASTUtils:
             with shelve.open(tmp_file) as db:
                 server_port = db['server_port']
         except Exception as er:
-            cfg_mgr.logger.warning(f'Error to retrieve Server Port  from {tmp_file}')
+            cfg_mgr.logger.warning(f'Error to retrieve Server Port  from {tmp_file}: {er}')
             server_port = 99
         finally:
             if server_port == 0:
@@ -591,20 +591,14 @@ class CASTUtils:
                     elif 'AVFoundation audio device' in name:
                         typedev = 'audio'
                     else:
-                        numbers_in_brackets = re.findall(r'\[(\d+)\]', name)
-                        if numbers_in_brackets:
+                        if numbers_in_brackets := re.findall(r'\[(\d+)\]', name):
                             devicenumber = int(numbers_in_brackets[0])
 
-                        # Define the regular expression pattern to match
-                        pattern = r"\[\d+\] (.*)"
-                        # Use re.search() to find the first match
-                        match = re.search(pattern, name)
-                        if match:
-                            # Extract the desired substring
-                            devname = match.group(1)
-                        else:
-                            devname = "unknown"
-
+                        devname = (
+                            match[1]
+                            if (match := re.search(r"\[\d+\] (.*)", name))
+                            else "unknown"
+                        )
                         CASTUtils.dev_list.append((devname, typedev, devicenumber))
 
                 else:

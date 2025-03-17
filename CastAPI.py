@@ -81,7 +81,6 @@ action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
-log_ui=ui.log()
 
 """
 Actions to do at application initialization 
@@ -939,7 +938,6 @@ NiceGUI
 
 @ui.page('/')
 async def main_page():
-    global log_ui
     """
     Root page definition
     """
@@ -1137,7 +1135,7 @@ async def main_page():
                 ui.button('System', on_click=sys_stats_info_page)
         CastAPI.charts_row.set_visibility(False)
         ui.button('Fonts', on_click=font_select, color='bg-red-800')
-        ui.button('PYEditor', on_click=lambda: ui.navigate.to('Pyeditor'), color='bg-red-800')
+        ui.button('PYEditor', on_click=lambda : ui.navigate.to('Pyeditor'), color='bg-red-800')
         ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \

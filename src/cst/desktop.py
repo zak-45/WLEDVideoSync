@@ -1300,7 +1300,7 @@ class CASTDesktop:
         thread.start()
         cfg_mgr.logger.debug('Child Desktop cast initiated')
 
-# example of screen capture using method 'mss'
+# example of screen capture using 'mss' method
 if __name__ == "__main__":
 
     test = CASTDesktop()

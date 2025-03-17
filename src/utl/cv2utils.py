@@ -115,7 +115,7 @@ class CV2Utils:
     def cv2_win_close(server_port, class_name, t_name, t_viinput):
         """ Close cv2 window created by imshow """
 
-        cfg_mgr.logger.debug(f'{t_name} Stop window preview if any')
+        cfg_mgr.logger.debug(f'{t_name} Stop window preview if any for {class_name}')
         window_name = f"{server_port}-{t_name}-{str(t_viinput)}"
 
         # check if window run into sub process so data come from ShareableList
@@ -171,7 +171,7 @@ class CV2Utils:
         default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
         default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
 
-        cfg_mgr.logger.info('Preview from ShareAbleList')
+        cfg_mgr.logger.info(f'Preview from ShareAbleList for {class_name}')
 
         if not CV2Utils.window_exists(window_name):
             cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
@@ -402,19 +402,21 @@ class CV2Utils:
 
             capture = cv2.VideoCapture(media)
 
-            # showing values of the properties
-            dict_media.append(f'"CV_CAP_PROP_FRAME_WIDTH": "{capture.get(cv2.CAP_PROP_FRAME_WIDTH)}"')
-            dict_media.append(f'"CV_CAP_PROP_FRAME_HEIGHT": "{capture.get(cv2.CAP_PROP_FRAME_HEIGHT)}"')
-            dict_media.append(f'"CAP_PROP_FPS": "{capture.get(cv2.CAP_PROP_FPS)}"')
-            dict_media.append(f'"CAP_PROP_POS_MSEC": "{capture.get(cv2.CAP_PROP_POS_MSEC)}"')
-            dict_media.append(f'"CAP_PROP_FRAME_COUNT": "{capture.get(cv2.CAP_PROP_FRAME_COUNT)}"')
-            dict_media.append(f'"CAP_PROP_BRIGHTNESS": "{capture.get(cv2.CAP_PROP_BRIGHTNESS)}"')
-            dict_media.append(f'"CAP_PROP_CONTRAST": "{capture.get(cv2.CAP_PROP_CONTRAST)}"')
-            dict_media.append(f'"CAP_PROP_SATURATION": "{capture.get(cv2.CAP_PROP_SATURATION)}"')
-            dict_media.append(f'"CAP_PROP_HUE": "{capture.get(cv2.CAP_PROP_HUE)}"')
-            dict_media.append(f'"CAP_PROP_GAIN": "{capture.get(cv2.CAP_PROP_GAIN)}"')
-            dict_media.append(f'"CAP_PROP_CONVERT_RGB": "{capture.get(cv2.CAP_PROP_CONVERT_RGB)}"')
-
+            dict_media.extend(
+                (
+                    f'"CV_CAP_PROP_FRAME_WIDTH": "{capture.get(cv2.CAP_PROP_FRAME_WIDTH)}"',
+                    f'"CV_CAP_PROP_FRAME_HEIGHT": "{capture.get(cv2.CAP_PROP_FRAME_HEIGHT)}"',
+                    f'"CAP_PROP_FPS": "{capture.get(cv2.CAP_PROP_FPS)}"',
+                    f'"CAP_PROP_POS_MSEC": "{capture.get(cv2.CAP_PROP_POS_MSEC)}"',
+                    f'"CAP_PROP_FRAME_COUNT": "{capture.get(cv2.CAP_PROP_FRAME_COUNT)}"',
+                    f'"CAP_PROP_BRIGHTNESS": "{capture.get(cv2.CAP_PROP_BRIGHTNESS)}"',
+                    f'"CAP_PROP_CONTRAST": "{capture.get(cv2.CAP_PROP_CONTRAST)}"',
+                    f'"CAP_PROP_SATURATION": "{capture.get(cv2.CAP_PROP_SATURATION)}"',
+                    f'"CAP_PROP_HUE": "{capture.get(cv2.CAP_PROP_HUE)}"',
+                    f'"CAP_PROP_GAIN": "{capture.get(cv2.CAP_PROP_GAIN)}"',
+                    f'"CAP_PROP_CONVERT_RGB": "{capture.get(cv2.CAP_PROP_CONVERT_RGB)}"',
+                )
+            )
             # release
             capture.release()
 
@@ -486,18 +488,12 @@ class CV2Utils:
             if target_width is not None and target_height is None:
                 target_height = int(target_width / aspect_ratio)
 
-            # If only height is provided, calculate width based on aspect ratio
-            elif target_height is not None and target_width is None:
+            elif target_width is None:
                 target_width = int(target_height * aspect_ratio)
 
-            # Resize image
-            resized_image = cv2.resize(image, (target_width, target_height), interpolation=interpolation)
-
-        else:
-            # Resize image
-            resized_image = cv2.resize(image, (target_width, target_height), interpolation=interpolation)
-
-        return resized_image
+        return cv2.resize(
+            image, (target_width, target_height), interpolation=interpolation
+        )
 
     @staticmethod
     def pixelart_image(image_np, width_x, height_y):
@@ -889,16 +885,19 @@ class VideoThumbnailExtractor:
         """
         image = cv2.imread(self.media_path)
         if image is not None:
-            # Resize the image to the specified thumbnail width while maintaining aspect ratio
-            height, width, _ = image.shape
-            aspect_ratio = height / width
-            new_height = int(self.thumbnail_width * aspect_ratio)
-            resized_image = cv2.resize(image, (self.thumbnail_width, new_height))
-            self.thumbnail_frames = [resized_image]  # Single thumbnail for images
-            cfg_mgr.logger.debug(f"Thumbnail extracted from image: {self.media_path}")
+            self.resize_thumbnails_from_image(image)
         else:
             self.thumbnail_frames = [self.create_blank_frame()]
             cfg_mgr.logger.error("Failed to read image. Generated a blank frame.")
+
+    def resize_thumbnails_from_image(self, image):
+        # Resize the image to the specified thumbnail width while maintaining aspect ratio
+        height, width, _ = image.shape
+        aspect_ratio = height / width
+        new_height = int(self.thumbnail_width * aspect_ratio)
+        resized_image = cv2.resize(image, (self.thumbnail_width, new_height))
+        self.thumbnail_frames = [resized_image]  # Single thumbnail for images
+        cfg_mgr.logger.debug(f"Thumbnail extracted from image: {self.media_path}")
 
     async def extract_thumbnails_from_video(self, times_in_seconds):
         """Extract thumbnails from a video at specified times.

@@ -49,7 +49,8 @@ class PythonEditor:
 
         self.capture = ConsoleCapture(show_console=False)
 
-    async def get_manager_queues(self):
+    @staticmethod
+    async def get_manager_queues():
         """Retrieve information about Desktop queues from the queue manager.
 
         Connects to the queue manager and retrieves information about
@@ -57,20 +58,21 @@ class PythonEditor:
         connection fails.
         """
         client = Utils.attach_to_queue_manager()
-        return client.get_shared_lists_info() if (status := client.connect()) else {}
+        return client.get_shared_lists_info() if client.connect() else {}
 
 
-    async def show_queues(self):
+    @staticmethod
+    async def show_queues():
         """Display shared queues information in a dialog.
 
         Retrieves queue information and presents it in a read-only
         JSON editor within a dialog box.
         """
-        queues = await self.get_manager_queues()
+        queues = await PythonEditor.get_manager_queues()
         print(queues)
         with ui.dialog() as dialog, ui.card():
             dialog.open()
-            editor = ui.json_editor({'content': {'json': queues}}) \
+            await ui.json_editor({'content': {'json': queues}}) \
                 .run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog.close, color='red')
             
@@ -167,12 +169,18 @@ class PythonEditor:
             dialog.open()
             Calculator()
 
+
+    def go_back(self):
+        self.capture.restore()
+        self.capture.running = False
+        ui.navigate.back()
+
     async def setup_ui(self):
         """Set up the UI layout and actions."""
 
         # UI Layout
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
-        ui.button(icon='reply', on_click=ui.navigate.back)
+        ui.button(icon='reply', on_click=self.go_back)
         with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):
 
             # Toolbar
@@ -202,7 +210,7 @@ class PythonEditor:
                     with ui.button(icon='palette'):
                         ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
                     ui.button(icon='calculate', on_click=self.show_calculator)
-                    ui.button(icon='queue', on_click=self.show_queues)
+                    ui.button(icon='queue', on_click=PythonEditor.show_queues)
 
                 self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
                 self.editor.style(add='font-family:Roboto !important')
@@ -216,12 +224,12 @@ class PythonEditor:
 
 if __name__ in {"__main__", "__mp_main__"}:
     from nicegui import app
+
     # NiceGUI app
     @ui.page('/')
-    async def main_page():
-
+    async def main_page_editor():
         # Instantiate and run the editor
-        editor_app = PythonEditor(upload_folder=r'..\..\xtra\coldtype')
+        editor_app = PythonEditor(upload_folder=cfg_mgr.app_root_path('xtra/text/coldtype'))
         await editor_app.setup_ui()
         ui.button('shutdown', on_click=app.shutdown).classes('self-center')
         print('Editor is running')

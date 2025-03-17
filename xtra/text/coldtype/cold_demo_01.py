@@ -4,7 +4,7 @@ from coldtype.raster import *
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils as ImgUtils
 
-sl, w, h = Utils.attach_to_manager_queue('Thread-2 (t_desktop_cast)_q')
+sl, w, h = Utils.attach_to_manager_queue('Thread-14 (t_desktop_cast)_q')
 
 @animation((800, 240), timeline=100, bg=hsl(.9))
 def cold_demo_01(f):

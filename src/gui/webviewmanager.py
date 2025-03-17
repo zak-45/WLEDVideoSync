@@ -79,7 +79,7 @@ class WebviewManager:
 
 def start_webview(url: str, title: str, width: int, height: int):
     """Start a webview window in a separate process."""
-    window = webview.create_window(
+    webview.create_window(
         title,
         url=url,
         width=width,
