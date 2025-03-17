@@ -325,7 +325,7 @@ def run_gui():
         from src.gui.wledtray import WLEDVideoSync_systray
 
         if sys.platform.lower() == 'linux':
-            systray_backend = cfg_mgr.app_config['systray_backend']
+            systray_backend = cfg_mgr.app_config['systray_backend'].lower()
             if systray_backend in ['appindicator', 'gtk', 'xorg']:
                 os.environ["PYSTRAY_BACKEND"] = systray_backend
             else:
