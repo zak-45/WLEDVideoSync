@@ -128,7 +128,7 @@ def init_linux_win():
     if sys.platform.lower() == 'win32':
         cfg_settings(config_file,'False', 'True', '1200,720', 'win_first_run')
     elif sys.platform.lower() == 'linux':
-        linux_settings()
+        linux_settings(config_file)
     # common all OS
     init_common(config_file)
 
@@ -136,7 +136,7 @@ def init_linux_win():
     from src.gui.tkwininit import init
     init()
 
-def linux_settings():
+def linux_settings(config_file):
     """Apply Linux-specific settings and configurations.
 
     This function sets configuration parameters specific to Linux environments,
@@ -146,7 +146,7 @@ def linux_settings():
     These are no blocking actions...
     
     """
-    cfg_settings('True', 'False', '', 'linux_first_run')
+    cfg_settings(config_file,'True', 'False', '', 'linux_first_run')
 
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'

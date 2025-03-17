@@ -43,11 +43,15 @@ def root_path(filename):
             base_path = os.path.dirname(os.path.dirname(sys.argv[0]))  # Contents/
             return os.path.join(base_path, "MacOS", filename)
         else:  # Windows/Linux (Nuitka puts files in the same dir as the binary)
-            base_path = os.path.dirname(sys.argv[0])
+            base_path = os.path.join(os.path.dirname(sys.argv[0]), 'WLEDVideoSync')
             return os.path.join(base_path, filename)
 
     # Running in development mode (not compiled)
     return os.path.join(os.path.dirname(__file__),filename)
+
+
+def compiled():
+    return '__compiled__' in globals()
 
 
 def count_processes_by_name(name):
@@ -223,6 +227,10 @@ class ConfigManager:
         This static method provides a convenient way to access the root_path functionality within the ConfigManager class.
         """
         return root_path(file)
+
+    @staticmethod
+    def compiled():
+        return compiled()
 
     def initialize(self):
         """

@@ -44,8 +44,6 @@ from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
-config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
-
 def init():
     """Display an informational window after executable extraction.
 

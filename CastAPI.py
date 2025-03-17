@@ -1203,8 +1203,8 @@ async def video_player_page():
 
     center_card.classes('self-center w-2/3 bg-gray-500')
     with center_card:
-
-        CastAPI.player = ui.video(cfg_mgr.app_root_path(cfg_mgr.app_config["video_file"])).classes('self-center')
+        video_file = cfg_mgr.app_root_path(cfg_mgr.app_config["video_file"])
+        CastAPI.player = ui.video(src=video_file).classes('self-center')
         CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
         CastAPI.player.on('timeupdate', lambda: get_player_time())
         CastAPI.player.on('durationchange', lambda: player_duration())
