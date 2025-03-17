@@ -38,11 +38,12 @@ def root_path(filename):
     Handles different execution environments (compiled vs. development) to ensure consistent resource access.
     """
 
-    if getattr(sys, 'frozen', False) or '__compiled__' in globals():  # Running from a compiled binary (Nuitka, PyInstaller)
-        if sys.platform == "darwin":  # macOS with APP
+    if compiled():  # Running from a compiled binary (Nuitka, PyInstaller)
+        if sys.platform == "darwin":  # macOS APP structure
             base_path = os.path.dirname(os.path.dirname(sys.argv[0]))  # Contents/
+            # Nuitka puts files in the same dir as the binary
             return os.path.join(base_path, "MacOS", filename)
-        else:  # Windows/Linux (Nuitka puts files in the same dir as the binary)
+        else:  # Windows/Linux
             base_path = os.path.dirname(sys.argv[0])
             return os.path.join(base_path, filename)
 
@@ -51,8 +52,7 @@ def root_path(filename):
 
 
 def compiled():
-    return '__compiled__' in globals()
-
+    return bool(getattr(sys, 'frozen',False) or '__compiled__' in globals())
 
 def count_processes_by_name(name):
     """

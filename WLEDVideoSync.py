@@ -117,7 +117,7 @@ def init_linux_win():
     and runs the tk initialization process.
     """
 
-    if Utils.test_compiled():
+    if cfg_mgr.compiled():
         config_file = cfg_mgr.app_root_path('WLEDVideoSync/config/WLEDVideoSync.ini')
     else:
         config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
@@ -328,7 +328,7 @@ def run_gui():
     GUI
     """
     # set QT in linux when compiled version (let choice when run from source)
-    if (Utils.test_compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])) and sys.platform.lower() == 'linux':
+    if (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])) and sys.platform.lower() == 'linux':
         os.environ["PYWEBVIEW_GUI"] = "qt"
     # choose GUI
     show, native_ui, native_ui_size = select_gui()

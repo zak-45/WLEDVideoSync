@@ -75,7 +75,7 @@ class CASTUtils:
 
     @staticmethod
     def test_compiled():
-        return '__compiled__' in globals()
+        return bool(getattr(sys, 'frozen',False) or '__compiled__' in globals())
 
     @staticmethod
     def clean_tmp():
