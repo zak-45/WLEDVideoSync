@@ -31,6 +31,8 @@
 # log_to_main   : False or True, capture logs from modules and display on the main page, put False to save resources
 # log_level     : Log level to filter, INFO, WARN, ERROR, DEBUG, CRITICAL on the main UI page (uvicorn & NiceGUI)
 # put_on_systray: True, application will go to systray
+# systray_backend: xorg, gtk, appindicator, used by linux
+#                   see : https://pystray.readthedocs.io/en/latest/usage.html#supported-backends
 # systray_native: True or False, show in webview (native OS view)  or default browser
 # timer         : seconds before refresh data on main page, bigger less resource needed
 # img_folder    : folder where to save images, need to terminate by '/' e.g. C:/test/image/ for Win absolute path

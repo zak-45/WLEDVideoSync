@@ -324,6 +324,13 @@ def run_gui():
     if str2bool(cfg_mgr.app_config['put_on_systray']):
         from src.gui.wledtray import WLEDVideoSync_systray
 
+        if sys.platform.lower() == 'linux':
+            systray_backend = cfg_mgr.app_config['systray_backend']
+            if systray_backend in ['appindicator', 'gtk', 'xorg']:
+                os.environ["PYSTRAY_BACKEND"] = systray_backend
+            else:
+                cfg_mgr.logger.error(f'Bad value for systray_backend : {systray_backend}')
+
         # run systray in no blocking mode
         WLEDVideoSync_systray.run_detached()
 
