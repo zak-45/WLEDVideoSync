@@ -149,21 +149,24 @@ def linux_settings(config_file):
     cfg_settings(config_file,'True', 'False', '', 'linux_first_run')
 
     # chmod +x info window
-    cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
+    info_window = cfg_mgr.app_root_path("WLEDVideoSync/xtra/info_window")
+    cmd_str = f'chmod +x {info_window}'
     proc1 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'info_window process : {proc1.pid}')
+    print(f'info_window process : {proc1.pid} , path: {info_window}')
 
     # change folder icon
+    folder_png=cfg_mgr.app_root_path("WLEDVideoSync/assets/custom_folder.png")
     cmd_str = f'gio set -t string \
-        "WLEDVideoSync" metadata::custom-icon file://{cfg_mgr.app_root_path("assets/custom_folder.png")}'
+        "WLEDVideoSync" metadata::custom-icon file://{folder_png}'
     proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'custom_folder process : {proc2.pid}')
+    print(f'custom_folder process : {proc2.pid}, path: {folder_png}')
 
     # change app icon
+    favicon_png = cfg_mgr.app_root_path("WLEDVideoSync/favicon.png")
     cmd_str = f'gio set -t string \
-        "WLEDVideoSync_x86_64.bin" metadata::custom-icon file://{cfg_mgr.app_root_path("favicon.png")}'
+        "WLEDVideoSync/WLEDVideoSync-Linux_x86_64.bin" metadata::custom-icon file://{favicon_png}'
     proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'app icon process : {proc3.pid}')
+    print(f'app icon process : {proc3.pid}, path: {favicon_png}')
 
 def init_darwin():
     """Initialize settings for Darwin (macOS) platform.
