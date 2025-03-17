@@ -61,7 +61,10 @@ def init():
     root.configure(bg='#657B83')  # Set the background color
 
     # Change the window icon
-    icon = PhotoImage(file=cfg_mgr.app_root_path('favicon.png'))
+    if cfg_mgr.compiled():
+        icon = PhotoImage(file=cfg_mgr.app_root_path('WLEDVideoSync/favicon.png'))
+    else:
+        icon = PhotoImage(file=cfg_mgr.app_root_path('favicon.png'))
     root.iconphoto(False, icon)
 
     # Define the window's contents

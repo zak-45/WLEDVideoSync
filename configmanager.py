@@ -43,7 +43,7 @@ def root_path(filename):
             base_path = os.path.dirname(os.path.dirname(sys.argv[0]))  # Contents/
             return os.path.join(base_path, "MacOS", filename)
         else:  # Windows/Linux (Nuitka puts files in the same dir as the binary)
-            base_path = os.path.join(os.path.dirname(sys.argv[0]), 'WLEDVideoSync')
+            base_path = os.path.dirname(sys.argv[0])
             return os.path.join(base_path, filename)
 
     # Running in development mode (not compiled)
