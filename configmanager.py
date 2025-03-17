@@ -342,30 +342,32 @@ class ConfigManager:
         """
         # load config file
         try:
-            cast_config = app_cfg.load(self.config_file)
-            # config keys
-            server_config = cast_config.get('server')
-            app_config = cast_config.get('app')
-            colors_config = cast_config.get('colors')
-            custom_config = cast_config.get('custom')
-            preset_config = cast_config.get('presets')
-            desktop_config = cast_config.get('desktop')
-            ws_config = cast_config.get('ws')
-            text_config = cast_config.get('text')
-            manager_config = cast_config.get('shared-list')
-
-            return (server_config,
-                    app_config,
-                    colors_config,
-                    custom_config,
-                    preset_config,
-                    desktop_config,
-                    ws_config,
-                    text_config,
-                    manager_config)
-
+            return self.load_config()
         except Exception as e:
             if self.logger is not None:
                 self.logger.debug(f'Error : {e}')
 
             return None
+
+    def load_config(self):
+        cast_config = app_cfg.load(self.config_file)
+        # config keys
+        server_config = cast_config.get('server')
+        app_config = cast_config.get('app')
+        colors_config = cast_config.get('colors')
+        custom_config = cast_config.get('custom')
+        preset_config = cast_config.get('presets')
+        desktop_config = cast_config.get('desktop')
+        ws_config = cast_config.get('ws')
+        text_config = cast_config.get('text')
+        manager_config = cast_config.get('shared-list')
+
+        return (server_config,
+                app_config,
+                colors_config,
+                custom_config,
+                preset_config,
+                desktop_config,
+                ws_config,
+                text_config,
+                manager_config)

@@ -41,15 +41,13 @@ server_ip, server_port:
 """
 
 
-from PIL import Image
-from pystray import Icon, Menu, MenuItem
 import webbrowser
 
+from PIL import Image
+from pystray import Icon, Menu, MenuItem
 from str2bool import str2bool
-
 from src.utl.utils import CASTUtils as Utils
 from src.gui.webviewmanager import WebviewManager
-
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
