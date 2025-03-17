@@ -84,11 +84,7 @@ cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 Process, Queue = Utils.mp_setup()
 
-# Global configuration file initialization.
-# This global variable is used by several functions throughout the application.
-config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
-
-def cfg_settings(preview_subprocess, native_ui, native_size, first_run_os):
+def cfg_settings(config_file, preview_subprocess, native_ui, native_size, first_run_os):
     """Update configuration settings based on OS and user preferences.
 
     This function updates specific keys in the configuration file related to the
@@ -100,6 +96,11 @@ def cfg_settings(preview_subprocess, native_ui, native_size, first_run_os):
         native_ui (str): Whether to use native UI elements.
         native_size (str): Size of the native UI window (if used).
         first_run_os (str): Key indicating the first run status for the OS.
+        :param first_run_os:
+        :param native_size:
+        :param native_ui:
+        :param preview_subprocess:
+        :param config_file:
     """
     Utils.update_ini_key(config_file, 'app', 'preview_proc', preview_subprocess)
     Utils.update_ini_key(config_file, 'app', 'native_ui', native_ui)
@@ -116,15 +117,20 @@ def init_linux_win():
     and runs the tk initialization process.
     """
 
+    if Utils.test_compiled():
+        config_file = cfg_mgr.app_root_path('WLEDVideoSync/config/WLEDVideoSync.ini')
+    else:
+        config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
+
     # Apply some default params only once
     # Apply default GUI / param , depend on platform
 
     if sys.platform.lower() == 'win32':
-        cfg_settings('False', 'True', '1200,720', 'win_first_run')
+        cfg_settings(config_file,'False', 'True', '1200,720', 'win_first_run')
     elif sys.platform.lower() == 'linux':
         linux_settings()
     # common all OS
-    init_common()
+    init_common(config_file)
 
     # run tk and close
     from src.gui.tkwininit import init
@@ -169,6 +175,9 @@ def init_darwin():
     These are no blocking actions...
         
     """
+
+    config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
+
     Utils.update_ini_key(config_file, 'app', 'preview_proc', 'True')
     Utils.update_ini_key(config_file, 'app', 'native_ui', 'True')
     Utils.update_ini_key(config_file, 'app', 'native_ui_size', '1200,720')
@@ -181,14 +190,14 @@ def init_darwin():
     print(f'info_window process : {proc.pid}')
 
     # common all OS
-    init_common()
+    init_common(config_file)
 
     # run webview and close
     from src.gui.tkmacinit import init
     init()
 
 
-def init_common():
+def init_common(config_file):
     """Initialize common settings across all platforms.
 
     This function performs initialization tasks common to all operating systems,

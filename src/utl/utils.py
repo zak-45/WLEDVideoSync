@@ -79,7 +79,6 @@ class CASTUtils:
 
     @staticmethod
     def clean_tmp():
-        cfg_mgr.logger.debug('Remove tmp files')
         try:
 
             # some cleaning
@@ -132,7 +131,7 @@ class CASTUtils:
         height = None
         with contextlib.suppress(Exception):
             client =  CASTUtils.attach_to_queue_manager()
-            if status := client.connect():
+            if client.connect():
                 sl = client.attach_to_shared_list(queue_name)
                 sl_info = client.get_shared_list_info(queue_name)
                 width = sl_info['w']
