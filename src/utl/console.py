@@ -75,6 +75,7 @@ class ConsoleCapture:
                         self.log_ui.push(log_message)
             except Exception as e:
                 self.original_stderr.write(f"Queue reading error: {e}\n")
+                self.restore()
             time.sleep(0.1)  # Prevent busy waiting
 
 

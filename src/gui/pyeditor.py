@@ -172,7 +172,6 @@ class PythonEditor:
 
     def go_back(self):
         self.capture.restore()
-        self.capture.running = False
         ui.navigate.back()
 
     async def setup_ui(self):

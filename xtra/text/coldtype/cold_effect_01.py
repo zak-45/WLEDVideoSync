@@ -4,7 +4,7 @@ from coldtype.raster import *
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils as ImgUtils
 
-sl, w, h = Utils.attach_to_manager_queue('Thread-3 (t_desktop_cast)_q')
+sl, w, h = Utils.attach_to_manager_queue('Thread-4 (t_desktop_cast)_q')
 
 states = [
     dict(wdth=0, rotate=-10),
