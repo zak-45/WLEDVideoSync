@@ -330,6 +330,7 @@ def run_gui():
                 os.environ["PYSTRAY_BACKEND"] = systray_backend
             else:
                 cfg_mgr.logger.error(f'Bad value for systray_backend : {systray_backend}')
+                sys.exit(5)
 
         # run systray in no blocking mode
         WLEDVideoSync_systray.run_detached()
