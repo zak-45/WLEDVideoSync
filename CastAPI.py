@@ -3013,9 +3013,9 @@ async def cast_to_wled(class_obj, image_number):
 
     if Utils.check_ip_alive(class_obj.host):
         ui.notify(f'Cast to device : {class_obj.host}')
-        if class_obj.__module__ == 'desktop':
+        if 'Desktop' in str(type(class_obj)):
             class_name = 'Desktop'
-        elif class_obj.__module__ == 'media':
+        elif 'Media' in str(type(class_obj)):
             class_name = 'Media'
         else:
             class_name = 'unknown'
