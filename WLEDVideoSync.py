@@ -195,7 +195,7 @@ def init_darwin():
     # chmod +x info window
     cmd_str = f'chmod +x {cfg_mgr.app_root_path("xtra/info_window")}'
     proc = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'info_window process : {proc.pid}')
+    print(f'info_window process : {proc.pid} for :{cmd_str}')
 
     # common all OS
     init_common(config_file)
@@ -219,6 +219,7 @@ def init_common(config_file):
     # global
     Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
     Utils.update_ini_key(config_file, 'app', 'put_on_systray', 'False')
+    Utils.update_ini_key(config_file, 'app', 'font_file', '')
 
 def parse_native_ui_size(size_str):
     try:
