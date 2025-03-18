@@ -69,6 +69,8 @@ Process, Queue = Utils.mp_setup()
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
 
+PLATFORM = sys.platform.lower()
+
 """
 When this env var exist, this mean run from the one-file executable.
 Load of the config is not possible, folder config should not exist.
@@ -172,15 +174,15 @@ class CASTDesktop:
         self.output_file = "" # Name of the file to save video recording
 
         # Put some defaults on init
-        if sys.platform.lower() == 'win32':
+        if PLATFORM == 'win32':
             self.viinput = 'desktop'  # 'desktop' full screen or 'title=<window title>' or 'area' for portion of screen
             self.viformat: str = 'gdigrab'  # 'gdigrab' for win
 
-        elif sys.platform.lower() == 'linux':
+        elif PLATFORM == 'linux':
             self.viinput: str = os.getenv('DISPLAY')  # retrieve display from env variable
             self.viformat: str = 'x11grab'
 
-        elif sys.platform.lower() == 'darwin':
+        elif PLATFORM == 'darwin':
             self.viinput = '"0"'
             self.viformat: str = 'avfoundation'
 
@@ -835,9 +837,9 @@ class CASTDesktop:
             elif self.viinput.lower().startswith('win='):
                 # specific window content
                 # append title (win) if needed
-                if sys.platform.lower() == 'win32':
+                if PLATFORM == 'win32':
                     self.viinput = f'title={self.viinput[4:]}'
-                elif sys.platform.lower() == 'linux':
+                elif PLATFORM == 'linux':
                     try:
                         # list all id for a title name (should be only one ...)
                         window_ids = []
@@ -899,11 +901,11 @@ class CASTDesktop:
         # Need to put some last value due what 'av'  request
         if capture_methode == 'av':
             # in win32 gdigrab need 'desktop' for full screen or area
-            if sys.platform.lower() == 'win32':
+            if PLATFORM == 'win32':
                 if self.viinput in ['desktop', 'area']:
                     t_viinput = 'desktop'
             # for linux, x11grab need the DISPLAY value for area or window title
-            elif sys.platform.lower() == 'linux':
+            elif PLATFORM == 'linux':
                 if self.viinput in ['area'] or self.viinput.lower().startswith('win='):
                     t_viinput = os.getenv('DISPLAY')
 
@@ -1047,7 +1049,7 @@ class CASTDesktop:
                                 t_preview, t_todo_stop = do_action(frame,t_preview,t_todo_stop)
 
                     except av.BlockingIOError as av_err:
-                        if sys.platform.lower() != 'darwin':
+                        if PLATFORM != 'darwin':
                             cfg_mgr.logger.error(f'{t_name} An exception occurred: {av_err}')
 
                 elif sl_queue is not None:

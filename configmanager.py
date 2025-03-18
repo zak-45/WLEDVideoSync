@@ -15,10 +15,12 @@ import sys
 import cfg_load as app_cfg
 import concurrent_log_handler
 import psutil
-
 import contextlib
+
 from logging import config
 from str2bool import str2bool
+
+PLATFORM = sys.platform.lower()
 
 def root_path(filename):
     """
@@ -39,7 +41,7 @@ def root_path(filename):
     """
 
     if compiled():  # Running from a compiled binary (Nuitka, PyInstaller)
-        if sys.platform == "darwin":  # macOS APP structure
+        if PLATFORM == "darwin":  # macOS APP structure
             base_path = os.path.dirname(os.path.dirname(sys.argv[0]))  # Contents/
             # Nuitka puts files in the same dir as the binary
             return os.path.join(base_path, "MacOS", filename)
@@ -104,7 +106,7 @@ def run_window_msg(msg: str = '', msg_type: str = 'info'):
         with contextlib.suppress(Exception):
             command = (
                 [absolute_file_name, msg, msg_type]
-                if sys.platform.lower() == "win32"
+                if PLATFORM == "win32"
                 else [absolute_file_name, msg, msg_type, '&']
             )
             # Call the separate script to show the error/info message in a Tkinter window
@@ -126,12 +128,10 @@ def info_window_exe_name():
         'xtra/info_window.bin'  # On Linux
 
     """
-    if sys.platform.lower() == 'win32':
+    if PLATFORM in ['linux', 'darwin']:
+        return ConfigManager.app_root_path('xtra/info_window')
+    elif PLATFORM == 'win32':
         return ConfigManager.app_root_path('xtra/info_window.exe')
-    elif sys.platform.lower() == 'linux':
-        return ConfigManager.app_root_path('xtra/info_window')
-    elif sys.platform.lower() == 'darwin':
-        return ConfigManager.app_root_path('xtra/info_window')
     else:
         return None
 

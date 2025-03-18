@@ -71,7 +71,9 @@ Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
 
-if sys.platform.lower() == 'win32':
+PLATFORM = sys.platform.lower()
+
+if PLATFORM == 'win32':
     from asyncio import WindowsSelectorEventLoopPolicy
     set_event_loop_policy(WindowsSelectorEventLoopPolicy())
 
@@ -136,7 +138,7 @@ async def init_actions():
                 await load_cast_preset('Desktop', interactive=False, file_name=cfg_mgr.preset_config['cast_desktop'])
 
         # check if linux and wayland
-        if sys.platform.lower() == 'linux' and os.getenv('WAYLAND_DISPLAY') is not None:
+        if PLATFORM == 'linux' and os.getenv('WAYLAND_DISPLAY') is not None:
             cfg_mgr.logger.error('Wayland detected, preview should not work !!. Switch to X11 session if want to see preview.')
 
     except Exception as e:
@@ -1469,9 +1471,9 @@ async def main_page_desktop():
 
             with ui.card():
                 input_options=['desktop','area','win=','queue']
-                if sys.platform.lower() == 'linux':
+                if PLATFORM == 'linux':
                     input_options.insert(0,os.getenv('DISPLAY'))
-                elif sys.platform.lower() == 'darwin':
+                elif PLATFORM == 'darwin':
                     input_options.insert(0,'default:none')
                 new_viinput = ui.select(options=input_options,label='Input', new_value_mode='add-unique')
                 new_viinput.tooltip('Type data to capture, "area" for screen selection, "win=xxxxx" for a screen or queue')
@@ -2113,7 +2115,7 @@ async def select_sc_area():
     tmp_file = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
 
     # run in no blocking mode, another process for macOS else thread
-    if sys.platform.lower() == 'darwin':
+    if PLATFORM == 'darwin':
 
         await run.cpu_bound(SCArea.run, monitor,tmp_file)
 

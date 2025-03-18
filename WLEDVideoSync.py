@@ -84,6 +84,8 @@ cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 Process, Queue = Utils.mp_setup()
 
+PLATFORM=sys.platform.lower()
+
 def cfg_settings(config_file, preview_subprocess, native_ui, native_size, first_run_os):
     """Update configuration settings based on OS and user preferences.
 
@@ -125,10 +127,13 @@ def init_linux_win():
     # Apply some default params only once
     # Apply default GUI / param , depend on platform
 
-    if sys.platform.lower() == 'win32':
+    if PLATFORM == 'win32':
         cfg_settings(config_file,'False', 'True', '1200,720', 'win_first_run')
-    elif sys.platform.lower() == 'linux':
+    elif PLATFORM == 'linux':
         linux_settings(config_file)
+    else:
+        cfg_mgr.logger.error(f'PLATFORM NOT MANAGED : {PLATFORM}')
+
     # common all OS
     init_common(config_file)
 
@@ -324,7 +329,7 @@ def run_gui():
     if str2bool(cfg_mgr.app_config['put_on_systray']):
         from src.gui.wledtray import WLEDVideoSync_systray
 
-        if sys.platform.lower() == 'linux':
+        if PLATFORM == 'linux':
             systray_backend = cfg_mgr.app_config['systray_backend'].lower()
             if systray_backend in ['appindicator', 'gtk', 'xorg']:
                 os.environ["PYSTRAY_BACKEND"] = systray_backend
@@ -339,7 +344,7 @@ def run_gui():
     GUI
     """
     # set QT in linux when compiled version (let choice when run from source)
-    if (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])) and sys.platform.lower() == 'linux':
+    if (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])) and PLATFORM == 'linux':
         os.environ["PYWEBVIEW_GUI"] = "qt"
     # choose GUI
     show, native_ui, native_ui_size = select_gui()
@@ -400,14 +405,16 @@ if __name__ in "__main__":
         Expected way to work.
         """
         init_linux_win()
-    elif sys.platform.lower() == 'win32' and str2bool(cfg_mgr.app_config['win_first_run']):
-        init_linux_win()
-    elif sys.platform.lower() == 'linux' and str2bool(cfg_mgr.app_config['linux_first_run']):
+
+    elif PLATFORM == 'win32' and str2bool(cfg_mgr.app_config['win_first_run']):
         init_linux_win()
 
-    # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run
+    elif PLATFORM == 'linux' and str2bool(cfg_mgr.app_config['linux_first_run']):
+        init_linux_win()
+
+    # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run only
     # Update necessary params and exit
-    if sys.platform.lower() == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
+    if PLATFORM == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
         init_darwin()
 
     """
