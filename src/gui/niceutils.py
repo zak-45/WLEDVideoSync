@@ -789,7 +789,17 @@ def apply_custom():
     # custom font (experimental)
     font_file = cfg_mgr.app_config['font_file']
     if font_file != '':
-        FontSetApplication(font_path=font_file, size_adjust='100%')
+        font_weight = 100
+        font_style = 'normal'
+        size_adjust = '90%'
+        if cfg_mgr.app_config['font_weight'] is not None:
+            font_weight = cfg_mgr.app_config['font_weight']
+        if cfg_mgr.app_config['font_style'] is not None:
+            font_style = cfg_mgr.app_config['font_style']
+        if cfg_mgr.app_config['size_adjust'] is not None:
+            size_adjust = cfg_mgr.app_config['size_adjust']
+
+        FontSetApplication(font_path=font_file,font_style=font_style,font_weight=font_weight, size_adjust=size_adjust)
 
     # custom bg
     ui.query('body').style(f'background-image: url({cfg_mgr.custom_config["bg-image"]}); '

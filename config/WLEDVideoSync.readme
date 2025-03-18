@@ -56,6 +56,7 @@
 # fastapi_docs  : True or False, activate /docs FastApi endpoint
 #
 # font_file     : Full font path to apply to the application e.g: C:\Windows\Fonts\Absalom_.ttf
+# font_family   : Roboto, or ... font family to use for code editor or log output
 # font-weight   : normal, The font-weight CSS property sets the weight (or boldness) of the font.(normal,bold..)
 # font-style    : normal, The font-style CSS property sets whether a font should be styled with a normal, italic,
 #                   or oblique face from its font-family

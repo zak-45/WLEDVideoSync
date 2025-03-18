@@ -1101,7 +1101,7 @@ async def main_page():
                 ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log')
                 dialog = ui.dialog().classes('w-full') \
                     .props(add='maximized transition-show="slide-up" transition-hide="slide-down"')
-                with (dialog, ui.card().classes('w-full')):
+                with (dialog, ui.card().classes('w-full console-output')):
                     log_filename = cfg_mgr.app_root_path('log/WLEDVideoSync.log')
                     if os.path.isfile(log_filename):
                         # file exists

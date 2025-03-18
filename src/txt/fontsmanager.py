@@ -14,13 +14,25 @@ cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 class FontSetApplication:
     """
     Manages the application's font settings, including loading custom fonts and applying them to UI elements.
+    This code defines a class FontSetApplication that manages custom font loading and application in a NiceGUI application.
+    It loads a font file from a specified path, makes it available via the NiceGUI web server,
+    and injects CSS into the application's HTML to apply the font to the body and other specific elements.
+
+    The __init__ method takes the font path, family name, web server path, font weight, font style,
+    and size adjustment as arguments.
+    It determines the font type (TrueType or OpenType), adds the font directory as static files to the NiceGUI app,
+    and constructs a CSS style block.
+    This style block defines the @font-face rule to load the font and applies it to the body element,
+    overriding the default font.
+    Specific classes like console-output and nicegui-editor are excluded from the custom font.
+    The get_font_type method uses the fontTools library to determine the font type from the file extension.
     """
 
     def __init__(self,
                  font_path,
                  font_family_name="WLEDFont",
                  path_in_webserver='/FontsPath',
-                 font_weight='normal',
+                 font_weight= 'normal',
                  font_style='normal',
                  size_adjust='100%'):
         """Initialize the FontSetApplication.
@@ -40,7 +52,6 @@ class FontSetApplication:
         self.font_weight = font_weight
         self.font_style = font_style
         self.size_adjust = size_adjust
-
         self.font_dir = os.path.dirname(self.font_path)
         app.add_static_files(self.path_in_webserver, self.font_dir)
 
@@ -57,14 +68,15 @@ class FontSetApplication:
 
             body {{
                 font-family: "{self.font_family_name}", sans-serif;
+                font-size: {cfg_mgr.app_config['font_size']};
             }}
             
             .console-output {{
-                font-family: "Roboto", sans-serif !important;
+                font-family: "{cfg_mgr.app_config['font_family']}", sans-serif !important;
             }}
             
             .nicegui-editor {{
-                font-family: "Roboto", sans-serif !important;
+                font-family: "{cfg_mgr.app_config['font_family']}", sans-serif !important;
             }}
         </style>
         """
@@ -83,7 +95,12 @@ class FontSetApplication:
         """
         try:
             font = fontTools.ttLib.TTFont(font_path)
-            return "opentype" if 'CFF ' in font else "truetype"
+            if 'CFF ' in font:
+                return 'opentype'
+            elif 'glyf' in font:
+                return 'truetype'
+            else:
+                return 'unknown'  # Or handle other font types as needed
         except Exception as e:
             print(f"Error detecting font type: {e}")
             return "truetype"  # Default to truetype if detection fails
@@ -93,6 +110,17 @@ class FontPreviewManager:
 
     This class provides methods for generating font previews, filtering fonts,
     and managing font selection in a user interface.
+
+    The FontPreviewManager class manages font previews and selection.
+    It provides methods to generate font previews as PNG images, filter the available fonts based on a search query,
+    and display a preview for a selected font.
+
+    The class stores a dictionary of available fonts, the selected font path, and the associated label.
+    generate_preview renders text with the given font and size using Coldtype, returning the image as a byte stream.
+    filter_fonts filters the font list based on a search query.
+    get_preview generates a preview image, updates the selected font information, and returns the image as a base64
+    encoded string for display in a UI.
+
     """
 
     def __init__(self, fonts):
