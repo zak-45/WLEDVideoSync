@@ -75,15 +75,15 @@
 
 
 # More customization
-# bg-image      : background image, can be animated, relative to installed folder
-# system-stats  : display CPU and RAM usage, can be disabled to free some resources (True or False)
-# cpu-chart     : display CPU chart, can be disabled to free some resources (True or False)
+# bg_image      : background image, can be animated, relative to installed folder
+# system_stats  : display CPU and RAM usage, can be disabled to free some resources (True or False)
+# cpu_chart     : display CPU chart, can be disabled to free some resources (True or False)
 # player        : display video player with additional features, can be disabled to free some resources (True or False)
-# animate-ui    : will apply animation on some UI elements, can be disabled to free some resources (True or False)
-# yt-format     : video format yt-dlp to choose
+# animate_ui    : will apply animation on some UI elements, can be disabled to free some resources (True or False)
+# yt_format     : video format yt-dlp to choose
 #                    ex:  '18/best[height<=320][acodec!=none][vcodec!=none][ext=mp4]', Ensure 320p and single stream
-# yt-enabled    : True / False, display YT buttons on GUI
-# pixel-art     : True / False, generate pixel_art on preview window, disable to free some resources
+# yt_enabled    : True / False, display YT buttons on GUI
+# pixel_art     : True / False, generate pixel_art on preview window, disable to free some resources
 [custom]
 
 

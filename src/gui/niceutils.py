@@ -82,7 +82,7 @@ async def system_stats(CastAPI, Desktop, Media):
     CastAPI.total_packet = Desktop.total_packet + Media.total_packet
     CastAPI.total_frame = Desktop.total_frame + Media.total_frame
 
-    if str2bool(cfg_mgr.custom_config['cpu-chart']) and CastAPI.cpu_chart is not None:
+    if str2bool(cfg_mgr.custom_config['cpu_chart']) and CastAPI.cpu_chart is not None:
         now = datetime.now()
         date_time_str = now.strftime("%H:%M:%S")
     
@@ -802,7 +802,7 @@ def apply_custom():
         FontSetApplication(font_path=font_file,font_style=font_style,font_weight=font_weight, size_adjust=size_adjust)
 
     # custom bg
-    ui.query('body').style(f'background-image: url({cfg_mgr.custom_config["bg-image"]}); '
+    ui.query('body').style(f'background-image: url({cfg_mgr.custom_config["bg_image"]}); '
                            'background-size: cover;'
                            'background-repeat: no-repeat;'
                            'background-position: center;')

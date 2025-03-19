@@ -306,7 +306,7 @@ class CASTUtils:
         """download video from YouTube"""
 
         # select from ini file
-        download_format = cfg_mgr.custom_config['yt-format']
+        download_format = cfg_mgr.custom_config['yt_format']
 
         def post_hook(d):
             if d['status'] == 'finished':

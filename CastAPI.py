@@ -947,7 +947,7 @@ async def main_page():
 
     apply_custom()
 
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
@@ -966,7 +966,7 @@ async def main_page():
     """
     App info
     """
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         head_row_anim = Animate(ui.row, animation_name_in='backInDown', duration=1)
         head_row = head_row_anim.create_element()
     else:
@@ -1049,7 +1049,7 @@ async def main_page():
 
                 # refreshable
                 with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
-                    if str2bool(cfg_mgr.custom_config['system-stats']):
+                    if str2bool(cfg_mgr.custom_config['system_stats']):
                         with ui.row().classes('self-center'):
                             frame_count = ui.number(prefix='F:').bind_value_from(CastAPI, 'total_frame')
                             frame_count.tooltip('TOTAL Frames')
@@ -1076,7 +1076,7 @@ async def main_page():
                             ram_count.classes("w-20")
                             ram_count.props(remove='type=number', add='borderless')
 
-                    if str2bool(cfg_mgr.custom_config['cpu-chart']):
+                    if str2bool(cfg_mgr.custom_config['cpu_chart']):
                         await nice.create_cpu_chart(CastAPI)
 
         await nice.filters_data(Media)
@@ -1182,7 +1182,7 @@ async def run_video_player_page():
     """
     timer created on video creation to refresh datas
     """
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
@@ -1195,7 +1195,7 @@ async def video_player_page():
     """
     Video player
     """
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         center_card_anim = Animate(ui.card, animation_name_in='fadeInUp', duration=1)
         center_card = center_card_anim.create_element()
     else:
@@ -1315,8 +1315,8 @@ async def video_player_page():
             video_url_icon.on('click', lambda: download_url(video_img_url.value))
             video_url_icon.bind_visibility_from(CastAPI.player)
 
-            # if yt-enabled is True display YT info icon
-            if str2bool(cfg_mgr.custom_config['yt-enabled']):
+            # if yt_enabled is True display YT info icon
+            if str2bool(cfg_mgr.custom_config['yt_enabled']):
                 video_url_info = ui.icon('info')
                 video_url_info.style("cursor: pointer")
                 video_url_info.tooltip("Youtube/Url information's, including formats etc ...")
@@ -1326,8 +1326,8 @@ async def video_player_page():
             # Progress bar
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False, size='8px')
 
-        # if yt-enabled is True display YT search buttons
-        if str2bool(cfg_mgr.custom_config['yt-enabled']):
+        # if yt_enabled is True display YT search buttons
+        if str2bool(cfg_mgr.custom_config['yt_enabled']):
             with ui.row(wrap=True).classes('w-full'):
                 # YT search
                 yt_icon = ui.chip('YT Search',
@@ -1364,7 +1364,7 @@ async def main_page_desktop():
             new_viinput.value = CastAPI.new_viinput_value
         await update_attribute_by_name('Desktop', 'viinput', str(new_viinput.value))
 
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
@@ -1437,7 +1437,7 @@ async def main_page_desktop():
                 ui.label('No of Packet:')
                 ui.label(str(Desktop.retry_number))
 
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         exp_edit_param_anim = Animate(ui.expansion, animation_name_in='backInDown', duration=1)
         exp_edit_param = exp_edit_param_anim.create_element()
     else:
@@ -1606,7 +1606,7 @@ async def main_page_media():
 
     await nice.head_set(name='Media Params', target='/Media', icon='image')
 
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
@@ -1665,7 +1665,7 @@ async def main_page_media():
                 ui.label('No of Packet:')
                 ui.label(str(Media.retry_number))
 
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         media_exp_edit_param_anim = Animate(ui.expansion, animation_name_in='backInDown', duration=1)
         media_exp_edit_param = media_exp_edit_param_anim.create_element()
     else:
@@ -1849,7 +1849,7 @@ async def ws_page():
 @ui.page('/info')
 async def info_page():
     """ simple cast info page from systray """
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
@@ -2003,9 +2003,9 @@ helpers /Commons
 async def animate_toggle(img):
     """ toggle animation """
 
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         # put animation False
-        cfg_mgr.custom_config['animate-ui'] = 'False'
+        cfg_mgr.custom_config['animate_ui'] = 'False'
         img.classes('animate__animated animate__hinge')
     else:
         # Add Animate.css to the HTML head
@@ -2013,11 +2013,11 @@ async def animate_toggle(img):
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
         # put animation True
-        cfg_mgr.custom_config['animate-ui'] = 'True'
+        cfg_mgr.custom_config['animate_ui'] = 'True'
         img.classes('animate__animated animate__rubberBand')
 
-    ui.notify(f'Animate :{cfg_mgr.custom_config["animate-ui"]}')
-    cfg_mgr.logger.debug(f'Animate :{cfg_mgr.custom_config["animate-ui"]}')
+    ui.notify(f'Animate :{cfg_mgr.custom_config["animate_ui"]}')
+    cfg_mgr.logger.debug(f'Animate :{cfg_mgr.custom_config["animate_ui"]}')
 
 
 async def grab_windows():
@@ -2050,7 +2050,7 @@ async def youtube_search():
     display search result from pytube
     """
     anime = False
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         animated_yt_area = Animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
         yt_area = animated_yt_area.create_element()
         anime = True
@@ -2071,7 +2071,7 @@ async def youtube_clear_search():
 
     for area in CastAPI.search_areas:
         try:
-            if str2bool(cfg_mgr.custom_config['animate-ui']):
+            if str2bool(cfg_mgr.custom_config['animate_ui']):
                 animated_area = Animate(area, animation_name_out="backOutUp", duration=1)
                 animated_area.delete_element(area)
             else:
@@ -2723,7 +2723,7 @@ async def cast_manage_page():
                 .style('cursor: pointer') \
                 .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
 
-            if str2bool(cfg_mgr.custom_config['animate-ui']):
+            if str2bool(cfg_mgr.custom_config['animate_ui']):
                 animated_card = Animate(ui.card, animation_name_in="fadeInUp", duration=2)
                 card = animated_card.create_element()
             else:
@@ -2781,7 +2781,7 @@ async def tabs_info_page():
     Tabs
     """
 
-    if str2bool(cfg_mgr.custom_config['animate-ui']):
+    if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
@@ -2982,7 +2982,7 @@ async def root_timer_action():
 
     nice.cast_manage(CastAPI, Desktop, Media)
 
-    if str2bool(cfg_mgr.custom_config['system-stats']):
+    if str2bool(cfg_mgr.custom_config['system_stats']):
         await nice.system_stats(CastAPI, Desktop, Media)
 
 

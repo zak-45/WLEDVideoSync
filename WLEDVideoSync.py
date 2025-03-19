@@ -214,12 +214,13 @@ def init_common(config_file):
     """
     # Apply YouTube settings if yt_dlp not imported
     if 'yt_dlp' not in sys.modules:
-        Utils.update_ini_key(config_file, 'custom', 'yt-enabled', 'False')
+        Utils.update_ini_key(config_file, 'custom', 'yt_enabled', 'False')
 
     # global
     Utils.update_ini_key(config_file, 'app', 'init_config_done', 'True')
     Utils.update_ini_key(config_file, 'app', 'put_on_systray', 'False')
     Utils.update_ini_key(config_file, 'app', 'font_file', '')
+    Utils.update_ini_key(config_file, 'custom', 'bg_image', '')
 
 def parse_native_ui_size(size_str):
     try:
