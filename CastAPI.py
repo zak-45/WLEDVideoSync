@@ -1195,6 +1195,11 @@ async def video_player_page():
     """
     Video player
     """
+
+    def manage_visibility(visible):
+        CastAPI.player.set_visibility(visible)
+        nice.animate_wled_image(CastAPI, visible)
+
     if str2bool(cfg_mgr.custom_config['animate_ui']):
         center_card_anim = Animate(ui.card, animation_name_in='fadeInUp', duration=1)
         center_card = center_card_anim.create_element()
@@ -1271,14 +1276,12 @@ async def video_player_page():
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
                 .style("cursor: pointer") \
-                .on('click', lambda visible=True: (CastAPI.player.set_visibility(visible),
-                                                   nice.animate_wled_image(CastAPI, visible))) \
+                .on('click', lambda: manage_visibility(True)) \
                 .tooltip("Show Video player")
 
             ui.icon('cancel_presentation', color='red', size='md') \
                 .style("cursor: pointer") \
-                .on('click', lambda visible=False: (CastAPI.player.set_visibility(visible),
-                                                    nice.animate_wled_image(CastAPI, visible))) \
+                .on('click', lambda: manage_visibility(False)) \
                 .tooltip("Hide Video player")
 
             ui.icon('cast', size='md') \
@@ -2045,9 +2048,10 @@ async def net_view_page():
     ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
 
 
-async def youtube_search(url):
+async def youtube_search(player_url):
     """
     display search result from pytube
+    player_url :  ui.input from the player
     """
     anime = False
     if str2bool(cfg_mgr.custom_config['animate_ui']):
@@ -2061,7 +2065,7 @@ async def youtube_search(url):
     yt_area.classes('w-full border')
     CastAPI.search_areas.append(yt_area)
     with yt_area:
-        YtSearch(url, anime)
+        YtSearch(player_url, anime)
 
 
 async def youtube_clear_search():
