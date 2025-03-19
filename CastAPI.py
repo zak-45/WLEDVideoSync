@@ -2296,7 +2296,7 @@ def sys_stats_info_page():
 
 
 def select_chart_exe():
-    return cfg_mgr.app_config['charts_exe']
+    return cfg_mgr.app_root_path(cfg_mgr.app_config['charts_exe'])
 
 
 """

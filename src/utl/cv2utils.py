@@ -517,13 +517,8 @@ class CV2Utils:
         Save image from Buffer
         used on the buffer images
         """
-        folder = cfg_mgr.app_config['img_folder']
-        if folder[-1] != '/':
-            cfg_mgr.logger.error("The last character of the folder name is not '/'.")
-            return
-
-        # Get the absolute path of the folder relative to the current working directory
-        absolute_img_folder = os.path.abspath(folder)
+        # Get the absolute path of the folder
+        absolute_img_folder = cfg_mgr.app_root_path(cfg_mgr.app_config['img_folder'])
         if not os.path.isdir(absolute_img_folder):
             cfg_mgr.logger.error(f"The folder {absolute_img_folder} does not exist.")
             return

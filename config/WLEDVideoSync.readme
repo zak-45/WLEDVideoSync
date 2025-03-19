@@ -35,12 +35,12 @@
 #                   see : https://pystray.readthedocs.io/en/latest/usage.html#supported-backends
 # systray_native: True or False, show in webview (native OS view)  or default browser
 # timer         : seconds before refresh data on main page, bigger less resource needed
-# img_folder    : folder where to save images, need to terminate by '/' e.g. C:/test/image/ for Win absolute path
+# img_folder    : folder where to save images (relative to running app folder), e.g. test/image
 #                   used only for image saving not downloading
 # video_file    : default video to show, relative to installed folder
 # keep_yt       : default to False, if True, downloaded youtube file(s) will remain on the media folder (yt-tmp-*)
 # keep_image    : default to False, if True, downloaded image file(s) will remain on the media folder (image_*_*.jpg)
-# charts_exe    : path to runcharts app file, only if you want to display nicecharts.
+# charts_exe    : path to runcharts app file (relative to running app folder), only if you want to display nicecharts.
 # text          : display information on preview window : fps, frames, device ...
 # preview_proc  : True or False
 #                 run preview window in sub process, need to be True on macOS/linux
