@@ -1036,11 +1036,14 @@ class YtSearch:
     On click, copy YT Url to clipboard
     """
 
-    def __init__(self, anime: bool = False):
+    def __init__(self, input_url, anime: bool = False):
         self.yt_search = None
         self.yt_anime = anime
         self.videos_search = None
         self.limit = 5
+        self.yt_url_copied = None
+        self.input_url = input_url
+
         ui.separator()
         with ui.row():
             self.my_search = ui.input('YT search')
@@ -1116,6 +1119,12 @@ class YtSearch:
         await self.create_yt_page()
         self.search_button.props(remove='loading')
 
+    def url_copied(self, url):
+        ui.clipboard.write(url),
+        self.yt_url_copied = url
+        self.input_url.value = url
+        ui.notify('YT Url copied')
+
     async def create_yt_page(self):
         """ Create YT search result """
 
@@ -1134,8 +1143,7 @@ class YtSearch:
                         yt_url = ui.label(self.yt_search[i].watch_url)
                         yt_url.tooltip('Click to copy')
                         yt_url.style('text-decoration: underline; cursor: pointer;')
-                        yt_url.on('click', lambda my_yt=yt_url: (ui.clipboard.write(my_yt.text),
-                                                                 ui.notify('YT Url copied')))
+                        yt_url.on('click', lambda my_yt=yt_url: self.url_copied(my_yt.text))
                         with ui.row():
                             yt_watch_close = ui.icon('videocam_off', size='sm')
                             yt_watch_close.tooltip('Player OFF')

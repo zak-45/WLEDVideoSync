@@ -1333,7 +1333,7 @@ async def video_player_page():
                 yt_icon = ui.chip('YT Search',
                                   icon='youtube_searched_for',
                                   color='indigo-3',
-                                  on_click=lambda: youtube_search())
+                                  on_click=lambda: youtube_search(video_img_url))
                 yt_icon.classes('fade')
                 yt_icon.bind_visibility_from(CastAPI.player)
                 yt_icon = ui.chip('Clear YT Search',
@@ -2045,7 +2045,7 @@ async def net_view_page():
     ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
 
 
-async def youtube_search():
+async def youtube_search(url):
     """
     display search result from pytube
     """
@@ -2061,7 +2061,7 @@ async def youtube_search():
     yt_area.classes('w-full border')
     CastAPI.search_areas.append(yt_area)
     with yt_area:
-        YtSearch(anime)
+        YtSearch(url, anime)
 
 
 async def youtube_clear_search():
