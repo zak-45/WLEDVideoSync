@@ -512,7 +512,7 @@ class CV2Utils:
         )
 
     @staticmethod
-    async def save_image(class_obj, buffer, image_number, ascii_art=False):
+    def save_image(class_obj, buffer, image_number, ascii_art=False):
         """
         Save image from Buffer
         used on the buffer images
@@ -537,14 +537,42 @@ class CV2Utils:
             img = buffer[image_number]
             img = Image.fromarray(img)
             img = ImageUtils.image_to_ascii(img)
-            t_filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
-                h) + "_" + date_time + ".txt"
+            t_filename = os.path.join(
+                absolute_img_folder,
+                (
+                    (
+                        (
+                            (
+                                f"{class_name}_{str(image_number)}_{str(w)}_"
+                                + str(h)
+                            )
+                            + "_"
+                        )
+                        + date_time
+                    )
+                    + ".txt"
+                ),
+            )
             with open(t_filename, 'w') as ascii_file:
                 ascii_file.write(img)
 
         else:
-            t_filename = folder + class_name + "_" + str(image_number) + "_" + str(w) + "_" + str(
-                h) + "_" + date_time + ".jpg"
+            t_filename = os.path.join(
+                absolute_img_folder,
+                (
+                    (
+                        (
+                            (
+                                f"{class_name}_{str(image_number)}_{str(w)}_"
+                                + str(h)
+                            )
+                            + "_"
+                        )
+                        + date_time
+                    )
+                    + ".jpg"
+                ),
+            )
             img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
             cv2.imwrite(t_filename, img)
 

@@ -3118,10 +3118,13 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
                         ui.button(on_click=lambda: cast_to_wled(class_obj, index), icon='cast') \
                             .props('flat fab color=white') \
                             .tooltip('Cast to WLED')
-                        ui.button(on_click=lambda: CV2Utils.save_image(class_obj, buffer, index, False), icon='save') \
+                        ui.button(on_click=lambda: (ui.notify('saving...'),
+                                                    CV2Utils.save_image(class_obj, buffer, index, False)),
+                                  icon='save') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image')
-                        ui.button(on_click=lambda: CV2Utils.save_image(class_obj, buffer, index, True),
+                        ui.button(on_click=lambda: (ui.notify('saving...'),
+                                                    CV2Utils.save_image(class_obj, buffer, index, True)),
                                   icon='text_format') \
                             .props('flat fab color=white') \
                             .tooltip('Save Image as Ascii ART')
