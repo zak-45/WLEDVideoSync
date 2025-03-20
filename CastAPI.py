@@ -1588,8 +1588,9 @@ async def main_page_desktop():
         async def display_windows():
             with ui.dialog() as dialog, ui.card():
                 dialog.open()
-                await ui.json_editor({'content': {'json': Desktop.windows_titles}}) \
-                    .run_editor_method('updateProps', {'readOnly': True})
+                editor = ui.json_editor({'content': {'json': Desktop.windows_titles}})
+                await editor.run_editor_method('updateProps', {'readOnly': True})
+                await editor.run_editor_method(':expand', '[], relativePath => relativePath.length < 1')
                 ui.button('Close', on_click=dialog.close, color='red')
 
         ui.button('Win TITLES', on_click=display_windows, color='bg-red-800').tooltip('View windows titles')
