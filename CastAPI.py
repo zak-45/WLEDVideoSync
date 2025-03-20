@@ -1196,9 +1196,9 @@ async def video_player_page():
     Video player
     """
 
-    def manage_visibility(visible):
+    async def manage_visibility(visible):
         CastAPI.player.set_visibility(visible)
-        nice.animate_wled_image(CastAPI, visible)
+        await nice.animate_wled_image(CastAPI, visible)
 
     if str2bool(cfg_mgr.custom_config['animate_ui']):
         center_card_anim = Animate(ui.card, animation_name_in='fadeInUp', duration=1)
@@ -1245,9 +1245,7 @@ async def video_player_page():
             media_reset_icon.on('click', lambda: reset_sync())
             media_reset_icon.bind_visibility_from(CastAPI.player)
 
-            """ Refreshable """
             nice.sync_button(CastAPI, Media)
-            """ End Refresh """
 
             CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync, color='green') \
                 .tooltip('Sync Cast with Slider Time') \
@@ -2030,7 +2028,7 @@ async def grab_windows():
     """
 
     ui.notification('Retrieved all windows information', close_button=True, timeout=3)
-    Desktop.windows_titles = Utils.windows_titles()
+    Desktop.windows_titles = await Utils.windows_titles()
 
 
 async def net_view_page():
@@ -2051,7 +2049,7 @@ async def net_view_page():
 async def youtube_search(player_url):
     """
     display search result from pytube
-    player_url :  ui.input from the player
+    player_url :  ui.input from the player to be updated
     """
     anime = False
     if str2bool(cfg_mgr.custom_config['animate_ui']):
@@ -2080,9 +2078,9 @@ async def youtube_clear_search():
                 animated_area.delete_element(area)
             else:
                 area.delete()
-        except Exception as y_error:
+        except Exception as e:
             cfg_mgr.logger.error(traceback.format_exc())
-            cfg_mgr.logger.error(f'Search area does not exist: {y_error}')
+            cfg_mgr.logger.error(f'Search area does not exist: {e}')
     CastAPI.search_areas = []
 
 
@@ -2204,8 +2202,8 @@ async def get_player_time():
     Retrieve current play time from the Player
     Set player time for Cast to Sync
     """
-    await ui.context.client.connected()
     if CastAPI.type_sync == 'player':
+        await ui.context.client.connected()
         current_time = round(await ui.run_javascript("document.querySelector('video').currentTime", timeout=2))
         Media.sync_to_time = current_time * 1000
 
@@ -3212,6 +3210,7 @@ if __name__ in {"__main__", "__mp_main__"}:
     pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
     with shelve.open(pid_tmp_file) as proc_file:
         proc_file["server_port"] = server_port
+        proc_file["sc_area"] = []
 
 
     app.openapi = custom_openapi

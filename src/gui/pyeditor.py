@@ -145,7 +145,7 @@ class PythonEditor:
                 document.exitFullscreen();
                 closeButton.style.display = 'none';  // Hide close button
             }
-        ''')
+        ''', timeout=2)
 
     async def pick_file_to_edit(self) -> None:
         """Select a file to edit."""

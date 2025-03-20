@@ -91,13 +91,13 @@ async def system_stats(CastAPI, Desktop, Media):
     
         CastAPI.cpu_chart.update()
 
-    if CastAPI.cpu >= 65:
+    if CastAPI.cpu >= 75:
         ui.notify('High CPU utilization', type='negative', close_button=True)
     if CastAPI.ram >= 95:
         ui.notify('High Memory utilization', type='negative', close_button=True)
 
 
-def animate_wled_image(CastAPI, visible):
+async def animate_wled_image(CastAPI, visible):
     """ toggle main image animation """
 
     if visible:

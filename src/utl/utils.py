@@ -498,7 +498,7 @@ class CASTUtils:
         return pwc.getActiveWindow().title
 
     @staticmethod
-    def windows_titles():
+    async def windows_titles():
         """ Provide a list of all window titles / hWnd by applications """
 
         try:
@@ -522,7 +522,7 @@ class CASTUtils:
                 raise TypeError(f"Type {type(obj)} not serializable")
 
             # Your dictionary
-            data = pwc.getAllWindowsDict()
+            data = await run.cpu_bound(pwc.getAllWindowsDict)
             # Convert dictionary to JSON
             all_windows = json.dumps(data, default=custom_serializer, ensure_ascii=False, indent=4)
             windows_by_app = json.loads(all_windows)
