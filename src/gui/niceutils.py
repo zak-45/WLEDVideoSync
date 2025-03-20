@@ -102,7 +102,8 @@ async def animate_wled_image(CastAPI, visible):
 
     if visible:
         CastAPI.w_image.classes(add='animate__flipOutX', remove='animate__flipInX')
-        ui.timer(0.7, lambda: CastAPI.w_image.set_visibility(False), once=True)
+        ui.timer(0.4, lambda: CastAPI.w_image.set_visibility(False), once=True)
+        # CastAPI.w_image.set_visibility(False)
     else:
         CastAPI.w_image.classes(add='animate__flipInX', remove='animate__flipOutX')
         CastAPI.w_image.set_visibility(True)
