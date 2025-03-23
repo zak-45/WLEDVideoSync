@@ -1220,6 +1220,7 @@ async def video_player_page():
         return max(keys) if keys else 0
         :return:
         """
+        send_gif.props(add='loading')
         gif_to_upload = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(CastAPI.player.source)}_.gif')
         await Utils.wled_upload_gif_file(Media.host, gif_to_upload)
         async with WLED(Media.host) as led:
@@ -1235,13 +1236,13 @@ async def video_player_page():
                                                                   "seg":[{"id":0,"n":segment_name,"fx":53}]})
             await led.request('/json/state', method='POST', data={"ib":1,
                                                                   "sb":1,
-                                                                  "sc":'false',
+                                                                  "sc":0,
                                                                   "psave":preset_number,
                                                                   "n":preset_name,
                                                                   "v":1,
                                                                   "time":time.time()})
-
-        print('gif to wled')
+        send_gif.props(remove='loading')
+        ui.notify('End GIF Uploading')
 
     async def open_gif():
         sync_buttons.set_visibility(False)
@@ -2826,7 +2827,7 @@ async def player_cast(source):
         ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
     else:
         Media.viinput = source
-        Media.rate = media_info['CAP_PROP_FPS']
+        Media.rate = int(media_info['CAP_PROP_FPS'])
         ui.notify(f'Cast running from : {source}')
         Media.cast(shared_buffer=t_data_buffer)
     CastAPI.player.play()
