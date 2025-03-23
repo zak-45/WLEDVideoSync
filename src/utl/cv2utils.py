@@ -394,38 +394,78 @@ class CV2Utils:
     """
 
     @staticmethod
-    def get_media_info(media: str = None):
+    async def get_media_info(media: str = None):
         """ retrieve cv2 info from media """
-        dict_media = []
+        dict_media = {}
 
         try:
 
             capture = cv2.VideoCapture(media)
 
-            dict_media.extend(
-                (
-                    f'"CV_CAP_PROP_FRAME_WIDTH": "{capture.get(cv2.CAP_PROP_FRAME_WIDTH)}"',
-                    f'"CV_CAP_PROP_FRAME_HEIGHT": "{capture.get(cv2.CAP_PROP_FRAME_HEIGHT)}"',
-                    f'"CAP_PROP_FPS": "{capture.get(cv2.CAP_PROP_FPS)}"',
-                    f'"CAP_PROP_POS_MSEC": "{capture.get(cv2.CAP_PROP_POS_MSEC)}"',
-                    f'"CAP_PROP_FRAME_COUNT": "{capture.get(cv2.CAP_PROP_FRAME_COUNT)}"',
-                    f'"CAP_PROP_BRIGHTNESS": "{capture.get(cv2.CAP_PROP_BRIGHTNESS)}"',
-                    f'"CAP_PROP_CONTRAST": "{capture.get(cv2.CAP_PROP_CONTRAST)}"',
-                    f'"CAP_PROP_SATURATION": "{capture.get(cv2.CAP_PROP_SATURATION)}"',
-                    f'"CAP_PROP_HUE": "{capture.get(cv2.CAP_PROP_HUE)}"',
-                    f'"CAP_PROP_GAIN": "{capture.get(cv2.CAP_PROP_GAIN)}"',
-                    f'"CAP_PROP_CONVERT_RGB": "{capture.get(cv2.CAP_PROP_CONVERT_RGB)}"',
-                )
-            )
+            dict_media = {
+                    "CV_CAP_PROP_FRAME_WIDTH": capture.get(cv2.CAP_PROP_FRAME_WIDTH),
+                    "CV_CAP_PROP_FRAME_HEIGHT": capture.get(cv2.CAP_PROP_FRAME_HEIGHT),
+                    "CAP_PROP_FPS": capture.get(cv2.CAP_PROP_FPS),
+                    "CAP_PROP_POS_MSEC": capture.get(cv2.CAP_PROP_POS_MSEC),
+                    "CAP_PROP_FRAME_COUNT": capture.get(cv2.CAP_PROP_FRAME_COUNT),
+                    "CAP_PROP_BRIGHTNESS": capture.get(cv2.CAP_PROP_BRIGHTNESS),
+                    "CAP_PROP_CONTRAST": capture.get(cv2.CAP_PROP_CONTRAST),
+                    "CAP_PROP_SATURATION": capture.get(cv2.CAP_PROP_SATURATION),
+                    "CAP_PROP_HUE": capture.get(cv2.CAP_PROP_HUE),
+                    "CAP_PROP_GAIN": capture.get(cv2.CAP_PROP_GAIN),
+                    "CAP_PROP_CONVERT_RGB": capture.get(cv2.CAP_PROP_CONVERT_RGB)
+            }
+
             # release
             capture.release()
 
         except Exception as e:
             cfg_mgr.logger.error(f'Error to get cv2 info : {e}')
-            dict_media.append('"CV2 ERROR": "Not able to read media"')
 
         finally:
             return dict_media
+
+    @staticmethod
+    def video_to_gif(video_path, gif_path, fps, start_frame, end_frame, width=None, height=None):
+        """Creates a GIF from a video file using specified start and end frames.
+
+        Args:
+            video_path (str): Path to the video file.
+            gif_path (str): Path to save the GIF.
+            start_frame (int): Start frame number.
+            end_frame (int): End frame number.
+            width (int, optional): Width to resize the GIF to. Defaults to None.
+            height (int, optional): Height to resize the GIF to. Defaults to None.
+            fps (int):
+        """
+        try:
+            cap = cv2.VideoCapture(video_path)
+            # fps = cap.get(cv2.CAP_PROP_FPS)
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+            start_frame = max(0, min(start_frame, total_frames - 1))
+            end_frame = max(start_frame + 1, min(end_frame, total_frames))
+
+            frames = []
+            for i in range(start_frame, end_frame):
+                cap.set(cv2.CAP_PROP_POS_FRAMES, i)
+                ret, frame = cap.read()
+                if ret:
+                    if width and height:
+                        frame = cv2.resize(frame, (width, height))
+                    frames.append(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+
+            if frames:
+                duration = int(1000 / fps)  # Duration in milliseconds, based on desired FPS
+                frames[0].save(gif_path, save_all=True, append_images=frames[1:], duration=duration, loop=0, disposal=2)
+                cfg_mgr.logger.info(f"GIF created successfully: {gif_path}")
+            else:
+                cfg_mgr.logger.error("No frames extracted. GIF not created.")
+
+            cap.release()
+
+        except Exception as e:
+            cfg_mgr.logger.error(f"Error creating GIF: {e}")
 
     # resize image to specific width/height, optional ratio
     @staticmethod

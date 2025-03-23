@@ -383,8 +383,9 @@ async def player_media_info(player_media):
 
     with ui.dialog() as dialog:
         dialog.open()
-        editor = ui.json_editor({'content': {'json': CV2Utils.get_media_info(player_media)}}) \
-            .run_editor_method('updateProps', {'readOnly': True, 'mode': 'table'})
+        data = await CV2Utils.get_media_info(player_media)
+        await ui.json_editor({'content': {'json': data }}) \
+                .run_editor_method('updateProps', {'readOnly': True, 'mode': 'tree'})
 
         with ui.card():
             ui.label(player_media)

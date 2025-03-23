@@ -34,6 +34,7 @@ import queue
 import cfg_load as cfg
 import contextlib
 from starlette.websockets import WebSocketDisconnect
+from wled import WLED
 
 from src.cst import desktop, media
 from src.gui import niceutils as nice
@@ -153,6 +154,9 @@ class CastAPI:
     netstat_process = None
     charts_row = None
     player = None
+    video_fps = 0
+    video_frames = 0
+    current_frame = 0
     progress_bar = None
     cpu_chart = None
     video_slider = None
@@ -165,8 +169,8 @@ class CastAPI:
     media_cast_run = None
     desktop_cast = None
     desktop_cast_run = None
-    total_frame = 0
-    total_packet = 0
+    total_frames = 0
+    total_packets = 0
     ram = 0
     cpu = 0
     w_image = None
@@ -1051,7 +1055,7 @@ async def main_page():
                 with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
                     if str2bool(cfg_mgr.custom_config['system_stats']):
                         with ui.row().classes('self-center'):
-                            frame_count = ui.number(prefix='F:').bind_value_from(CastAPI, 'total_frame')
+                            frame_count = ui.number(prefix='F:').bind_value_from(CastAPI, 'total_frames')
                             frame_count.tooltip('TOTAL Frames')
                             frame_count.classes("w-20")
                             frame_count.props(remove='type=number', add='borderless')
@@ -1060,7 +1064,7 @@ async def main_page():
                             total_reset_icon.style("cursor: pointer")
                             total_reset_icon.on('click', lambda: reset_total())
 
-                            packet_count = ui.number(prefix='P:').bind_value_from(CastAPI, 'total_packet')
+                            packet_count = ui.number(prefix='P:').bind_value_from(CastAPI, 'total_packets')
                             packet_count.tooltip('TOTAL DDP Packets')
                             packet_count.classes("w-25")
                             packet_count.props(remove='type=number', add='borderless')
@@ -1191,10 +1195,82 @@ async def run_video_player_page():
     await video_player_page()
 
 
+async def update_video_information():
+    video_info = await CV2Utils.get_media_info(CastAPI.player.source)
+    CastAPI.video_fps = int(video_info['CAP_PROP_FPS'])
+    CastAPI.video_frames = int(video_info['CAP_PROP_FRAME_COUNT'])
+
+
 async def video_player_page():
     """
     Video player
     """
+
+    async def gif_to_wled():
+        """
+        create a preset
+        {"ib":true,"sb":true,"sc":false,"psave":9,"n":"Image","v":true,"time":1742687092}
+        change seg name
+        {"seg":[{"id":0,"n":"Image.gif"}]}
+        set effect 53 --> image (GIF)
+        {"seg":{"fx":53}}
+        preset numbers
+        http://IP/presets.json
+        keys = [int(key) for key in data.keys()]
+        return max(keys) if keys else 0
+        :return:
+        """
+        gif_to_upload = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(CastAPI.player.source)}_.gif')
+        await Utils.wled_upload_gif_file(Media.host, gif_to_upload)
+        async with WLED(Media.host) as led:
+            presets = await led.request('/presets.json')
+            preset_number = max(int(key) for key in presets.keys()) + 1
+            preset_name = f'WLEDVideoSync-{preset_number}'
+            segment_name = Utils.wled_name_format(Utils.extract_filename(gif_to_upload))
+            await led.request('/json/state', method='POST', data={"on":1,
+                                                                  "bri":10,
+                                                                  "transition":0,
+                                                                  "bs":0,
+                                                                  "mainseg":0,
+                                                                  "seg":[{"id":0,"n":segment_name,"fx":53}]})
+            await led.request('/json/state', method='POST', data={"ib":1,
+                                                                  "sb":1,
+                                                                  "sc":'false',
+                                                                  "psave":preset_number,
+                                                                  "n":preset_name,
+                                                                  "v":1,
+                                                                  "time":time.time()})
+
+        print('gif to wled')
+
+    async def open_gif():
+        sync_buttons.set_visibility(False)
+        gif_buttons.set_visibility(True)
+
+    async def close_gif():
+        sync_buttons.set_visibility(True)
+        gif_buttons.set_visibility(False)
+
+    async def create_gif():
+        video_in = CastAPI.player.source
+        gen_gif.props(add='loading')
+        if Media.wled:
+            send_gif.disable()
+        # generate a unique name
+        # Get the current date and time
+        # current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        gif_out = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
+        ui.notify(f'Generating GIF : {gif_out} ...')
+        await run.io_bound(lambda: CV2Utils.video_to_gif(video_in,gif_out,
+                                                         Media.rate,
+                                                         int(start_gif.value),
+                                                         int(end_gif.value),
+                                                         Media.scale_width,
+                                                         Media.scale_height))
+        ui.notify('GIF finished !')
+        if Media.wled:
+            send_gif.enable()
+        gen_gif.props(remove='loading')
 
     async def manage_visibility(visible):
         CastAPI.player.set_visibility(visible)
@@ -1215,6 +1291,8 @@ async def video_player_page():
         CastAPI.player.on('durationchange', lambda: player_duration())
         CastAPI.player.set_visibility(True)
 
+        await update_video_information()
+
         with ui.row(wrap=False).classes('self-center'):
             ui.label() \
                 .bind_text_from(Media, 'sync_to_time') \
@@ -1229,7 +1307,8 @@ async def video_player_page():
                                          on_change=lambda var: slider_time(var.value)).props('label-always') \
             .bind_visibility_from(CastAPI.player)
 
-        with ui.row().classes('self-center'):
+        with ui.row() as sync_buttons:
+            sync_buttons.classes('self-center')
             media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray')
             media_frame.bind_value(Media, 'cast_skip_frames')
             media_frame.tooltip('+ / - frames to CAST')
@@ -1270,6 +1349,32 @@ async def video_player_page():
                 .bind_value(Media, 'all_sync') \
                 .tooltip('Sync All Casts with selected time') \
                 .bind_visibility_from(CastAPI.player)
+
+
+        with ui.row() as gif_buttons:
+            gif_buttons.classes('self-center')
+            gif_buttons.set_visibility(False)
+
+            if gif_buttons.visible:
+                gif_buttons.classes(add='animate__animated animate__flipOutX', remove='animate__animated animate__flipInX')
+                sync_buttons.classes(add='animate__animated animate__flipOutX', remove='animate__animated animate__flipInX')
+
+            else:
+                gif_buttons.classes(add='animate__animated animate__flipInX', remove='animate__animated animate__flipOutX')
+                sync_buttons.classes(add='animate__animated animate__flipInX', remove='animate__animated animate__flipOutX')
+
+            start_gif = ui.number('Start',value=0, min=0, max=CastAPI.video_frames, precision=0, placeholder='Start time')
+            start_gif.bind_value(CastAPI,'current_frame')
+            end_gif = ui.number('End', value=CastAPI.video_frames, min=0, max=CastAPI.video_frames, precision=0, placeholder='End time')
+
+            gen_gif = ui.button(text='GIF',icon='image', on_click=create_gif) \
+                .tooltip('Create GIF') \
+                .bind_visibility_from(CastAPI.player)
+
+            if Media.wled:
+                send_gif = ui.button(text='WLED',icon='apps', on_click=gif_to_wled) \
+                    .tooltip('Upload GIF to WLED device') \
+                    .bind_visibility_from(CastAPI.player)
 
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
@@ -1313,7 +1418,7 @@ async def video_player_page():
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
             video_url_icon.tooltip("Download video/image from Url")
-            video_url_icon.on('click', lambda: download_url(video_img_url.value))
+            video_url_icon.on('click', lambda: download_url(video_img_url.value, start_gif, end_gif))
             video_url_icon.bind_visibility_from(CastAPI.player)
 
             # if yt_enabled is True display YT info icon
@@ -1327,9 +1432,9 @@ async def video_player_page():
             # Progress bar
             CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False, size='8px')
 
-        # if yt_enabled is True display YT search buttons
-        if str2bool(cfg_mgr.custom_config['yt_enabled']):
-            with ui.row(wrap=True).classes('w-full'):
+        with ui.row(wrap=True).classes('w-full'):
+            # if yt_enabled is True display YT search buttons
+            if str2bool(cfg_mgr.custom_config['yt_enabled']):
                 # YT search
                 yt_icon = ui.chip('YT Search',
                                   icon='youtube_searched_for',
@@ -1337,11 +1442,26 @@ async def video_player_page():
                                   on_click=lambda: youtube_search(video_img_url))
                 yt_icon.classes('fade')
                 yt_icon.bind_visibility_from(CastAPI.player)
-                yt_icon = ui.chip('Clear YT Search',
+                yt_icon_2 = ui.chip('Clear YT Search',
                                   icon='clear',
                                   color='indigo-3',
                                   on_click=lambda: youtube_clear_search())
-                yt_icon.bind_visibility_from(CastAPI.player)
+                yt_icon_2.bind_visibility_from(CastAPI.player)
+
+            # if gif_enabled is True display GIF buttons
+            if str2bool(cfg_mgr.custom_config['gif_enabled']):
+                # YT search
+                gif_icon = ui.chip('GIF Menu',
+                                  icon='image',
+                                  color='indigo-2',
+                                  on_click=open_gif)
+                gif_icon.classes('fade')
+                gif_icon.bind_visibility_from(CastAPI.player)
+                gif_icon_2 = ui.chip('GIF Close',
+                                  icon='clear',
+                                  color='indigo-2',
+                                  on_click=close_gif)
+                gif_icon_2.bind_visibility_from(CastAPI.player)
 
 
 @ui.page('/Desktop')
@@ -1352,6 +1472,12 @@ async def main_page_desktop():
     ui.dark_mode(CastAPI.dark_mode)
     apply_custom()
     await nice.head_set(name='Desktop Params', target='/Desktop', icon='computer')
+
+    async def validate():
+        # retrieve matrix setup from wled and set w/h
+        if Desktop.wled:
+            Desktop.scale_width, Desktop.scale_height = await Utils.get_wled_matrix_dimensions(Desktop.host)
+        ui.navigate.to('/Desktop')
 
     def on_input_new_viinput(x):
         if x.args != '':
@@ -1453,7 +1579,7 @@ async def main_page_desktop():
         with ui.row():
             ui.icon('restore_page', color='blue', size='md') \
                 .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
-                .on('click', lambda: ui.navigate.to('/Desktop'))
+                .on('click', lambda: validate())
 
             with ui.card():
                 await nice.edit_rate_x_y(Desktop)
@@ -1608,6 +1734,12 @@ async def main_page_media():
 
     await nice.head_set(name='Media Params', target='/Media', icon='image')
 
+    async def validate():
+        # retrieve matrix setup from wled and set w/h
+        if Media.wled:
+            Media.scale_width, Media.scale_height = await Utils.get_wled_matrix_dimensions(Media.host)
+        ui.navigate.to('/Media')
+
     if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
         ui.add_head_html("""
@@ -1682,7 +1814,7 @@ async def main_page_media():
         with ui.row():
             ui.icon('restore_page', color='blue', size='md') \
                 .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
-                .on('click', lambda: ui.navigate.to('/Media'))
+                .on('click', lambda: validate())
 
             with ui.card():
                 await nice.edit_rate_x_y(Media)
@@ -2201,13 +2333,15 @@ def reset_sync():
 async def get_player_time():
     """
     Retrieve current play time from the Player
-    Set player time for Cast to Sync
+    Set player time for Cast to Sync & current frame number
     """
     if CastAPI.type_sync == 'player':
         await ui.context.client.connected()
-        current_time = round(await ui.run_javascript("document.querySelector('video').currentTime", timeout=2))
+        current_time = float(await ui.run_javascript("document.querySelector('video').currentTime", timeout=2))
         Media.sync_to_time = current_time * 1000
-
+        # Calculate current frame number
+        current_frame = int(current_time * CastAPI.video_fps)
+        CastAPI.current_frame = current_frame
 
 async def player_duration():
     """
@@ -2687,12 +2821,12 @@ END Common
 async def player_cast(source):
     """ Cast from video CastAPI.player only for Media """
 
-    media_info = CV2Utils.get_media_info(source)
+    media_info = await CV2Utils.get_media_info(source)
     if Media.stopcast:
         ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
     else:
         Media.viinput = source
-        Media.rate = int(round(float(media_info[2].split(':')[1].replace(' ', '').replace('"', ''))))
+        Media.rate = media_info['CAP_PROP_FPS']
         ui.notify(f'Cast running from : {source}')
         Media.cast(shared_buffer=t_data_buffer)
     CastAPI.player.play()
@@ -3150,8 +3284,13 @@ async def bar_get_size():
         await sleep(.1)
 
 
-async def download_url(url):
-    """ Download video/image from Web url """
+async def download_url(url, gif_start, gif_end):
+    """ Download video/image from Web url
+
+    url: video url
+    start_in : ui.input for frame start
+    end_in : ui.input for frame end
+    """
 
     #  this can be Web or local
     video_img_url = url
@@ -3197,6 +3336,13 @@ async def download_url(url):
     # set video player media
     CastAPI.player.set_source(video_img_url)
     CastAPI.player.update()
+
+    await update_video_information()
+
+    # set gif info
+    gif_end.set_value(CastAPI.video_frames)
+    gif_end.props(f'max={CastAPI.video_frames}')
+    gif_start.props(f'max={CastAPI.video_frames}')
 
 
 if __name__ in {"__main__", "__mp_main__"}:

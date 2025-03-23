@@ -12,6 +12,7 @@
 """
 
 import contextlib
+import urllib.parse
 
 from str2bool import str2bool
 from pathlib import Path as PathLib
@@ -40,6 +41,7 @@ import requests
 import multiprocessing
 
 import av
+import cv2
 import numpy as np
 
 from wled import WLED
@@ -72,6 +74,213 @@ class CASTUtils:
 
     def __init__(self):
         pass
+
+    @staticmethod
+    def wled_name_format(wled_name):
+        """Formats a WLED filename to be at most 32 characters long.
+
+         Args:
+             wled_name (str): The original filename.
+
+         Returns:
+             str: The formatted filename, truncated to 32 characters if necessary.
+         """
+        # remove unicode control char
+        wled_name = wled_name.encode('ascii', 'ignore').decode('ascii')
+        # remove YT prefix
+        wled_name = wled_name.replace('yt-tmp-','')
+        #
+        wled_name = wled_name.replace('/', '-')
+        wled_name = wled_name.replace(' ', '')
+        #
+        if len(wled_name) > 28:
+            name, ext = os.path.splitext(wled_name)
+            return wled_name[:28] + ext  # Truncate to 32 characters
+        return wled_name
+
+    @staticmethod
+    async def wled_upload_gif_file(wled_ip, gif_path):
+        """Uploads a GIF file to WLED via the /upload interface.
+            there is a limit of 32 chars to wled file name
+        Args:
+            wled_ip (str): The IP address of the WLED device.
+            gif_path (str): The path to the GIF file.
+        """
+
+        gif_path_size_kb = int(os.path.getsize(gif_path) / 1024)
+        info_url = f"http://{wled_ip}/json/info"
+        url = f"http://{wled_ip}/upload"
+        filename = CASTUtils.wled_name_format(os.path.basename(gif_path))
+        files = {'file': (filename, open(gif_path, 'rb'), 'image/gif')}
+
+        try:
+            response = requests.get(info_url, timeout=2)  # Add timeout
+            response.raise_for_status()
+            info_data  = response.json()
+            remaining_space_kb = info_data['fs']['t'] - info_data['fs']['u']
+
+            if gif_path_size_kb < remaining_space_kb:
+                response = requests.post(url, files=files, timeout=10)  # Add timeout
+                response.raise_for_status()
+                cfg_mgr.logger.info(f"GIF uploaded successfully: {response.text} to: {url}")
+            else:
+                cfg_mgr.logger.error(f'Not enough space on wled device : {wled_ip}')
+
+        except requests.exceptions.Timeout:
+            cfg_mgr.logger.error(f"Timeout error uploading GIF to: {url}")
+        except requests.exceptions.HTTPError as errh:
+            cfg_mgr.logger.error(f"HTTP Error uploading GIF: {errh} to: {url}")
+        except requests.exceptions.ConnectionError as errc:
+            cfg_mgr.logger.error(f"Error Connecting to WLED: {errc} at: {url}")
+        except requests.exceptions.RequestException as err:
+            cfg_mgr.logger.error(f"Error uploading GIF: {err} to: {url}")
+
+
+    @staticmethod
+    async def resize_gif(video_in, video_out, new_w, new_h):
+        """Resizes a  GIF file using PyAV.
+
+        Args:
+            video_in (str): Path to the input video/GIF file.
+            video_out (str): Path to the output resized video/GIF file.
+            new_w (int): New width.
+            new_h (int): New height.
+        """
+        try:
+            container_in = av.open(video_in)
+            if container_in.format.name == 'gif':
+                # For GIFs, resize frames individually and create a new GIF
+                frames = []
+                stream = container_in.streams.video[0]
+                for frame in container_in.decode(stream):
+                    img = frame.to_image()
+                    img = np.array(img)
+                    resized_frame = cv2.resize(img, (new_w, new_h))
+                    frames.append(Image.fromarray(resized_frame))
+
+                frames[0].save(video_out,
+                               save_all=True,
+                               append_images=frames[1:],
+                               loop=0,
+                               duration=stream.average_rate.denominator)
+
+            else:
+                cfg_mgr.logger.error(f'Not a GIF file : {video_in}')
+
+            container_in.close()
+
+        except Exception as er:
+            print(f"Error resizing GIF: {er}")
+
+
+    @staticmethod
+    async def resize_video(video_in, video_out, new_w, new_h):
+        """Resizes a video  file using PyAV.
+
+        Args:
+            video_in (str): Path to the input video file.
+            video_out (str): Path to the output resized video file.
+            new_w (int): New width.
+            new_h (int): New height.
+        """
+        try:
+            container_in = av.open(video_in)
+            container_out = av.open(video_out, mode='w')
+
+            in_stream = container_in.streams.video[0]
+            # For other video formats, use reformat and libx264
+            out_stream = container_out.add_stream(codec_name='libx264', rate=in_stream.average_rate)
+            out_stream.width = new_w
+            out_stream.height = new_h
+            out_stream.pix_fmt = 'yuv420p'
+
+            for frame in container_in.decode(video=0):
+                frame = frame.reformat(width=new_w, height=new_h)
+                for packet in out_stream.encode(frame):
+                    container_out.mux(packet)
+
+            # Flush stream
+            for packet in out_stream.encode():
+                container_out.mux(packet)
+
+            container_out.close()
+            container_in.close()
+
+        except Exception as er:
+            print(f"Error resizing video: {er}")
+
+
+    @staticmethod
+    async def video_to_gif(video_file, gif_file, width = None, height = None, loop: int = 0, duration: int = 100):
+        """Convert an MP4 file to a GIF.
+
+        Reads frames from an MP4 file using pyav, resize & converts them to RGB numpy arrays,
+        and then saves them as a GIF using Pillow.
+        duration : time frame display,default to 100ms. e.g: 10 images * 100 duration = 1 second = 10fps
+        """
+
+        # Open the video file using pyav
+        container = av.open(video_file)
+
+        # Read the frames from the first video stream
+        frames = []
+        for frame in container.decode(video=0):
+            # resize
+            if width is not None and height is not None:
+                frame = frame.reformat(width=width, height=height)
+            # Convert the frame to numpy array (RGB format)
+            img = frame.to_image()
+            img = np.array(img)
+
+            # Append the frame to the list
+            frames.append(img)
+
+        # Create a GIF from the frames
+        frames_pil = [Image.fromarray(frame) for frame in frames]
+        frames_pil[0].save(gif_file, save_all=True, append_images=frames_pil[1:], loop=loop, duration=duration, disposal=2)
+        #
+        container.close()
+
+    @staticmethod
+    def get_video_dimensions(video_path):
+        """Retrieves the width and height of a video file.
+
+        Args:
+            video_path (str): Path to the video file.
+
+        Returns:
+            tuple: A tuple containing the width and height of the video, or (None, None) if an error occurs.
+        """
+        try:
+            container = av.open(video_path)
+            video_stream = container.streams.video[0]
+            width = video_stream.width
+            height = video_stream.height
+            container.close()
+            return width, height
+        except Exception as er:
+            print(f"Error getting video dimensions: {er}")
+            return None, None
+
+    @staticmethod
+    def extract_filename(path_or_url):
+        """Extracts the filename from a local path or URL.
+
+        Args:
+            path_or_url (str): The local path or URL.
+
+        Returns:
+            str: The extracted filename, or None if extraction fails.
+        """
+        try:
+            parsed_url = urllib.parse.urlparse(path_or_url)
+            if parsed_url.scheme and not re.match(r'^[a-zA-Z]$', parsed_url.scheme):  # Check for valid URL scheme (not drive letter)
+                return os.path.basename(parsed_url.path)
+            else:  # It's a local path
+                return os.path.basename(path_or_url)
+        except Exception as er:
+            print(f"Error extracting filename: {er}")
+            return None
 
     @staticmethod
     def test_compiled():
@@ -153,32 +362,6 @@ class CASTUtils:
         fonts = Font.List('')
         CASTUtils.font_dict = {font.stem: str(font) for font in fonts}
         CASTUtils.font_dirs = sorted(list({os.path.dirname(str(font)) for font in fonts}))  # Extract and deduplicate directories
-
-
-    @staticmethod
-    def mp4_to_gif(mp4_file, gif_file, loop: int = 0, duration: int = 100):
-        """Convert an MP4 file to a GIF.
-
-        Reads frames from an MP4 file using pyav, converts them to RGB numpy arrays,
-        and then saves them as a GIF using Pillow.
-        """
-        # Open the MP4 file using pyav
-        container = av.open(mp4_file)
-
-        # Read the frames from the first video stream
-        frames = []
-        for frame in container.decode(video=0):
-            # Convert the frame to numpy array (RGB format)
-            img = frame.to_image()
-            img = np.array(img)
-
-            # Append the frame to the list
-            frames.append(img)
-
-        # Create a GIF from the frames
-        frames_pil = [Image.fromarray(frame) for frame in frames]
-        frames_pil[0].save(gif_file, save_all=True, append_images=frames_pil[1:], loop=loop, duration=duration)
-
 
     @staticmethod
     def update_ddp_list(cast_ip, ddp_obj):
