@@ -15,13 +15,14 @@ WLEDVideoSync is a tool designed to synchronize Net LED Matrix with video conten
 
 **Key Features:**
 - Video synchronization with e131 / artNet / DDP devices e.g: WLED-controlled LED strips
-- Multicast feature: aggregate multi DDP devices to a big, BIG one
+- Multicast feature: aggregate multiple DDP devices to a big, BIG one
 - Support for various video sources: image, video or WebUrl (even Youtube)
 - Support for desktop / desktop area, window content
 - Customizable LED effects
 - API to integrate with third party application
 - Websocket for image cast if necessary
 - GUI: native, browser: can be accessed remotely, or even "headless": can be used as service
+- GIF creation & upload to WLED device
 
 **Portable Installation:**
 1. Unix / Win : Take the app from releases      
