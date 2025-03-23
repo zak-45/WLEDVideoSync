@@ -86,7 +86,7 @@ class CASTUtils:
              str: The formatted filename, truncated to 32 characters if necessary.
          """
         # remove unicode control char
-        wled_name = wled_name.encode('ascii', 'ignore').decode('ascii')
+        # wled_name = wled_name.encode('UTF-8', 'ignore').decode('UTF-8')
         # remove YT prefix
         wled_name = wled_name.replace('yt-tmp-','')
         #
@@ -99,7 +99,7 @@ class CASTUtils:
         return wled_name
 
     @staticmethod
-    async def wled_upload_gif_file(wled_ip, gif_path):
+    def wled_upload_gif_file(wled_ip, gif_path):
         """Uploads a GIF file to WLED via the /upload interface.
             there is a limit of 32 chars to wled file name
         Args:

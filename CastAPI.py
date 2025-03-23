@@ -33,6 +33,7 @@ import configparser
 import queue
 import cfg_load as cfg
 import contextlib
+
 from starlette.websockets import WebSocketDisconnect
 from wled import WLED
 
@@ -1208,22 +1209,17 @@ async def video_player_page():
 
     async def gif_to_wled():
         """
-        create a preset
-        {"ib":true,"sb":true,"sc":false,"psave":9,"n":"Image","v":true,"time":1742687092}
-        change seg name
-        {"seg":[{"id":0,"n":"Image.gif"}]}
-        set effect 53 --> image (GIF)
-        {"seg":{"fx":53}}
-        preset numbers
-        http://IP/presets.json
-        keys = [int(key) for key in data.keys()]
-        return max(keys) if keys else 0
+        Upload GIF to Wled device
         :return:
         """
-        send_gif.props(add='loading')
-        gif_to_upload = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(CastAPI.player.source)}_.gif')
-        await Utils.wled_upload_gif_file(Media.host, gif_to_upload)
-        async with WLED(Media.host) as led:
+        video_in = CastAPI.player.source
+        ui.notify('Start GIF Uploading')
+        # send_gif.props(add='loading')
+        gif_to_upload = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
+        await run.io_bound(lambda: Utils.wled_upload_gif_file(Media.host, gif_to_upload))
+        led = WLED(Media.host)
+        try:
+            await led.connect()
             presets = await led.request('/presets.json')
             preset_number = max(int(key) for key in presets.keys()) + 1
             preset_name = f'WLEDVideoSync-{preset_number}'
@@ -1241,7 +1237,12 @@ async def video_player_page():
                                                                   "n":preset_name,
                                                                   "v":1,
                                                                   "time":time.time()})
-        send_gif.props(remove='loading')
+        except Exception as er:
+            cfg_mgr.logger.error(f'Error in WLED upload: {er}')
+        finally:
+            await led.close()
+
+        # send_gif.props(remove='loading')
         ui.notify('End GIF Uploading')
 
     async def open_gif():
@@ -1364,18 +1365,21 @@ async def video_player_page():
                 gif_buttons.classes(add='animate__animated animate__flipInX', remove='animate__animated animate__flipOutX')
                 sync_buttons.classes(add='animate__animated animate__flipInX', remove='animate__animated animate__flipOutX')
 
-            start_gif = ui.number('Start',value=0, min=0, max=CastAPI.video_frames, precision=0, placeholder='Start time')
+            start_gif = ui.number('Start',value=0, min=0, max=CastAPI.video_frames, precision=0)
             start_gif.bind_value(CastAPI,'current_frame')
-            end_gif = ui.number('End', value=CastAPI.video_frames, min=0, max=CastAPI.video_frames, precision=0, placeholder='End time')
+            end_gif = ui.number('End', value=CastAPI.video_frames, min=0, max=CastAPI.video_frames, precision=0)
 
-            gen_gif = ui.button(text='GIF',icon='image', on_click=create_gif) \
-                .tooltip('Create GIF') \
-                .bind_visibility_from(CastAPI.player)
+            gen_gif = ui.button(text='GIF',icon='image', on_click=create_gif)
+            gen_gif.tooltip('Create GIF')
+            gen_gif.bind_visibility_from(CastAPI.player)
 
             if Media.wled:
-                send_gif = ui.button(text='WLED',icon='apps', on_click=gif_to_wled) \
-                    .tooltip('Upload GIF to WLED device') \
-                    .bind_visibility_from(CastAPI.player)
+                send_gif = ui.button(text='WLED',icon='apps', on_click=gif_to_wled)
+                send_gif.tooltip('Upload GIF to WLED device')
+                send_gif.bind_visibility_from(CastAPI.player)
+                open_wled = ui.button('APP', icon='web', on_click=lambda: ui.navigate.to(f'http://{Media.host}', new_tab=True))
+                open_wled.tooltip('Open WLED Web Page')
+                open_wled.bind_visibility_from(CastAPI.player)
 
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
@@ -3341,9 +3345,9 @@ async def download_url(url, gif_start, gif_end):
     await update_video_information()
 
     # set gif info
+    gif_end.max=CastAPI.video_frames
+    gif_start.max=CastAPI.video_frames
     gif_end.set_value(CastAPI.video_frames)
-    gif_end.props(f'max={CastAPI.video_frames}')
-    gif_start.props(f'max={CastAPI.video_frames}')
 
 
 if __name__ in {"__main__", "__mp_main__"}:
