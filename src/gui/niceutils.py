@@ -109,7 +109,7 @@ async def animate_wled_image(CastAPI, visible):
         CastAPI.w_image.set_visibility(True)
 
 
-async def head_set(name, target, icon):
+async def head_menu(name, target, icon):
     """Creates and displays a header with navigation links.
 
     This function generates a header element containing a title, icon, and

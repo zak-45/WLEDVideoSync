@@ -966,7 +966,7 @@ async def main_page():
     """
     Header with button menu
     """
-    await nice.head_set(name='Main', target='/', icon='home')
+    await nice.head_menu(name='Main', target='/', icon='home')
 
     """
     App info
@@ -1166,7 +1166,7 @@ async def main_page_cast_manage():
     """
     Header with button menu
     """
-    await nice.head_set(name='Manage', target='/Manage', icon='video_settings')
+    await nice.head_menu(name='Manage', target='/Manage', icon='video_settings')
 
     """
     Main tabs infos
@@ -1214,7 +1214,7 @@ async def video_player_page():
         """
         video_in = CastAPI.player.source
         ui.notify('Start GIF Uploading')
-        # send_gif.props(add='loading')
+        send_gif.props(add='loading')
         gif_to_upload = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
         await run.io_bound(lambda: Utils.wled_upload_gif_file(Media.host, gif_to_upload))
         led = WLED(Media.host)
@@ -1224,12 +1224,8 @@ async def video_player_page():
             preset_number = max(int(key) for key in presets.keys()) + 1
             preset_name = f'WLEDVideoSync-{preset_number}'
             segment_name = Utils.wled_name_format(Utils.extract_filename(gif_to_upload))
-            await led.request('/json/state', method='POST', data={"on":1,
-                                                                  "bri":10,
-                                                                  "transition":0,
-                                                                  "bs":0,
-                                                                  "mainseg":0,
-                                                                  "seg":[{"id":0,"n":segment_name,"fx":53}]})
+            wled_data={"on":1,"bri":10,"transition":0,"bs":0,"mainseg":0,"seg":[{"id":0,"n":f"{segment_name}","fx":53}]}
+            await led.request('/json/state', method='POST', data=wled_data)
             await led.request('/json/state', method='POST', data={"ib":1,
                                                                   "sb":1,
                                                                   "sc":0,
@@ -1242,7 +1238,7 @@ async def video_player_page():
         finally:
             await led.close()
 
-        # send_gif.props(remove='loading')
+        send_gif.props(remove='loading')
         ui.notify('End GIF Uploading')
 
     async def open_gif():
@@ -1476,13 +1472,13 @@ async def main_page_desktop():
     """
     ui.dark_mode(CastAPI.dark_mode)
     apply_custom()
-    await nice.head_set(name='Desktop Params', target='/Desktop', icon='computer')
+    await nice.head_menu(name='Desktop Params', target='/Desktop', icon='computer')
 
     async def validate():
         # retrieve matrix setup from wled and set w/h
         if Desktop.wled:
             Desktop.scale_width, Desktop.scale_height = await Utils.get_wled_matrix_dimensions(Desktop.host)
-        ui.navigate.to('/Desktop')
+        ui.navigate.reload()
 
     def on_input_new_viinput(x):
         if x.args != '':
@@ -1737,13 +1733,13 @@ async def main_page_media():
 
     apply_custom()
 
-    await nice.head_set(name='Media Params', target='/Media', icon='image')
+    await nice.head_menu(name='Media Params', target='/Media', icon='image')
 
-    async def validate():
+    async def media_validate():
         # retrieve matrix setup from wled and set w/h
         if Media.wled:
             Media.scale_width, Media.scale_height = await Utils.get_wled_matrix_dimensions(Media.host)
-        ui.navigate.to('/Media')
+        ui.navigate.reload()
 
     if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
@@ -1819,7 +1815,7 @@ async def main_page_media():
         with ui.row():
             ui.icon('restore_page', color='blue', size='md') \
                 .style('cursor: pointer').tooltip('Click to Validate/Refresh') \
-                .on('click', lambda: validate())
+                .on('click', lambda: media_validate())
 
             with ui.card():
                 await nice.edit_rate_x_y(Media)
@@ -3298,7 +3294,11 @@ async def download_url(url, gif_start, gif_end):
     """
 
     #  this can be Web or local
-    video_img_url = url
+    import urllib.parse
+    encoded_str = url
+    decoded_str = urllib.parse.unquote(encoded_str)
+    #
+    video_img_url = decoded_str
     # init value for progress bar
     CastAPI.progress_bar.value = 0
     CastAPI.progress_bar.update()
@@ -3342,6 +3342,7 @@ async def download_url(url, gif_start, gif_end):
     CastAPI.player.set_source(video_img_url)
     CastAPI.player.update()
 
+    # video info
     await update_video_information()
 
     # set gif info

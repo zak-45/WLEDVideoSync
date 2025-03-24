@@ -83,7 +83,7 @@ class CASTUtils:
              wled_name (str): The original filename.
 
          Returns:
-             str: The formatted filename, truncated to 32 characters if necessary.
+             str: The formatted filename, truncated to 30 characters if necessary.
          """
         # remove unicode control char
         # wled_name = wled_name.encode('UTF-8', 'ignore').decode('UTF-8')
@@ -93,15 +93,15 @@ class CASTUtils:
         wled_name = wled_name.replace('/', '-')
         wled_name = wled_name.replace(' ', '')
         #
-        if len(wled_name) > 28:
+        if len(wled_name) > 25:
             name, ext = os.path.splitext(wled_name)
-            return wled_name[:28] + ext  # Truncate to 32 characters
+            return wled_name[:25] + ext  # Truncate to 30 characters
         return wled_name
 
     @staticmethod
     def wled_upload_gif_file(wled_ip, gif_path):
         """Uploads a GIF file to WLED via the /upload interface.
-            there is a limit of 32 chars to wled file name
+            there is a limit of 30 chars to wled file name
         Args:
             wled_ip (str): The IP address of the WLED device.
             gif_path (str): The path to the GIF file.
@@ -114,6 +114,7 @@ class CASTUtils:
         files = {'file': (filename, open(gif_path, 'rb'), 'image/gif')}
 
         try:
+            # check file space on MCU
             response = requests.get(info_url, timeout=2)  # Add timeout
             response.raise_for_status()
             info_data  = response.json()
