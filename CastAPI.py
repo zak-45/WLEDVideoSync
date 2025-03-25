@@ -23,7 +23,7 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
-
+import asyncio
 import time
 import shelve
 import sys
@@ -33,6 +33,8 @@ import configparser
 import queue
 import cfg_load as cfg
 import contextlib
+import urllib.parse
+import re
 
 from starlette.websockets import WebSocketDisconnect
 from wled import WLED
@@ -1195,17 +1197,94 @@ async def run_video_player_page():
     ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
     await video_player_page()
 
-
 async def update_video_information():
     video_info = await CV2Utils.get_media_info(CastAPI.player.source)
     CastAPI.video_fps = int(video_info['CAP_PROP_FPS'])
     CastAPI.video_frames = int(video_info['CAP_PROP_FRAME_COUNT'])
 
-
 async def video_player_page():
     """
     Video player
     """
+
+    async def player_video_info():
+        # video info
+        await update_video_information()
+
+        # set gif info
+        start_gif.max = CastAPI.video_frames
+        start_gif.max = CastAPI.video_frames
+        end_gif.set_value(CastAPI.video_frames)
+
+
+    async def player_set_file():
+        await nice.player_pick_file(CastAPI)
+        await player_video_info()
+
+    async def player_set_url(url):
+        """ Download video/image from Web url or local path
+
+        url: video url
+        start_in : ui.input for frame start
+        end_in : ui.input for frame end
+        """
+
+        #  this can be Web or local
+        url_path = False
+        #
+        encoded_str = url
+        decoded_str = urllib.parse.unquote(encoded_str)
+        #
+        parsed_url = urllib.parse.urlparse(url)
+        if parsed_url.scheme and not re.match(r'^[a-zA-Z]$', parsed_url.scheme):  # Check for valid URL scheme (not drive letter)
+            url_path = True
+        #
+        # init value for progress bar
+        CastAPI.progress_bar.value = 0
+        CastAPI.progress_bar.update()
+        #
+        # if this is Web url
+        if url_path:
+            # check if YT Url, so will download to media
+            if 'youtube' in url:
+
+                # this will run async loop in background and continue...
+                create_task(bar_get_size())
+
+                # wait YT download finished
+                yt = await Utils.youtube_download(url, interactive=True)
+
+                # if no error, set local YT file name to video player
+                if yt != '':
+                    decoded_str = yt
+
+            # check if this is an image, so will download to media
+            elif await Utils.is_image_url(url):
+
+                # generate a unique name
+                # Get the current date and time
+                current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+                # Format the unique name with prefix, date, time, and extension
+                image_name = f"image-tmp_{current_time}.jpg"
+
+                result = await Utils.download_image(cfg_mgr.app_root_path('media'), url, image_name)
+                if result:
+                    decoded_str = cfg_mgr.app_root_path(f'media/{image_name}')
+            else:
+                cfg_mgr.logger.debug('standard url')
+        #
+        ui.notify(f'Player set to : {decoded_str}')
+        cfg_mgr.logger.debug(f'Player set to : {decoded_str}')
+
+        # put max value to progress bar
+        CastAPI.progress_bar.value = 1
+        CastAPI.progress_bar.update()
+
+        # set video player media
+        CastAPI.player.set_source(decoded_str)
+        CastAPI.player.update()
+
+        await player_video_info()
 
     async def gif_to_wled():
         """
@@ -1219,13 +1298,14 @@ async def video_player_page():
         await run.io_bound(lambda: Utils.wled_upload_gif_file(Media.host, gif_to_upload))
         led = WLED(Media.host)
         try:
-            await led.connect()
             presets = await led.request('/presets.json')
             preset_number = max(int(key) for key in presets.keys()) + 1
             preset_name = f'WLEDVideoSync-{preset_number}'
             segment_name = Utils.wled_name_format(Utils.extract_filename(gif_to_upload))
+            # set segment name as gif file
             wled_data={"on":1,"bri":10,"transition":0,"bs":0,"mainseg":0,"seg":[{"id":0,"n":f"{segment_name}","fx":53}]}
             await led.request('/json/state', method='POST', data=wled_data)
+            # create preset
             await led.request('/json/state', method='POST', data={"ib":1,
                                                                   "sb":1,
                                                                   "sc":0,
@@ -1268,6 +1348,7 @@ async def video_player_page():
         ui.notify('GIF finished !')
         if Media.wled:
             send_gif.enable()
+            send_gif.props(remove='loading')
         gen_gif.props(remove='loading')
 
     async def manage_visibility(visible):
@@ -1354,12 +1435,16 @@ async def video_player_page():
             gif_buttons.set_visibility(False)
 
             if gif_buttons.visible:
-                gif_buttons.classes(add='animate__animated animate__flipOutX', remove='animate__animated animate__flipInX')
-                sync_buttons.classes(add='animate__animated animate__flipOutX', remove='animate__animated animate__flipInX')
+                gif_buttons.classes(add='animate__animated animate__flipOutX',
+                                    remove='animate__animated animate__flipInX')
+                sync_buttons.classes(add='animate__animated animate__flipOutX',
+                                     remove='animate__animated animate__flipInX')
 
             else:
-                gif_buttons.classes(add='animate__animated animate__flipInX', remove='animate__animated animate__flipOutX')
-                sync_buttons.classes(add='animate__animated animate__flipInX', remove='animate__animated animate__flipOutX')
+                gif_buttons.classes(add='animate__animated animate__flipInX',
+                                    remove='animate__animated animate__flipOutX')
+                sync_buttons.classes(add='animate__animated animate__flipInX',
+                                     remove='animate__animated animate__flipOutX')
 
             start_gif = ui.number('Start',value=0, min=0, max=CastAPI.video_frames, precision=0)
             start_gif.bind_value(CastAPI,'current_frame')
@@ -1407,7 +1492,7 @@ async def video_player_page():
 
             ui.icon('folder', color='orange', size='md') \
                 .style("cursor: pointer") \
-                .on('click', lambda: nice.player_pick_file(CastAPI)) \
+                .on('click', lambda: player_set_file()) \
                 .tooltip('Select audio / video file') \
                 .bind_visibility_from(CastAPI.player)
 
@@ -1419,7 +1504,7 @@ async def video_player_page():
             video_url_icon = ui.icon('published_with_changes')
             video_url_icon.style("cursor: pointer")
             video_url_icon.tooltip("Download video/image from Url")
-            video_url_icon.on('click', lambda: download_url(video_img_url.value, start_gif, end_gif))
+            video_url_icon.on('click', lambda: player_set_url(video_img_url.value))
             video_url_icon.bind_visibility_from(CastAPI.player)
 
             # if yt_enabled is True display YT info icon
@@ -3284,71 +3369,6 @@ async def bar_get_size():
         CastAPI.progress_bar.update()
         await sleep(.1)
 
-
-async def download_url(url, gif_start, gif_end):
-    """ Download video/image from Web url
-
-    url: video url
-    start_in : ui.input for frame start
-    end_in : ui.input for frame end
-    """
-
-    #  this can be Web or local
-    import urllib.parse
-    encoded_str = url
-    decoded_str = urllib.parse.unquote(encoded_str)
-    #
-    video_img_url = decoded_str
-    # init value for progress bar
-    CastAPI.progress_bar.value = 0
-    CastAPI.progress_bar.update()
-
-    # we check if this is Web url
-    if 'http' in url:
-        # check if YT Url, so will download to media
-        if 'youtube' in url:
-
-            # this will run async loop in background and continue...
-            create_task(bar_get_size())
-
-            # wait YT download finished
-            yt = await Utils.youtube_download(url, interactive=True)
-
-            # if no error, set local YT file name to video player
-            if yt != '':
-                video_img_url = yt
-
-        # check if this is an image, so will download to media
-        elif await Utils.is_image_url(url):
-
-            # generate a unique name
-            # Get the current date and time
-            current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-            # Format the unique name with prefix, date, time, and extension
-            image_name = f"image-tmp_{current_time}.jpg"
-
-            result = await Utils.download_image(cfg_mgr.app_root_path('media'), url, image_name)
-            if result:
-                video_img_url = cfg_mgr.app_root_path(f'media/{image_name}')
-
-    ui.notify(f'Player set to : {video_img_url}')
-    cfg_mgr.logger.debug(f'Player set to : {video_img_url}')
-
-    # put max value to progress bar
-    CastAPI.progress_bar.value = 1
-    CastAPI.progress_bar.update()
-
-    # set video player media
-    CastAPI.player.set_source(video_img_url)
-    CastAPI.player.update()
-
-    # video info
-    await update_video_information()
-
-    # set gif info
-    gif_end.max=CastAPI.video_frames
-    gif_start.max=CastAPI.video_frames
-    gif_end.set_value(CastAPI.video_frames)
 
 
 if __name__ in {"__main__", "__mp_main__"}:
