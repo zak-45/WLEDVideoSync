@@ -451,13 +451,27 @@ class CV2Utils:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, i)
                 ret, frame = cap.read()
                 if ret:
-                    if width and height:
-                        frame = cv2.resize(frame, (width, height))
-                    frames.append(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+                    # select gif quality
+                    if str2bool(cfg_mgr.custom_config['gif_quality']):
+                        if width and height:
+                            frame = cv2.resize(frame, (width, height))
+                        img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                    else:
+                        img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                        if width and height:
+                            img = img.convert(mode='P', colors=64)
+                            img = img.resize(size=(width, height), resample=1)
+
+                    frames.append(img)
 
             if frames:
                 duration = int(1000 / fps)  # Duration in milliseconds, based on desired FPS
-                frames[0].save(gif_path, save_all=True, append_images=frames[1:], duration=duration, loop=0, disposal=2)
+                frames[0].save(gif_path,
+                               save_all=True,
+                               append_images=frames[1:],
+                               duration=duration,
+                               loop=0,
+                               disposal=2)
                 cfg_mgr.logger.info(f"GIF created successfully: {gif_path}")
             else:
                 cfg_mgr.logger.error("No frames extracted. GIF not created.")

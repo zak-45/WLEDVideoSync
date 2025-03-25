@@ -1194,7 +1194,7 @@ async def run_video_player_page():
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
-    # to check
+    #
     ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
     await video_player_page()
 
@@ -1215,8 +1215,9 @@ async def video_player_page():
         if str2bool(cfg_mgr.custom_config['gif_enabled']):
             # set gif info
             start_gif.max = CastAPI.video_frames
-            start_gif.max = CastAPI.video_frames
+            end_gif.max = CastAPI.video_frames
             end_gif.set_value(CastAPI.video_frames)
+
 
 
     async def player_set_file():
@@ -1248,17 +1249,15 @@ async def video_player_page():
         # if this is Web url
         if url_path:
             # check if YT Url, so will download to media
-            if 'youtube' in url:
+            if 'youtube' in parsed_url.netloc:
 
                 # this will run async loop in background and continue...
                 create_task(bar_get_size())
-
                 # wait YT download finished
-                yt = await Utils.youtube_download(url, interactive=True)
-
+                yt_video_name = await Utils.youtube_download(url, interactive=True)
                 # if no error, set local YT file name to video player
-                if yt != '':
-                    decoded_str = yt
+                if yt_video_name != '':
+                    decoded_str = yt_video_name
 
             # check if this is an image, so will download to media
             elif await Utils.is_image_url(url):
@@ -1267,13 +1266,14 @@ async def video_player_page():
                 # Get the current date and time
                 current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
                 # Format the unique name with prefix, date, time, and extension
+                # hardcoded jpg format, this need to be reviewed
                 image_name = f"image-tmp_{current_time}.jpg"
 
                 result = await Utils.download_image(cfg_mgr.app_root_path('media'), url, image_name)
                 if result:
                     decoded_str = cfg_mgr.app_root_path(f'media/{image_name}')
             else:
-                cfg_mgr.logger.debug('standard url')
+                cfg_mgr.logger.debug('No yt or image url')
         #
         ui.notify(f'Player set to : {decoded_str}')
         cfg_mgr.logger.debug(f'Player set to : {decoded_str}')
