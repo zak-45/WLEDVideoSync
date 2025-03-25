@@ -1194,6 +1194,7 @@ async def run_video_player_page():
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
+    # to check
     ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
     await video_player_page()
 
@@ -1211,10 +1212,11 @@ async def video_player_page():
         # video info
         await update_video_information()
 
-        # set gif info
-        start_gif.max = CastAPI.video_frames
-        start_gif.max = CastAPI.video_frames
-        end_gif.set_value(CastAPI.video_frames)
+        if str2bool(cfg_mgr.custom_config['gif_enabled']):
+            # set gif info
+            start_gif.max = CastAPI.video_frames
+            start_gif.max = CastAPI.video_frames
+            end_gif.set_value(CastAPI.video_frames)
 
 
     async def player_set_file():
@@ -1429,38 +1431,38 @@ async def video_player_page():
                 .tooltip('Sync All Casts with selected time') \
                 .bind_visibility_from(CastAPI.player)
 
+        if str2bool(cfg_mgr.custom_config['gif_enabled']):
+            with ui.row() as gif_buttons:
+                gif_buttons.classes('self-center')
+                gif_buttons.set_visibility(False)
 
-        with ui.row() as gif_buttons:
-            gif_buttons.classes('self-center')
-            gif_buttons.set_visibility(False)
+                if gif_buttons.visible:
+                    gif_buttons.classes(add='animate__animated animate__flipOutX',
+                                        remove='animate__animated animate__flipInX')
+                    sync_buttons.classes(add='animate__animated animate__flipOutX',
+                                         remove='animate__animated animate__flipInX')
 
-            if gif_buttons.visible:
-                gif_buttons.classes(add='animate__animated animate__flipOutX',
-                                    remove='animate__animated animate__flipInX')
-                sync_buttons.classes(add='animate__animated animate__flipOutX',
-                                     remove='animate__animated animate__flipInX')
+                else:
+                    gif_buttons.classes(add='animate__animated animate__flipInX',
+                                        remove='animate__animated animate__flipOutX')
+                    sync_buttons.classes(add='animate__animated animate__flipInX',
+                                         remove='animate__animated animate__flipOutX')
 
-            else:
-                gif_buttons.classes(add='animate__animated animate__flipInX',
-                                    remove='animate__animated animate__flipOutX')
-                sync_buttons.classes(add='animate__animated animate__flipInX',
-                                     remove='animate__animated animate__flipOutX')
+                start_gif = ui.number('Start',value=0, min=0, max=CastAPI.video_frames, precision=0)
+                start_gif.bind_value(CastAPI,'current_frame')
+                end_gif = ui.number('End', value=CastAPI.video_frames, min=0, max=CastAPI.video_frames, precision=0)
 
-            start_gif = ui.number('Start',value=0, min=0, max=CastAPI.video_frames, precision=0)
-            start_gif.bind_value(CastAPI,'current_frame')
-            end_gif = ui.number('End', value=CastAPI.video_frames, min=0, max=CastAPI.video_frames, precision=0)
+                gen_gif = ui.button(text='GIF',icon='image', on_click=create_gif)
+                gen_gif.tooltip('Create GIF')
+                gen_gif.bind_visibility_from(CastAPI.player)
 
-            gen_gif = ui.button(text='GIF',icon='image', on_click=create_gif)
-            gen_gif.tooltip('Create GIF')
-            gen_gif.bind_visibility_from(CastAPI.player)
-
-            if Media.wled:
-                send_gif = ui.button(text='WLED',icon='apps', on_click=gif_to_wled)
-                send_gif.tooltip('Upload GIF to WLED device')
-                send_gif.bind_visibility_from(CastAPI.player)
-                open_wled = ui.button('APP', icon='web', on_click=lambda: ui.navigate.to(f'http://{Media.host}', new_tab=True))
-                open_wled.tooltip('Open WLED Web Page')
-                open_wled.bind_visibility_from(CastAPI.player)
+                if Media.wled:
+                    send_gif = ui.button(text='WLED',icon='apps', on_click=gif_to_wled)
+                    send_gif.tooltip('Upload GIF to WLED device')
+                    send_gif.bind_visibility_from(CastAPI.player)
+                    open_wled = ui.button('APP', icon='web', on_click=lambda: ui.navigate.to(f'http://{Media.host}', new_tab=True))
+                    open_wled.tooltip('Open WLED Web Page')
+                    open_wled.bind_visibility_from(CastAPI.player)
 
         with ui.row().classes('self-center'):
             ui.icon('switch_video', color='blue', size='md') \
