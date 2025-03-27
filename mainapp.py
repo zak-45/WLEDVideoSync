@@ -23,7 +23,6 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
-import asyncio
 import time
 import shelve
 import sys
@@ -53,10 +52,10 @@ from src.utl.utils import HTTPDiscovery as Net
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
 from src.gui.niceutils import LocalFilePicker, LogElementHandler, apply_custom, media_dev_view_page
-from src.gui.tkarea import ScreenAreaSelection as SCArea
 from src.gui.niceutils import YtSearch
 from src.gui.niceutils import AnimatedElement as Animate
 from src.utl.multicast import MultiUtils as Multi
+from src.gui.castcenter import CastCenter
 from datetime import datetime
 from str2bool import str2bool
 from PIL import Image
@@ -87,6 +86,7 @@ action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
+# router = APIRouter(prefix='/c')
 
 """
 Actions to do at application initialization 
@@ -1143,6 +1143,7 @@ async def main_page():
             with ui.card().classes('w-1/3'):
                 ui.button('System', on_click=sys_stats_info_page)
         CastAPI.charts_row.set_visibility(False)
+        ui.button('Center', on_click=lambda: ui.navigate.to('/Cast-Center'))
         ui.button('Fonts', on_click=font_select, color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('Pyeditor'), color='bg-red-800')
         ui.button('shutdown', on_click=app.shutdown)
@@ -1673,12 +1674,8 @@ async def main_page_desktop():
                 await nice.edit_rate_x_y(Desktop)
 
             with ui.card():
-                new_wled = ui.checkbox('wled')
-                new_wled.bind_value(Desktop, 'wled')
-                new_wled.tooltip('Is That a WLED Device ?')
-                new_host = ui.input('IP', value=Desktop.host)
-                new_host.tooltip('IP address of the device')
-                new_host.on('blur', lambda: update_attribute_by_name('Desktop', 'host', new_host.value))
+
+                await nice.edit_ip(Desktop)
 
             with ui.card():
                 new_capture_methode = ui.select(options=['av','mss'], label='Capture Methode').style(add='width:120px')
@@ -1707,7 +1704,7 @@ async def main_page_desktop():
                     ui.number('', value=Desktop.monitor_number, min=-1, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number', forward=lambda value: int(value or 0)) \
                         .tooltip('Enter monitor number')
-                    ui.button('ScreenArea', on_click=select_sc_area) \
+                    ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(Desktop)) \
                         .tooltip('Select area from monitor')
 
             with ui.card():
@@ -1916,12 +1913,8 @@ async def main_page_media():
                 new_preview.tooltip('Show preview window')
 
             with ui.card():
-                new_wled = ui.checkbox('wled')
-                new_wled.bind_value(Media, 'wled')
-                new_wled.tooltip('Is That a WLED Device ?')
-                new_host = ui.input('IP', value=Media.host)
-                new_host.tooltip('IP address of the device')
-                new_host.on('focusout', lambda: update_attribute_by_name('Media', 'host', new_host.value))
+
+                await nice.edit_ip(Media)
 
             with ui.card():
 
@@ -2218,6 +2211,11 @@ async def stop_app():
     ui.button('ShutDown', on_click=app.shutdown).classes('flex h-screen m-auto')
 
 
+@ui.page('/Cast-Center')
+async def cast_center_page():
+    cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
+    await cast_app.setup_ui()
+
 """
 helpers /Commons
 """
@@ -2329,39 +2327,6 @@ async def reset_total():
         ui.notify(result)
 
     ui.notify('Reset Total')
-
-
-async def select_sc_area():
-    """ with mouse, draw rectangle to monitor x """
-
-    monitor = int(Desktop.monitor_number)
-    tmp_file = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
-
-    # run in no blocking mode, another process for macOS else thread
-    if PLATFORM == 'darwin':
-
-        await run.cpu_bound(SCArea.run, monitor,tmp_file)
-
-        # Read saved screen coordinates from shelve file
-        try:
-
-            with shelve.open(tmp_file, 'r') as process_file:
-                if saved_screen_coordinates := process_file.get("sc_area"):
-                    SCArea.screen_coordinates = saved_screen_coordinates
-                    cfg_mgr.logger.debug(f"Loaded screen coordinates from shelve: {saved_screen_coordinates}")
-
-        except Exception as e:
-            cfg_mgr.logger.error(f"Error loading screen coordinates from shelve: {e}")
-    else:
-
-        await run.io_bound(SCArea.run, monitor,tmp_file)
-
-    # For Calculate crop parameters
-    Desktop.screen_coordinates = SCArea.screen_coordinates
-    #
-    cfg_mgr.logger.debug(f'Monitor infos: {SCArea.monitors}')
-    cfg_mgr.logger.debug(f'Area Coordinates: {SCArea.coordinates} from monitor {monitor}')
-    cfg_mgr.logger.debug(f'Area screen Coordinates: {SCArea.screen_coordinates} from monitor {monitor}')
 
 
 async def player_sync():
@@ -3375,20 +3340,17 @@ async def bar_get_size():
 
 if __name__ in {"__main__", "__mp_main__"}:
     from nicegui import app
-    from src.gui.niceutils import custom_openapi
-
 
     # store fake server port info for others processes
     pid = os.getpid()
-    server_port = 12345
+    port = 8080
 
     pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
     with shelve.open(pid_tmp_file) as proc_file:
-        proc_file["server_port"] = server_port
+        proc_file["server_port"] = port
         proc_file["sc_area"] = []
 
 
-    app.openapi = custom_openapi
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     app.add_media_files('/media', cfg_mgr.app_root_path('media'))
     app.add_static_files('/log', cfg_mgr.app_root_path('log'))

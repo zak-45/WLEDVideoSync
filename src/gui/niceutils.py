@@ -16,7 +16,7 @@ import logging
 
 from fastapi.openapi.utils import get_openapi
 
-from nicegui import ui, events, app, run
+from nicegui import ui, events, run, app
 from datetime import datetime
 from str2bool import str2bool
 from asyncio import create_task
@@ -648,6 +648,33 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                          .run_editor_method('updateProps', {'readOnly': True})
                 ui.button('Details', on_click=lambda item_v=item_th: show_details(item_v))
 
+
+async def edit_ip(class_obj):
+    """Creates and displays UI elements for editing the IP address.
+
+    This function generates a checkbox for enabling/disabling WLED and an
+    input field for the IP address. It also sets up an API request to
+    update the attribute when the input field loses focus.
+
+    Args:
+        class_obj: The class instance to bind the IP address to.
+    """
+    new_wled = ui.checkbox('wled')
+    new_wled.bind_value(class_obj, 'wled')
+    new_wled.tooltip('Is That a WLED Device ?')
+    new_host = ui.input('IP', value=class_obj.host)
+    new_host.tooltip('IP address of the device')
+    class_name = 'unknown'
+    if 'Media' in str(class_obj):
+        class_name = 'Media'
+    elif 'Desktop' in str(class_obj):
+        class_name = 'Desktop'
+    endpoint = f'/api/{class_name}/update_attribute'
+    new_host.on('blur', lambda: Utils.api_request(method='PUT',
+                                                      endpoint=endpoint,
+                                                      params={"param":"host","value":new_host.value}))
+
+
 async def edit_rate_x_y(class_obj):
     """Creates and displays UI elements for editing rate, scale width, and scale height.
 
@@ -809,9 +836,8 @@ def apply_custom():
                            'background-repeat: no-repeat;'
                            'background-position: center;')
 
-
 def custom_openapi():
-    """ got ws page into FastAPI docs """
+    """got ws page into FastAPI docs"""
 
     if app.openapi_schema:
         return app.openapi_schema

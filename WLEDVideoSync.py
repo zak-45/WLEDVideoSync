@@ -64,27 +64,14 @@ Temporary File Handling:
     It also cleans up these temporary files on exit.
 
 """
-import sys
-import os
+
+from mainapp import *
+
 # disable not used costly import (from nicegui)
 os.environ['MATPLOTLIB'] = 'false'
 
-#
-import shelve
-import CastAPI
 import src.gui.niceutils
-
-from subprocess import Popen
-from str2bool import str2bool
-from nicegui import ui, app, native
-from src.utl.utils import CASTUtils as Utils
-from configmanager import ConfigManager
-
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
-
-Process, Queue = Utils.mp_setup()
-
-PLATFORM=sys.platform.lower()
+from nicegui import native
 
 def cfg_settings(config_file, preview_subprocess, native_ui, native_size, first_run_os):
     """Update configuration settings based on OS and user preferences.
@@ -153,25 +140,34 @@ def linux_settings(config_file):
     """
     cfg_settings(config_file,'True', 'False', '', 'linux_first_run')
 
+    linux_cmd(
+        "WLEDVideoSync/xtra/info_window",
+        'chmod +x ',
+        'info_window process : ',
+        ' , path: ',
+    )
+    linux_cmd(
+        "WLEDVideoSync/assets/custom_folder.png",
+        'gio set -t string "WLEDVideoSync" metadata::custom-icon file://',
+        'custom_folder process : ',
+        ', path: ',
+    )
+    linux_cmd(
+        "WLEDVideoSync/favicon.png",
+        'gio set -t string "WLEDVideoSync/WLEDVideoSync-Linux_x86_64.bin" metadata::custom-icon file://',
+        'app icon process : ',
+        ', path: ',
+    )
+
+
+def linux_cmd(arg0, arg1, arg2, arg3):
     # chmod +x info window
-    info_window = cfg_mgr.app_root_path("WLEDVideoSync/xtra/info_window")
-    cmd_str = f'chmod +x {info_window}'
-    proc1 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'info_window process : {proc1.pid} , path: {info_window}')
+    info_window = cfg_mgr.app_root_path(arg0)
+    result = f'{arg1}{info_window}'
+    proc1 = Popen([result], shell=True, stdin=None, stdout=None, stderr=None)
+    print(f'{arg2}{proc1.pid}{arg3}{info_window}')
 
-    # change folder icon
-    folder_png=cfg_mgr.app_root_path("WLEDVideoSync/assets/custom_folder.png")
-    cmd_str = f'gio set -t string \
-        "WLEDVideoSync" metadata::custom-icon file://{folder_png}'
-    proc2 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'custom_folder process : {proc2.pid}, path: {folder_png}')
-
-    # change app icon
-    favicon_png = cfg_mgr.app_root_path("WLEDVideoSync/favicon.png")
-    cmd_str = f'gio set -t string \
-        "WLEDVideoSync/WLEDVideoSync-Linux_x86_64.bin" metadata::custom-icon file://{favicon_png}'
-    proc3 = Popen([cmd_str], shell=True, stdin=None, stdout=None, stderr=None)
-    print(f'app icon process : {proc3.pid}, path: {favicon_png}')
+    return result
 
 def init_darwin():
     """Initialize settings for Darwin (macOS) platform.
@@ -242,24 +238,24 @@ def check_server():
         tuple: A tuple containing the validated server IP and port.
     """
 
-    server_ip = cfg_mgr.server_config['server_ip']
+    srv_ip = cfg_mgr.server_config['server_ip']
 
-    if not Utils.validate_ip_address(server_ip):
-        cfg_mgr.logger.error(f'Bad server IP: {server_ip}')
+    if not Utils.validate_ip_address(srv_ip):
+        cfg_mgr.logger.error(f'Bad server IP: {srv_ip}')
         sys.exit(1)
 
-    server_port = cfg_mgr.server_config['server_port']
+    srv_port = cfg_mgr.server_config['server_port']
 
-    if server_port == 'auto':
-        server_port = native.find_open_port()
+    if srv_port == 'auto':
+        srv_port = native.find_open_port()
     else:
-        server_port = int(cfg_mgr.server_config['server_port'])
+        srv_port = int(cfg_mgr.server_config['server_port'])
 
-    if server_port not in range(1, 65536):
-        cfg_mgr.logger.error(f'Bad server Port: {server_port}')
+    if srv_port not in range(1, 65536):
+        cfg_mgr.logger.error(f'Bad server Port: {srv_port}')
         sys.exit(2)
 
-    return server_ip, server_port
+    return srv_ip, srv_port
 
 def select_gui():
     """Select the appropriate GUI mode based on configuration.
@@ -311,19 +307,19 @@ def run_gui():
     server_port = None
     server_ip = None
 
-    print('Start WLEDVideoSync - NiceGui')
+    print(f'Start WLEDVideoSync - NiceGui for : {PLATFORM}')
 
     if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
 
         server_ip, server_port = check_server()
 
     # store server port info for others processes, add sc_area for macOS
-    pid = os.getpid()
+    wled_pid = os.getpid()
 
-    pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
-    with shelve.open(pid_tmp_file) as proc_file:
-        proc_file["server_port"] = server_port
-        proc_file["sc_area"] = []
+    wled_pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{wled_pid}_file")
+    with shelve.open(wled_pid_tmp_file) as wled_proc_file:
+        wled_proc_file["server_port"] = server_port
+        wled_proc_file["sc_area"] = []
 
     """
     Pystray
@@ -362,7 +358,7 @@ def run_gui():
     app.add_static_files('/config', cfg_mgr.app_root_path('config'))
     app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
     app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
-    app.on_startup(CastAPI.init_actions)
+    app.on_startup(init_actions)
 
     ui.run(title=f'WLEDVideoSync - {server_port}',
            favicon=cfg_mgr.app_root_path("favicon.ico"),
@@ -380,7 +376,7 @@ def run_gui():
     END
     """
 
-    proc_file.close()
+    wled_proc_file.close()
 
     # some cleaning
     Utils.clean_tmp()
@@ -397,7 +393,7 @@ def run_gui():
 """
 MAIN Logic 
 """
-if __name__ in "__main__":
+if __name__ in {"__main__", "__mp_main__"}:
     # instruct user to go to WLEDVideoSync folder to execute program and exit
     # We check if executed from compressed version (linux & win)
     if "NUITKA_ONEFILE_PARENT" in os.environ:

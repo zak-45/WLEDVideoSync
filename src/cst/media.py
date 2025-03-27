@@ -609,7 +609,7 @@ class CASTMedia:
             this should be owned by the first cast which take control
             """
 
-            if CASTMedia.t_todo_event.is_set():
+            if CASTMedia.t_todo_event.is_set() and shared_buffer is not None:
                 # only one running cast at time will take care of that
                 CASTMedia.t_media_lock.acquire()
                 cfg_mgr.logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")

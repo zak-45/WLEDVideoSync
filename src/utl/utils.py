@@ -38,12 +38,14 @@ import pywinctl as pwc
 import socket
 import ipaddress
 import requests
+import aiohttp
 import multiprocessing
 
 import av
 import cv2
 import numpy as np
 
+from src.gui.tkarea import ScreenAreaSelection as SCArea
 from wled import WLED
 from zeroconf import ServiceBrowser, Zeroconf
 from nicegui import run
@@ -74,6 +76,106 @@ class CASTUtils:
 
     def __init__(self):
         pass
+
+    @staticmethod
+    async def select_sc_area(class_obj):
+        """ with mouse, draw rectangle to monitor x """
+
+        monitor = int(class_obj.monitor_number)
+        tmp_file = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
+
+        # run in no blocking mode, another process for macOS else thread
+        if sys.platform.lower() == 'darwin':
+
+            await run.cpu_bound(SCArea.run, monitor, tmp_file)
+
+            # Read saved screen coordinates from shelve file
+            try:
+
+                with shelve.open(tmp_file, 'r') as process_file:
+                    if saved_screen_coordinates := process_file.get("sc_area"):
+                        SCArea.screen_coordinates = saved_screen_coordinates
+                        cfg_mgr.logger.debug(f"Loaded screen coordinates from shelve: {saved_screen_coordinates}")
+
+            except Exception as er:
+                cfg_mgr.logger.error(f"Error loading screen coordinates from shelve: {er}")
+        else:
+
+            await run.io_bound(SCArea.run, monitor, tmp_file)
+
+        # For Calculate crop parameters
+        class_obj.screen_coordinates = SCArea.screen_coordinates
+        #
+        cfg_mgr.logger.debug(f'Monitor infos: {SCArea.monitors}')
+        cfg_mgr.logger.debug(f'Area Coordinates: {SCArea.coordinates} from monitor {monitor}')
+        cfg_mgr.logger.debug(f'Area screen Coordinates: {SCArea.screen_coordinates} from monitor {monitor}')
+
+
+    @staticmethod
+    async def api_request(method, endpoint, data=None, params=None):
+        """Makes a request to the WLEDVideoSync API using aiohttp.
+
+        Args:
+            method (str): The HTTP method (GET, POST, PUT).
+            endpoint (str): The API endpoint.
+            data (dict, optional): Data to send with the request (for POST/PUT). Defaults to None.
+            params (dict, optional): Query parameters for the request. Defaults to None.
+
+        Returns:
+            tuple: A tuple containing the status code and the JSON response data (or None if an error occurs).
+        """
+        server_port = CASTUtils.get_server_port()
+        base_url = f"http://127.0.0.1:{server_port}"
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                url = urllib.parse.urljoin(base_url, endpoint)
+                if params:
+                    url += f"?{urllib.parse.urlencode(params)}"
+
+                if method == "GET":
+                    async with session.get(url, params=params, timeout=5) as response:
+                        if response.status == 200:
+                            return response.status, await response.json()
+                        elif response.status == 400:
+                            error_data = await response.text()
+                            cfg_mgr.logger.error(f"GET request error: {error_data}")
+                            return response.status, None
+                        else:
+                            return response.status, None
+
+                elif method == "POST":
+                    headers = {'Content-Type': 'application/json'} if data else None
+                    json_data = json.dumps(data, ensure_ascii=False).encode('utf-8') if data else None
+                    async with session.post(url, params=params, data=json_data, headers=headers, timeout=5) as response:
+                        if response.status == 200:
+                            return response.status, await response.json()
+                        elif response.status == 400:
+                            error_data = await response.text()
+                            cfg_mgr.logger.error(f"POST request error: {error_data}")
+                            return response.status, None
+                        else:
+                            return response.status, None
+
+                elif method == "PUT":
+                    headers = {'Content-Type': 'application/json'} if data else None
+                    json_data = json.dumps(data, ensure_ascii=False).encode('utf-8') if data else None
+                    async with session.put(url, params=params, data=json_data, headers=headers, timeout=5) as response:
+                        if response.status == 200:
+                            return response.status, await response.json()
+                        elif response.status == 400:
+                            error_data = await response.text()
+                            cfg_mgr.logger.error(f"PUT request error: {error_data}")
+                            return response.status, None
+                        else:
+                            return response.status, None
+                else:
+                    cfg_mgr.logger.error(f"Invalid HTTP method: {method}")
+                    return None, None # Return (None, None) for invalid method
+
+        except aiohttp.ClientError as e:
+            cfg_mgr.logger.error(f"API request error: {e}")
+            return None, None
 
     @staticmethod
     def wled_name_format(wled_name):
@@ -574,7 +676,7 @@ class CASTUtils:
                 server_port = db['server_port']
         except Exception as er:
             cfg_mgr.logger.warning(f'Error to retrieve Server Port  from {tmp_file}: {er}')
-            server_port = 99
+            server_port = 8080
         finally:
             if server_port == 0:
                 cfg_mgr.logger.error(f'Server Port should not be 0 from {tmp_file}')
@@ -708,7 +810,7 @@ class CASTUtils:
             # Your dictionary
             data = await run.cpu_bound(pwc.getAllWindowsDict)
             # Convert dictionary to JSON
-            all_windows = json.dumps(data, default=custom_serializer, ensure_ascii=False, indent=4)
+            all_windows = json.dumps(data, default=custom_serializer, ensure_ascii=False, sort_keys=True, indent=4)
             windows_by_app = json.loads(all_windows)
 
         except Exception as er:
@@ -716,6 +818,27 @@ class CASTUtils:
             return {}
 
         return windows_by_app
+
+
+    @staticmethod
+    async def windows_names():
+
+        windows = []
+        try:
+            win_dict = await CASTUtils.windows_titles()
+            for wins in win_dict:
+                application = win_dict[wins]
+                windows.extend(
+                    win_name for win_name in application['windows'] if win_name != ''
+                )
+            windows.sort()
+
+        except Exception as er:
+            cfg_mgr.logger.error(f'Error to retrieve windows names : {er}')
+
+        finally:
+            return windows
+
 
     @staticmethod
     def dev_list_update():

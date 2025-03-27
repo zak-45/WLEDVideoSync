@@ -103,7 +103,10 @@ def execute_actions(class_obj,
                 "img": img
             }
         }}
-        shared_buffer.put(t_info)
+        if shared_buffer is not None:
+            shared_buffer.put(t_info)
+        else:
+            logger.error('Shared buffer missing')
         logger.debug(f'{t_name} info put in shared buffer')
 
     def handle_multicast_action():

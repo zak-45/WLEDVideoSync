@@ -1045,7 +1045,7 @@ class CASTDesktop:
                                     t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
 
                             # check here as frame is an array now
-                            if CASTDesktop.t_todo_event.is_set():
+                            if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
                                 t_preview, t_todo_stop = do_action(frame,t_preview,t_todo_stop)
 
                     except av.BlockingIOError as av_err:
@@ -1073,7 +1073,7 @@ class CASTDesktop:
                     while sl_queue:
 
                         # check to see if something to do
-                        if CASTDesktop.t_todo_event.is_set():
+                        if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
                             t_preview, t_todo_stop = do_action(frame,t_preview,t_todo_stop)
 
                         """
@@ -1171,7 +1171,7 @@ class CASTDesktop:
                             expected_time = start_time + frame_count * interval
 
                             # check to see if something to do
-                            if CASTDesktop.t_todo_event.is_set():
+                            if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
                                 t_preview, t_todo_stop = do_action(frame, t_preview, t_todo_stop)
 
                             """
