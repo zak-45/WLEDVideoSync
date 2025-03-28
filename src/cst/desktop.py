@@ -823,16 +823,19 @@ class CASTDesktop:
             if self.viinput == 'area':
                 # specific area
                 # Calculate crop parameters : ; 19/06/2024 coordinates for 2 monitor need to be reviewed
-                width = int(self.screen_coordinates[2] - self.screen_coordinates[0])
-                height = int(self.screen_coordinates[3] - self.screen_coordinates[1])
-                x = int(self.screen_coordinates[0])
-                y = int(self.screen_coordinates[1])
+                try:
+                    width = int(self.screen_coordinates[2] - self.screen_coordinates[0])
+                    height = int(self.screen_coordinates[3] - self.screen_coordinates[1])
+                    x = int(self.screen_coordinates[0])
+                    y = int(self.screen_coordinates[1])
 
-                area_options = {'offset_x': str(x), 'offset_y': str(y),
-                                'video_size': f'{width}x{height}',
-                                'show_region': '1'}
+                    area_options = {'offset_x': str(x), 'offset_y': str(y),
+                                    'video_size': f'{width}x{height}',
+                                    'show_region': '1'}
 
-                input_options |= area_options
+                    input_options |= area_options
+                except Exception as er:
+                    cfg_mgr.logger.error(f'Error into area, selection already done ???: {er}')
 
             elif self.viinput.lower().startswith('win='):
                 # specific window content

@@ -23,7 +23,6 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
-import time
 import shelve
 import sys
 import os
@@ -42,6 +41,8 @@ from src.cst import desktop, media
 from src.gui import niceutils as nice
 import ast
 import tkinter as tk
+
+from src.utl.winutil import *
 
 from asyncio import set_event_loop_policy,sleep,create_task
 from threading import current_thread
@@ -85,8 +86,6 @@ action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
-
-# router = APIRouter(prefix='/c')
 
 """
 Actions to do at application initialization 
@@ -182,6 +181,9 @@ class CastAPI:
 
     def __init__(self):
         pass
+
+
+cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
 
 """
 FastAPI
@@ -430,7 +432,7 @@ async def util_active_win():
     """
        Show title from actual active window
     """
-    return {"window_title": Utils.active_window()}
+    return {"window_title": await active_window()}
 
 
 @app.get("/api/util/win_titles", tags=["desktop"])
@@ -438,7 +440,7 @@ async def util_win_titles():
     """
         Retrieve all titles from windows
     """
-    return {"windows_titles": Utils.windows_titles()}
+    return {"windows_titles": await windows_titles()}
 
 
 @app.get("/api/util/device_list", tags=["media"])
@@ -2213,7 +2215,6 @@ async def stop_app():
 
 @ui.page('/Cast-Center')
 async def cast_center_page():
-    cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
     await cast_app.setup_ui()
 
 """
@@ -2247,7 +2248,7 @@ async def grab_windows():
     """
 
     ui.notification('Retrieved all windows information', close_button=True, timeout=3)
-    Desktop.windows_titles = await Utils.windows_titles()
+    Desktop.windows_titles = await windows_titles()
 
 
 async def net_view_page():
@@ -3247,7 +3248,7 @@ async def discovery_media_notify():
                     close_button=True,
                     type='warning',
                     timeout=3)
-    Utils.dev_list_update()
+    await Utils.dev_list_update()
 
 
 async def init_cast(class_obj):
@@ -3336,10 +3337,11 @@ async def bar_get_size():
         CastAPI.progress_bar.update()
         await sleep(.1)
 
-
-
-if __name__ in {"__main__", "__mp_main__"}:
+# do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
+if __name__ == "__main__":
     from nicegui import app
+
+    print('start nicegui')
 
     # store fake server port info for others processes
     pid = os.getpid()
@@ -3359,4 +3361,6 @@ if __name__ in {"__main__", "__mp_main__"}:
     app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
     app.on_startup(init_actions)
 
-    ui.run(fastapi_docs=True)
+    ui.run(reload=False, fastapi_docs=True)
+
+    print('end nicegui')

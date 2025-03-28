@@ -34,7 +34,6 @@ import platform
 import subprocess
 import configparser
 import io
-import pywinctl as pwc
 import socket
 import ipaddress
 import requests
@@ -758,97 +757,19 @@ class CASTUtils:
             return False
         
     @staticmethod
-    def get_window_rect(title):
-        """Find window position and size using pywinctl (cross-platform)."""
-        
-        try:
-            if win := pwc.getWindowsWithTitle(title):
-                win = win[0]  # Get the first matching window
-                if win.isMinimized:
-                    win.restore()  # Restore if minimized
-
-                win.activate()  # Bring window to front
-                time.sleep(0.1)  # Wait for the window to be active
-
-                return win.left, win.top, win.width, win.height
-            
-        except Exception as er:
-            cfg_mgr.logger.error(f"Not able to retrieve info for window name {title}. Error: {er}")
-            
-        return None
-
-    @staticmethod
-    def active_window():
-        """ Provide active window title """
-
-        return pwc.getActiveWindow().title
-
-    @staticmethod
-    async def windows_titles():
-        """ Provide a list of all window titles / hWnd by applications """
-
-        try:
-            
-            class Point:
-                def __init__(self, x, y):
-                    self.x = x
-                    self.y = y
-
-            class Size:
-                def __init__(self, width, height):
-                    self.width = width
-                    self.height = height
-
-            # Define a function to serialize custom objects
-            def custom_serializer(obj):
-                if isinstance(obj, Point):
-                    return {"x": obj.x, "y": obj.y}
-                elif isinstance(obj, Size):
-                    return {"width": obj.width, "height": obj.height}
-                raise TypeError(f"Type {type(obj)} not serializable")
-
-            # Your dictionary
-            data = await run.cpu_bound(pwc.getAllWindowsDict)
-            # Convert dictionary to JSON
-            all_windows = json.dumps(data, default=custom_serializer, ensure_ascii=False, sort_keys=True, indent=4)
-            windows_by_app = json.loads(all_windows)
-
-        except Exception as er:
-            cfg_mgr.logger.error(f"Error retrieving windows: {er}")
-            return {}
-
-        return windows_by_app
-
-
-    @staticmethod
-    async def windows_names():
-
-        windows = []
-        try:
-            win_dict = await CASTUtils.windows_titles()
-            for wins in win_dict:
-                application = win_dict[wins]
-                windows.extend(
-                    win_name for win_name in application['windows'] if win_name != ''
-                )
-            windows.sort()
-
-        except Exception as er:
-            cfg_mgr.logger.error(f'Error to retrieve windows names : {er}')
-
-        finally:
-            return windows
-
-
-    @staticmethod
-    def dev_list_update():
+    async def dev_list_update():
         """
         Update Media device list depend on OS
-        av is used to try to have cross-platform solution
         """
-        CASTUtils.dev_list = []
-        devicenumber: int = 0
-        typedev: str = ''
+
+        CASTUtils.dev_list = await CASTUtils.video_device_list()
+
+
+    @staticmethod
+    async def video_device_list():
+
+        devicenumber = 0
+        devices_list = []
 
         if platform.system().lower() == 'darwin':
             try:
@@ -867,7 +788,7 @@ class CASTUtils:
 
             dev = linux_dev.iter_devices()
             typedev = 'VIDEO'
-            CASTUtils.dev_list.extend(
+            devices_list.extend(
                 (str(item), typedev, i) for i, item in enumerate(dev, start=1)
             )
 
@@ -879,40 +800,11 @@ class CASTUtils:
             typedev = 'video'
             for item in devices:
                 devname = item
-                CASTUtils.dev_list.append((devname, typedev, devicenumber))
+                devices_list.append((devname, typedev, devicenumber))
                 devicenumber += 1
 
-        else:
-            # darwin / others
-            for i, name in enumerate(logs):
-                if platform.system().lower() == 'windows':
-                    if '"' in name[2] and 'Alternative' not in name[2]:
-                        devname = name[2]
-                        typedev = logs[i + 1][2].replace(" (", "")
-                        CASTUtils.dev_list.append((devname, typedev, devicenumber))
-                        devicenumber += 1
+        return devices_list
 
-                elif platform.system().lower() == 'darwin':
-                    if 'AVFoundation video device' in name:
-                        typedev = 'video'
-                    elif 'AVFoundation audio device' in name:
-                        typedev = 'audio'
-                    else:
-                        if numbers_in_brackets := re.findall(r'\[(\d+)\]', name):
-                            devicenumber = int(numbers_in_brackets[0])
-
-                        devname = (
-                            match[1]
-                            if (match := re.search(r"\[\d+\] (.*)", name))
-                            else "unknown"
-                        )
-                        CASTUtils.dev_list.append((devname, typedev, devicenumber))
-
-                else:
-                    cfg_mgr.logger.error(f"unsupported platform : {platform.system()}")
-                    return False
-
-        return True
 
     # validate json received by ws
     @staticmethod
