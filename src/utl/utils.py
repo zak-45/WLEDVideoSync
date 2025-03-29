@@ -571,6 +571,27 @@ class CASTUtils:
         return sorted(dict_codecs)
 
     @staticmethod
+    async def get_yt_video_url(video_url, iformat="best"):
+
+        ydl_opts = {
+            'format': iformat,
+            'noplaylist': True,  # Prevents playlist processing
+            'quiet': True,
+            'extract_flat': False,  # Ensure we get detailed info
+        }
+
+        with YTdl(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+
+        # Ensure we return only one URL
+        if 'url' in info:
+            return info['url']
+        elif 'entries' in info and isinstance(info['entries'], list) and len(info['entries']) > 0:
+            return info['entries'][0].get('url', None)
+
+        return None  # If no URL found
+
+    @staticmethod
     async def list_yt_formats(url):
         """ List available format for an YT Url """
 

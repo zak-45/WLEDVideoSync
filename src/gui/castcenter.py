@@ -116,10 +116,11 @@ class CastCenter:
         elif cast_type == 'Video':
             self.Media.viinput = self.video.value
         elif cast_type == 'Youtube':
-            self.Media.viinput = self.yt_input.value
+            # custom_format = cfg_mgr.custom_config['yt_format']
+            yt_url = await Utils.get_yt_video_url(video_url=self.yt_input.value,iformat="best")
+            self.Media.viinput = yt_url
         else:
             cfg_mgr.logger.error('Error on cast_type')
-
 
     async def setup_ui(self):
 
@@ -136,10 +137,13 @@ class CastCenter:
         ui.label('WLEDVideoSync CAST Center').classes('self-center')
         with ui.card().tight().classes('self-center w-full'):
             ui.label(f'DESKTOP : {self.Desktop.host}').classes('self-center')
-            with ui.row(wrap=False).classes('w-full'):
+            with ui.row().classes('self-center'):
                 ui.label(f'width: {str(self.Desktop.scale_width)}')
                 ui.label(f'height: {str(self.Desktop.scale_height)}')
+
+            with ui.row(wrap=False).classes('w-full'):
                 card_desktop = ui.card().classes('w-1/3')
+                card_desktop.props('flat')
                 card_desktop.set_visibility(True)
                 with card_desktop:
                     ui.image('assets/desktop.png').style('width:100px;height:100px;').classes('self-center')
@@ -150,7 +154,6 @@ class CastCenter:
                         desktop_cast.on('click', lambda : self.cast_class(self.Desktop, 'Desktop'))
 
                 card_area = ui.card().classes('w-1/3')
-                card_area.props('flat')
                 card_area.set_visibility(True)
                 with card_area:
                     with ui.row().classes('self-center'):
@@ -160,6 +163,7 @@ class CastCenter:
                         area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))
 
                 card_window = ui.card().classes('w-1/3')
+                card_window.props('flat')
                 card_window.set_visibility(True)
                 with card_window:
                     ui.image('assets/windows.png').style('width:100px;height:100px;').classes('self-center')
@@ -171,10 +175,13 @@ class CastCenter:
 
         with ui.card().tight().classes('self-center w-full'):
             ui.label(f'MEDIA : {self.Media.host}').classes('self-center')
-            with ui.row(wrap=False).classes('w-full'):
+            with ui.row().classes('self-center'):
                 ui.label(f'width: {str(self.Media.scale_width)}')
                 ui.label(f'height: {str(self.Media.scale_height)}')
+
+            with ui.row(wrap=False).classes('w-full'):
                 card_capture = ui.card().classes('w-1/3')
+                card_capture.props('flat')
                 card_capture.set_visibility(True)
                 with card_capture:
                     ui.image('assets/camera.png').style('width:100px;height:100px;').classes('self-center')
@@ -185,7 +192,6 @@ class CastCenter:
                         capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
 
                 card_video = ui.card().classes('w-1/3')
-                card_video.props('flat')
                 card_video.set_visibility(True)
                 with card_video:
                     with ui.row().classes('self-center'):
@@ -196,6 +202,7 @@ class CastCenter:
                         video_cast.on('click', lambda : self.cast_class(self.Media, 'Video'))
 
                 card_yt = ui.card().tight().classes('w-1/3')
+                card_yt.props('flat')
                 card_yt.set_visibility(True)
                 with card_yt:
                     ui.image('assets/youtube.png').style('width:100px;height:100px;').classes('self-center')

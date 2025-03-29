@@ -1221,11 +1221,30 @@ async def video_player_page():
             end_gif.max = CastAPI.video_frames
             end_gif.set_value(CastAPI.video_frames)
 
-
-
     async def player_set_file():
         await nice.player_pick_file(CastAPI)
         await player_video_info()
+
+    async def validate_player_url():
+        url_path = False
+        #
+        parsed_url = urllib.parse.urlparse(video_img_url.value)
+        if parsed_url.scheme and not re.match(r'^[a-zA-Z]$', parsed_url.scheme):  # Check for valid URL scheme (not drive letter)
+            url_path = True
+
+        if url_path and 'youtube' in parsed_url.netloc.lower():
+            yt_format = cfg_mgr.custom_config['yt_format']
+            yt_url = await Utils.get_yt_video_url(video_img_url.value, iformat=yt_format)
+
+            ui.notify(f'Player set to : {yt_url}')
+            cfg_mgr.logger.debug(f'Player set to : {yt_url}')
+
+            # set video player media
+            CastAPI.player.set_source(yt_url)
+            CastAPI.player.update()
+
+            await player_video_info()
+
 
     async def player_set_url(url):
         """ Download video/image from Web url or local path
@@ -1252,7 +1271,7 @@ async def video_player_page():
         # if this is Web url
         if url_path:
             # check if YT Url, so will download to media
-            if 'youtube' in parsed_url.netloc:
+            if 'youtube' in parsed_url.netloc.lower():
 
                 # this will run async loop in background and continue...
                 create_task(bar_get_size())
@@ -1503,10 +1522,14 @@ async def video_player_page():
 
             video_img_url = ui.input('Enter video/image Url / Path', placeholder='http://....') \
                 .bind_visibility_from(CastAPI.player)
-            video_img_url.tooltip('Enter Url, click on icon to download video/image, '
-                                  ' hide and show player should refresh data')
+            video_img_url.tooltip('Enter Url, select icon to download video/image, or stream video')
             video_img_url.on('focus', js_handler='''(event) => {const input = event.target;input.select();}''')
-            video_url_icon = ui.icon('published_with_changes')
+            video_stream_icon = ui.icon('published_with_changes')
+            video_stream_icon.style("cursor: pointer")
+            video_stream_icon.tooltip("stream from Url")
+            video_stream_icon.on('click', lambda: validate_player_url())
+            video_stream_icon.bind_visibility_from(CastAPI.player)
+            video_url_icon = ui.icon('file_download')
             video_url_icon.style("cursor: pointer")
             video_url_icon.tooltip("Download video/image from Url")
             video_url_icon.on('click', lambda: player_set_url(video_img_url.value))

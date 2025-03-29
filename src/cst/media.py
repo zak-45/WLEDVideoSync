@@ -28,7 +28,6 @@ import cv2
 import time
 
 from src.utl import actionutils
-from vidgear.gears import CamGear
 from str2bool import str2bool
 from asyncio import run as as_run
 from multiprocessing.shared_memory import ShareableList
@@ -199,19 +198,15 @@ class CASTMedia:
 
         """
 
-        stream = False
-
         if not str(self.viinput):
             cfg_mgr.logger.error(f'{t_name} Input media could not be empty')
             return False
-        elif 'youtube' in str(self.viinput):
-            stream = True
 
         t_viinput = self.viinput
 
         port = port
 
-        window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
+        window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"[:64]
 
         """
         MultiCast inner function protected from what happens outside.
@@ -381,17 +376,7 @@ class CASTMedia:
         self.cast_frame_buffer = []
 
         # capture media
-        if not stream:
-            media = cv2.VideoCapture(t_viinput)
-        else:
-            # Add YouTube Video URL as input source (for e.g https://youtu.be/uCy5OuSQnyA)
-            # and enable Stream Mode (`stream_mode = True`)
-            yt_media = CamGear(
-                source=t_viinput,
-                stream_mode=True,
-                logging=True
-            ).start()
-            media = yt_media.stream
+        media = cv2.VideoCapture(t_viinput)
 
         # Check if the capture is successful
         if not media.isOpened():
@@ -462,7 +447,7 @@ class CASTMedia:
             # media is video or live
             if media_length != 1:
                 # only for video
-                if media_length > 1 and not stream:
+                if media_length > 1:
                     # Sync all casts to player_time if requested
                     # manage concurrent access to the list by using lock feature
                     # set value if auto sync is true
@@ -538,38 +523,34 @@ class CASTMedia:
                 #
                 # read frame for all
                 #
-                if not stream:
-                    success, frame = media.read()
-                    if not success:
-                        if frame_count != media_length:
-                            cfg_mgr.logger.warning(f'{t_name} Not all frames have been read')
-                            break
+                success, frame = media.read()
+                if not success:
+                    if frame_count != media_length:
+                        cfg_mgr.logger.warning(f'{t_name} Not all frames have been read')
+                        break
+
+                    else:
+                        cfg_mgr.logger.debug(f'{t_name} Media reached END')
+                        # manage the repeat feature, if -1 then unlimited
+                        if t_repeat > 0 or t_repeat < 0:
+                            t_repeat -= 1
+                            cfg_mgr.logger.debug(f'{t_name} Remaining repeat : {t_repeat}')
+                            # reset media to start
+                            media.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                            # read one frame
+                            success, frame = media.read()
+                            if not success:
+                                cfg_mgr.logger.error(f'{t_name} Not able to repeat')
+                                break
+                            frame_count = 0
+                            # reset start time to be able to calculate sleep time to reach requested fps
+                            start_time = time.time()
+                            # Calculate the current time
+                            current_time = time.time()
+                            auto_expected_time = current_time
 
                         else:
-                            cfg_mgr.logger.debug(f'{t_name} Media reached END')
-                            # manage the repeat feature, if -1 then unlimited
-                            if t_repeat > 0 or t_repeat < 0:
-                                t_repeat -= 1
-                                cfg_mgr.logger.debug(f'{t_name} Remaining repeat : {t_repeat}')
-                                # reset media to start
-                                media.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                                # read one frame
-                                success, frame = media.read()
-                                if not success:
-                                    cfg_mgr.logger.error(f'{t_name} Not able to repeat')
-                                    break
-                                frame_count = 0
-                                # reset start time to be able to calculate sleep time to reach requested fps
-                                start_time = time.time()
-                                # Calculate the current time
-                                current_time = time.time()
-                                auto_expected_time = current_time
-
-                            else:
-                                break
-                else:
-
-                    frame = yt_media.read()
+                            break
 
             # resize to requested size
             # this will validate media passed to cv2
@@ -850,7 +831,7 @@ class CASTMedia:
                         # run main_preview in another process
                         # create a child process, so cv2.imshow() will run from its own Main Thread
                         cfg_mgr.logger.debug(f'Define sl_process for Preview : {sl_name}')
-                        window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
+                        window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"[:64]
                         sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name, 'Media', window_name,))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process

@@ -296,7 +296,7 @@ class CV2Utils:
                                                frame_count,
                                                total_frame)
 
-        window_name = f"{server_port}-{t_name}-{str(t_viinput)}"
+        window_name = f"{server_port}-{t_name}-{str(t_viinput)}"[:64]
         if grid:
             frame = ImageUtils.grid_on_image(frame, cast_x, cast_y)
 

@@ -47,5 +47,4 @@ simpleeval
 pydantic
 pytubefix
 certifi
-vidgear[asyncio]
 
