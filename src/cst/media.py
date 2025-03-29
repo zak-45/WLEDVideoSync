@@ -28,7 +28,7 @@ import cv2
 import time
 
 from src.utl import actionutils
-from vidgear.gears import CamGear
+# from vidgear.gears import CamGear
 from str2bool import str2bool
 from asyncio import run as as_run
 from multiprocessing.shared_memory import ShareableList
@@ -199,13 +199,13 @@ class CASTMedia:
 
         """
 
-        stream = False
+        yt_stream = False
 
         if not str(self.viinput):
             cfg_mgr.logger.error(f'{t_name} Input media could not be empty')
             return False
         elif 'youtube' in str(self.viinput):
-            stream = True
+            yt_stream = True
 
         t_viinput = self.viinput
 
@@ -381,9 +381,10 @@ class CASTMedia:
         self.cast_frame_buffer = []
 
         # capture media
-        if not stream:
+        if not yt_stream:
             media = cv2.VideoCapture(t_viinput)
         else:
+            """
             # Add YouTube Video URL as input source (for e.g https://youtu.be/uCy5OuSQnyA)
             # and enable Stream Mode (`stream_mode = True`)
             yt_media = CamGear(
@@ -391,7 +392,9 @@ class CASTMedia:
                 stream_mode=True,
                 logging=True
             ).start()
-            media = yt_media.stream
+            media = yt_media.yt_stream
+            """
+            media = cv2.VideoCapture(t_viinput)
 
         # Check if the capture is successful
         if not media.isOpened():
@@ -462,7 +465,7 @@ class CASTMedia:
             # media is video or live
             if media_length != 1:
                 # only for video
-                if media_length > 1 and not stream:
+                if media_length > 1 and not yt_stream:
                     # Sync all casts to player_time if requested
                     # manage concurrent access to the list by using lock feature
                     # set value if auto sync is true
@@ -538,7 +541,7 @@ class CASTMedia:
                 #
                 # read frame for all
                 #
-                if not stream:
+                if not yt_stream:
                     success, frame = media.read()
                     if not success:
                         if frame_count != media_length:
@@ -569,7 +572,8 @@ class CASTMedia:
                                 break
                 else:
 
-                    frame = yt_media.read()
+                    # frame = yt_media.read()
+                    frame = media.read()
 
             # resize to requested size
             # this will validate media passed to cv2

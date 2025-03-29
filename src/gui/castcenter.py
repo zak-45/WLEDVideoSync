@@ -2,7 +2,7 @@ import asyncio
 
 import src.gui.tkinter_fonts
 from src.gui.tkinter_fonts import *
-from nicegui import ui, run
+from nicegui import ui, run, app
 from src.gui.niceutils import edit_protocol, edit_rate_x_y, apply_custom, edit_ip, edit_artnet, LocalFilePicker, \
     YtSearch
 from src.utl.utils import CASTUtils as Utils
