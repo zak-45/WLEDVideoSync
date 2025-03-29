@@ -18,9 +18,10 @@ from str2bool import str2bool
 from pathlib import Path as PathLib
 
 try:
-    from yt_dlp import YoutubeDL
+    from yt_dlp import YoutubeDL as YTdl
 except Exception as e:
     print(f'INFO : this is Not a YT version: {e}')
+
 
 import time
 import shelve
@@ -581,7 +582,7 @@ class CASTUtils:
             'quiet': True,  # Suppress unnecessary output
         }
 
-        with YoutubeDL(ydl_opts) as ydl:
+        with YTdl(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
 
         return info
@@ -650,7 +651,7 @@ class CASTUtils:
             CASTUtils.yt_file_size_remain_bytes = 1024
             CASTUtils.yt_file_size_bytes = 1024
 
-            ydl = YoutubeDL(ydl_opts)
+            ydl = YTdl(ydl_opts)
             await run.io_bound(ydl.download, url_list=yt_url)
 
         except Exception as err:
