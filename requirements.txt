@@ -14,7 +14,7 @@ urllib3==1.26.20 ; sys_platform == "darwin"
 numpy==1.26.4
 opencv-python==4.11.0.86
 zeroconf==0.143.0
-nicegui==2.11.1
+nicegui==2.13.0
 pillow==11.1.0
 fastapi==0.115.8
 starlette==0.45.3
@@ -23,6 +23,7 @@ av==14.2.0
 mss==10.0.0
 moviepy==1.0.3
 coldtype[viewer]==0.11.6
+aiohttp==3.11.0
 
 # any version & Common to all OS
 str2bool
@@ -46,5 +47,5 @@ simpleeval
 pydantic
 pytubefix
 certifi
-aiohttp
+vidgear[asyncio]
 

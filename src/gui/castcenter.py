@@ -2,8 +2,9 @@ import asyncio
 
 import src.gui.tkinter_fonts
 from src.gui.tkinter_fonts import *
-from nicegui import ui, app, run
-from src.gui.niceutils import edit_protocol, edit_rate_x_y, apply_custom, edit_ip, edit_artnet, LocalFilePicker
+from nicegui import ui, run
+from src.gui.niceutils import edit_protocol, edit_rate_x_y, apply_custom, edit_ip, edit_artnet, LocalFilePicker, \
+    YtSearch
 from src.utl.utils import CASTUtils as Utils
 from src.utl.winutil import windows_names
 from str2bool import str2bool
@@ -22,6 +23,8 @@ class CastCenter:
         self.win = None
         self.device = None
         self.video = None
+        self.yt_area = None
+        self.yt_input = None
 
     async def validate(self):
         await CastCenter.validate_data(self.Media)
@@ -56,6 +59,14 @@ class CastCenter:
 
             self.video.set_value(result)
             self.video.update()
+
+    async def search_yt(self):
+        print('search yt')
+
+        self.yt_area.set_visibility(True)
+        self.yt_area.classes('w-full border')
+        with self.yt_area:
+            YtSearch(self.yt_input, 'anime')
 
     @staticmethod
     async def view_fonts():
@@ -105,7 +116,7 @@ class CastCenter:
         elif cast_type == 'Video':
             self.Media.viinput = self.video.value
         elif cast_type == 'Youtube':
-            self.Desktop.viinput = 'area'
+            self.Media.viinput = self.yt_input.value
         else:
             cfg_mgr.logger.error('Error on cast_type')
 
@@ -188,10 +199,16 @@ class CastCenter:
                 card_yt.set_visibility(True)
                 with card_yt:
                     ui.image('assets/youtube.png').style('width:100px;height:100px;').classes('self-center')
-                    with ui.row().classes('self-center'):
-                        yt_search = ui.input()
+                    with ui.row(wrap=False).classes('self-center'):
+                        yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4')
+                        yt_icon.style('cursor:pointer')
+                        yt_icon.on('click', lambda: self.search_yt())
+                        self.yt_input = ui.input()
                         yt_cast = ui.button(icon='cast').classes('m-4')
-                        yt_cast.on('click', lambda : self.cast_class(self.Media, 'Yt'))
+                        yt_cast.on('click', lambda : self.cast_class(self.Media, 'Youtube'))
+
+        self.yt_area = ui.scroll_area()
+        self.yt_area.set_visibility(False)
 
         with ui.card().tight().classes('self-center w-full'):
             ui.label('TEXT').classes('self-center')
@@ -293,9 +310,12 @@ if __name__ == "__main__":
     app.add_static_files('/assets',cfg_mgr.app_root_path('assets'))
     cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
 
+    print('start main')
     @ui.page('/')
     async def main_page():
         print('main page')
         await cast_app.setup_ui()
 
     ui.run(reload=False)
+
+    print('End main')
