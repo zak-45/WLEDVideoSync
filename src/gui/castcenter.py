@@ -25,6 +25,8 @@ class CastCenter:
         self.video = None
         self.yt_area = None
         self.yt_input = None
+        self.desktop_status = None
+        self.media_status = None
 
     async def validate(self):
         await CastCenter.validate_data(self.Media)
@@ -106,6 +108,9 @@ class CastCenter:
         else:
             cfg_mgr.logger.error('Error on cast_type')
 
+        self.desktop_status.props('color="red"')
+
+
     async def cast_media(self,cast_type):
         # select cast
         if cast_type == 'Capture':
@@ -122,6 +127,22 @@ class CastCenter:
         else:
             cfg_mgr.logger.error('Error on cast_type')
 
+    async def center_timer_action(self):
+
+        if self.Desktop.count > 0:
+            self.desktop_status.props('color="red"')
+        elif self.Desktop.stopcast:
+            self.desktop_status.props('color="yellow"')
+        else:
+            self.desktop_status.props('color="green"')
+
+        if self.Media.count > 0:
+            self.media_status.props('color="red"')
+        elif self.Media.stopcast:
+            self.media_status.props('color="yellow"')
+        else:
+            self.media_status.props('color="green"')
+
     async def setup_ui(self):
 
         dark = ui.dark_mode(self.CastAPI.dark_mode).bind_value_to(self.CastAPI, 'dark_mode')
@@ -134,9 +155,17 @@ class CastCenter:
             <link rel="stylesheet" href="assets/css/animate.min.css"/>
             """)
 
+        """
+        timer created on main page run to refresh datas
+        """
+        ui.timer(int(cfg_mgr.app_config['timer']), callback=self.center_timer_action)
+
+
         ui.label('WLEDVideoSync CAST Center').classes('self-center')
         with ui.card().tight().classes('self-center w-full'):
-            ui.label(f'DESKTOP : {self.Desktop.host}').classes('self-center')
+            with ui.row().classes('self-center'):
+                self.desktop_status = ui.icon('cast_connected', size='sm', color='green')
+                ui.label(f'DESKTOP : {self.Desktop.host}').classes('self-center')
             with ui.row().classes('self-center'):
                 ui.label(f'width: {str(self.Desktop.scale_width)}')
                 ui.label(f'height: {str(self.Desktop.scale_height)}')
@@ -153,14 +182,26 @@ class CastCenter:
                         desktop_cast = ui.button(icon='cast').classes('m-4')
                         desktop_cast.on('click', lambda : self.cast_class(self.Desktop, 'Desktop'))
 
-                card_area = ui.card().classes('w-1/3')
-                card_area.set_visibility(True)
-                with card_area:
-                    with ui.row().classes('self-center'):
-                        ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(self.Desktop)) \
-                            .tooltip('Select area from monitor')
-                        area_cast = ui.button(icon='cast')
-                        area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))
+                ui.separator().style('width: 2px; height: 200px; background-color: red;')
+
+                with ui.column().classes('w-1/3'):
+                    with ui.row().classes('w-full'):
+                        ui.space()
+                        ui.icon('cancel_presentation', size='lg', color='red') \
+                            .on('click', lambda: setattr(self.Desktop, 'stopcast', True)) \
+                            .style('cursor: pointer')
+
+                    card_area = ui.card().classes('w-full')
+                    card_area.set_visibility(True)
+                    with card_area:
+                        with ui.row().classes('self-center'):
+                            ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(self.Desktop)) \
+                                .tooltip('Select area from monitor')
+                            area_cast = ui.button(icon='cast')
+                            area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))
+
+
+                ui.separator().style('width: 2px; height: 200px; background-color: red;')
 
                 card_window = ui.card().classes('w-1/3')
                 card_window.props('flat')
@@ -174,7 +215,9 @@ class CastCenter:
                         win_cast.on('click', lambda : self.cast_class(self.Desktop, 'Window'))
 
         with ui.card().tight().classes('self-center w-full'):
-            ui.label(f'MEDIA : {self.Media.host}').classes('self-center')
+            with ui.row().classes('self-center'):
+                self.media_status = ui.icon('cast_connected', size='sm', color='green')
+                ui.label(f'MEDIA : {self.Media.host}').classes('self-center')
             with ui.row().classes('self-center'):
                 ui.label(f'width: {str(self.Media.scale_width)}')
                 ui.label(f'height: {str(self.Media.scale_height)}')
@@ -191,15 +234,26 @@ class CastCenter:
                         capture_cast = ui.button(icon='cast').classes('m-4')
                         capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
 
-                card_video = ui.card().classes('w-1/3')
-                card_video.set_visibility(True)
-                with card_video:
-                    with ui.row().classes('self-center'):
-                        ui.icon('folder',size='xl',color='yellow').on('click',lambda: self.pick_file()).style('cursor: pointer').classes('m-4')
-                        self.video = ui.input('enter file name ')
-                        ui.number('repeat',min=-1,max=99, value=self.Media.repeat).bind_value(self.Media,'repeat')
-                        video_cast = ui.button(icon='cast').classes('m-4')
-                        video_cast.on('click', lambda : self.cast_class(self.Media, 'Video'))
+                ui.separator().style('width: 2px; height: 200px; background-color: red;')
+
+                with ui.column().classes('w-1/3'):
+                    with ui.row().classes('w-full'):
+                        ui.space()
+                        ui.icon('cancel_presentation', size='lg', color='red') \
+                            .on('click', lambda: setattr(self.Media, 'stopcast', True)) \
+                            .style('cursor: pointer')
+
+                    card_video = ui.card().classes('w-full')
+                    card_video.set_visibility(True)
+                    with card_video:
+                        with ui.row().classes('self-center'):
+                            ui.icon('folder',size='xl',color='yellow').on('click',lambda: self.pick_file()).style('cursor: pointer').classes('m-4')
+                            self.video = ui.input('enter file name ')
+                            ui.number('repeat',min=-1,max=99, value=self.Media.repeat).bind_value(self.Media,'repeat')
+                            video_cast = ui.button(icon='cast').classes('m-4')
+                            video_cast.on('click', lambda : self.cast_class(self.Media, 'Video'))
+
+                ui.separator().style('width: 2px; height: 200px; background-color: red;')
 
                 card_yt = ui.card().tight().classes('w-1/3')
                 card_yt.props('flat')
@@ -210,7 +264,10 @@ class CastCenter:
                         yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4')
                         yt_icon.style('cursor:pointer')
                         yt_icon.on('click', lambda: self.search_yt())
-                        self.yt_input = ui.input()
+                        self.yt_input = ui.input('enter url')
+                        yt_cancel = ui.icon('disabled_visible',size='sm', color='red').classes('m-4')
+                        yt_cancel.style('cursor:pointer')
+                        yt_cancel.on('click', lambda: self.yt_area.set_visibility(False))
                         yt_cast = ui.button(icon='cast').classes('m-4')
                         yt_cast.on('click', lambda : self.cast_class(self.Media, 'Youtube'))
 
@@ -237,11 +294,17 @@ class CastCenter:
                 tool_capture.props('flat')
                 with tool_capture:
                     ui.button('Devices', on_click=self.upd_devices)
+
+                ui.separator().style('width: 2px; height: 40px; background-color: red;')
+
                 tool_text = ui.card().tight().classes('w-1/3')
                 tool_text.set_visibility(True)
                 tool_text.props('flat')
                 with tool_text:
                     ui.button('Fonts', on_click=CastCenter.view_fonts)
+
+                ui.separator().style('width: 2px; height: 40px; background-color: red;')
+
                 tool_win = ui.card().tight().classes('w-1/3')
                 tool_win.set_visibility(True)
                 tool_win.props('flat')

@@ -1492,7 +1492,7 @@ async def video_player_page():
                 .on('click', lambda: manage_visibility(True)) \
                 .tooltip("Show Video player")
 
-            ui.icon('cancel_presentation', color='red', size='md') \
+            ui.icon('disabled_visible', color='red', size='md') \
                 .style("cursor: pointer") \
                 .on('click', lambda: manage_visibility(False)) \
                 .tooltip("Hide Video player")
