@@ -12,14 +12,13 @@ from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
-
 class CastCenter:
-    def __init__(self, iDesktop, iMedia, iCastAPI, it_data_buffer):
+    def __init__(self, Desktop, Media, CastAPI, t_data_buffer):
 
-        self.Desktop = iDesktop
-        self.Media = iMedia
-        self.CastAPI = iCastAPI
-        self.Queue = it_data_buffer
+        self.Desktop = Desktop
+        self.Media = Media
+        self.CastAPI = CastAPI
+        self.Queue = t_data_buffer
         self.win = None
         self.device = None
         self.video = None
@@ -182,7 +181,7 @@ class CastCenter:
                         desktop_cast = ui.button(icon='cast').classes('m-4')
                         desktop_cast.on('click', lambda : self.cast_class(self.Desktop, 'Desktop'))
 
-                ui.separator().style('width: 2px; height: 200px; background-color: red;')
+                ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
                 with ui.column().classes('w-1/3'):
                     with ui.row().classes('w-full'):
@@ -201,7 +200,7 @@ class CastCenter:
                             area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))
 
 
-                ui.separator().style('width: 2px; height: 200px; background-color: red;')
+                ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
                 card_window = ui.card().classes('w-1/3')
                 card_window.props('flat')
@@ -234,7 +233,7 @@ class CastCenter:
                         capture_cast = ui.button(icon='cast').classes('m-4')
                         capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
 
-                ui.separator().style('width: 2px; height: 200px; background-color: red;')
+                ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
                 with ui.column().classes('w-1/3'):
                     with ui.row().classes('w-full'):
@@ -253,7 +252,7 @@ class CastCenter:
                             video_cast = ui.button(icon='cast').classes('m-4')
                             video_cast.on('click', lambda : self.cast_class(self.Media, 'Video'))
 
-                ui.separator().style('width: 2px; height: 200px; background-color: red;')
+                ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
                 card_yt = ui.card().tight().classes('w-1/3')
                 card_yt.props('flat')
@@ -324,10 +323,14 @@ class CastCenter:
                 ui.label('SETTINGS')
             ui.separator().props(add='size=8px')
 
+
             with ui.row(wrap=False):
                 ui.icon('computer', size='lg')
                 ui.label('DESKTOP')
                 ui.checkbox('Preview').bind_value(self.Desktop,'preview')
+            capture_methode = ui.select(options=['av','mss'], label='Capture Method').style(add='width:120px')
+            capture_methode.bind_value(self.Desktop,'capture_methode')
+
 
             ui.separator()
             with ui.row():
@@ -374,11 +377,11 @@ class CastCenter:
 
 
 if __name__ == "__main__":
-    from mainapp import Desktop, Media, CastAPI, t_data_buffer
+    from mainapp import Desktop as Dk, Media as Md, CastAPI as Api, t_data_buffer as queue
     from nicegui import app
 
     app.add_static_files('/assets',cfg_mgr.app_root_path('assets'))
-    cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
+    cast_app = CastCenter(Dk, Md, Api, queue)
 
     print('start main')
     @ui.page('/')

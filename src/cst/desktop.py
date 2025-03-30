@@ -260,7 +260,7 @@ class CASTDesktop:
         mss
         """
         mss_window_name = ''
-        monitor = self.monitor_number
+        monitor = int(self.monitor_number)
 
         """
         """
