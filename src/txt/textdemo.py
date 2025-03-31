@@ -7,12 +7,11 @@ from src.txt.textanimator import TextAnimator
 animator = TextAnimator(
     text="Basic scrolling text",
     width=640,
-    height=120,
-    speed=400,
+    height=200,
+    speed=300,
     font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
-    font_size=60,
+    font_size=120,
     direction="left",
-    effect='particle',
     color=(255, 255, 255), # White text
     fps=30
 )

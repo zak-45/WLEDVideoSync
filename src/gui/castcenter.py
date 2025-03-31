@@ -62,7 +62,6 @@ class CastCenter:
             self.video.update()
 
     async def search_yt(self):
-        print('search yt')
 
         self.yt_area.set_visibility(True)
         self.yt_area.classes('w-full border')
@@ -158,8 +157,7 @@ class CastCenter:
         timer created on main page run to refresh datas
         """
         ui.timer(int(cfg_mgr.app_config['timer']), callback=self.center_timer_action)
-
-
+        #
         ui.label('WLEDVideoSync CAST Center').classes('self-center')
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
@@ -198,7 +196,6 @@ class CastCenter:
                                 .tooltip('Select area from monitor')
                             area_cast = ui.button(icon='cast')
                             area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))
-
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -279,10 +276,7 @@ class CastCenter:
                 card_desktop = ui.card().tight().classes('w-1/3 self-center')
                 card_desktop.set_visibility(True)
                 with card_desktop:
-                    ui.label('card_text')
-                    ui.label('enter text')
-                    ui.label('go')
-
+                    txt_input = ui.input('Enter some text', placeholder='text enter').classes('w-full')
                 ui.label('select effect')
 
         with ui.card().classes('self-center w-full'):
@@ -310,7 +304,6 @@ class CastCenter:
                 with tool_win:
                     ui.button('Windows', on_click=self.upd_windows)
 
-
         # button for right menu show/hide
         with ui.page_sticky(position='top-left', y_offset=10, x_offset=-20):
             ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').props('flat')
@@ -323,14 +316,12 @@ class CastCenter:
                 ui.label('SETTINGS')
             ui.separator().props(add='size=8px')
 
-
             with ui.row(wrap=False):
                 ui.icon('computer', size='lg')
                 ui.label('DESKTOP')
                 ui.checkbox('Preview').bind_value(self.Desktop,'preview')
             capture_methode = ui.select(options=['av','mss'], label='Capture Method').style(add='width:120px')
             capture_methode.bind_value(self.Desktop,'capture_methode')
-
 
             ui.separator()
             with ui.row():
