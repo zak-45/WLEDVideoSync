@@ -136,6 +136,7 @@ class TextAnimator:
         self.explode_pre_delay = explode_pre_delay * fps  # Delay before explosion in frames
         self.particles = [{"position": [np.random.randint(0, self.width), np.random.randint(0, self.height)],
                         "velocity": [np.random.uniform(-1, 1), np.random.uniform(-1, 1)]} for _ in range(50)]
+        self.frame_counter = 0  # Added line
 
         # Initialize font using PIL
         self.init_font()
@@ -152,6 +153,21 @@ class TextAnimator:
 
         self.paused = False
         self.last_frame_time = time.perf_counter()
+
+
+    def update(self):
+        # Initialize font using PIL
+        self.init_font()
+
+        # Initialize effect parameters
+        self.effect_params = self.init_effect_params()
+
+        # Initialize text image
+        self.logger.debug("Initializing TextAnimator")
+        self.text_image = self.create_text_image()
+
+        # Initialize scrolling positions based on direction
+        self.initialize_scrolling()
 
 
     def init_font(self):
@@ -279,6 +295,7 @@ class TextAnimator:
             self.delta_x = -self.speed / self.fps
             self.delta_y = 0
 
+
     def init_effect_params(self):
         """Initializes parameters for text effects."""
 
@@ -300,7 +317,7 @@ class TextAnimator:
             ]
             params["current_color_index"] = 0
             params["color_change_interval"] = (
-                self.fps * self.color_change_interval
+                    self.fps * self.color_change_interval
             )  # Change color every 2 seconds
             params["color_change_counter"] = 0
         elif self.effect == "rainbow_cycle":
@@ -313,29 +330,22 @@ class TextAnimator:
             params["explode_counter"] = 0
             params["explode_speed"] = self.explode_speed  # Adjust explosion speed
             params["fragments"] = []  # Store exploded fragments
-            params["explode_pre_delay_frames"] = int(self.explode_pre_delay) # pre_delay in frames
+            params["explode_pre_delay_frames"] = int(self.explode_pre_delay)  # pre_delay in frames
         # Add wave effect
         elif self.effect == "wave":
             params["wave_counter"] = 0  # Start the wave effect counter
+            params["wave_amplitude"] = 10
+            params["wave_frequency"] = 0.1
         # Add shake effect
         elif self.effect == "shake":
             params["shake_counter"] = 0  # Start the shake effect counter
+            params["shake_amplitude"] = 5
+            params["shake_frequency"] = 0.2
         # Add scale effect
         elif self.effect == "scale":
             params["scale_counter"] = 0  # Start the scale effect counter
-        # Add rotate effect
-        elif self.effect == "rotate":
-            params["rotate_counter"] = 0  # Start the rotate effect counter
-        # Add slide effect
-        elif self.effect == "slide_in":
-            params["slide_counter"] = 0  # Start the slide effect counter
-        # Add zoom effect
-        elif self.effect == "zoom":
-            params["zoom_counter"] = 0  # Start the zoom effect counter
-        elif self.effect in ["fade_in", "fade_out"]:
-            params["fade_in"] = True
-            params["fade_out"] = False
-            params["fade_counter"] = 0
+            params["scale_amplitude"] = 0.1
+            params["scale_frequency"] = 0.1
 
         return params
 
@@ -359,16 +369,8 @@ class TextAnimator:
             self.apply_wave_effect()
         elif self.effect == "scale":
             self.apply_scale_effect()
-        elif self.effect == "rotate":
-            self.apply_rotate_effect()
-        elif self.effect == "slide_in":
-            self.apply_slide_in_effect()
-        elif self.effect == "zoom":
-            self.apply_zoom_effect()
         elif self.effect == "particle":
             self.apply_particle_effect()
-        elif self.effect in ["fade_in", "fade_out"]:
-            self.apply_fade_effect()
 
 
     def enable_dynamic_text(self, text_sequence, interval):
@@ -444,77 +446,24 @@ class TextAnimator:
         self.x_pos += shake_amplitude * math.sin(self.effect_params["shake_counter"] * shake_frequency)
         self.effect_params["shake_counter"] += 0.1
 
+
     def apply_scale_effect(self):
-        """Scales the text up and down."""
-        scale_factor = 1 + 0.5 * math.sin(self.effect_params["scale_counter"])
-        self.text_image = self.text_image.resize(
-            (int(self.text_image.width * scale_factor), int(self.text_image.height * scale_factor)),
-            Image.ANTIALIAS)
-        self.effect_params["scale_counter"] += 0.1
+        """Applies the scale effect to the text image."""
+        if self.effect == "scale":
+            scale_factor = 1 + self.effect_params["scale_amplitude"] * math.sin(
+                self.effect_params["scale_frequency"] * self.frame_counter
+            )
+            new_width = int(self.width * scale_factor)
+            new_height = int(self.height * scale_factor)
 
-    def apply_rotate_effect(self):
-        """Rotates the text."""
-        angle = self.effect_params["rotate_counter"] * 5  # Rotate 5 degrees per step
-        rotated_text = self.text_image.rotate(angle, expand=True)
-        self.text_image = rotated_text
-        self.effect_params["rotate_counter"] += 0.1
+            # Replace Image.ANTIALIAS with Image.Resampling.LANCZOS
+            resized_image = self.text_image.resize(
+                (new_width, new_height),
+                Image.Resampling.BICUBIC  # Use LANCZOS for antialiasing
+            )
 
-    def apply_slide_in_effect(self):
-        """Slides the text into the frame from one direction."""
-        slide_speed = 5
-        if self.direction == "left":
-            self.x_pos += slide_speed
-        elif self.direction == "right":
-            self.x_pos -= slide_speed
-        elif self.direction == "up":
-            self.y_pos += slide_speed
-        elif self.direction == "down":
-            self.y_pos -= slide_speed
+            self.text_image = resized_image
 
-    def apply_zoom_effect(self):
-        """Zooms the text in and out."""
-        zoom_speed = 0.05  # Controls the speed of the zoom
-        zoom_in_limit = 1.5  # Maximum zoom-in size
-        zoom_out_limit = 0.5  # Minimum zoom-out size
-
-        # Sinusoidal zoom for smooth transition
-        zoom_factor = 1 + (math.sin(self.effect_params["zoom_counter"]) * 0.5)
-
-        # Clamp the zoom factor to the desired range (zoom in/out)
-        zoom_factor = max(min(zoom_factor, zoom_in_limit), zoom_out_limit)
-
-        # Apply the zoom effect
-        self.text_image = self.text_image.resize(
-            (int(self.text_image.width * zoom_factor), int(self.text_image.height * zoom_factor)),
-            Image.ANTIALIAS
-        )
-
-        # Update the counter to animate the zoom in/out
-        self.effect_params["zoom_counter"] += zoom_speed
-
-    def apply_fade_effect(self):
-        """Applies fade-in and fade-out effects with looping capability."""
-        fade_duration = self.fps * 2  # Adjust fade duration (in frames)
-
-        # Calculate the fade factor (0.0 to 1.0)
-        if self.effect_params.get("fade_in"):
-            fade_factor = min(1.0, self.effect_params["fade_counter"] / fade_duration)
-            if fade_factor >= 1.0:
-                self.select_fade_effect(False, True)
-        elif self.effect_params.get("fade_out"):
-            fade_factor = max(0.0, 1.0 - (self.effect_params["fade_counter"] / fade_duration))
-            if fade_factor <= 0.0:
-                self.select_fade_effect(True, False)
-        else:
-            return
-
-        self.effect_params["fade_counter"] += 1
-        self.text_image = self.create_text_image(opacity=fade_factor)
-
-    def select_fade_effect(self, f_in, f_out):
-        self.effect_params["fade_in"] = f_in
-        self.effect_params["fade_out"] = f_out
-        self.effect_params["fade_counter"] = 0
 
     def apply_particle_effect(self):
         """Adds particles around the text for a sparkly effect."""
@@ -596,6 +545,8 @@ class TextAnimator:
 
         current_time = time.perf_counter()
         elapsed_time = current_time - self.last_frame_time
+
+        self.frame_counter += 1  # Added line
 
         if elapsed_time >= 1.0 / self.fps:
             self.last_frame_time = current_time

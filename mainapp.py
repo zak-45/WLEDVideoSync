@@ -1487,15 +1487,22 @@ async def video_player_page():
                     open_wled.bind_visibility_from(CastAPI.player)
 
         with ui.row().classes('self-center'):
-            ui.icon('switch_video', color='blue', size='md') \
-                .style("cursor: pointer") \
-                .on('click', lambda: manage_visibility(True)) \
-                .tooltip("Show Video player")
+            show_player = ui.icon('switch_video', color='blue', size='xl')
+            show_player.style("cursor: pointer")
+            show_player.on('click', lambda: manage_visibility(True))
+            show_player.tooltip("Show Video player")
+            show_player.bind_visibility_from(CastAPI.player, backward=lambda v: not v)
 
-            ui.icon('disabled_visible', color='red', size='md') \
-                .style("cursor: pointer") \
-                .on('click', lambda: manage_visibility(False)) \
-                .tooltip("Hide Video player")
+            hide_player = ui.icon('disabled_visible', color='red', size='sm').classes('m-1')
+            hide_player.style("cursor: pointer")
+            hide_player.on('click', lambda: manage_visibility(False))
+            hide_player.tooltip("Hide Video player")
+            hide_player.bind_visibility_from(CastAPI.player)
+
+            cast_number = ui.number(min=-1, max=9999, precision=0, placeholder='Repeat')
+            cast_number.tooltip('Enter number of time you want to re-cast Media')
+            cast_number.bind_value(Media, 'repeat')
+            cast_number.bind_visibility_from(CastAPI.player)
 
             ui.icon('cast', size='md') \
                 .style("cursor: pointer") \
@@ -1503,18 +1510,13 @@ async def video_player_page():
                 .tooltip('Play/Cast Video') \
                 .bind_visibility_from(CastAPI.player)
 
-            cast_number = ui.number(min=-1, max=9999, precision=0, placeholder='Repeat')
-            cast_number.tooltip('Enter number of time you want to re-cast Media')
-            cast_number.bind_value(Media, 'repeat')
-            cast_number.bind_visibility_from(CastAPI.player)
-
             ui.icon('info', size='sd') \
                 .style("cursor: pointer") \
                 .on('click', lambda: nice.player_media_info(CastAPI.player.source)) \
                 .tooltip('Media Info') \
                 .bind_visibility_from(CastAPI.player)
 
-            ui.icon('folder', color='orange', size='md') \
+            ui.icon('folder', color='orange', size='md').classes('m-4') \
                 .style("cursor: pointer") \
                 .on('click', lambda: player_set_file()) \
                 .tooltip('Select audio / video file') \
@@ -1524,12 +1526,12 @@ async def video_player_page():
                 .bind_visibility_from(CastAPI.player)
             video_img_url.tooltip('Enter Url, select icon to download video/image, or stream video')
             video_img_url.on('focus', js_handler='''(event) => {const input = event.target;input.select();}''')
-            video_stream_icon = ui.icon('published_with_changes')
+            video_stream_icon = ui.icon('published_with_changes', size='sm')
             video_stream_icon.style("cursor: pointer")
             video_stream_icon.tooltip("stream from Url")
             video_stream_icon.on('click', lambda: validate_player_url())
             video_stream_icon.bind_visibility_from(CastAPI.player)
-            video_url_icon = ui.icon('file_download')
+            video_url_icon = ui.icon('file_download', size='sm')
             video_url_icon.style("cursor: pointer")
             video_url_icon.tooltip("Download video/image from Url")
             video_url_icon.on('click', lambda: player_set_url(video_img_url.value))

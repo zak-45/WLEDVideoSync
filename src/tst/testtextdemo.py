@@ -58,15 +58,15 @@ common_params = {
 animator = TextAnimator(
     **common_params,
 )
-animator.speed = 100
 show_animation(animator, window_name="Scrolling Left")
 
 # 2. Basic Scrolling (Up)
 animator = TextAnimator(
     **common_params,
 )
-animator.speed = 100
+animator.speed = 200
 animator.direction = "up"
+animator.update()
 show_animation(animator, window_name="Scrolling Up")
 
 # 3. Blink Effect
@@ -77,6 +77,7 @@ animator = TextAnimator(
 )
 animator.text = "Scrolling blink text"
 animator.color = (0, 255, 255)
+animator.update()
 show_animation(animator, window_name="Blink Effect")
 
 # 4. Color Cycle Effect
@@ -91,7 +92,6 @@ animator = TextAnimator(
     **common_params,
     effect="rainbow_cycle",
 )
-
 show_animation(animator, window_name="Rainbow Cycle Effect", num_frames=300)
 
 # 6. Wave Effect
@@ -100,6 +100,7 @@ animator = TextAnimator(
     effect="wave",
 )
 animator.color = (0, 255, 0)
+animator.update()
 show_animation(animator, window_name="Wave Effect")
 
 # 7. Shake Effect
@@ -108,6 +109,7 @@ animator = TextAnimator(
     effect="shake",
 )
 animator.color = (255, 0, 255)
+animator.update()
 show_animation(animator, window_name="Shake Effect")
 
 # 8. Scale Effect
@@ -116,40 +118,9 @@ animator = TextAnimator(
     effect="scale",
 )
 animator.color = (0, 0, 255)
+animator.update()
 show_animation(animator, window_name="Scale Effect")
 
-# 9. Rotate Effect
-animator = TextAnimator(
-    **common_params,
-    effect="rotate",
-)
-animator.color = (255, 255, 0)
-show_animation(animator, window_name="Rotate Effect")
-
-# 10. Slide In Effect
-animator = TextAnimator(
-    **common_params,
-    effect="slide_in",
-)
-animator.color = (255, 165, 0)
-show_animation(animator, window_name="Slide In Effect")
-
-# 11. Zoom Effect
-animator = TextAnimator(
-    **common_params,
-    effect="zoom",
-)
-animator.color = (128, 0, 128)
-show_animation(animator, window_name="Zoom Effect")
-
-# 12. Fade Effect
-animator = TextAnimator(
-    **common_params,
-    effect="fade",
-    opacity=0.8,
-)
-animator.color = (255, 0, 0)
-show_animation(animator, window_name="Fade Effect")
 
 # 13. Particle Effect
 animator = TextAnimator(
@@ -157,6 +128,7 @@ animator = TextAnimator(
     effect="particle",
 )
 animator.color = (0, 128, 0)
+animator.update()
 show_animation(animator, window_name="Particle Effect")
 
 # 14. Explode Effect
@@ -167,25 +139,9 @@ animator = TextAnimator(
     explode_pre_delay=1,
 )
 animator.color = (0, 0, 255)
+animator.update()
 show_animation(animator, window_name="Explode Effect", num_frames=150)
 
-# 15. Diagonal Scrolling (Down Right)
-animator = TextAnimator(
-    **common_params,
-)
-animator.speed = 80
-animator.direction = "down_right"
-animator.color = (255, 165, 0)
-show_animation(animator, window_name="Diagonal Scrolling (Down Right)", num_frames=300)
-
-# 16. Diagonal Scrolling (Up Left)
-animator = TextAnimator(
-    **common_params,
-)
-animator.speed = 80
-animator.direction = "up_left"
-animator.color = (255, 165, 0)
-show_animation(animator, window_name="Diagonal Scrolling (Up Left)", num_frames=300)
 
 # 17. Centered Text
 animator = TextAnimator(
@@ -194,6 +150,7 @@ animator = TextAnimator(
 )
 animator.speed = 50
 animator.color = (255, 255, 0)
+animator.update()
 show_animation(animator, window_name="Centered Text")
 
 # 18. Right-Aligned Text
@@ -204,6 +161,7 @@ animator = TextAnimator(
 animator.speed = 40
 animator.direction = "up"
 animator.color = (0, 255, 255)
+animator.update()
 show_animation(animator, window_name="Right-Aligned Text")
 
 # 19. Shadow Effect
@@ -213,17 +171,21 @@ animator = TextAnimator(
     shadow_color=(128, 128, 128),  # Gray shadow
     shadow_offset=(2, 5),
 )
+animator.update()
 show_animation(animator, window_name="Shadow Effect")
 
 # 20. Background Color
 animator = TextAnimator(
     **common_params,
-    speed=75,
-    direction="right",
     bg_color=(0, 255, 255),  # Light blue background
-    color=(0, 0, 0),  # Black text
+
 )
-show_animation(animator, window_name="Background Color", num_frames=300)
+animator.speed = 300
+animator.direction="right"
+animator.color = (255, 0, 255)
+animator.update()
+show_animation(animator, window_name="Background Color", num_frames=450)
+
 
 # 21. Transparent Background
 animator = TextAnimator(
@@ -232,18 +194,21 @@ animator = TextAnimator(
     opacity=0.7,
     color=(255, 0, 255),  # Magenta
 )
+animator.update()
 show_animation(animator, window_name="Transparent Background", num_frames=250)
+
 
 # 22. Pausing the animation
 animator = TextAnimator(
     **common_params,
-    speed=70,
-    color=(128, 0, 128),  # Purple
 )
-for i in range(300):
-    if i == 100:  # Pause at frame 100
+animator.color = (255, 0, 255)
+animator.speed = 300
+animator.update()
+for i in range(800):
+    if i in [100, 300, 500]:  # Pause at frame 100
         animator.pause()
-    elif i == 200:  # Resume at frame 200
+    elif i in [200, 400, 600]:  # Resume at frame 200
         animator.resume()
 
     frame = animator.generate()
@@ -253,26 +218,3 @@ for i in range(300):
 
 cv2.destroyAllWindows()
 animator.stop()
-
-# 23. Combining shadow with fade effect
-animator = TextAnimator(
-    **common_params,
-    effect="fade",
-    shadow=True,
-    shadow_color=(100, 100, 100),  # Dark gray shadow
-    shadow_offset=(4, 4),
-    opacity=0.9,  # Initial opacity
-    color=(255, 255, 0),  # Yellow
-)
-show_animation(animator, window_name="Shadow Fade", num_frames=200)
-
-# 24. Combining blink and color cycle effects
-animator = TextAnimator(
-    **common_params,
-    effect="blink",  # Try also with just color_cycle, or fade
-)
-animator.effect_params.update(animator.init_effect_params())  # re-initialize to add color cycle
-animator.effect = "color_cycle"  # set the effect to color cycle
-animator.effect_params.update(animator.init_effect_params())  # re-initialize to add fade
-animator.effect = "fade"  # set the effect to fade
-show_animation(animator, window_name="Blinking Color Cycling", num_frames=300)

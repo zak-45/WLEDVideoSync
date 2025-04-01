@@ -158,7 +158,7 @@ class CastCenter:
         """
         ui.timer(int(cfg_mgr.app_config['timer']), callback=self.center_timer_action)
         #
-        ui.label('WLEDVideoSync CAST Center').classes('self-center')
+        ui.label('WLEDVideoSync CAST Center').classes('self-center mb-4 text-red-900 text-2xl font-extrabold  dark:text-white md:text-4xl lg:text-5xl')
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
                 self.desktop_status = ui.icon('cast_connected', size='sm', color='green')
@@ -244,7 +244,7 @@ class CastCenter:
                     with card_video:
                         with ui.row().classes('self-center'):
                             ui.icon('folder',size='xl',color='yellow').on('click',lambda: self.pick_file()).style('cursor: pointer').classes('m-4')
-                            self.video = ui.input('enter file name ')
+                            self.video = ui.input('enter url / file name ')
                             ui.number('repeat',min=-1,max=99, value=self.Media.repeat).bind_value(self.Media,'repeat')
                             video_cast = ui.button(icon='cast').classes('m-4')
                             video_cast.on('click', lambda : self.cast_class(self.Media, 'Video'))
@@ -260,7 +260,7 @@ class CastCenter:
                         yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4')
                         yt_icon.style('cursor:pointer')
                         yt_icon.on('click', lambda: self.search_yt())
-                        self.yt_input = ui.input('enter url')
+                        self.yt_input = ui.input('enter YT url')
                         yt_cancel = ui.icon('disabled_visible',size='sm', color='red').classes('m-4')
                         yt_cancel.style('cursor:pointer')
                         yt_cancel.on('click', lambda: self.yt_area.set_visibility(False))
