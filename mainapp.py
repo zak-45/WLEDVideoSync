@@ -88,6 +88,18 @@ action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
 """
+Define root page based on ini
+"""
+if cfg_mgr.app_config['init_screen'].lower() == 'simple':
+    main_page_url = '/main'
+    cast_center_url = '/'
+    root_page = '/Cast-Center'
+else:
+    main_page_url = '/'
+    cast_center_url = '/Cast-Center'
+    root_page = '/'
+
+"""
 Actions to do at application initialization 
 """
 async def init_actions():
@@ -947,7 +959,7 @@ NiceGUI
 """
 
 
-@ui.page('/')
+@ui.page(main_page_url)
 async def main_page():
     """
     Root page definition
@@ -1145,7 +1157,12 @@ async def main_page():
             with ui.card().classes('w-1/3'):
                 ui.button('System', on_click=sys_stats_info_page)
         CastAPI.charts_row.set_visibility(False)
-        ui.button('Center', on_click=lambda: ui.navigate.to('/Cast-Center'))
+        root_page_url = Utils.root_page()
+        if root_page_url == '/Cast-Center':
+            go_to_url = '/'
+        else:
+            go_to_url = '/Cast-Center'
+        ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url))
         ui.button('Fonts', on_click=font_select, color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('Pyeditor'), color='bg-red-800')
         ui.button('shutdown', on_click=app.shutdown)
@@ -2238,7 +2255,7 @@ async def stop_app():
     ui.button('ShutDown', on_click=app.shutdown).classes('flex h-screen m-auto')
 
 
-@ui.page('/Cast-Center')
+@ui.page(cast_center_url)
 async def cast_center_page():
     await cast_app.setup_ui()
 

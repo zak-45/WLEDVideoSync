@@ -78,6 +78,14 @@ class CASTUtils:
         pass
 
     @staticmethod
+    def root_page():
+        if cfg_mgr.app_config['init_screen'].lower() == 'simple':
+            root_page = '/Cast-Center'
+        else:
+            root_page = '/'
+        return root_page
+
+    @staticmethod
     async def select_sc_area(class_obj):
         """ with mouse, draw rectangle to monitor x """
 

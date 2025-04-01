@@ -5,6 +5,7 @@ from src.gui.tkinter_fonts import *
 from nicegui import ui, run, app
 from src.gui.niceutils import edit_protocol, edit_rate_x_y, apply_custom, edit_ip, edit_artnet, LocalFilePicker, \
     YtSearch
+from src.tst.test import root_url
 from src.utl.utils import CASTUtils as Utils
 from src.utl.winutil import windows_names
 from str2bool import str2bool
@@ -359,7 +360,12 @@ class CastCenter:
                 with ui.list().props('bordered'):
                     with ui.slide_item('Expert Mode') as slide_item:
                         with slide_item.right():
-                            ui.button('RUN', on_click=lambda: ui.navigate.to('/'))
+                            root_page_url = Utils.root_page()
+                            if root_page_url == '/Cast-Center':
+                                go_to_url = '/main'
+                            else:
+                                go_to_url = '/'
+                            ui.button('RUN', on_click=lambda: ui.navigate.to(go_to_url))
 
                 with ui.list().props('bordered'):
                     with ui.slide_item('ShutDown') as slide_item:
