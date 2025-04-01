@@ -175,7 +175,7 @@ class CastCenter:
                 card_desktop.props('flat')
                 card_desktop.set_visibility(True)
                 with card_desktop:
-                    ui.image('assets/desktop.png').style('width:100px;height:100px;').classes('self-center')
+                    ui.image('assets/desktop.png').classes('self-center').tailwind.border_width('4').width('1/5')
                     with ui.row().classes('self-center'):
                         monitor = ui.number('Monitor', value=0, min=-1, max=1)
                         monitor.bind_value(self.Desktop, 'monitor_number')
@@ -213,7 +213,7 @@ class CastCenter:
                 card_window.props('flat')
                 card_window.set_visibility(True)
                 with card_window:
-                    ui.image('assets/windows.png').style('width:100px;height:100px;').classes('self-center')
+                    ui.image('assets/windows.png').classes('self-center').tailwind.border_width('4').width('1/5')
                     with ui.row().classes('self-center'):
                         self.win = ui.select(['** click WINDOWS to refresh **'], label='Select Window')
                         self.win.classes('w-40')
@@ -233,7 +233,7 @@ class CastCenter:
                 card_capture.props('flat')
                 card_capture.set_visibility(True)
                 with card_capture:
-                    ui.image('assets/camera.png').style('width:100px;height:100px;').classes('self-center')
+                    ui.image('assets/camera.png').classes('self-center').tailwind.border_width('4').width('1/5')
                     with ui.row().classes('self-center'):
                         self.device = ui.select(['** click DEVICES to refresh **'], label='Select Device')
                         self.device.classes('w-40')
@@ -272,7 +272,7 @@ class CastCenter:
                 card_yt.props('flat')
                 card_yt.set_visibility(True)
                 with card_yt:
-                    ui.image('assets/youtube.png').style('width:100px;height:100px;').classes('self-center')
+                    ui.image('assets/youtube.png').classes('self-center').tailwind.border_width('4').width('1/5')
                     with ui.row(wrap=False).classes('self-center'):
                         yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4')
                         yt_icon.style('cursor:pointer')

@@ -126,7 +126,12 @@ async def head_menu(name, target, icon):
         ui.icon(icon)
         # Create buttons
         if name != 'Main':
-            ui.button('Main', on_click=lambda: ui.navigate.to('/'), icon='home')
+            root_page_url = Utils.root_page()
+            if root_page_url == '/Cast-Center':
+                go_to_url = '/main'
+            else:
+                go_to_url = '/'
+            ui.button('Main', on_click=lambda: ui.navigate.to(go_to_url), icon='home')
         if name != 'Manage':
             ui.button('Manage', on_click=lambda: ui.navigate.to('/Manage'), icon='video_settings')
         if name != 'Desktop Params':
