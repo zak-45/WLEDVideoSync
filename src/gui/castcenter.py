@@ -3,11 +3,12 @@ import asyncio
 import src.gui.tkinter_fonts
 from src.gui.tkinter_fonts import *
 from nicegui import ui, run, app
-from src.gui.niceutils import edit_protocol, edit_rate_x_y, apply_custom, edit_ip, edit_artnet, LocalFilePicker, \
-    YtSearch
+from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet, apply_custom
+from src.gui.niceutils import LocalFilePicker, YtSearch
 from src.utl.utils import CASTUtils as Utils
 from src.utl.winutil import windows_names
 from str2bool import str2bool
+from src.gui.niceutils import AnimatedElement as Animate
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
@@ -57,16 +58,15 @@ class CastCenter:
 
         if result is not None:
             result = str(result[0])
-
             self.video.set_value(result)
             self.video.update()
 
     async def search_yt(self):
-
+        self.yt_area.clear()
         self.yt_area.set_visibility(True)
         self.yt_area.classes('w-full border')
         with self.yt_area:
-            YtSearch(self.yt_input, 'anime')
+            YtSearch(self.yt_input, True)
 
     @staticmethod
     async def view_fonts():
@@ -158,6 +158,9 @@ class CastCenter:
         """
         ui.timer(int(cfg_mgr.app_config['timer']), callback=self.center_timer_action)
         #
+        """
+        Center page creation
+        """
         ui.label('WLEDVideoSync CAST Center').classes('self-center mb-4 text-red-900 text-2xl font-extrabold  dark:text-white md:text-4xl lg:text-5xl')
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
@@ -191,7 +194,14 @@ class CastCenter:
                     card_area = ui.card().classes('w-full')
                     card_area.set_visibility(True)
                     with card_area:
-                        with ui.row().classes('self-center'):
+
+                        if str2bool(cfg_mgr.custom_config['animate_ui']):
+                            row_area_anim = Animate(ui.row, animation_name_in='backInDown', duration=1)
+                            row_area = row_area_anim.create_element()
+                        else:
+                            row_area = ui.row()
+
+                        with row_area.classes('self-center'):
                             ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(self.Desktop)) \
                                 .tooltip('Select area from monitor')
                             area_cast = ui.button(icon='cast')
@@ -242,7 +252,14 @@ class CastCenter:
                     card_video = ui.card().classes('w-full')
                     card_video.set_visibility(True)
                     with card_video:
-                        with ui.row().classes('self-center'):
+
+                        if str2bool(cfg_mgr.custom_config['animate_ui']):
+                            row_video_anim = Animate(ui.row, animation_name_in='backInUp', duration=1)
+                            row_video = row_video_anim.create_element()
+                        else:
+                            row_video = ui.row()
+
+                        with row_video.classes('self-center'):
                             ui.icon('folder',size='xl',color='yellow').on('click',lambda: self.pick_file()).style('cursor: pointer').classes('m-4')
                             self.video = ui.input('enter url / file name ')
                             ui.number('repeat',min=-1,max=99, value=self.Media.repeat).bind_value(self.Media,'repeat')
@@ -306,7 +323,7 @@ class CastCenter:
 
         # button for right menu show/hide
         with ui.page_sticky(position='top-left', y_offset=10, x_offset=-20):
-            ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').props('flat')
+            ui.button(on_click=lambda: left_drawer.toggle(), icon='menu').classes('dark:bg-cyan-700').props('flat')
 
         with ui.left_drawer(fixed=False).classes('bg-cyan-700').props('bordered') as left_drawer:
             left_drawer.hide()
