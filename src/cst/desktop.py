@@ -61,6 +61,7 @@ from src.utl.multicast import MultiUtils as Multi
 from src.net.e131_queue import E131Queue
 from src.net.artnet_queue import ArtNetQueue
 from configmanager import ConfigManager
+from src.utl.winutil import get_window_rect
 
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
@@ -1154,7 +1155,7 @@ class CASTDesktop:
 
                         elif t_viinput.lower().startswith('win='):
 
-                            rect = Utils.get_window_rect(mss_window_name)
+                            rect = get_window_rect(mss_window_name)
 
                             if rect:
                                 left, top, width, height = rect

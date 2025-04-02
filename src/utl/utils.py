@@ -181,8 +181,8 @@ class CASTUtils:
                     cfg_mgr.logger.error(f"Invalid HTTP method: {method}")
                     return None, None # Return (None, None) for invalid method
 
-        except aiohttp.ClientError as e:
-            cfg_mgr.logger.error(f"API request error: {e}")
+        except aiohttp.ClientError as er:
+            cfg_mgr.logger.error(f"API request error: {er}")
             return None, None
 
     @staticmethod
@@ -805,7 +805,7 @@ class CASTUtils:
             try:
                 import av
 
-                with av.logging.Capture(True) as logs:  # this will capture av output
+                with av.logging.Capture(True):  # this will capture av output
                     av.open('', 'r', format='avfoundation', options={'list_devices': 'True'})
 
             except Exception as error:
