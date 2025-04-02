@@ -30,7 +30,7 @@ import cv2
 from src.txt.textanimator import TextAnimator
 
 
-def show_animation(animator, num_frames=200, window_name="Animation"):
+def show_animation(animator, num_frames=250, window_name="Animation"):
     """Helper function to display the animation."""
     for _ in range(num_frames):
         frame = animator.generate()
@@ -44,13 +44,13 @@ def show_animation(animator, num_frames=200, window_name="Animation"):
 # Common parameters for all animations
 common_params = {
     "text": "WLEDVideoSync ROCK !",
-    "width": 800,
-    "height": 200,
+    "width": 320,
+    "height": 320,
     "font_path": "../../assets/Font/DejaVuSansCondensed.ttf",
-    "font_size": 60,
+    "font_size": 180,
     "color": (255, 255, 255),  # White text
-    "fps": 30,
-    "speed": 100,
+    "fps": 25,
+    "speed": 250,
     "direction": "left"
 }
 
@@ -190,10 +190,10 @@ show_animation(animator, window_name="Background Color", num_frames=450)
 # 21. Transparent Background
 animator = TextAnimator(
     **common_params,
-    speed=60,
-    opacity=0.7,
-    color=(255, 0, 255),  # Magenta
 )
+animator.speed=60
+animator.opacity=0.7
+animator.color = (255, 0, 255)  # Magenta
 animator.update()
 show_animation(animator, window_name="Transparent Background", num_frames=250)
 

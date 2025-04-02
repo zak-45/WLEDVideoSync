@@ -90,14 +90,16 @@ t_data_buffer = queue.Queue()  # create a thread safe queue
 """
 Define root page based on ini
 """
-if cfg_mgr.app_config['init_screen'].lower() == 'simple':
-    main_page_url = '/main'
-    cast_center_url = '/'
-    root_page = '/Cast-Center'
-else:
-    main_page_url = '/'
-    cast_center_url = '/Cast-Center'
-    root_page = '/'
+if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.app_config is not None:
+
+    if cfg_mgr.app_config['init_screen'].lower() == 'simple':
+        main_page_url = '/main'
+        cast_center_url = '/'
+        root_page = '/Cast-Center'
+    else:
+        main_page_url = '/'
+        cast_center_url = '/Cast-Center'
+        root_page = '/'
 
 """
 Actions to do at application initialization 
