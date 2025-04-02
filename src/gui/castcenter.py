@@ -1,14 +1,16 @@
 import asyncio
 
 import src.gui.tkinter_fonts
-from src.gui.tkinter_fonts import *
+
+from str2bool import str2bool
 from nicegui import ui, run, app
+
 from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet, apply_custom
 from src.gui.niceutils import LocalFilePicker, YtSearch
 from src.utl.utils import CASTUtils as Utils
 from src.utl.winutil import windows_names
-from str2bool import str2bool
 from src.gui.niceutils import AnimatedElement as Animate
+
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
@@ -391,7 +393,6 @@ class CastCenter:
 
 if __name__ == "__main__":
     from mainapp import Desktop as Dk, Media as Md, CastAPI as Api, t_data_buffer as queue
-    from nicegui import app
 
     app.add_static_files('/assets',cfg_mgr.app_root_path('assets'))
     cast_app = CastCenter(Dk, Md, Api, queue)

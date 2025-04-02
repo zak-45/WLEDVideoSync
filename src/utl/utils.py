@@ -13,16 +13,6 @@
 
 import contextlib
 import urllib.parse
-
-from str2bool import str2bool
-from pathlib import Path as PathLib
-
-try:
-    from yt_dlp import YoutubeDL as YTdl
-except Exception as e:
-    print(f'INFO : this is Not a YT version: {e}')
-
-
 import time
 import shelve
 import os
@@ -40,17 +30,25 @@ import ipaddress
 import requests
 import aiohttp
 import multiprocessing
-
 import av
 import cv2
 import numpy as np
 
-from src.gui.tkarea import ScreenAreaSelection as SCArea
+try:
+    from yt_dlp import YoutubeDL as YTdl
+except Exception as e:
+    print(f'INFO : this is Not a YT version: {e}')
+
+from str2bool import str2bool
+from pathlib import Path as PathLib
 from wled import WLED
 from zeroconf import ServiceBrowser, Zeroconf
 from nicegui import run
 from PIL import Image
 from coldtype.text.reader import Font
+
+from src.gui.tkarea import ScreenAreaSelection as SCArea
+
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')

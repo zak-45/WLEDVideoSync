@@ -64,14 +64,13 @@ Temporary File Handling:
     It also cleans up these temporary files on exit.
 
 """
+from nicegui import native
+from src.gui.niceutils import custom_openapi
 
 from mainapp import *
 
 # disable not used costly import (from nicegui)
 os.environ['MATPLOTLIB'] = 'false'
-
-import src.gui.niceutils
-from nicegui import native
 
 def cfg_settings(config_file, preview_subprocess, native_ui, native_size, first_run_os):
     """Update configuration settings based on OS and user preferences.
@@ -351,7 +350,7 @@ def run_gui():
     RUN
     """
     # settings
-    app.openapi = src.gui.niceutils.custom_openapi
+    app.openapi = custom_openapi
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     app.add_media_files('/media', cfg_mgr.app_root_path('media'))
     app.add_static_files('/log', cfg_mgr.app_root_path('log'))

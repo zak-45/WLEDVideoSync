@@ -15,20 +15,20 @@ import psutil
 import logging
 
 from fastapi.openapi.utils import get_openapi
-
 from nicegui import ui, events, run, app
 from datetime import datetime
 from str2bool import str2bool
 from asyncio import create_task
 from pytubefix import Search
+from PIL import Image
+from pathlib import Path
+from typing import Optional
 
 from src.txt.fontsmanager import FontSetApplication
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils
 from src.utl.cv2utils import VideoThumbnailExtractor
-from PIL import Image
-from pathlib import Path
-from typing import Optional
+
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')

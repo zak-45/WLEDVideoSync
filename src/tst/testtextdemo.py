@@ -27,6 +27,7 @@ Optional Parameters:
 """
 
 import cv2
+
 from src.txt.textanimator import TextAnimator
 
 

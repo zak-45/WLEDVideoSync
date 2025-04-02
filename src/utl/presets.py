@@ -4,12 +4,15 @@ import configparser
 import contextlib
 import ast
 import cfg_load as cfg
+
 from nicegui import ui
-from configmanager import ConfigManager
-from src.gui.niceutils import LocalFilePicker
 from str2bool import str2bool
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+from src.gui.niceutils import LocalFilePicker
+
+from configmanager import ConfigManager
+
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 
 """
 Filter preset mgr
