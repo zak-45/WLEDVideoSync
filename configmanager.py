@@ -308,10 +308,16 @@ class ConfigManager:
                 logger = logging.getLogger('WLEDLogger')
             else:
                 logger = logging.getLogger(self.logger_name)
-            # take basename from config file and add root_path + log ( from the config file we want only the name )
+
+            # take basename from config file and add root_path + log ( from the config file we take only the name )
             # handler[0] should be stdout, handler[1] should be ConcurrentRotatingFileHandler
-            logger.handlers[1].baseFilename=self.app_root_path(f"log/{os.path.basename(logger.handlers[1].baseFilename)}")
-            logger.handlers[1].lockFilename=self.app_root_path(f"log/{os.path.basename(logger.handlers[1].lockFilename)}")
+            if 'ConcurrentRotatingFileHandler' in str(logger.handlers[1]):
+                #: change to new file location
+                logger.handlers[1].baseFilename = self.app_root_path(f"log/{os.path.basename(logger.handlers[1].baseFilename)}")
+                logger.handlers[1].lockFilename = self.app_root_path(f"log/{os.path.basename(logger.handlers[1].lockFilename)}")
+            else:
+                logger.error(f'ConcurrentRotatingFileHandler not found in key 1 : {str(logger.handlers)}')
+
             logger.debug(f"Logging configured using {self.logging_config_path} for {self.logger_name}")
 
         else:

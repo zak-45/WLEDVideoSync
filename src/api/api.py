@@ -15,10 +15,9 @@ from src.utl.presets import load_filter_preset, load_cast_preset
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
+from configmanager import ConfigManager
 
 from src.utl.winutil import *
-
-from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 

@@ -13,7 +13,7 @@ from src.gui.niceutils import AnimatedElement as Animate
 
 from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
 
 class CastCenter:
     def __init__(self, Desktop, Media, CastAPI, t_data_buffer):

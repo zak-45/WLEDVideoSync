@@ -31,15 +31,15 @@ import cv2
 from src.txt.textanimator import TextAnimator
 
 
-def show_animation(animator, num_frames=250, window_name="Animation"):
+def show_animation(my_animator, num_frames=250, window_name="Animation"):
     """Helper function to display the animation."""
     for _ in range(num_frames):
-        frame = animator.generate()
-        if frame is not None:
-            cv2.imshow(window_name, frame)
-            cv2.waitKey(int(1000 / animator.fps))
+        my_frame = my_animator.generate()
+        if my_frame is not None:
+            cv2.imshow(window_name, my_frame)
+            cv2.waitKey(int(1000 / my_animator.fps))
     cv2.destroyAllWindows()
-    animator.stop()
+    my_animator.stop()
 
 
 # Common parameters for all animations
@@ -65,9 +65,11 @@ show_animation(animator, window_name="Scrolling Left")
 animator = TextAnimator(
     **common_params,
 )
-animator.speed = 200
+animator.text = "Wled"
+animator.speed = 100
+animator.font_size=140
 animator.direction = "up"
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Scrolling Up")
 
 # 3. Blink Effect
@@ -78,7 +80,7 @@ animator = TextAnimator(
 )
 animator.text = "Scrolling blink text"
 animator.color = (0, 255, 255)
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Blink Effect")
 
 # 4. Color Cycle Effect
@@ -101,7 +103,7 @@ animator = TextAnimator(
     effect="wave",
 )
 animator.color = (0, 255, 0)
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Wave Effect")
 
 # 7. Shake Effect
@@ -110,7 +112,7 @@ animator = TextAnimator(
     effect="shake",
 )
 animator.color = (255, 0, 255)
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Shake Effect")
 
 # 8. Scale Effect
@@ -119,7 +121,7 @@ animator = TextAnimator(
     effect="scale",
 )
 animator.color = (0, 0, 255)
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Scale Effect")
 
 
@@ -129,7 +131,7 @@ animator = TextAnimator(
     effect="particle",
 )
 animator.color = (0, 128, 0)
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Particle Effect")
 
 # 14. Explode Effect
@@ -140,7 +142,7 @@ animator = TextAnimator(
     explode_pre_delay=1,
 )
 animator.color = (0, 0, 255)
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Explode Effect", num_frames=150)
 
 
@@ -151,7 +153,7 @@ animator = TextAnimator(
 )
 animator.speed = 50
 animator.color = (255, 255, 0)
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Centered Text")
 
 # 18. Right-Aligned Text
@@ -162,7 +164,7 @@ animator = TextAnimator(
 animator.speed = 40
 animator.direction = "up"
 animator.color = (0, 255, 255)
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Right-Aligned Text")
 
 # 19. Shadow Effect
@@ -172,7 +174,7 @@ animator = TextAnimator(
     shadow_color=(128, 128, 128),  # Gray shadow
     shadow_offset=(2, 5),
 )
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Shadow Effect")
 
 # 20. Background Color
@@ -184,7 +186,7 @@ animator = TextAnimator(
 animator.speed = 300
 animator.direction="right"
 animator.color = (255, 0, 255)
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Background Color", num_frames=450)
 
 
@@ -195,7 +197,7 @@ animator = TextAnimator(
 animator.speed=60
 animator.opacity=0.7
 animator.color = (255, 0, 255)  # Magenta
-animator.update()
+animator.apply()
 show_animation(animator, window_name="Transparent Background", num_frames=250)
 
 
@@ -205,7 +207,7 @@ animator = TextAnimator(
 )
 animator.color = (255, 0, 255)
 animator.speed = 300
-animator.update()
+animator.apply()
 for i in range(800):
     if i in [100, 300, 500]:  # Pause at frame 100
         animator.pause()

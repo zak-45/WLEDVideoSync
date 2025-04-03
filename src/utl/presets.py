@@ -12,15 +12,15 @@ from src.gui.niceutils import LocalFilePicker
 
 from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.presets')
 
 """
 Filter preset mgr
 """
 
-
 def manage_filter_presets(class_name, class_obj):
     """ Manage presets"""
+
     ui.button('save preset', on_click=lambda: save_filter_preset(class_name, class_obj)).classes('w-20')
     ui.button('load preset', on_click=lambda: load_filter_preset(class_name, class_obj)).classes('w-20')
 

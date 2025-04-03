@@ -27,7 +27,7 @@ from datetime import datetime
 from str2bool import str2bool
 from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(config_file='config/WLEDVideoSync.ini',logger_name='WLEDLogger.cv2utils')
+cfg_mgr = ConfigManager(config_file='config/WLEDVideoSync.ini',logger_name='WLEDLogger.api')
 
 class CV2Utils:
     """Provides utility functions for OpenCV (cv2) operations.

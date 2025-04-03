@@ -103,6 +103,8 @@ class TextAnimator:
         color_change_interval: int = 1,  # Color change interval in seconds
         explode_pre_delay: float = 0.0  # Delay before explosion in seconds
     ):
+        self.text_image = None
+        self.effect_params = None
         self.font = None
         self.next_text_change = None
         self.text_index = None
@@ -138,24 +140,13 @@ class TextAnimator:
                         "velocity": [np.random.uniform(-1, 1), np.random.uniform(-1, 1)]} for _ in range(50)]
         self.frame_counter = 0  # Added line
 
-        # Initialize font using PIL
-        self.init_font()
-
-        # Initialize effect parameters
-        self.effect_params = self.init_effect_params()
-
-        # Initialize text image
-        self.logger.debug("Initializing TextAnimator")
-        self.text_image = self.create_text_image()
-
-        # Initialize scrolling positions based on direction
-        self.initialize_scrolling()
-
+        self.apply()
+        
         self.paused = False
         self.last_frame_time = time.perf_counter()
 
 
-    def update(self):
+    def apply(self):
         # Initialize font using PIL
         self.init_font()
 

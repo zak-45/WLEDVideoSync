@@ -183,8 +183,8 @@ if __name__ == '__main__':
     # Example usage with both effects
     # final_clip = animator.create_animation(effects=[animator.effect1, animator.effect2])
     # Example usage with only effect1
-    animator.show_in_real_time(effects=[animator.effect2, animator.effect4, animator.effect5], durations=[5,5,2])
-    my_final_clip = animator.create_animation(effects=[animator.effect2, animator.effect4, animator.effect5], durations=[5,5,2])
-    # my_final_clip = animator.create_animation(durations=2)
-    my_final_clip.ipython_display()
+    # animator.show_in_real_time(effects=[animator.effect2, animator.effect4, animator.effect5], durations=[5,5,2])
+    # animator.create_animation(effects=[animator.effect2], durations=[5])
+    animator.show_in_real_time(effects=[animator.effect1, animator.effect5], durations=[5,5])
+    # my_final_clip.ipython_display()
 

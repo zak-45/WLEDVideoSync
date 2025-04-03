@@ -51,18 +51,21 @@ from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
 
 from src.utl.presets import *
-from src.utl.api import *
+from src.api.api import *
 
-Desktop = desktop.CASTDesktop()
-Media = media.CASTMedia()
-Netdevice = Net()
+from configmanager import ConfigManager
+
+cfg_mgr = ConfigManager(logger_name='WLEDLogger.main')
 
 PLATFORM = sys.platform.lower()
-
 
 if PLATFORM == 'win32':
     from asyncio import WindowsSelectorEventLoopPolicy
     set_event_loop_policy(WindowsSelectorEventLoopPolicy())
+
+Desktop = desktop.CASTDesktop()
+Media = media.CASTMedia()
+Netdevice = Net()
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
@@ -1679,7 +1682,7 @@ async def player_duration():
     ui.notify(f'Video duration:{current_duration}')
     Media.player_duration = current_duration
     CastAPI.video_slider._props["max"] = current_duration
-    CastAPI.video_slider.update()
+    CastAPI.video_slider.apply()
 
 
 def charts_select():
@@ -2224,7 +2227,7 @@ async def bar_get_size():
 
     while Utils.yt_file_size_remain_bytes != 0:
         CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
-        CastAPI.progress_bar.update()
+        CastAPI.progress_bar.apply()
         await sleep(.1)
 
 # do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
