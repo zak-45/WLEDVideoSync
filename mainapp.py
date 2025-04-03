@@ -1682,7 +1682,7 @@ async def player_duration():
     ui.notify(f'Video duration:{current_duration}')
     Media.player_duration = current_duration
     CastAPI.video_slider._props["max"] = current_duration
-    CastAPI.video_slider.apply()
+    CastAPI.video_slider.update()
 
 
 def charts_select():
@@ -2227,7 +2227,7 @@ async def bar_get_size():
 
     while Utils.yt_file_size_remain_bytes != 0:
         CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
-        CastAPI.progress_bar.apply()
+        CastAPI.progress_bar.update()
         await sleep(.1)
 
 # do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
