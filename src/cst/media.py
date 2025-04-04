@@ -22,23 +22,20 @@ import errno
 
 import threading
 import concurrent.futures
-import traceback
 import numpy as np
 import cv2
 import time
 
-from src.utl import actionutils
-from str2bool import str2bool
 from asyncio import run as as_run
 from multiprocessing.shared_memory import ShareableList
-from src.net.ddp_queue import DDPDevice
-from src.utl.utils import CASTUtils as Utils
-from src.utl.cv2utils import CV2Utils, ImageUtils
 from src.utl.multicast import IPSwapper
 from src.utl.multicast import MultiUtils as Multi
-from configmanager import ConfigManager
 from src.net.e131_queue import E131Queue
 from src.net.artnet_queue import ArtNetQueue
+
+from src.utl.actionutils import *
+
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.media')
 
@@ -615,29 +612,29 @@ class CASTMedia:
                 CASTMedia.t_media_lock.acquire()
                 cfg_mgr.logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
                 # will read cast_name_todo list and see if something to do
-                t_todo_stop, t_preview = actionutils.execute_actions(CASTMedia,
-                                                                     frame,
-                                                                     t_name,
-                                                                     t_viinput,
-                                                                     t_scale_width,
-                                                                     t_scale_height,
-                                                                     t_multicast,
-                                                                     ip_addresses,
-                                                                     ddp_host,
-                                                                     t_cast_x,
-                                                                     t_cast_y,
-                                                                     start_time,
-                                                                     t_todo_stop,
-                                                                     t_preview,
-                                                                     frame_interval,
-                                                                     frame_count,
-                                                                     media_length,
-                                                                     swapper,
-                                                                     shared_buffer,
-                                                                     self.frame_buffer,
-                                                                     self.cast_frame_buffer,
-                                                                     cfg_mgr.logger,
-                                                                     t_protocol)
+                t_todo_stop, t_preview = execute_actions(CASTMedia,
+                                                             frame,
+                                                             t_name,
+                                                             t_viinput,
+                                                             t_scale_width,
+                                                             t_scale_height,
+                                                             t_multicast,
+                                                             ip_addresses,
+                                                             ddp_host,
+                                                             t_cast_x,
+                                                             t_cast_y,
+                                                             start_time,
+                                                             t_todo_stop,
+                                                             t_preview,
+                                                             frame_interval,
+                                                             frame_count,
+                                                             media_length,
+                                                             swapper,
+                                                             shared_buffer,
+                                                             self.frame_buffer,
+                                                             self.cast_frame_buffer,
+                                                             cfg_mgr.logger,
+                                                             t_protocol)
                 # if list is empty, no more for any cast
                 if len(CASTMedia.cast_name_todo) == 0:
                     CASTMedia.t_todo_event.clear()

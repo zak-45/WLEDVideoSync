@@ -180,6 +180,7 @@ jobs:
             PIL.ImageFont
             PIL.ImageFilter
             webbrowser
+            schedule
 
           include-data-dir: |
             tmp=tmp

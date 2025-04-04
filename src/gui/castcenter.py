@@ -1,3 +1,45 @@
+"""
+a: zak-45
+d: 01/04/2025
+v: 1.0.0
+
+Overview
+This Python file defines the user interface and logic for a casting application built using NiceGUI.
+It allows users to stream desktop, window, area, camera, video file, or YouTube content to a WLED device.
+The application supports various settings like preview, capture method, protocol, IP address, ArtNet configuration,
+ and frame rate. It also provides tools to refresh device and window lists and view available fonts.
+
+Key Components
+
+CastCenter Class:
+    This class is the core of the file, managing the UI and casting logic.
+    It interacts with Desktop, Media, and CastAPI classes (presumably defined elsewhere) to handle different casting types.
+
+Key methods include:
+
+    validate(): Retrieves WLED matrix dimensions and updates the UI.
+    upd_windows() and upd_devices(): Refreshes the lists of available windows and video devices.
+    pick_file(): Opens a file picker to select a video file.
+    search_yt(): Integrates with YouTube to search for videos.
+    cast_class(): Starts the casting process based on the selected source and target.
+    cast_desktop() and cast_media(): Configure the respective classes for desktop and media casting.
+    center_timer_action(): Updates the status icons in the UI.
+    setup_ui(): Creates the NiceGUI user interface.
+
+
+External Libraries and Modules:
+
+    str2bool: Converts strings to boolean values.
+    nicegui: Provides the framework for the UI.
+    src.gui.niceutils: Contains utility functions for the UI.
+    src.utl.utils: Contains utility functions for casting operations.
+    src.utl.winutil: Provides functions for interacting with Windows.
+    configmanager: Manages application configuration.
+    Configuration Management: The ConfigManager class is used to load and access application settings.
+
+"""
+
+
 import asyncio
 
 import src.gui.tkinter_fonts
@@ -13,7 +55,7 @@ from src.gui.niceutils import AnimatedElement as Animate
 
 from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
+cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 class CastCenter:
     def __init__(self, Desktop, Media, CastAPI, t_data_buffer):
@@ -75,6 +117,7 @@ class CastCenter:
         await run.cpu_bound(src.gui.tkinter_fonts.run)
 
     async def cast_class(self,class_obj, cast_type):
+
         class_name = 'unknown'
         if 'Desktop' in str(class_obj):
             class_name = 'Desktop'
@@ -182,7 +225,7 @@ class CastCenter:
                         monitor = ui.number('Monitor', value=0, min=-1, max=1)
                         monitor.bind_value(self.Desktop, 'monitor_number')
                         desktop_cast = ui.button(icon='cast').classes('m-4')
-                        desktop_cast.on('click', lambda : self.cast_class(self.Desktop, 'Desktop'))
+                        desktop_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Desktop, 'Desktop')))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -204,10 +247,10 @@ class CastCenter:
                             row_area = ui.row()
 
                         with row_area.classes('self-center'):
-                            ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(self.Desktop)) \
+                            ui.button('ScreenArea', on_click=lambda: asyncio.create_task(Utils.select_sc_area(self.Desktop))) \
                                 .tooltip('Select area from monitor')
                             area_cast = ui.button(icon='cast')
-                            area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))
+                            area_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Desktop, 'Area')))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -220,7 +263,7 @@ class CastCenter:
                         self.win = ui.select(['** click WINDOWS to refresh **'], label='Select Window')
                         self.win.classes('w-40')
                         win_cast = ui.button(icon='cast').classes('m-4')
-                        win_cast.on('click', lambda : self.cast_class(self.Desktop, 'Window'))
+                        win_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Desktop, 'Window')))
 
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
@@ -240,7 +283,7 @@ class CastCenter:
                         self.device = ui.select(['** click DEVICES to refresh **'], label='Select Device')
                         self.device.classes('w-40')
                         capture_cast = ui.button(icon='cast').classes('m-4')
-                        capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
+                        capture_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Media, 'Capture')))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -262,11 +305,11 @@ class CastCenter:
                             row_video = ui.row()
 
                         with row_video.classes('self-center'):
-                            ui.icon('folder',size='xl',color='yellow').on('click',lambda: self.pick_file()).style('cursor: pointer').classes('m-4')
+                            ui.icon('folder',size='xl',color='yellow').on('click',lambda: asyncio.create_task(self.pick_file())).style('cursor: pointer').classes('m-4')
                             self.video = ui.input('enter url / file name ')
                             ui.number('repeat',min=-1,max=99, value=self.Media.repeat).bind_value(self.Media,'repeat')
                             video_cast = ui.button(icon='cast').classes('m-4')
-                            video_cast.on('click', lambda : self.cast_class(self.Media, 'Video'))
+                            video_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Media, 'Video')))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -278,13 +321,13 @@ class CastCenter:
                     with ui.row(wrap=False).classes('self-center'):
                         yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4')
                         yt_icon.style('cursor:pointer')
-                        yt_icon.on('click', lambda: self.search_yt())
+                        yt_icon.on('click', lambda: asyncio.create_task(self.search_yt()))
                         self.yt_input = ui.input('enter YT url')
                         yt_cancel = ui.icon('disabled_visible',size='sm', color='red').classes('m-4')
                         yt_cancel.style('cursor:pointer')
                         yt_cancel.on('click', lambda: self.yt_area.set_visibility(False))
                         yt_cast = ui.button(icon='cast').classes('m-4')
-                        yt_cast.on('click', lambda : self.cast_class(self.Media, 'Youtube'))
+                        yt_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Media, 'Youtube')))
 
         self.yt_area = ui.scroll_area()
         self.yt_area.set_visibility(False)

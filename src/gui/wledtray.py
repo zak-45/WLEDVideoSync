@@ -115,6 +115,13 @@ def on_api():
     """
     select_win(f"http://{server_ip}:{server_port}/docs", f'WLEDVideoSync API: {server_port}')
 
+def on_center():
+    """
+    Open Cast Center
+    :return:
+    """
+    select_win(f"http://{server_ip}:{server_port}/Cast-Center", f'WLEDVideoSync Cast Center: {server_port}')
+
 def on_py():
     """
     Open Python Editor
@@ -169,6 +176,8 @@ pystray_menu = Menu(
     MenuItem('Player', on_player),
     Menu.SEPARATOR,
     MenuItem('API', on_api),
+    Menu.SEPARATOR,
+    MenuItem('Center', on_center),
     Menu.SEPARATOR,
     MenuItem('Cast details', on_details),
     MenuItem('Info', on_info),

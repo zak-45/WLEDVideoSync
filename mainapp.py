@@ -23,7 +23,7 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
-
+import asyncio
 import shelve
 import sys
 import queue
@@ -38,7 +38,6 @@ from asyncio import set_event_loop_policy,sleep,create_task
 from datetime import datetime
 from PIL import Image
 
-
 from src.cst import desktop, media
 from src.gui import niceutils as nice
 from src.utl.utils import HTTPDiscovery as Net
@@ -46,6 +45,7 @@ from src.gui.niceutils import LogElementHandler, apply_custom, media_dev_view_pa
 from src.gui.niceutils import YtSearch
 from src.gui.niceutils import AnimatedElement as Animate
 from src.gui.castcenter import CastCenter
+from src.gui.scheduler import Scheduler
 from src.txt.fontsmanager import FontPreviewManager
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
@@ -184,6 +184,8 @@ class CastAPI:
 
 # Instantiate Cast Center with Desktop and Media
 cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
+# Instantiate Scheduler with Desktop and Media
+schedule_app = Scheduler(Desktop, Media, CastAPI, t_data_buffer)
 # Instantiate API to pass Desktop and Media
 api_data = ApiData(Desktop, Media, Netdevice, t_data_buffer)
 
@@ -486,8 +488,7 @@ async def video_player_page():
             yt_format = cfg_mgr.custom_config['yt_format']
             yt_url = await Utils.get_yt_video_url(video_img_url.value, iformat=yt_format)
 
-            ui.notify(f'Player set to : {yt_url}')
-            cfg_mgr.logger.debug(f'Player set to : {yt_url}')
+            cfg_mgr.logger.info(f'Player set to : {yt_url}')
 
             # set video player media
             CastAPI.player.set_source(yt_url)
@@ -981,7 +982,7 @@ async def main_page_desktop():
                     ui.number('', value=Desktop.monitor_number, min=-1, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number', forward=lambda value: int(value or 0)) \
                         .tooltip('Enter monitor number')
-                    ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(Desktop)) \
+                    ui.button('ScreenArea', on_click=lambda: asyncio.create_task(Utils.select_sc_area(Desktop))) \
                         .tooltip('Select area from monitor')
 
             with ui.card():
@@ -1007,8 +1008,10 @@ async def main_page_desktop():
                 new_cast_devices = ui.input('Cast Devices', value=str(Desktop.cast_devices))
                 new_cast_devices.tooltip('Click on MANAGE to enter devices for Multicast')
                 new_cast_devices.on('focusout',
-                                    lambda: update_attribute_by_name('Desktop', 'cast_devices', new_cast_devices.value))
-                ui.button('Manage', on_click=lambda: nice.cast_device_manage(Desktop, Netdevice))
+                                    lambda: asyncio.create_task(update_attribute_by_name('Desktop',
+                                                                                         'cast_devices',
+                                                                                         new_cast_devices.value)))
+                ui.button('Manage', on_click=lambda: asyncio.create_task(nice.cast_device_manage(Desktop, Netdevice)))
 
             with ui.card():
                 await nice.edit_protocol(Desktop)
@@ -1183,7 +1186,9 @@ async def main_page_media():
 
             with ui.card():
                 new_viinput = ui.input('Input', value=str(Media.viinput))
-                new_viinput.on('focusout', lambda: update_attribute_by_name('Media', 'viinput', new_viinput.value))
+                new_viinput.on('focusout', lambda: asyncio.create_task(update_attribute_by_name('Media',
+                                                                                                'viinput',
+                                                                                                new_viinput.value)))
                 new_viinput.tooltip('Enter desired input : e.g 0..n / file name  etc ...')
                 new_preview = ui.checkbox('Preview')
                 new_preview.bind_value(Media, 'preview')
@@ -1213,8 +1218,10 @@ async def main_page_media():
                 new_cast_devices = ui.input('Cast Devices', value=str(Media.cast_devices))
                 new_cast_devices.tooltip('Click on MANAGE to enter devices for Multicast')
                 new_cast_devices.on('focusout',
-                                    lambda: update_attribute_by_name('Media', 'cast_devices', new_cast_devices.value))
-                ui.button('Manage', on_click=lambda: nice.cast_device_manage(Media, Netdevice))
+                                    lambda: asyncio.create_task(update_attribute_by_name('Media',
+                                                                                         'cast_devices',
+                                                                                         new_cast_devices.value)))
+                ui.button('Manage', on_click=lambda: asyncio.create_task(nice.cast_device_manage(Media, Netdevice)))
 
     ui.separator().classes('mt-6')
 
@@ -1398,7 +1405,7 @@ async def manage_font_page():
                     font_label = ui.label(list_font_name).classes("cursor-pointer hover:underline")
                     font_label.on(
                         "mouseover",
-                        lambda z=list_font_name, x=font_label: set_preview(fonts[z], x)
+                        lambda z=list_font_name, x=font_label: asyncio.create_task(set_preview(fonts[z], x))
                     )
                     font_label.on(
                         "mouseout",
@@ -1438,8 +1445,8 @@ async def manage_font_page():
 
         # slider for font size preview
         s_font_size = ui.slider(min=1, max=100, value=25,
-                                on_change=lambda var: set_preview(font_manager.selected_font_path,
-                                                                  font_manager.selected_font_label))
+                                on_change=lambda var: asyncio.create_task(set_preview(font_manager.selected_font_path,
+                                                                  font_manager.selected_font_label)))
 
         s_font_size.bind_value_to(font_manager,'font_size')
 
@@ -1492,6 +1499,11 @@ async def stop_app():
 async def cast_center_page():
     await cast_app.setup_ui()
 
+@ui.page('/Scheduler')
+async def scheduler_page():
+    await schedule_app.setup_ui()
+
+
 """
 helpers /Commons
 """
@@ -1513,6 +1525,7 @@ async def animate_toggle(img):
         img.classes('animate__animated animate__rubberBand')
 
     ui.notify(f'Animate :{cfg_mgr.custom_config["animate_ui"]}')
+
     cfg_mgr.logger.debug(f'Animate :{cfg_mgr.custom_config["animate_ui"]}')
 
 
@@ -1656,7 +1669,7 @@ def reset_sync():
     Media.cast_sync = False
     Media.auto_sync_delay = 30
     Media.add_all_sync_delay = 0
-    ui.notify('Reset Sync')
+    cfg_mgr.logger.info('Reset Sync')
 
 
 async def get_player_time():
@@ -1679,7 +1692,7 @@ async def player_duration():
     """
     await ui.context.client.connected()
     current_duration = await ui.run_javascript("document.querySelector('video').duration", timeout=2)
-    ui.notify(f'Video duration:{current_duration}')
+    cfg_mgr.logger.info(f'Video duration:{current_duration}')
     Media.player_duration = current_duration
     CastAPI.video_slider._props["max"] = current_duration
     CastAPI.video_slider.update()
@@ -1795,8 +1808,8 @@ async def cast_manage_page():
                 else:
                     my_col = 'green'
                 CastAPI.desktop_cast = ui.icon('cast', size='xl', color=my_col)
-                CastAPI.desktop_cast.on('click', lambda: auth_cast(Desktop))
-                CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop)) \
+                CastAPI.desktop_cast.on('click', lambda: asyncio.create_task(auth_cast(Desktop)))
+                CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: asyncio.create_task(init_cast(Desktop))) \
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
                     .tooltip('Initiate Desktop Cast')
@@ -1805,7 +1818,7 @@ async def cast_manage_page():
 
             ui.icon('stop_screen_share', size='xs', color='red') \
                 .style('cursor: pointer') \
-                .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
+                .on('click', lambda: asyncio.create_task(cast_stop(Desktop))).tooltip('Stop Cast')
 
             if str2bool(cfg_mgr.custom_config['animate_ui']):
                 animated_card = Animate(ui.card, animation_name_in="fadeInUp", duration=2)
@@ -1826,7 +1839,7 @@ async def cast_manage_page():
 
             ui.icon('stop_screen_share', size='xs', color='red') \
                 .style('cursor: pointer') \
-                .on('click', lambda: cast_stop(Media)).tooltip('Stop Cast')
+                .on('click', lambda: asyncio.create_task(cast_stop(Media))).tooltip('Stop Cast')
 
             with ui.column(align_items='end', wrap=False):
                 if Media.count > 0:
@@ -1836,8 +1849,8 @@ async def cast_manage_page():
                 else:
                     my_col = 'green'
                 CastAPI.media_cast = ui.icon('cast', size='xl', color=my_col)
-                CastAPI.media_cast.on('click', lambda: auth_cast(Media))
-                CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media)) \
+                CastAPI.media_cast.on('click', lambda: asyncio.create_task(auth_cast(Media)))
+                CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: asyncio.create_task(init_cast(Media))) \
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
                     .tooltip('Initiate Media Cast')
@@ -2094,7 +2107,7 @@ async def cast_to_wled(class_obj, image_number):
     """
 
     if not class_obj.wled:
-        ui.notify('No WLED device', type='negative', position='center')
+        ui.notify('Not a WLED device', type='negative', position='center')
         return
 
     if Utils.check_ip_alive(class_obj.host):
@@ -2152,26 +2165,26 @@ async def init_cast(class_obj):
     """
     class_obj.cast(shared_buffer=t_data_buffer)
     nice.cast_manage(CastAPI, Desktop, Media)
-    cfg_mgr.logger.debug(f'Run Cast for {str(class_obj)}')
-    ui.notify(f'Cast initiated for :{str(class_obj)}')
+    cfg_mgr.logger.info(f'Run Cast for {str(class_obj)}')
+    # ui.notify(f'Cast initiated for :{str(class_obj)}')
 
 
 async def cast_stop(class_obj):
     """ Stop cast """
 
     class_obj.stopcast = True
-    ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
+    # ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
     nice.cast_manage(CastAPI, Desktop, Media)
-    cfg_mgr.logger.debug(f' Stop Cast for {str(class_obj)}')
+    cfg_mgr.logger.info(f' Stop Cast for {str(class_obj)}')
 
 
 async def auth_cast(class_obj):
     """ Authorized cast """
 
     class_obj.stopcast = False
-    ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
+    # ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
     nice.cast_manage(CastAPI, Desktop, Media)
-    cfg_mgr.logger.debug(f' Cast auth. for {str(class_obj)}')
+    cfg_mgr.logger.info(f' Cast auth. for {str(class_obj)}')
 
 
 async def light_box_image(index, image, txt1, txt2, class_obj, buffer):

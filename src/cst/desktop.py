@@ -21,7 +21,7 @@
 # windows : ffmpeg -f gdigrab -framerate 30 -video_size 640x480 -show_region 1 -i desktop output.mkv
 # linux   : ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0+100,200 output.mp4
 # darwin  : ffmpeg -f avfoundation -i "<screen device index>:<audio device index>" output.mkv
-(ffmpeg -hide_banner -list_devices true -f avfoundation -i dummy)
+("ffmpeg -hide_banner -list_devices true -f avfoundation -i dummy")
 #
 # By using PyAV, ffmpeg do not need to be installed on the OS.
 # PyAV is a Pythonic binding for ffmpeg.
@@ -45,30 +45,24 @@ import concurrent.futures
 import contextlib
 import threading
 import cv2
-import traceback
 import numpy as np
 
-from src.utl import actionutils
-
 from multiprocessing.shared_memory import ShareableList
-from str2bool import str2bool
 from asyncio import run as as_run
-from src.net.ddp_queue import DDPDevice
-from src.utl.utils import CASTUtils as Utils
-from src.utl.cv2utils import CV2Utils, ImageUtils
 from src.utl.multicast import IPSwapper
 from src.utl.multicast import MultiUtils as Multi
 from src.net.e131_queue import E131Queue
 from src.net.artnet_queue import ArtNetQueue
-from configmanager import ConfigManager
 from src.utl.winutil import get_window_rect
-
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
 
-Process, Queue = Utils.mp_setup()
+from src.utl.actionutils import *
+
+from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
+Process, Queue = Utils.mp_setup()
 
 PLATFORM = sys.platform.lower()
 
@@ -339,29 +333,29 @@ class CASTDesktop:
             CASTDesktop.t_desktop_lock.acquire()
             cfg_mgr.logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
             # will read cast_name_todo list and see if something to do
-            i_todo_stop, i_preview = actionutils.execute_actions(CASTDesktop,
-                                                                 iframe,
-                                                                 t_name,
-                                                                 t_viinput,
-                                                                 t_scale_width,
-                                                                 t_scale_height,
-                                                                 t_multicast,
-                                                                 ip_addresses,
-                                                                 ddp_host,
-                                                                 t_cast_x,
-                                                                 t_cast_y,
-                                                                 start_time,
-                                                                 i_todo_stop,
-                                                                 i_preview,
-                                                                 t_fps,
-                                                                 frame_count,
-                                                                 media_length,
-                                                                 swapper,
-                                                                 shared_buffer,
-                                                                 self.frame_buffer,
-                                                                 self.cast_frame_buffer,
-                                                                 cfg_mgr.logger,
-                                                                 t_protocol)
+            i_todo_stop, i_preview = execute_actions(CASTDesktop,
+                                                         iframe,
+                                                         t_name,
+                                                         t_viinput,
+                                                         t_scale_width,
+                                                         t_scale_height,
+                                                         t_multicast,
+                                                         ip_addresses,
+                                                         ddp_host,
+                                                         t_cast_x,
+                                                         t_cast_y,
+                                                         start_time,
+                                                         i_todo_stop,
+                                                         i_preview,
+                                                         t_fps,
+                                                         frame_count,
+                                                         media_length,
+                                                         swapper,
+                                                         shared_buffer,
+                                                         self.frame_buffer,
+                                                         self.cast_frame_buffer,
+                                                         cfg_mgr.logger,
+                                                         t_protocol)
             # if list is empty, no more for any cast
             if len(CASTDesktop.cast_name_todo) == 0:
                 CASTDesktop.t_todo_event.clear()
@@ -459,9 +453,9 @@ class CASTDesktop:
 
                     send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
-                except Exception as er:
+                except Exception as err:
                     cfg_mgr.logger.error(traceback.format_exc())
-                    cfg_mgr.logger.error(f'{t_name} An exception occurred: {er}')
+                    cfg_mgr.logger.error(f'{t_name} An exception occurred: {err}')
                     raise ExitFromLoop
 
 
@@ -499,9 +493,9 @@ class CASTDesktop:
 
                             send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
-                        except Exception as er:
+                        except Exception as err:
                             cfg_mgr.logger.error(traceback.format_exc())
-                            cfg_mgr.logger.error(f'{t_name} An exception occurred: {er}')
+                            cfg_mgr.logger.error(f'{t_name} An exception occurred: {err}')
                             raise ExitFromLoop
 
                     # if multicast and only one IP
@@ -642,14 +636,14 @@ class CASTDesktop:
                     ],
                     name=sl_name_p)
 
-            except OSError as er:
-                if er.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
+            except OSError as err:
+                if err.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
                     cfg_mgr.logger.warning(f"Shared memory '{sl_name_p}' already exists. Attaching to it.")
                     i_sl = ShareableList(name=sl_name_p)
 
-            except Exception as er:
+            except Exception as err:
                 cfg_mgr.logger.error(traceback.format_exc())
-                cfg_mgr.logger.error(f'{t_name} Exception on shared list {sl_name_p} creation : {er}')
+                cfg_mgr.logger.error(f'{t_name} Exception on shared list {sl_name_p} creation : {err}')
 
             # run main_preview in another process
             # create a child process, so cv2.imshow() will run from its Main Thread

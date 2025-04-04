@@ -138,6 +138,8 @@ async def head_menu(name, target, icon):
             ui.button('Desktop Params', on_click=lambda: ui.navigate.to('/Desktop'), icon='computer')
         if name != 'Media Params':
             ui.button('Media Params', on_click=lambda: ui.navigate.to('/Media'), icon='image')
+        if name != 'Scheduler':
+            ui.button('Scheduler', on_click=lambda: ui.navigate.to('/Scheduler'), icon='more_time')
         if str2bool(cfg_mgr.app_config['fastapi_docs']):
             ui.button('API', on_click=lambda: ui.navigate.to('/docs', new_tab=True), icon='api')
         ui.icon('info', size='sm').on('click', lambda: app_info()).style('cursor:pointer')
@@ -897,7 +899,7 @@ class LocalFilePicker(ui.dialog):
     def __init__(self, directory: str, *,
                  upper_limit: Optional[str] = ...,
                  multiple: bool = False, show_hidden_files: bool = False, thumbs: bool = True,
-                 extension: Optional[str] = None) -> None:
+                 dir_filter: Optional[str] = None) -> None:
 
         super().__init__()
 
@@ -909,7 +911,7 @@ class LocalFilePicker(ui.dialog):
         else:
             self.upper_limit = Path(directory if upper_limit == ... else upper_limit).expanduser()
         self.show_hidden_files = show_hidden_files
-        self.extension = extension
+        self.filter = dir_filter
         # for the right click (thumb)
         self.supported_thumb_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff', '.avi', '.mkv', '.mp4', '.mov')
 
@@ -945,8 +947,8 @@ class LocalFilePicker(ui.dialog):
         self.update_grid()
 
     def update_grid(self) -> None:
-        if self.extension:
-            paths = list(self.path.glob(f'*{self.extension}'))
+        if self.filter:
+            paths = list(self.path.glob(f'*{self.filter}'))
         else:
             paths = list(self.path.glob('*'))
         if not self.show_hidden_files:

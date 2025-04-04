@@ -46,11 +46,12 @@ class RUNColdtype(multiprocessing.Process):
      redirects stdout and stderr to the log queue if provided,
      and then executes the Coldtype renderer.
      """
-    def __init__(self, script_file='', log_queue=None, shared_list_name=None):
+    def __init__(self, script_file='', log_queue=None, shared_list_name=None, no_view:bool = False):
         super().__init__()
         self.script_file = script_file
         self.log_queue = log_queue   # Optional log queue for console capture
         self.shared_list = ShareableList(name=shared_list_name) if shared_list_name else None
+        self.no_view = no_view
 
 
     def run(self):
@@ -82,7 +83,12 @@ class RUNColdtype(multiprocessing.Process):
             else:
                 editor = 'notepad'
             _, parser = Renderer.Argparser()
-            args =[self.script_file, "-kl", keyboard, "-wcs", "1", "-ec", editor, "-of", render_folder]
+            args =[self.script_file,
+                   "-kl", keyboard,
+                   "-wcs", "1",
+                   "-ec", editor,
+                   "-of", render_folder,
+                   "-nv", str(self.no_view)]
             print(f"Using arguments: {args}")
             params = parser.parse_args(args)
             renderer = Renderer(parser=params)
@@ -102,17 +108,17 @@ class RUNColdtype(multiprocessing.Process):
 
 
 if __name__ == "__main__":
-    process = RUNColdtype()
-    process.start()
+    cold = RUNColdtype()
+    cold.start()
 
     # Main process loop: Check if Coldtype is still alive
-    while process.is_alive():
+    while cold.is_alive():
         print("Main process can perform tasks here.")
         time.sleep(5)  # Wait 1 second before checking again
-        process.join()
+        cold.join()
 
 
     # Now that Coldtype is finished, we can exit the main process
     print("Coldtype process finished. Main process is now ending.")
-    # process.join()  # Ensure the Coldtype process is properly cleaned up
+    # cold.join()  # Ensure the Coldtype process is properly cleaned up
     print("Main process finished.")

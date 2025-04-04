@@ -22,7 +22,7 @@ from src.utl.console import ConsoleCapture
 from src.utl.utils import CASTUtils as Utils
 from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+cfg_mgr = ConfigManager()
 
 
 class PythonEditor:
@@ -32,7 +32,7 @@ class PythonEditor:
     providing the file path and log queue. Displays a notification
     indicating the file is running.
     """
-    def __init__(self, upload_folder=cfg_mgr.app_root_path('xtra/text')):
+    def __init__(self, upload_folder=cfg_mgr.app_root_path('xtra/text'), use_capture:bool = True, go_back: bool = True):
         """Initialize the PythonEditor.
 
         Sets up the initial state of the editor, including file name tracking,
@@ -46,8 +46,10 @@ class PythonEditor:
         self.py_run = None
         self.log_queue = None
         self.upload_folder = upload_folder
-
-        self.capture = ConsoleCapture(show_console=False)
+        self.use_capture = use_capture
+        if self.use_capture:
+            self.capture = ConsoleCapture(show_console=False)
+        self.go_back = go_back
 
     @staticmethod
     async def get_manager_queues():
@@ -83,8 +85,8 @@ class PythonEditor:
         providing the file path and log queue. Displays a notification
         indicating the file is running.
         """
-        my_python=RUNColdtype(script_file=self.editor_file.text, log_queue=self.capture.log_queue)
-        my_python.start()
+        src_python=RUNColdtype(script_file=self.editor_file.text, log_queue=self.capture.log_queue if self.use_capture else None)
+        src_python.start()
         cfg_mgr.logger.debug(f'File "{self.editor_file.text}" running in Coldtype.')
         ui.notify(f'File "{self.editor_file.text}" running in Coldtype. Wait ...', color='green')
 
@@ -150,7 +152,7 @@ class PythonEditor:
     async def pick_file_to_edit(self) -> None:
         """Select a file to edit."""
         if os.path.isdir(self.upload_folder):
-            pyfile = await LocalFilePicker(f'{self.upload_folder}', multiple=False, thumbs=False)
+            pyfile = await LocalFilePicker(f'{self.upload_folder}',multiple=False, thumbs=False)
             if pyfile:
                 pyfile = str(pyfile[0])
                 self.current_file = pyfile
@@ -170,16 +172,20 @@ class PythonEditor:
             Calculator()
 
 
-    def go_back(self):
-        self.capture.restore()
-        ui.navigate.back()
+    def do_go_back(self):
+        """Go back to the previous page."""
+        if self.use_capture:
+            self.capture.restore()
+        if self.go_back:
+            ui.navigate.back()
 
     async def setup_ui(self):
         """Set up the UI layout and actions."""
 
         # UI Layout
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
-        ui.button(icon='reply', on_click=self.go_back)
+        if self.go_back:
+            ui.button(icon='reply', on_click=self.do_go_back)
         with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):
 
             # Toolbar
@@ -216,19 +222,20 @@ class PythonEditor:
 
         ui.separator()
 
-        media_exp_param = ui.expansion('Console', icon='feed', value=False)
-        with media_exp_param.classes('w-full bg-sky-800 mt-2'):
-            self.capture.setup_ui()
+        if self.use_capture:
+            media_exp_param = ui.expansion('Console', icon='feed', value=False)
+            with media_exp_param.classes('w-full bg-sky-800 mt-2'):
+                self.capture.setup_ui()
 
 
-if __name__ in {"__main__", "__mp_main__"}:
+if __name__ == "__main__":
     from nicegui import app
 
     # NiceGUI app
     @ui.page('/')
     async def main_page_editor():
         # Instantiate and run the editor
-        editor_app = PythonEditor(upload_folder=cfg_mgr.app_root_path('xtra/text/coldtype'))
+        editor_app = PythonEditor(upload_folder=cfg_mgr.app_root_path('xtra/text'), go_back=False)
         await editor_app.setup_ui()
         ui.button('shutdown', on_click=app.shutdown).classes('self-center')
         print('Editor is running')
