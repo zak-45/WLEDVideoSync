@@ -164,6 +164,10 @@ class PythonEditor:
             cfg_mgr.logger.warning(f'Folder do not exist: {self.upload_folder}')
 
 
+    def get_text(self):
+        return self.editor_file.text
+
+
     @staticmethod
     async def show_calculator():
         """Display a calculator dialog."""

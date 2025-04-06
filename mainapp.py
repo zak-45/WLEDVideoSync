@@ -45,7 +45,8 @@ from src.gui.niceutils import LogElementHandler, apply_custom, media_dev_view_pa
 from src.gui.niceutils import YtSearch
 from src.gui.niceutils import AnimatedElement as Animate
 from src.gui.castcenter import CastCenter
-from src.gui.scheduler import Scheduler
+from src.utl.scheduler import Scheduler
+from src.gui.schedulergui import SchedulerGUI
 from src.txt.fontsmanager import FontPreviewManager
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
@@ -66,6 +67,9 @@ if PLATFORM == 'win32':
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
+
+if cfg_mgr.scheduler_config is not None and cfg_mgr.scheduler_config['enable']:
+    wled_scheduler=Scheduler()
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
@@ -94,6 +98,8 @@ async def init_actions():
     """ Done at start of app and before GUI available """
 
     cfg_mgr.logger.info(f'Main running {current_thread().name}')
+    cfg_mgr.logger.info(f'Root page : {root_page}')
+    cfg_mgr.logger.info(f"Scheduler enabled : {cfg_mgr.scheduler_config['enable']}")
 
     # Apply some default params only once
     if str2bool(cfg_mgr.app_config['init_config_done']) is not True:
@@ -184,8 +190,8 @@ class CastAPI:
 
 # Instantiate Cast Center with Desktop and Media
 cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
-# Instantiate Scheduler with Desktop and Media
-schedule_app = Scheduler(Desktop, Media, CastAPI, t_data_buffer)
+# Instantiate Cast Center with Desktop and Media
+scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer)
 # Instantiate API to pass Desktop and Media
 api_data = ApiData(Desktop, Media, Netdevice, t_data_buffer)
 
@@ -1501,7 +1507,11 @@ async def cast_center_page():
 
 @ui.page('/Scheduler')
 async def scheduler_page():
-    await schedule_app.setup_ui()
+    ui.dark_mode(CastAPI.dark_mode)
+
+    apply_custom()
+    await nice.head_menu(name='Scheduler', target='/Scheduler', icon='more_time')
+    await scheduler_app.setup_ui()
 
 
 """

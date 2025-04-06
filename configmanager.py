@@ -203,6 +203,7 @@ class ConfigManager:
         self.desktop_config = None
         self.ws_config = None
         self.text_config = None
+        self.scheduler_config = None
         self.logging_config_path = self.app_root_path(logging_config_path)
         self.config_file = self.app_root_path(config_file)
         self.logger_name = logger_name
@@ -272,10 +273,13 @@ class ConfigManager:
             self.ws_config = cast_config[6]  # websocket key
             self.text_config = cast_config[7]  # text anim key
             self.manager_config = cast_config[8]  # SL manager key
+            self.scheduler_config = cast_config[9]  # Scheduler key
 
         else:
             if self.logger is not None:
                 self.logger.debug('Config file not found')
+            else:
+                print('Config file not found')
 
         # create logger
         self.logger = self.setup_logging()
@@ -367,6 +371,7 @@ class ConfigManager:
         ws_config = cast_config.get('ws')
         text_config = cast_config.get('text')
         manager_config = cast_config.get('shared-list')
+        scheduler_config = cast_config.get('scheduler')
 
         return (server_config,
                 app_config,
@@ -376,4 +381,5 @@ class ConfigManager:
                 desktop_config,
                 ws_config,
                 text_config,
-                manager_config)
+                manager_config,
+                scheduler_config)
