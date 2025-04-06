@@ -62,6 +62,7 @@ from src.utl.actionutils import *
 from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
+
 Process, Queue = Utils.mp_setup()
 
 PLATFORM = sys.platform.lower()
@@ -646,7 +647,7 @@ class CASTDesktop:
                 cfg_mgr.logger.error(f'{t_name} Exception on shared list {sl_name_p} creation : {err}')
 
             # run main_preview in another process
-            # create a child process, so cv2.imshow() will run from its Main Thread
+            # create a child process, so cv2.imshow() will run from its own Main Thread
             w_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
             i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop', w_name,))
             i_sl_process.daemon = True

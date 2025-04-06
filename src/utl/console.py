@@ -1,9 +1,10 @@
 from nicegui import ui
-from src.utl.utils import  CASTUtils as Utils
+from src.utl.utils import CASTUtils as Utils
 import sys
 import threading
-import time
+from queue import Empty
 
+# mp is required
 Process, Queue = Utils.mp_setup()
 
 class ConsoleCapture:
@@ -50,14 +51,26 @@ class ConsoleCapture:
         if text.strip():
             self.log_queue.put(text.strip())  # Send to the queue
             # Write to the original stdout or stderr
-            if "Error" in text:
-                self.original_stderr.write(text)
+            if "Error" in text or "Traceback" in text:
+                self.original_stderr.write(f'{text}')
             else:
-                self.original_stdout.write(text)
+                self.original_stdout.write(f'{text}')
 
     def flush(self):
         """Flush method for compatibility."""
-        pass
+        self.original_stdout.flush()
+
+
+
+    def fileno(self):
+        return self.original_stdout.fileno()
+
+    def isatty(self):
+        """
+        Pretend to be a TTY.
+        This is needed for uvicorn to enable colored output.
+        """
+        return True  # Or False, depending on your needs
 
     def restore(self):
         """Restore original stdout and stderr."""
@@ -65,19 +78,19 @@ class ConsoleCapture:
         sys.stderr = self.original_stderr
         self.running = False
 
+
     def read_queue(self):
         """Continuously read from the queue and update the UI log."""
         while self.running:
             try:
-                while not self.log_queue.empty():
-                    log_message = self.log_queue.get()
-                    if self.log_ui is not None:
-                        self.log_ui.push(log_message)
+                log_message = self.log_queue.get(timeout=0.1)  # Use a timeout
+                if self.log_ui is not None:
+                    self.log_ui.push(log_message)
+            except Empty:
+                pass  # Ignore timeout exceptions
             except Exception as e:
-                self.original_stderr.write(f"Queue reading error: {e}\n")
+                self.original_stderr.write(f"Queue reading error: {e}")
                 self.restore()
-            time.sleep(0.1)  # Prevent busy waiting
-
 
 
 if __name__ in "__main__":
@@ -85,19 +98,16 @@ if __name__ in "__main__":
     @ui.page('/')
     async def main_page():
 
+        # console false to not generate ui now
         capture = ConsoleCapture(show_console=False)
 
-        with ui.column():
+        with ui.row():
             ui.button('Print Message', on_click=lambda: print('Hello from stdout!'))
             ui.button('Raise Exception', on_click=lambda: 1 / 0)
             ui.button('Send Custom Log', on_click=lambda: capture.log_queue.put("[INFO] Custom log message"))
             ui.button('Restore Console', on_click=capture.restore)
 
+        # generate console ui now
         capture.setup_ui()
 
-        # ui.context.client.on_disconnect(lambda: print('client disconnected'))
-        # ui.context.client.on_connect(lambda: print('client connected'))
-
-
     ui.run(reload=False)
-

@@ -75,15 +75,15 @@ class Scheduler:
         """
         while not self.bg_stop.is_set():
             try:
-                job_func, args, kwargs = self.job_queue.get(timeout=1)
+                job_func, args, kwargs = self.job_queue.get(timeout=.1)
                 job_thread = threading.Thread(target=job_func, args=args, kwargs=kwargs)
                 job_thread.daemon = True
                 job_thread.start()
-                cfg_mgr.logger.info(f'Scheduler run function: {job_func.__name__} in thread: {job_thread} '
+                cfg_mgr.logger.info(f'Scheduler run function: {job_func} in thread: {job_thread} '
                                     f'from worker: {threading.current_thread()}')
                 self.job_queue.task_done()
             except queue.Empty:
-                time.sleep(1)
+                pass
             except Exception as er:
                 cfg_mgr.logger.error(f'Error to run job in thread : {er}')
                 self.bg_stop.set()
@@ -157,7 +157,7 @@ class Scheduler:
 
 
 if __name__ == "__main__":
-    def test(name:str = 'default'):
+    def my_test(name:str = 'default'):
         cfg_mgr.logger.info(f'this is a test function using this value : {name}, '
                             f'running on : {threading.current_thread()}')
 
@@ -165,11 +165,11 @@ if __name__ == "__main__":
     # limit queue to 2 entries
     scheduler = Scheduler(num_workers=2, queue_size=2)
     # add some jobs
-    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, test, name='test1')
-    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, test, name='test2')
-    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, test, name='test3')
-    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, test, name='test4')
-    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, test)
+    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, my_test, name='test1')
+    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, my_test, name='test2')
+    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, my_test, name='test3')
+    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, my_test, name='test4')
+    scheduler.scheduler.every(4).seconds.do(scheduler.send_job_to_queue, my_test)
     # start scheduler
     cfg_mgr.logger.info('start scheduler')
     scheduler.start()
