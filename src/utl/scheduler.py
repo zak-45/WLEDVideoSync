@@ -79,7 +79,7 @@ class Scheduler:
                 job_thread = threading.Thread(target=job_func, args=args, kwargs=kwargs)
                 job_thread.daemon = True
                 job_thread.start()
-                cfg_mgr.logger.info(f'Scheduler run function: {job_func} in thread: {job_thread} '
+                cfg_mgr.logger.info(f'Scheduler run function: {job_func.__name__} in thread: {job_thread} '
                                     f'from worker: {threading.current_thread()}')
                 self.job_queue.task_done()
             except queue.Empty:
