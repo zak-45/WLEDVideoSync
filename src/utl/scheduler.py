@@ -46,6 +46,7 @@ from configmanager import ConfigManager
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger.scheduler')
 
+
 class Scheduler:
     """
     Manages and runs jobs asynchronously using a queue and multiple worker threads.
@@ -53,6 +54,7 @@ class Scheduler:
     This class uses the `schedule` library for scheduling tasks and a queue to handle job execution.
     It supports multiple worker threads to process jobs concurrently.
     """
+
     def __init__(self, num_workers=1, queue_size: int = 99):
         """
         Initializes the scheduler with a specified number of worker threads and queue size.
@@ -86,7 +88,6 @@ class Scheduler:
                 pass
             except Exception as er:
                 cfg_mgr.logger.error(f'Error to run job in thread : {er}')
-                self.bg_stop.set()
 
     def stop(self):
         """
@@ -106,8 +107,9 @@ class Scheduler:
         #
         cfg_mgr.logger.info(f'stop worker(s): {self.worker_threads}')
         cfg_mgr.logger.info(f'stop scheduler: {self.bg_thread}')
-        cfg_mgr.logger.info(f'Number of job(s) submitted : {len(self.scheduler.get_jobs())}')
-        cfg_mgr.logger.info(f'Name   of job(s) to run    : {self.scheduler.get_jobs()}')
+        jobs = self.scheduler.get_jobs()
+        cfg_mgr.logger.info(f'Number of job(s) submitted : {len(jobs)}')
+        cfg_mgr.logger.info(f'Name   of job(s) to run    : {jobs}')
 
     def start(self, delay=1):
         """
@@ -120,29 +122,34 @@ class Scheduler:
         if self.is_running:
             cfg_mgr.logger.error('Scheduler is already running')
             return
-        else:
-            self.bg_stop = threading.Event()
-            self.is_running = True
 
-            # Create and start multiple worker threads
-            self.worker_threads = []
-            for _ in range(self.num_workers):
-                worker_thread = threading.Thread(target=self.main_worker)
-                worker_thread.daemon = True
-                self.worker_threads.append(worker_thread)
-                worker_thread.start()
+        self.bg_stop = threading.Event()
+        self.is_running = True
 
-            class ScheduleThread(threading.Thread):
-                @classmethod
-                def run(cls):
-                    while not self.bg_stop.is_set():
-                        self.scheduler.run_pending()
-                        time.sleep(delay)
+        # Create and start multiple worker threads
+        self.worker_threads = []
+        for _ in range(self.num_workers):
+            worker_thread = threading.Thread(target=self.main_worker)
+            worker_thread.daemon = True
+            self.worker_threads.append(worker_thread)
+            worker_thread.start()
 
-            self.bg_thread = ScheduleThread()
-            self.bg_thread.daemon = True
-            self.bg_thread.start()
-            cfg_mgr.logger.info(f'start scheduler: {self.bg_thread}')
+        class ScheduleThread(threading.Thread):
+            def __init__(self, scheduler, bg_stop, delay):
+                super().__init__()
+                self.scheduler = scheduler
+                self.bg_stop = bg_stop
+                self.delay = delay
+                self.daemon = True
+
+            def run(self):
+                while not self.bg_stop.is_set():
+                    self.scheduler.run_pending()
+                    time.sleep(self.delay)
+
+        self.bg_thread = ScheduleThread(self.scheduler, self.bg_stop, delay)
+        self.bg_thread.start()
+        cfg_mgr.logger.info(f'start scheduler: {self.bg_thread}')
 
     def send_job_to_queue(self, job: Callable, *args, **kwargs):
         """
@@ -151,15 +158,16 @@ class Scheduler:
         Puts the specified job function and its arguments into the queue for asynchronous execution by a worker thread.
         """
         try:
-            self.job_queue.put((job, args, kwargs), block=False)  # Add block=False here
+            self.job_queue.put((job, args, kwargs), block=False)  # block=False to prevent blocking if the queue is full
         except queue.Full:
             cfg_mgr.logger.error(f'queue is full : {self.job_queue.qsize()}, no more entries accepted')
 
 
 if __name__ == "__main__":
-    def my_test(name:str = 'default'):
+    def my_test(name: str = 'default'):
         cfg_mgr.logger.info(f'this is a test function using this value : {name}, '
                             f'running on : {threading.current_thread()}')
+
 
     cfg_mgr.logger.info('start main')
     # limit queue to 2 entries

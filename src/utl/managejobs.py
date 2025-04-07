@@ -136,6 +136,7 @@ def load_jobs(filename, class_name="Jobs"):
         functions for listing, getting help, and searching jobs.
         """
         def __init__(self):
+            self._jobs = wrapped_jobs  # store jobs dict for internal access
             for name, job in wrapped_jobs.items():
                 setattr(self, name, job)
 
@@ -150,6 +151,10 @@ def load_jobs(filename, class_name="Jobs"):
 
         def search(self, query):
             return [name for name in self.names if query.lower() in name.lower()]
+
+        def get_job(self, name: str):
+            """Return job by name, or None if not found."""
+            return self._jobs.get(name)
 
         def __repr__(self):
             return f"<Jobs ({len(wrapped_jobs)} jobs): {', '.join(self.names)}>"
