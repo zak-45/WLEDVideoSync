@@ -87,11 +87,11 @@ jobs:
         if: matrix.os == 'macos-13'
         run: |
           brew uninstall --ignore-dependencies python@3.12
-          brew update
-          brew upgrade
-          brew cleanup          
           rm '/usr/local/bin/2to3-3.12'
           brew link --overwrite python@3.12
+          brew update
+          brew upgrade
+          brew cleanup
           brew install portaudio
           brew reinstall libsndfile
           brew install ffmpeg
