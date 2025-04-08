@@ -73,7 +73,6 @@ jobs:
         run: |
           brew update
           brew upgrade
-          brew link --overwrite python@3.12
           brew install portaudio
           brew reinstall libsndfile
           brew install ffmpeg
@@ -89,7 +88,7 @@ jobs:
         run: |
           brew update
           brew upgrade
-          brew unlink python && brew link --overwrite python
+          brew link --overwrite python@3.12
           brew install portaudio
           brew reinstall libsndfile
           brew install ffmpeg
