@@ -86,7 +86,7 @@ jobs:
       - name: MacOS specific Intel
         if: matrix.os == 'macos-13'
         run: |
-          brew uninstall python@3.12
+          brew uninstall --ignore-dependencies python@3.12
           brew update
           brew upgrade
           brew cleanup          
