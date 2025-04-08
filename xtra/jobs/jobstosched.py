@@ -13,7 +13,7 @@ Instruction:
     a defined job could not call another one, but you can define inside function
     pre-defined jobs are provided for Desktop, Media cast
 
-    this provides lots of power, so take care....
+    this give lots of power, so take care....
 
 """
 

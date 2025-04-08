@@ -45,33 +45,33 @@ External Dependencies: The code depends on several external libraries and module
     str2bool, custom modules like ConsoleCapture, apply_custom, Scheduler, and managejobs.
 
 """
-
-import re
-from datetime import datetime
-
 from nicegui import ui, app
 from str2bool import str2bool
 from datetime import datetime
 from src.utl.console import ConsoleCapture
 from src.gui.niceutils import apply_custom
 from src.utl.scheduler import Scheduler
+from src.gui.pyeditor import PythonEditor
 from src.utl.managejobs import *
 
-scheduler = Scheduler(num_workers=2, queue_size=9)
 cfg_mgr = ConfigManager()
+scheduler = Scheduler(num_workers=2, queue_size=9)
+schedule_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/scheduler/WLEDScheduler.py'),
+                               coldtype=False,
+                               use_capture=False,
+                               go_back=False)
 AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/jobstosched.py'))
+
+WLEDScheduler = scheduler.scheduler
 jobs = AllJobs()
 
-
-def format_job_descriptions(job_list):
+def format_job_descriptions(job_list, history=False):
     if not job_list:
         return "No jobs scheduled."
 
-    print(job_list)
-
     lines = []
     for job_str in job_list:
-        job_str = repr(job_str)
+        job_str = repr(job_str) if history else str(job_str)
         lines.append(job_str)
     return "\n".join(lines)
 
@@ -93,7 +93,13 @@ class SchedulerGUI:
         self.queue = t_data_buffer
 
     async def show_running(self):
-        print('show running')
+        with ui.dialog().props('full-width') as running_jobs:
+            running_jobs.open()
+            with ui.card().classes('w-full'):
+                with ui.textarea() as schedule_list:
+                    schedule_list.classes('w-full')
+                    schedule_list.set_value(format_job_descriptions(scheduler.scheduler.get_jobs(), history=True))
+                ui.button('close', on_click=running_jobs.close)
 
     async def setup_ui(self):
         """Sets up the user interface for the scheduler.
@@ -166,13 +172,13 @@ class SchedulerGUI:
                 if job_func is not None:
     
                     if period == 'second':
-                        scheduler.scheduler.every(interval).seconds.do(scheduler.send_job_to_queue, job_func)
+                        scheduler.scheduler.every(interval).seconds.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
                     elif period == 'minute':
-                        scheduler.scheduler.every(interval).minutes.do(scheduler.send_job_to_queue, job_func)
+                        scheduler.scheduler.every(interval).minutes.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
                     elif period == 'hour':
-                        scheduler.scheduler.every(interval).hours.do(scheduler.send_job_to_queue, job_func)
+                        scheduler.scheduler.every(interval).hours.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
                     elif period == 'day':
-                        scheduler.scheduler.every(interval).days.do(scheduler.send_job_to_queue, job_func)
+                        scheduler.scheduler.every(interval).days.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
                     elif period == 'week':
                         if day == 'monday':
                             scheduler.scheduler.every(interval).monday.at(time_str).do(scheduler.send_job_to_queue,
@@ -256,7 +262,7 @@ class SchedulerGUI:
                     scheduler_switch = ui.switch('activate', value=scheduler.is_running,
                                                  on_change=activate_scheduler)
                     scheduler_status = ui.icon('history', size='lg', color='yellow').on('click',
-                                                                                        lambda: self.show_running).style(
+                                                                                        lambda: self.show_running()).style(
                         'cursor:pointer')
         with ui.card().classes('self-center w-full'):
             with ui.row().classes('self-center w-full'):
@@ -305,6 +311,15 @@ class SchedulerGUI:
                 ui.space()
                 ui.button(icon='add_to_queue', on_click=add_one_time_job)
 
+        with ui.card().tight().classes('w-full').props('flat'):
+            with ui.row().classes('w-full'):
+                with ui.card().props('flat') as py_editor:
+                    py_editor.set_visibility(False)
+                    await schedule_editor.setup_ui()
+                ui.space()
+                ui.button('editor', on_click=lambda: py_editor.set_visibility(not py_editor.visible))
+
+
         with ui.card().classes('w-full'):
             with ui.row().classes('w-full'):
                 with ui.expansion(text='Scheduled Job(s)', icon='task',
@@ -329,12 +344,10 @@ if __name__ == "__main__":
 
     print('start main')
 
-
     @ui.page('/')
     async def main_page():
         print('main scheduler page')
         await schedule_app.setup_ui()
-
 
     ui.run(reload=False)
 

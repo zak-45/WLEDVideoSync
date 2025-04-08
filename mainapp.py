@@ -191,7 +191,7 @@ class CastAPI:
 # Instantiate Cast Center with Desktop and Media
 cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
 # Instantiate Cast Center with Desktop and Media
-scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer)
+scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer, True)
 # Instantiate API to pass Desktop and Media
 api_data = ApiData(Desktop, Media, Netdevice, t_data_buffer)
 

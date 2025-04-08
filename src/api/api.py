@@ -8,6 +8,8 @@ from fastapi import HTTPException
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 from starlette.concurrency import run_in_threadpool
+from queue import Empty
+
 
 from src.net.ddp_queue import DDPDevice
 from src.utl.multicast import MultiUtils as Multi
@@ -391,7 +393,7 @@ async def util_casts_info(img: bool = False):
             data = ApiData.Queue.get(timeout=3)
             child_info_data |= data
             ApiData.Queue.task_done()
-        except ApiData.Queue.Empty:
+        except Empty:
             cfg_mgr.logger.error('Empty queue, but Desktop/Media cast names list not')
             break
 

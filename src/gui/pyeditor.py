@@ -13,6 +13,7 @@ Desktop queues could be used to send frames (numpy array) to any net devices (ar
 """
 import ast
 import os
+import traceback
 
 from nicegui import ui
 from src.gui.niceutils import LocalFilePicker
@@ -32,15 +33,30 @@ class PythonEditor:
     providing the file path and log queue. Displays a notification
     indicating the file is running.
     """
-    def __init__(self, upload_folder=cfg_mgr.app_root_path('xtra/text'), use_capture:bool = True, go_back: bool = True):
+    def __init__(self,
+                 upload_folder=cfg_mgr.app_root_path('xtra/text'),
+                 file_to_load: str = None,
+                 use_capture:bool = True,
+                 go_back: bool = True,
+                 coldtype: bool = True):
         """Initialize the PythonEditor.
 
         Sets up the initial state of the editor, including file name tracking,
         editor and preview components, syntax checker, and console capture.
         """
+
+        # File content preview area
+        # 09/02/2025 : use it in this way to prevent NiceGUI bug :https://github.com/zauberzeug/nicegui/issues/3337
+        # will use textarea to store file content and copy to editor
+        self.preview = ui.textarea()
+        self.preview.set_visibility(False)
+
+        self.coldtype = coldtype
         self.current_file = ""  # Global variable to keep track of the loaded file name
+        if file_to_load:
+            self.current_file = file_to_load
+            self.read_file(file_to_load)
         self.editor = None
-        self.preview = None
         self.editor_file = None
         self.syntax = None
         self.py_run = None
@@ -79,18 +95,52 @@ class PythonEditor:
             ui.button('Close', on_click=dialog.close, color='red')
             
     async def run_py(self):
-        """Run the Python code in the editor using Coldtype.
+        """Run the Python code in the editor using Coldtype or built-in Python.
 
         Executes the code in the editor using the RUNColdtype class,
         providing the file path and log queue. Displays a notification
         indicating the file is running.
         """
-        src_python=RUNColdtype(script_file=self.editor_file.text, log_queue=self.capture.log_queue if self.use_capture else None)
-        src_python.start()
-        cfg_mgr.logger.debug(f'File "{self.editor_file.text}" running in Coldtype.')
-        ui.notify(f'File "{self.editor_file.text}" running in Coldtype. Wait ...', color='green')
+        if self.coldtype:
+            src_python=RUNColdtype(script_file=self.editor_file.text, log_queue=self.capture.log_queue if self.use_capture else None)
+            src_python.start()
+            cfg_mgr.logger.debug(f'File "{self.editor_file.text}" running in Coldtype.')
+            ui.notify(f'File "{self.editor_file.text}" running in Coldtype. Wait ...', color='green')
+        else:
+            try:
+                code = self.editor.value
+                """
+                # Redirect stdout and stderr to the capture if enabled
+                if self.use_capture:
+                    original_stdout = sys.stdout
+                    original_stderr = sys.stderr
+                    sys.stdout = self.capture.log_queue
+                    sys.stderr = self.capture.log_queue
+                """
 
-    async def read_file(self, file_path):
+                # Execute the code
+                exec(code)
+
+                """
+                if self.use_capture:
+                    sys.stdout = original_stdout
+                    sys.stderr = original_stderr
+                """
+
+                cfg_mgr.logger.debug(f'Code executed successfully.')
+                ui.notify(f'Code executed successfully.', color='green')
+            except Exception as e:
+                """
+                if self.use_capture:
+                    sys.stdout = original_stdout
+                    sys.stderr = original_stderr
+                """
+                cfg_mgr.logger.error(f'Error executing code: {e}')
+                ui.notify(f'Error executing code: {e}', color='red')
+                if self.use_capture:
+                    self.capture.log_queue.write(traceback.format_exc())
+
+    def read_file(self, file_path):
         """Reads and displays the content of a file."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -156,7 +206,7 @@ class PythonEditor:
             if pyfile:
                 pyfile = str(pyfile[0])
                 self.current_file = pyfile
-                await self.read_file(self.current_file)
+                self.read_file(self.current_file)
                 self.editor.set_value(self.preview.value),
                 self.editor_file.set_text(self.current_file)
                 self.syntax.set_text('')
@@ -188,13 +238,16 @@ class PythonEditor:
 
         # UI Layout
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
+        run_type = 'Coldtype' if self.coldtype else 'Python'
+        ui.label(f'Run Type: {run_type}').classes('self-center text-sm')
         if self.go_back:
             ui.button(icon='reply', on_click=self.do_go_back)
         with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):
 
             # Toolbar
             with ui.row().classes('w-full justify-between'):
-                ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit)
+                if run_type == 'Coldtype':
+                    ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit)
                 ui.button('Check Syntax',icon='check', on_click=self.check_code_syntax).classes('bg-blue-500 text-white')
                 ui.button('Fullscreen', icon='fullscreen', on_click=self.toggle_fullscreen).classes('bg-gray-700 text-white')
 
@@ -203,17 +256,12 @@ class PythonEditor:
             self.syntax = ui.label().classes('text-red-500 whitespace-pre-wrap')
             self.syntax.set_visibility(False)
 
-            # File content preview area
-            # 09/02/2025 : use it in this way to prevent NiceGUI bug :https://github.com/zauberzeug/nicegui/issues/3337
-            # will use textarea to store file content and copy to editor
-            self.preview = ui.textarea()
-            self.preview.set_visibility(False)
-
             # Code editor with syntax highlighting - remove any default margins-top/padding-top
             with ui.column().classes('editor-container w-full h-96 border border-gray-300 mt-0 pt-0 gap-1'):
                 with ui.row():
-                    save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
-                    save_file.classes('bg-green-500 text-white')
+                    if run_type == 'Coldtype' or self.current_file != '':
+                        save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
+                        save_file.classes('bg-green-500 text-white')
                     self.py_run = ui.button(icon='settings', on_click=self.run_py)
                     self.py_run.set_visibility(False)
                     with ui.button(icon='palette'):
@@ -223,6 +271,7 @@ class PythonEditor:
 
                 self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
                 self.editor.style(add='font-family:Roboto !important')
+                self.editor.set_value(self.preview.value)
 
         ui.separator()
 
@@ -235,12 +284,18 @@ class PythonEditor:
 if __name__ == "__main__":
     from nicegui import app
 
+    py_file = cfg_mgr.app_root_path('xtra/scheduler/WLEDScheduler.py')
+
     # NiceGUI app
     @ui.page('/')
     async def main_page_editor():
         # Instantiate and run the editor
-        editor_app = PythonEditor(upload_folder=cfg_mgr.app_root_path('xtra/text'), go_back=False)
-        await editor_app.setup_ui()
+        editor_python = PythonEditor(use_capture=False,go_back=False, coldtype=False)
+        await editor_python.setup_ui()
+        editor_file_python = PythonEditor(file_to_load=py_file,use_capture=False,go_back=False, coldtype=False)
+        await editor_file_python.setup_ui()
+        editor_coldtype = PythonEditor(use_capture=True, upload_folder=cfg_mgr.app_root_path('xtra/text'), go_back=False)
+        await editor_coldtype.setup_ui()
         ui.button('shutdown', on_click=app.shutdown).classes('self-center')
         print('Editor is running')
 
