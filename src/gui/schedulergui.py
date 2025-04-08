@@ -172,35 +172,28 @@ class SchedulerGUI:
                 if job_func is not None:
     
                     if period == 'second':
-                        scheduler.scheduler.every(interval).seconds.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
+                        WLEDScheduler.every(interval).seconds.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
                     elif period == 'minute':
-                        scheduler.scheduler.every(interval).minutes.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
+                        WLEDScheduler.every(interval).minutes.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
                     elif period == 'hour':
-                        scheduler.scheduler.every(interval).hours.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
+                        WLEDScheduler.every(interval).hours.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
                     elif period == 'day':
-                        scheduler.scheduler.every(interval).days.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
+                        WLEDScheduler.every(interval).days.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
                     elif period == 'week':
                         if day == 'monday':
-                            scheduler.scheduler.every(interval).monday.at(time_str).do(scheduler.send_job_to_queue,
-                                                                                       job_func)
+                            WLEDScheduler.every(interval).monday.at(time_str).do(scheduler.send_job_to_queue, job_func)
                         elif day == 'tuesday':
-                            scheduler.scheduler.every(interval).tuesday.at(time_str).do(scheduler.send_job_to_queue,
-                                                                                        job_func)
+                            WLEDScheduler.every(interval).tuesday.at(time_str).do(scheduler.send_job_to_queue, job_func)
                         elif day == 'wednesday':
-                            scheduler.scheduler.every(interval).wednesday.at(time_str).do(scheduler.send_job_to_queue,
-                                                                                          job_func)
+                            WLEDScheduler.every(interval).wednesday.at(time_str).do(scheduler.send_job_to_queue, job_func)
                         elif day == 'thursday':
-                            scheduler.scheduler.every(interval).thursday.at(time_str).do(scheduler.send_job_to_queue,
-                                                                                         job_func)
+                            WLEDScheduler.every(interval).thursday.at(time_str).do(scheduler.send_job_to_queue, job_func)
                         elif day == 'friday':
-                            scheduler.scheduler.every(interval).friday.at(time_str).do(scheduler.send_job_to_queue,
-                                                                                       job_func)
+                            WLEDScheduler.every(interval).friday.at(time_str).do(scheduler.send_job_to_queue, job_func)
                         elif day == 'saturday':
-                            scheduler.scheduler.every(interval).saturday.at(time_str).do(scheduler.send_job_to_queue,
-                                                                                         job_func)
+                            WLEDScheduler.every(interval).saturday.at(time_str).do(scheduler.send_job_to_queue, job_func)
                         elif day == 'sunday':
-                            scheduler.scheduler.every(interval).sunday.at(time_str).do(scheduler.send_job_to_queue,
-                                                                                       job_func)
+                            WLEDScheduler.every(interval).sunday.at(time_str).do(scheduler.send_job_to_queue, job_func)
     
                     update_sched()
                     ui.notify(f'Job "{job_name}" scheduled successfully.', type='positive')
