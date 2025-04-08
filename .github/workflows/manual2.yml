@@ -88,6 +88,7 @@ jobs:
         run: |
           brew update
           brew upgrade
+          rm '/usr/local/bin/2to3-3.12'
           brew link --overwrite python@3.12
           brew install portaudio
           brew reinstall libsndfile
