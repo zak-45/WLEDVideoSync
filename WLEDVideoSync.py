@@ -105,10 +105,7 @@ def init_linux_win():
     and runs the tk initialization process.
     """
 
-    if cfg_mgr.compiled():
-        config_file = cfg_mgr.app_root_path('WLEDVideoSync/config/WLEDVideoSync.ini')
-    else:
-        config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
+    config_file = cfg_mgr.app_root_path('config/WLEDVideoSync.ini')
 
     # Apply some default params only once
     # Apply default GUI / param , depend on platform

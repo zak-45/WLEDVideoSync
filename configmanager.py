@@ -46,7 +46,16 @@ def root_path(filename):
             # Nuitka puts files in the same dir as the binary
             return os.path.join(base_path, "MacOS", filename)
         else:  # Windows/Linux
-            base_path = os.path.dirname(sys.argv[0])
+            if "NUITKA_ONEFILE_PARENT" in os.environ:
+                """
+                When this env var exist, this mean run from the one-file compressed executable.
+                This env not exist when run from the extracted program.
+                Expected way to work.
+                """
+                # Nuitka compressed version extract binaries to "WLEDVideoSync" folder
+                base_path = os.path.join(os.path.dirname(sys.argv[0]), 'WLEDVideoSync')
+            else:
+                base_path = os.path.dirname(sys.argv[0])
             return os.path.join(base_path, filename)
 
     # Running in development mode (not compiled)

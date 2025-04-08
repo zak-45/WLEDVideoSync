@@ -3,7 +3,7 @@
 import cv2
 
 # image path
-path = r"../../splash-screen.png"
+path = r"./splash-screen.png"
 # Reading an image in grayscale mode
 image = cv2.imread(path, 0)
 # Window name in which image is displayed
