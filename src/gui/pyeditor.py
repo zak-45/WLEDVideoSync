@@ -23,7 +23,7 @@ from src.utl.console import ConsoleCapture
 from src.utl.utils import CASTUtils as Utils
 from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager()
+cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 
 
 class PythonEditor:
