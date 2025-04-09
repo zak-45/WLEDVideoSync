@@ -142,6 +142,13 @@ class PythonEditor:
 
     def read_file(self, file_path):
         """Reads and displays the content of a file."""
+
+        print(f'locals : {locals()}')
+        print(f'globals: {globals()}')
+        print(f'dir    : {dir()}')
+        print(f'env    : {os.environ}')
+        print(f'pwd    : {os.getcwd()}')
+
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
