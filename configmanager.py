@@ -249,8 +249,9 @@ class ConfigManager:
         Expected way to work.
         We initialize only if running from the main compiled program.
         """
-        if "NUITKA_ONEFILE_PARENT" not in os.environ:
-            self.setup()
+
+        # if "NUITKA_ONEFILE_PARENT" not in os.environ:
+        self.setup()
 
     def setup(self):
         """
