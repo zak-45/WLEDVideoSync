@@ -290,6 +290,7 @@ class ConfigManager:
                 self.logger.debug('Config file not found')
             else:
                 print('Config file not found')
+            sys.exit(5)
 
         # create logger
         self.logger = self.setup_logging()
@@ -318,7 +319,7 @@ class ConfigManager:
 
             logging.config.fileConfig(self.logging_config_path, disable_existing_loggers=False)
             # trick: use the same name for all modules, ui.log will receive message from alls
-            if str2bool(self.app_config['log_to_main']):
+            if self.app_config is not None and str2bool(self.app_config['log_to_main']):
                 logger = logging.getLogger('WLEDLogger')
             else:
                 logger = logging.getLogger(self.logger_name)
@@ -366,6 +367,8 @@ class ConfigManager:
         except Exception as e:
             if self.logger is not None:
                 self.logger.debug(f'Error : {e}')
+            else:
+                print(f'Error to read config : {e}')
 
             return None
 
