@@ -276,8 +276,8 @@ class PythonEditor:
         ui.separator()
 
         if self.use_capture:
-            media_exp_param = ui.expansion('Console', icon='feed', value=False)
-            with media_exp_param.classes('w-full bg-sky-800 mt-2'):
+            py_exp_param = ui.expansion('Console', icon='feed', value=False)
+            with py_exp_param.classes('w-full bg-sky-800 mt-2'):
                 self.capture.setup_ui()
 
 

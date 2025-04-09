@@ -184,6 +184,9 @@ class CastAPI:
     w_image = None
     windows_titles = {}
     new_viinput_value = ''
+    root_timer = None
+    player_timer = None
+    info_timer = None
 
     def __init__(self):
         pass
@@ -218,7 +221,8 @@ async def main_page():
     """
     timer created on main page run to refresh datas
     """
-    ui.timer(int(cfg_mgr.app_config['timer']), callback=root_timer_action)
+    if CastAPI.root_timer is None:
+        CastAPI.root_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=root_timer_action)
 
     """
     Header with button menu
@@ -456,7 +460,8 @@ async def run_video_player_page():
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
     #
-    ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
+    if CastAPI.player_timer is None:
+        CastAPI.player_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
     await video_player_page()
 
 async def update_video_information():
@@ -684,7 +689,7 @@ async def video_player_page():
             media_reset_icon.on('click', lambda: reset_sync())
             media_reset_icon.bind_visibility_from(CastAPI.player)
 
-            nice.sync_button(CastAPI, Media)
+            await nice.sync_button(CastAPI, Media)
 
             CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync, color='green') \
                 .tooltip('Sync Cast with Slider Time') \
@@ -1359,7 +1364,8 @@ async def info_page():
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
-    ui.timer(int(cfg_mgr.app_config['timer']), callback=info_timer_action)
+    if CastAPI.info_timer is None:
+        CastAPI.info_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=info_timer_action)
     await cast_manage_page()
 
 
@@ -1513,6 +1519,7 @@ async def scheduler_page():
     await nice.head_menu(name='Scheduler', target='/Scheduler', icon='more_time')
     await scheduler_app.setup_ui()
 
+    print('end of Scheduler page load')
 
 """
 helpers /Commons
@@ -2085,9 +2092,9 @@ async def root_timer_action():
     :return:
     """
 
-    nice.sync_button(CastAPI, Media)
+    await nice.sync_button(CastAPI, Media)
 
-    nice.cast_manage(CastAPI, Desktop, Media)
+    await nice.cast_manage(CastAPI, Desktop, Media)
 
     if str2bool(cfg_mgr.custom_config['system_stats']):
         await nice.system_stats(CastAPI, Desktop, Media)
@@ -2099,7 +2106,7 @@ async def info_timer_action():
     :return:
     """
 
-    nice.cast_manage(CastAPI, Desktop, Media)
+    await nice.cast_manage(CastAPI, Desktop, Media)
 
 
 async def player_timer_action():
@@ -2107,7 +2114,7 @@ async def player_timer_action():
     timer action occur when player is displayed
     :return:
     """
-    nice.sync_button(CastAPI, Media)
+    await nice.sync_button(CastAPI, Media)
 
 
 async def cast_to_wled(class_obj, image_number):
@@ -2174,7 +2181,7 @@ async def init_cast(class_obj):
     :return:
     """
     class_obj.cast(shared_buffer=t_data_buffer)
-    nice.cast_manage(CastAPI, Desktop, Media)
+    await nice.cast_manage(CastAPI, Desktop, Media)
     cfg_mgr.logger.info(f'Run Cast for {str(class_obj)}')
     # ui.notify(f'Cast initiated for :{str(class_obj)}')
 
@@ -2184,7 +2191,7 @@ async def cast_stop(class_obj):
 
     class_obj.stopcast = True
     # ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
-    nice.cast_manage(CastAPI, Desktop, Media)
+    await nice.cast_manage(CastAPI, Desktop, Media)
     cfg_mgr.logger.info(f' Stop Cast for {str(class_obj)}')
 
 
@@ -2193,7 +2200,7 @@ async def auth_cast(class_obj):
 
     class_obj.stopcast = False
     # ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
-    nice.cast_manage(CastAPI, Desktop, Media)
+    await nice.cast_manage(CastAPI, Desktop, Media)
     cfg_mgr.logger.info(f' Cast auth. for {str(class_obj)}')
 
 

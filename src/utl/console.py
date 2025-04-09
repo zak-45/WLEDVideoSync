@@ -124,8 +124,8 @@ class ConsoleCapture:
 
     def setup_ui(self):
         """Set up the UI for the console output."""
-        if self.log_ui is None:
-            self.log_ui = ui.log(max_lines=100).classes(
+        # if self.log_ui is None:
+        self.log_ui = ui.log(max_lines=100).classes(
                 f'console-output w-full h-30 {self.bg_color} {self.text_color}'
             )
         self._start_read_thread()  # Ensure thread is running
@@ -146,7 +146,7 @@ class ConsoleCapture:
 
         # Wait for the thread to finish
         if self._queue_read_thread is not None and self._queue_read_thread.is_alive():
-            self._queue_read_thread.join(timeout=1.5)  # Increased timeout slightly
+            self._queue_read_thread.join(timeout=1)  # Increased timeout slightly
             if self._queue_read_thread.is_alive():
                 # Use original stderr for logging internal issues if possible
                 try:

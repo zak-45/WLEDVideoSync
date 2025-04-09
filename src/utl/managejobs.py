@@ -28,6 +28,7 @@ Key Components
 """
 
 import ast
+import json
 from types import FunctionType
 from configmanager import ConfigManager
 import inspect
@@ -52,11 +53,26 @@ class JobWrapper:
     def __call__(self, *args, **kwargs):
         return self._func(*args, **kwargs)
 
+    def __repr__(self):
+        name = getattr(self, '_name', '<unnamed>')
+        signature = getattr(self, '_signature', '()')
+        return f"<Job {name}{signature}>"
+
     def view(self):
         return self._source
 
     def doc(self):
         return self._func.__doc__ or self._source.split('\n')[0]
+
+    def to_dict(self):
+        return {
+            "name": self._name,
+            "doc": self.doc(),
+            "signature": str(self._signature),
+            "annotations": {k: str(v) for k, v in self._annotations.items()},
+            "module": self._module,
+            "source": self._source,
+        }
 
     @property
     def name(self):
@@ -64,37 +80,23 @@ class JobWrapper:
 
     @property
     def __name__(self):
-        return self._name
+        return getattr(self, '_name', '<unnamed>')
 
     @property
     def docstring(self):
-        return self._doc
+        return getattr(self, '_doc', '')
 
     @property
     def annotations(self):
-        return self._annotations
+        return getattr(self, '_annotations', {})
 
     @property
     def module(self):
-        return self._module
+        return getattr(self, '_module', '')
 
     @property
     def signature(self):
-        return self._signature
-
-    def to_dict(self):
-        return {
-            "name": self._name,
-            "doc": self.doc(),
-            "signature": str(self._signature),
-            "annotations": self._annotations,
-            "module": self._module,
-            "source": self._source,
-        }
-
-    def __repr__(self):
-        return f"<Job {self.__name__}{self._signature}>"
-
+        return getattr(self, '_signature', '()')
 
 def load_jobs(filename, class_name="Jobs"):
     """Loads user-defined jobs from a Python file.
@@ -140,9 +142,22 @@ def load_jobs(filename, class_name="Jobs"):
             for name, job in wrapped_jobs.items():
                 setattr(self, name, job)
 
-        @property
-        def names(self):
-            return list(wrapped_jobs.keys())
+        def __repr__(self):
+            return f"<Jobs ({len(wrapped_jobs)} jobs): {', '.join(self.names)}>"
+
+        def to_json(self, include_source=False, pretty=True):
+            """Return all jobs as a JSON string."""
+            job_dicts = {
+                name: job.to_dict() if include_source else {
+                    "name": job.name,
+                    "doc": job.doc(),
+                    "signature": str(job.signature),
+                    "annotations": {k: str(v) for k, v in job.annotations.items()},
+                    "module": job.module,
+                }
+                for name, job in self._jobs.items()
+            }
+            return json.dumps(job_dicts, indent=2 if pretty else None, default=str)
 
         def help(self):
             j_lines = []
@@ -156,8 +171,9 @@ def load_jobs(filename, class_name="Jobs"):
             """Return job by name, or None if not found."""
             return self._jobs.get(name)
 
-        def __repr__(self):
-            return f"<Jobs ({len(wrapped_jobs)} jobs): {', '.join(self.names)}>"
+        @property
+        def names(self):
+            return list(wrapped_jobs.keys())
 
     return Jobs
 
@@ -173,3 +189,9 @@ if __name__ == '__main__':
     print(mjobs.job1.view())
     print(20*'-> ' + 'execute job1')
     mjobs.job1(name='test from main')
+    print(mjobs.to_json())  # basic view
+
+    print(mjobs.to_json(include_source=True))  # includes function source code
+
+    print(mjobs.to_json(pretty=False))  # compact JSON
+

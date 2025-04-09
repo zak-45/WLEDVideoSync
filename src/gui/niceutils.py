@@ -154,7 +154,7 @@ def app_info():
             .run_editor_method('updateProps', {'readOnly': True})
 
 
-def sync_button(CastAPI, Media):
+async def sync_button(CastAPI, Media):
     """Updates the appearance of synchronization buttons.
 
     This function manages the visual state of synchronization buttons based
@@ -191,7 +191,7 @@ def sync_button(CastAPI, Media):
         CastAPI.type_sync = 'none'
 
 
-def cast_manage(CastAPI, Desktop, Media):
+async def cast_manage(CastAPI, Desktop, Media):
     """Manages the visual state of cast buttons.
 
     This function updates the appearance of cast buttons based on the

@@ -182,6 +182,7 @@ jobs:
             PIL.ImageFilter
             webbrowser
             schedule
+            tracetool
 
           include-data-dir: |
             tmp=tmp

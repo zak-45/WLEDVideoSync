@@ -84,13 +84,13 @@ class SchedulerGUI:
 
     def __init__(self, Desktop=None, Media=None, CastAPI=None, t_data_buffer=None, use_capture: bool = False):
         self.use_capture = use_capture
-        if self.use_capture:
-            self.capture = ConsoleCapture(show_console=False)
         self.log_queue = None
         self.Desktop = Desktop
         self.Media = Media
         self.CastAPI = CastAPI
         self.queue = t_data_buffer
+        if self.use_capture:
+            self.capture = ConsoleCapture(show_console=False)
 
     async def show_running(self):
         with ui.dialog().props('full-width') as running_jobs:
@@ -108,6 +108,17 @@ class SchedulerGUI:
         activation, recurring/one-time schedules, job selection, and display of
         scheduled jobs.
         """
+
+        def cancel_all_jobs():
+            """Clears all jobs from the scheduler."""
+            try:
+                scheduler.scheduler.clear()
+                update_sched()  # Update the list after clearing
+                ui.notify('All scheduled jobs cancelled.', type='positive')
+                cfg_mgr.logger.info('All scheduled jobs cancelled.')
+            except Exception as e:
+                ui.notify(f'Error cancelling jobs: {e}', type='negative')
+                cfg_mgr.logger.error(f'Error cancelling jobs: {e}')
 
         def update_sched():
             """Updates the displayed list of scheduled jobs.
@@ -319,13 +330,13 @@ class SchedulerGUI:
                                   on_value_change=lambda: update_sched()).classes('w-2/3'):
                     schedule_list = ui.textarea().classes('w-full')
                 ui.space()
-                ui.button('cancel all', icon='cancel')
+                ui.button('cancel all', icon='cancel', on_click=cancel_all_jobs)
 
         ui.separator()
 
         if self.use_capture:
-            media_exp_param = ui.expansion('Console', icon='feed', value=False)
-            with media_exp_param.classes('w-full bg-sky-800 mt-2'):
+            sched_exp_param = ui.expansion('Console', icon='feed', value=False)
+            with sched_exp_param.classes('w-full bg-sky-800 mt-2'):
                 self.capture.setup_ui()
 
 
@@ -341,6 +352,8 @@ if __name__ == "__main__":
     async def main_page():
         print('main scheduler page')
         await schedule_app.setup_ui()
+
+        ui.button('shutdown', on_click=app.shutdown).classes('self-center')
 
     ui.run(reload=False)
 
