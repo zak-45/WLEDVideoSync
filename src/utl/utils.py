@@ -279,7 +279,7 @@ class CASTUtils:
             container_in.close()
 
         except Exception as er:
-            print(f"Error resizing GIF: {er}")
+            cfg_mgr.logger.error(f"Error resizing GIF: {er}")
 
 
     @staticmethod
@@ -316,7 +316,7 @@ class CASTUtils:
             container_in.close()
 
         except Exception as er:
-            print(f"Error resizing video: {er}")
+            cfg_mgr.logger.error(f"Error resizing video: {er}")
 
 
     @staticmethod
@@ -368,7 +368,7 @@ class CASTUtils:
             container.close()
             return width, height
         except Exception as er:
-            print(f"Error getting video dimensions: {er}")
+            cfg_mgr.logger.error(f"Error getting video dimensions: {er}")
             return None, None
 
     @staticmethod
@@ -388,7 +388,7 @@ class CASTUtils:
             else:  # It's a local path
                 return os.path.basename(path_or_url)
         except Exception as er:
-            print(f"Error extracting filename: {er}")
+            cfg_mgr.logger.error(f"Error extracting filename: {er}")
             return None
 
     @staticmethod
@@ -503,7 +503,7 @@ class CASTUtils:
         config = configparser.ConfigParser()
 
         try:
-            cfg_mgr.logger.debug(f'In update_ini_key , ini file : {file_path}')
+            cfg_mgr.logger.info(f'In update_ini_key , ini file : {file_path}')
         except (NameError, AttributeError):
             # this will be print only during init app as logger is not yet defined (NameError)
             print(f'In update_ini_key , ini file : {file_path}')
@@ -526,7 +526,7 @@ class CASTUtils:
             config.write(configfile)
 
         try:
-            cfg_mgr.logger.debug(f"INI Updated '{key}' to '{new_value}' in section '{section}'.")
+            cfg_mgr.logger.info(f"INI Updated '{key}' to '{new_value}' in section '{section}'.")
         except (NameError, AttributeError):
             # this will be print only during init app as logger is not yet defined (NameError)
             print(f"INI Updated '{key}' to '{new_value}' in section '{section}'.")

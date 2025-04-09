@@ -340,7 +340,7 @@ def run_gui():
     GUI
     """
     # set QT in linux when compiled version (let choice when run from source)
-    if (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])) and PLATFORM == 'linux':
+    if  PLATFORM == 'linux' and (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])):
         os.environ["PYWEBVIEW_GUI"] = "qt"
     # choose GUI
     show, native_ui, native_ui_size = select_gui()
