@@ -14,7 +14,7 @@ urllib3==1.26.20 ; sys_platform == "darwin"
 numpy==1.26.4
 opencv-python==4.11.0.86
 zeroconf==0.143.0
-nicegui==2.14.0
+nicegui==2.14.1
 pillow==11.1.0
 fastapi==0.115.8
 starlette==0.45.3
