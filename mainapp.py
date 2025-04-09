@@ -221,8 +221,8 @@ async def main_page():
     """
     timer created on main page run to refresh datas
     """
-    if CastAPI.root_timer is None:
-        CastAPI.root_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=root_timer_action)
+    #if CastAPI.root_timer is None:
+    CastAPI.root_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=root_timer_action)
 
     """
     Header with button menu
@@ -460,8 +460,8 @@ async def run_video_player_page():
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
     #
-    if CastAPI.player_timer is None:
-        CastAPI.player_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
+    #if CastAPI.player_timer is None:
+    CastAPI.player_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
     await video_player_page()
 
 async def update_video_information():
@@ -1364,8 +1364,8 @@ async def info_page():
         ui.add_head_html("""
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
-    if CastAPI.info_timer is None:
-        CastAPI.info_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=info_timer_action)
+    #if CastAPI.info_timer is None:
+    CastAPI.info_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=info_timer_action)
     await cast_manage_page()
 
 
