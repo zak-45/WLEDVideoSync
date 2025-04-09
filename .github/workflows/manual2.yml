@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         # os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-13]
 
     env:
       YOUTUBE_DISABLE: no
@@ -86,10 +86,10 @@ jobs:
       - name: MacOS specific Intel
         if: matrix.os == 'macos-13'
         run: |
+          brew unlink python@3.12 && brew link --overwrite python@3.12
           brew update
           brew upgrade
-          brew cleanup
-          brew link --overwrite python@3.12          
+          brew cleanup          
           brew install portaudio
           brew reinstall libsndfile
           brew install ffmpeg
