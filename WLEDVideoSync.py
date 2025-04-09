@@ -64,6 +64,8 @@ Temporary File Handling:
     It also cleans up these temporary files on exit.
 
 """
+# import tracetool
+
 from nicegui import native
 from src.gui.niceutils import custom_openapi
 
