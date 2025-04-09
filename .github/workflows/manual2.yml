@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         # os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
-        os: [windows-latest]
+        os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
 
     env:
       YOUTUBE_DISABLE: no
