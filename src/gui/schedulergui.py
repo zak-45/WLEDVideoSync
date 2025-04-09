@@ -56,7 +56,7 @@ from src.utl.managejobs import *
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 scheduler = Scheduler(num_workers=2, queue_size=9)
-schedule_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/scheduler/WLEDScheduler.py'),
+schedule_editor = PythonEditor(
                                coldtype=False,
                                use_capture=False,
                                go_back=False)
