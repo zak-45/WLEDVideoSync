@@ -28,7 +28,7 @@
 # win_first_run : True, False after first time executed. used to set some params at init.
 # linux_first_run : True, False after first time executed. used to set some params at init.
 # init_config_done : True or False, if False, app will set some default params depend on OS and put it to True after
-# init_screen   : simple or expert
+# init_screen   : center or expert
 # log_to_main   : False or True, capture logs from modules and display on the main page, put False to save resources
 # log_level     : Log level to filter, INFO, WARN, ERROR, DEBUG, CRITICAL on the main UI page (uvicorn & NiceGUI)
 # put_on_systray: True, application will go to systray

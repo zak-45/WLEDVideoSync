@@ -82,7 +82,7 @@ Define root page based on ini
 """
 if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.app_config is not None:
 
-    if cfg_mgr.app_config['init_screen'].lower() == 'simple':
+    if cfg_mgr.app_config['init_screen'].lower() == 'center':
         main_page_url = '/main'
         cast_center_url = '/'
         root_page = '/Cast-Center'

@@ -71,6 +71,7 @@ if os.getenv('WLEDVideoSync_trace'):
 from nicegui import native
 from src.gui.niceutils import custom_openapi
 
+# import everything from mainapp.py: the main logic come from there
 from mainapp import *
 
 # disable not used costly import (from nicegui)
@@ -141,19 +142,19 @@ def linux_settings(config_file):
     cfg_settings(config_file,'True', 'False', '', 'linux_first_run')
 
     linux_cmd(
-        "WLEDVideoSync/xtra/info_window",
+        "xtra/info_window",
         'chmod +x ',
         'info_window process : ',
         ' , path: ',
     )
     linux_cmd(
-        "WLEDVideoSync/assets/custom_folder.png",
+        "assets/custom_folder.png",
         'gio set -t string "WLEDVideoSync" metadata::custom-icon file://',
         'custom_folder process : ',
         ', path: ',
     )
     linux_cmd(
-        "WLEDVideoSync/favicon.png",
+        "favicon.png",
         'gio set -t string "WLEDVideoSync/WLEDVideoSync-Linux_x86_64.bin" metadata::custom-icon file://',
         'app icon process : ',
         ', path: ',
@@ -242,7 +243,7 @@ def check_server():
 
     if not Utils.validate_ip_address(srv_ip):
         cfg_mgr.logger.error(f'Bad server IP: {srv_ip}')
-        sys.exit(1)
+        return None, None
 
     srv_port = cfg_mgr.server_config['server_port']
 
@@ -253,7 +254,7 @@ def check_server():
 
     if srv_port not in range(1, 65536):
         cfg_mgr.logger.error(f'Bad server Port: {srv_port}')
-        sys.exit(2)
+        return srv_ip, None
 
     return srv_ip, srv_port
 
@@ -312,6 +313,12 @@ def run_gui():
     if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
 
         server_ip, server_port = check_server()
+        if server_ip is None or server_port is None:
+            print('Exiting due to invalid server configuration.')
+            cfg_mgr.logger.error('Exiting due to invalid server configuration.')
+            Utils.clean_tmp()
+            cfg_mgr.logger.info('Application Terminated')
+            sys.exit(4)
 
     # store server port info for others processes, add sc_area for macOS
     wled_pid = os.getpid()

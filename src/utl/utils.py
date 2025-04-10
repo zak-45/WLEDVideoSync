@@ -77,11 +77,11 @@ class CASTUtils:
 
     @staticmethod
     def root_page():
-        if cfg_mgr.app_config['init_screen'].lower() == 'simple':
-            root_page = '/Cast-Center'
-        else:
-            root_page = '/'
-        return root_page
+        return (
+            '/Cast-Center'
+            if cfg_mgr.app_config['init_screen'].lower() == 'center'
+            else '/'
+        )
 
     @staticmethod
     async def select_sc_area(class_obj):
