@@ -85,8 +85,7 @@ jobs:
 
       - name: MacOS specific Intel
         if: matrix.os == 'macos-13'
-        run: |
-          brew unlink python@3.12 && brew link --overwrite python@3.12
+        run: |          
           brew update
           brew upgrade
           brew cleanup          
