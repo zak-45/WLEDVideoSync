@@ -19,7 +19,7 @@
 # 27/05/2024: cv2.imshow with import av  freeze
 #
 import errno
-
+import os
 import threading
 import concurrent.futures
 import numpy as np
@@ -986,6 +986,8 @@ class CASTMedia:
             root_logger = cfg_mgr.logger.getLogger()
             if log_ui not in root_logger:
                 cfg_mgr.logger.addHandler(log_ui)
+        if os.getenv('WLEDVideoSync_trace'):
+            threading.settrace(self.t_media_cast())
         thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,Utils.get_server_port(),))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()

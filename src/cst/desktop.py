@@ -1296,6 +1296,8 @@ class CASTDesktop:
             root_logger = cfg_mgr.logger.getLogger()
             if log_ui not in root_logger:
                 cfg_mgr.logger.addHandler(log_ui)
+        if os.getenv('WLEDVideoSync_trace'):
+            threading.settrace(self.t_desktop_cast())
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,Utils.get_server_port()))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()

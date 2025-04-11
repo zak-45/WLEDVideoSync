@@ -47,8 +47,11 @@ def get_list(section, key, default=None):
 
 TRACE_CALLS = get_bool('trace', 'trace_calls', True)
 TRACE_LINES = get_bool('trace', 'trace_lines', False)
+TRACE_VARS = get_bool('trace', 'trace_vars', True)
 BLOCKED_MODULES = get_list('filter', 'blocked_modules')
 BLOCKED_PATHS = get_list('filter', 'blocked_paths')
+FUNC_FILTERS = get_list('filter', 'function_name_contains')
+FILE_FILTERS = get_list('filter', 'file_name_contains')
 ALLOWED_PATHS_CONFIG = get_list('filter', 'allowed_paths')
 
 ALLOWED_PATHS = [
@@ -60,6 +63,9 @@ SITE_PACKAGES_PATHS = set(site.getsitepackages())
 VENVS = ('.venv', 'env', 'venv', 'Lib\\site-packages', 'site-packages')
 
 call_times = {}
+last_locals = {}
+# Track current active frames to isolate HTML blocks
+active_call_ids = set()
 
 def is_external_file(filename):
     if not filename or not os.path.isabs(filename):
@@ -125,7 +131,11 @@ def html_log_init():
         const sections = document.getElementsByClassName("collapsible-content");
         for (let i = 0; i < sections.length; i++) {{
             sections[i].style.display = show ? "block" : "none";
-        }}
+        }}        
+    }}
+    function toggleCalls(show) {{
+        const calls = document.querySelectorAll("details.call");
+        calls.forEach(d => d.open = show);
     }}
     </script>
 </head>
@@ -133,7 +143,10 @@ def html_log_init():
 <div style="margin-bottom: 1em;">
     <button onclick="toggleAll(true)">📂 Expand All</button>
     <button onclick="toggleAll(false)">📁 Collapse All</button>
+    <button onclick="toggleCalls(true)">📞 Expand Calls</button>
+    <button onclick="toggleCalls(false)">🔕 Collapse Calls</button>
 </div>
+
 
 <h1>Trace Log</h1>
 
@@ -170,37 +183,51 @@ def html_log_init():
 <pre>
 """)
 
-def log(msg, style_class=None):
+def log(msg, style_class=None, raw_html=False):
     print(msg)
     try:
         with open(LOG_FILE, 'a', encoding='utf-8') as f:
             f.write(msg + '\n')
     except UnicodeEncodeError:
-        safe_msg = msg.encode('ascii', errors='replace').decode('ascii')
+        msg = msg.encode('ascii', errors='replace').decode('ascii')
         with open(LOG_FILE, 'a', encoding='utf-8') as f:
-            f.write(safe_msg + '\n')
+            f.write(msg + '\n')
 
-    html_line = msg.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-    css_class = f' class="{style_class}"' if style_class else ''
+    if raw_html:
+        html_line = msg  # do not escape or wrap
+    else:
+        html_line = msg.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        if style_class:
+            html_line = f'<span class="{style_class}">{html_line}</span>'
+        html_line += "<br>"
+
     with open(HTML_LOG_FILE, 'a', encoding='utf-8') as f:
-        f.write(f'<span{css_class}>{html_line}</span><br>\n')
+        f.write(html_line + '\n')
+
 
 def trace_calls(frame, event, arg):
     code = frame.f_code
     filename = code.co_filename
     module_name = frame.f_globals.get('__name__', '')
+    func_name = code.co_name
 
     if not filename or is_external_file(filename) or not is_allowed_file(filename):
         return
 
     rel_path = os.path.relpath(filename, PROJECT_ROOT).replace('\\', '/')
+
     if any(block in rel_path for block in BLOCKED_PATHS):
         return
     if any(module_name.startswith(block) for block in BLOCKED_MODULES):
         return
+    if FUNC_FILTERS and not any(f in func_name for f in FUNC_FILTERS):
+        return
+    if FILE_FILTERS and not any(f in rel_path for f in FILE_FILTERS):
+        return
 
-    func_name = code.co_name
     line_no = frame.f_lineno
+    now = datetime.now().strftime('%H:%M:%S')
+    frame_id = id(frame)
 
     try:
         with open(filename, 'r', encoding='utf-8') as f:
@@ -211,28 +238,41 @@ def trace_calls(frame, event, arg):
 
     local_vars = frame.f_locals.copy()
     local_vars_str = ", ".join(f"{k}={safe_repr(v)}" for k, v in local_vars.items())
-    now = datetime.now().strftime('%H:%M:%S')
 
     if event == 'call' and TRACE_CALLS:
-        call_times[id(frame)] = time.time()
-        log(f"[{now}] 📞 CALL: {func_name}() at {rel_path}:{line_no}", "call")
-        log(f"    >> {current_line}", "line")
-        if local_vars:
+        active_call_ids.add(frame_id)
+        call_times[frame_id] = time.time()
+        last_locals[frame_id] = local_vars
+        log(f'<details class="call"><summary>[{now}] 📞 CALL: {func_name}() at {rel_path}:{line_no}</summary>', raw_html=True)
+        log(f"<pre>    >> {current_line}", "line", raw_html=True)
+        if TRACE_VARS and local_vars:
             log(f"    🧠 Locals: {local_vars_str}", "locals")
-    elif event == 'line' and TRACE_LINES:
+        return trace_calls
+
+    elif event == 'line' and TRACE_LINES and frame_id in active_call_ids:
         log(f"[{now}] 📍 LINE: {rel_path}:{line_no} -> {current_line}", "line")
+        current = frame.f_locals.copy()
+        previous = last_locals.get(frame_id, {})
+        changes = []
+        for key, val in current.items():
+            try:
+                prev_val = previous.get(key, object())
+                if prev_val != val:
+                    changes.append(f"{key} = {safe_repr(val)}")
+            except Exception:
+                changes.append(f"{key} = <compare error>")
+        if TRACE_VARS and changes:
+            log("    🔄 Changes: " + ", ".join(changes), "locals")
+        last_locals[frame_id] = current
+
     elif event == 'return' and TRACE_CALLS:
-        duration = time.time() - call_times.pop(id(frame), time.time())
-        log(f"[{now}] ✅ RETURN from {func_name}() -> {safe_repr(arg)} (after {duration:.4f}s)", "return")
+        duration = time.time() - call_times.pop(frame_id, time.time())
+        log(f"    ✅ RETURN from {func_name}() -> {safe_repr(arg)} (after {duration:.4f}s)", "return")
+        log("</pre></details>", raw_html=True)
+        active_call_ids.discard(frame_id)
+        last_locals.pop(frame_id, None)
 
     return trace_calls
-
-# === INIT ===
-try:
-    with open(LOG_FILE, 'w', encoding='utf-8') as f:
-        f.write(f"# Trace started at {datetime.now()}\n\n")
-except Exception:
-    pass
 
 html_log_init()
 sys.settrace(trace_calls)
