@@ -1,0 +1,92 @@
+/* assets/css/analog-clock.css */
+.analog-clock-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* padding: 15px 0; /* Add padding */
+    /* min-height: 180px; /* Ensure space for the clock */
+}
+
+.clock-face {
+    width: 100px; /* Clock size */
+    height: 100px;
+    border: 4px solid #333; /* Clock border */
+    border-radius: 50%; /* Make it circular */
+    position: relative; /* Needed for absolute positioning of hands */
+    background-color: #f0f0f0; /* Light face color */
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.hand {
+    width: 50%; /* Start from center */
+    height: 4px; /* Hand thickness */
+    background: #333; /* Hand color */
+    position: absolute;
+    top: 50%; /* Position vertically centered */
+    left: 0; /* Start from the left edge */
+    transform-origin: 100% 50%; /* Set rotation point to the right end */
+    transform: translateY(-50%) rotate(90deg); /* Initial position (pointing up) */
+    transition: transform 0.1s cubic-bezier(0.4, 2.3, 0.6, 1); /* Smooth tick */
+    border-top-right-radius: 2px; /* Rounded end */
+    border-bottom-right-radius: 2px;
+}
+
+.hour-hand {
+    width: 35%; /* Shorter */
+    height: 6px; /* Thicker */
+    left: 15%; /* Adjust start position */
+    background-color: #222;
+}
+
+.minute-hand {
+    width: 45%; /* Medium length */
+    height: 4px;
+    left: 5%; /* Adjust start position */
+    background-color: #444;
+}
+
+.second-hand {
+    width: 48%; /* Longest */
+    height: 2px; /* Thinnest */
+    left: 2%; /* Adjust start position */
+    background-color: #e74c3c; /* Red second hand */
+    /* transition: none; /* Remove transition for classic tick */
+}
+
+.center-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #e74c3c; /* Match second hand */
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10; /* Above hands */
+}
+
+/* Optional Markers */
+.marker {
+    position: absolute;
+    background-color: #555;
+    width: 2px;
+    height: 8px;
+}
+.marker-12 { top: 5px; left: 50%; transform: translateX(-50%); }
+.marker-3 { top: 50%; right: 5px; transform: translateY(-50%); height: 2px; width: 8px; }
+.marker-6 { bottom: 5px; left: 50%; transform: translateX(-50%); }
+.marker-9 { top: 50%; left: 5px; transform: translateY(-50%); height: 2px; width: 8px; }
+
+/* Dark mode adjustments (optional) */
+.nicegui-dark .clock-face {
+    background-color: #424242;
+    border-color: #eee;
+}
+.nicegui-dark .hand {
+    background-color: #eee;
+}
+.nicegui-dark .hour-hand { background-color: #f5f5f5; }
+.nicegui-dark .minute-hand { background-color: #bdbdbd; }
+.nicegui-dark .second-hand { background-color: #ef5350; } /* Slightly lighter red */
+.nicegui-dark .center-dot { background-color: #ef5350; }
+.nicegui-dark .marker { background-color: #aaa; }

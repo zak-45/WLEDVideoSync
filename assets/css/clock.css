@@ -1,0 +1,49 @@
+/* assets/css/clock.css */
+
+.wled-clock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.wled-clock .clock {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Sans-serif font */
+    background-color: #f8f9fa; /* Light background */
+    color: #343a40; /* Dark text */
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 1.1em;
+    min-width: 180px;
+    justify-content: center;
+    border: 1px solid #dee2e6; /* Subtle border */
+}
+
+.wled-clock .clock span {
+    display: inline-block;
+    text-align: center;
+}
+
+.wled-clock .clock #date {
+    font-size: 0.65em;
+    color: #6c757d; /* Muted color */
+    margin-right: 6px;
+    font-weight: 500; /* Medium weight */
+}
+
+.wled-clock .clock #hour,
+.wled-clock .clock #min,
+.wled-clock .clock #sec {
+    font-weight: 600; /* Semi-bold */
+    min-width: 2.1ch; /* Ensure space for 2 characters */
+    letter-spacing: 1px; /* Add slight spacing */
+}
+
+/* Style the separators */
+.wled-clock .clock span:not([id]) {
+    color: #adb5bd; /* Lighter muted color */
+    font-size: 0.8em;
+    font-weight: 400; /* Normal weight */
+}

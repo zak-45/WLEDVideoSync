@@ -56,24 +56,55 @@ from src.utl.managejobs import *
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
 scheduler = Scheduler(num_workers=2, queue_size=9)
+
 schedule_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/scheduler/WLEDScheduler.py'),
                                coldtype=False,
                                use_capture=False,
                                go_back=False)
+
+job_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/jobs/jobstosched.py'),
+                               coldtype=False,
+                               use_capture=False,
+                               go_back=False)
+
+
 AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/jobstosched.py'))
 
 WLEDScheduler = scheduler.scheduler
 jobs = AllJobs()
 
-def format_job_descriptions(job_list, history=False):
+def format_job_descriptions(job_list, history=False, filter_tag=None):
+    """Formats job descriptions for display.
+
+    If `filter_tag` is set, only include jobs with that tag.
+    """
     if not job_list:
         return "No jobs scheduled."
 
     lines = []
-    for job_str in job_list:
-        job_str = repr(job_str) if history else str(job_str)
+    
+    for job in job_list:
+        if filter_tag and filter_tag not in job.tags:
+            continue
+
+        tag_info = '[ONCE]' if any('one-time' in t for t in job.tags) else '[RECURRING]'
+
+        # Try to extract job metadata
+        try:
+            job_name = job.job_func._job_name
+        except AttributeError:
+            job_name = job.job_func.__name__
+
+        try:
+            run_time = job.job_func._run_time.strftime('%Y-%m-%d %H:%M')
+            time_info = f"(scheduled for {run_time})"
+        except AttributeError:
+            time_info = ""
+
+        job_str = repr(job) if history else f"{tag_info} {job_name} {time_info} => {job}"
         lines.append(job_str)
-    return "\n".join(lines)
+
+    return "\n".join(lines) if lines else "No matching jobs."
 
 class SchedulerGUI:
     """Creates and manages the scheduler GUI.
@@ -92,7 +123,12 @@ class SchedulerGUI:
         if self.use_capture:
             self.capture = ConsoleCapture(show_console=False)
 
-    async def show_running(self):
+    @staticmethod
+    async def show_running():
+        """Displays currently running scheduled jobs.
+
+        Opens a dialog box showing the current scheduled jobs retrieved from the scheduler.
+        """
         with ui.dialog().props('full-width') as running_jobs:
             running_jobs.open()
             with ui.card().classes('w-full'):
@@ -112,6 +148,7 @@ class SchedulerGUI:
         def cancel_all_jobs():
             """Clears all jobs from the scheduler."""
             try:
+                slide_item.reset()
                 scheduler.scheduler.clear()
                 update_sched()  # Update the list after clearing
                 ui.notify('All scheduled jobs cancelled.', type='positive')
@@ -128,11 +165,7 @@ class SchedulerGUI:
             scheduler is not running.
             """
             if scheduler.is_running:
-                cfg_mgr.logger.info('get all scheduled jobs')
-                print(scheduler.scheduler.get_jobs())
                 schedule_list.set_value(format_job_descriptions(scheduler.scheduler.get_jobs()))
-            else:
-                cfg_mgr.logger.warning('scheduler is not running ...')
 
         def activate_scheduler():
             """Activates or deactivates the scheduler based on the scheduler switch.
@@ -144,10 +177,14 @@ class SchedulerGUI:
                 cfg_mgr.logger.info('start scheduler')
                 scheduler.start()
                 scheduler_status.props('color=green')
+                clock_card.set_visibility(True)
+                analog_clock_card.set_visibility(False)
             else:
                 cfg_mgr.logger.info('stop scheduler')
                 scheduler.stop()
                 scheduler_status.props('color=yellow')
+                clock_card.set_visibility(False)
+                analog_clock_card.set_visibility(True)
 
         def add_recurring_job():
             """Adds a recurring job to the scheduler."""
@@ -162,7 +199,7 @@ class SchedulerGUI:
                     ui.notify('Please select a job.', type='warning')
                     return
 
-                if period == '':
+                if not period:
                     ui.notify('Please select a period.', type='warning')
                     return
 
@@ -170,81 +207,95 @@ class SchedulerGUI:
                     ui.notify('Please set an interval.', type='warning')
                     return
 
-                if time_str == '':
+                if period != 'second' and not time_str:
                     ui.notify('Please set a time.', type='warning')
                     return
 
-                if period == 'week' and day == '':
+                if period == 'week' and not day:
                     ui.notify('Please select a day of the week.', type='warning')
                     return
 
                 job_func = jobs.get_job(job_name)
-                
-                if job_func is not None:
-    
-                    if period == 'second':
-                        WLEDScheduler.every(interval).seconds.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
-                    elif period == 'minute':
-                        WLEDScheduler.every(interval).minutes.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
-                    elif period == 'hour':
-                        WLEDScheduler.every(interval).hours.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
-                    elif period == 'day':
-                        WLEDScheduler.every(interval).days.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
-                    elif period == 'week':
-                        if day == 'monday':
-                            WLEDScheduler.every(interval).monday.at(time_str).do(scheduler.send_job_to_queue, job_func)
-                        elif day == 'tuesday':
-                            WLEDScheduler.every(interval).tuesday.at(time_str).do(scheduler.send_job_to_queue, job_func)
-                        elif day == 'wednesday':
-                            WLEDScheduler.every(interval).wednesday.at(time_str).do(scheduler.send_job_to_queue, job_func)
-                        elif day == 'thursday':
-                            WLEDScheduler.every(interval).thursday.at(time_str).do(scheduler.send_job_to_queue, job_func)
-                        elif day == 'friday':
-                            WLEDScheduler.every(interval).friday.at(time_str).do(scheduler.send_job_to_queue, job_func)
-                        elif day == 'saturday':
-                            WLEDScheduler.every(interval).saturday.at(time_str).do(scheduler.send_job_to_queue, job_func)
-                        elif day == 'sunday':
-                            WLEDScheduler.every(interval).sunday.at(time_str).do(scheduler.send_job_to_queue, job_func)
-    
-                    update_sched()
-                    ui.notify(f'Job "{job_name}" scheduled successfully.', type='positive')
-                    
-                else:
-
+                if job_func is None:
                     ui.notify(f'Error scheduling job: {job_name}', type='negative')
+                    return
+
+                sched = WLEDScheduler.every(interval)
+
+                if period == 'second':
+                    sched = sched.seconds
+                elif period == 'minute':
+                    sched = sched.minutes
+                elif period == 'hour':
+                    sched = sched.hours
+                elif period == 'day':
+                    sched = sched.days
+                    sched = sched.at(time_str)
+                elif period == 'week':
+                    sched = getattr(sched, day).at(time_str)
+
+                sched.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
+
+                update_sched()
+                ui.notify(f'Job \"{job_name}\" scheduled successfully.', type='positive')
 
             except Exception as e:
                 ui.notify(f'Error scheduling job: {e}', type='negative')
 
+        def schedule_one_time_job(run_at: datetime, job_func, job_name: str = ""):
+            """Schedules a one-time job using the schedule module."""
+
+            def one_time_wrapper():
+                now = datetime.now()
+                if now >= run_at:
+                    scheduler.send_job_to_queue(job_func)
+                    WLEDScheduler.clear(tag=f'one-time-{job_name}')
+
+            one_time_wrapper._job_name = job_name
+            one_time_wrapper._run_time = run_at  # 💡 store the scheduled datetime
+
+            WLEDScheduler.every(1).minutes.do(one_time_wrapper).tag('WLEDVideoSync', 'one-time', f'one-time-{job_name}')
+
         def add_one_time_job():
-            """Adds a one-time job to the scheduler."""
+            """Adds a one-time job using schedule-based wrapper."""
             try:
+                job_name = job_select_one_time.value
                 date_str = date_one_time.value
                 time_str = time_one_time.value
-                job_name = job_select_one_time.value
 
                 if not job_name:
                     ui.notify('Please select a job.', type='warning')
                     return
 
-                if date_str == '':
-                    ui.notify('Please select a date.', type='warning')
+                if not date_str or not time_str:
+                    ui.notify('Please select a valid date and time.', type='warning')
                     return
 
-                if time_str == '':
-                    ui.notify('Please select a time.', type='warning')
-                    return
-
-                date_time_str = f"{date_str} {time_str}"
-                date_time_obj = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M')
                 job_func = jobs.get_job(job_name)
-                scheduler.scheduler.run_at(date_time_obj).do(scheduler.send_job_to_queue, job_func)
+                if job_func is None:
+                    ui.notify(f'Job not found: {job_name}', type='negative')
+                    return
+
+                run_at_time = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+                schedule_one_time_job(run_at_time, job_func, job_name)
 
                 update_sched()
-                ui.notify(f'Job "{job_name}" scheduled successfully.', type='positive')
+                ui.notify(f'Job \"{job_name}\" scheduled for {run_at_time}.', type='positive')
 
             except Exception as e:
                 ui.notify(f'Error scheduling job: {e}', type='negative')
+
+        async def scheduler_timer_action():
+            """Updates the scheduler status indicator color.
+
+            Sets the color of the scheduler status icon to green if the scheduler
+            is active, and yellow otherwise.
+            """
+            if scheduler_switch.value is True:
+                scheduler_status.props('color=green')
+                update_sched()
+            else:
+                scheduler_status.props('color=yellow')
 
         dark = ui.dark_mode(self.CastAPI.dark_mode).bind_value_to(self.CastAPI, 'dark_mode')
 
@@ -254,7 +305,21 @@ class SchedulerGUI:
             # Add Animate.css to the HTML head
             ui.add_head_html("""
             <link rel="stylesheet" href="assets/css/animate.min.css"/>
+            <link rel="stylesheet" href="assets/css/clock.css"/>
+            <link rel="stylesheet" href="assets/css/analog-clock.css"/>
             """)
+
+        ui.add_body_html("""
+              <script src="assets/js/clock.js"></script>
+              <script src="assets/js/analog-clock.js"></script>
+        """
+        )
+
+        """
+        scheduler timer 
+        """
+        scheduler_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=scheduler_timer_action)
+
         """
         Scheduler page creation
         """
@@ -268,6 +333,48 @@ class SchedulerGUI:
                     scheduler_status = ui.icon('history', size='lg', color='yellow').on('click',
                                                                                         lambda: self.show_running()).style(
                         'cursor:pointer')
+        """
+         add clock
+        """
+        with ui.card().tight().classes('self-center') as clock_card:
+            clock_card.set_visibility(False)
+            ui.html("""
+                 <div class="wled-clock">
+                     <div class="container">
+                         <div class="clock">
+                             <span id="date">YYYY-MM-DD</span>
+                             <span>-</span>
+                             <span id="hour">HH</span>
+                             <span>:</span>
+                             <span id="min">MM</span>
+                             <span>:</span>
+                             <span id="sec">SS</span>
+                         </div>
+                     </div>
+                 </div>
+             """)
+        #
+        """
+         add analog clock
+        """
+        with ui.card().tight().classes('self-center') as analog_clock_card:
+            analog_clock_card.set_visibility(True)
+            ui.html("""
+                <!-- Analog Clock HTML -->
+                <div class="analog-clock-container">
+                  <div class="clock-face">
+                    <div class="hand hour-hand" id="analog-hour"></div>
+                    <div class="hand minute-hand" id="analog-min"></div>
+                    <div class="hand second-hand" id="analog-sec"></div>
+                    <div class="center-dot"></div>
+                    <div class="marker marker-12"></div>
+                    <div class="marker marker-3"></div>
+                    <div class="marker marker-6"></div>
+                    <div class="marker marker-9"></div>
+                  </div>
+                </div>
+             """)
+        #
         with ui.card().classes('self-center w-full'):
             with ui.row().classes('self-center w-full'):
                 ui.label('schedule')
@@ -275,7 +382,7 @@ class SchedulerGUI:
                 interval_input = ui.number(min=0, max=999, value=0)
                 period_select = ui.select(['', 'second', 'minute', 'hour', 'day', 'week'], label="period").classes(
                     'w-20')
-                ui.select(['', 'seconds', 'minutes', 'hours', 'days', 'weeks'], label="periods").classes('w-20')
+                # ui.select(['', 'seconds', 'minutes', 'hours', 'days', 'weeks'], label="periods").classes('w-20')
                 day_select = ui.select(
                     ['', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
                     label="day").classes('w-20')
@@ -317,12 +424,14 @@ class SchedulerGUI:
 
         with ui.card().tight().classes('w-full').props('flat'):
             with ui.row().classes('w-full'):
-                with ui.card().props('flat') as py_editor:
-                    py_editor.set_visibility(False)
-                    await schedule_editor.setup_ui()
                 ui.space()
-                ui.button('editor', on_click=lambda: py_editor.set_visibility(not py_editor.visible))
-
+                ui.button('editor', on_click=lambda: editor_row.set_visibility(not editor_row.visible))
+                with ui.row().classes('w-full') as editor_row:
+                    editor_row.set_visibility(False)
+                    with ui.expansion('Custom Schedule', icon='feed', value=False):
+                        await schedule_editor.setup_ui()
+                    with ui.expansion('Jobs', icon='feed', value=False):
+                        await job_editor.setup_ui()
 
         with ui.card().classes('w-full'):
             with ui.row().classes('w-full'):
@@ -330,7 +439,12 @@ class SchedulerGUI:
                                   on_value_change=lambda: update_sched()).classes('w-2/3'):
                     schedule_list = ui.textarea().classes('w-full')
                 ui.space()
-                ui.button('cancel all', icon='cancel', on_click=cancel_all_jobs)
+                with ui.slide_item('Cancel All') as slide_item:
+                    slide_item.classes('bg-sky-800')
+                    with slide_item.right():
+                        ui.button(icon='cancel',color='red', on_click=cancel_all_jobs)
+                    with slide_item.left():
+                        ui.button(icon='cancel',color='red', on_click=cancel_all_jobs)
 
         ui.separator()
 

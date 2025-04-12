@@ -17,26 +17,65 @@ Instruction:
 
 """
 
-def cast_win_desktop(monitor:int = 0):
+def cast_win_main_desktop(monitor:int = 0):
     """
     Cast entire desktop screen, this is for Win
+    This one take params from mainapp
 
         : param: monitor: int 0,1, by default use 0
     """
     # import
-    from src.cst import desktop
-    Desktop = desktop.CASTDesktop()
+    from mainapp import Desktop, t_data_buffer
     # params
     Desktop.stopcast = False
     Desktop.viinput = 'desktop'
     Desktop.monitor_number = monitor
     # run
-    Desktop.cast()
+    Desktop.cast(shared_buffer=t_data_buffer)
+
+def cast_win_alone_desktop(monitor:int = 0):
+    """
+    Cast entire desktop screen, this is for Win
+    This one run on its own
+
+        : param: monitor: int 0,1, by default use 0
+    """
+    # import
+    from src.cst import desktop
+    # import t_data_buffer to be able to get info from it
+    from mainapp import t_data_buffer
+    # instantiate
+    Desktop=desktop.CASTDesktop()
+    # params
+    Desktop.stopcast = False
+    Desktop.viinput = 'desktop'
+    Desktop.monitor_number = monitor
+    # run
+    Desktop.cast(shared_buffer=t_data_buffer)
+
+
+def cast_win_main_media(device_number:int = 0):
+    """
+    Cast data from device x, this is for Win
+    This one take params from mainapp
+    Depend on your OS configuration. Win give 0 to default USB Webcam
+
+    :param: device_number : int 0,xxx, by default use 0
+
+    """
+    # import
+    from mainapp import Media, t_data_buffer
+    # params
+    Media.stopcast = False
+    Media.viinput = device_number
+    # run
+    Media.cast(shared_buffer=t_data_buffer)
 
 
 def job1(name='test'):
     """
     job1 documentation
+    will run for 10 seconds and cast desktop
     """
     import sys
     import time
@@ -59,14 +98,6 @@ def job1(name='test'):
     print('End of job1')
 
 def job2():
-    print('job2')
-
-def job3():
-    print('job3')
-
-def job4():
-    print('job4')
-
-def job5():
-    print('job5')
-
+    print('Inside job2')
+    
+print('End of jobs file')

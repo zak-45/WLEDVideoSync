@@ -66,6 +66,7 @@ class PythonEditor:
         if self.use_capture:
             self.capture = ConsoleCapture(show_console=False)
         self.go_back = go_back
+        self.container = id(self)
 
     @staticmethod
     async def get_manager_queues():
@@ -158,7 +159,7 @@ class PythonEditor:
             try:
                 with open(editor_file, 'w', encoding='utf-8') as f:
                     f.write(self.editor.value)
-                cfg_mgr.logger.debug(f'File "{editor_file}" saved successfully!')
+                self.preview.value = self.editor.value
                 ui.notify(f'File "{editor_file}" saved successfully!', color='green')
             except Exception as e:
                 cfg_mgr.logger.error(f'File "{editor_file}" not saved: {e} ')
@@ -182,21 +183,21 @@ class PythonEditor:
         self.syntax.set_text(result)
         self.syntax.set_visibility(True)
 
-    @staticmethod
-    def toggle_fullscreen():
+
+    def toggle_fullscreen(self):
         """Toggle fullscreen mode for the editor."""
 
-        ui.run_javascript(''' 
-            const editor = document.querySelector('.editor-container');
+        ui.run_javascript(f''' 
+            const editor = document.querySelector('.editor-container-{self.container}');
             const closeButton = document.querySelector('.fullscreen-close');
 
-            if (!document.fullscreenElement) {
+            if (!document.fullscreenElement) {{
                 editor.requestFullscreen();
                 closeButton.style.display = 'block';  // Show close button
-            } else {
+            }} else {{
                 document.exitFullscreen();
                 closeButton.style.display = 'none';  // Hide close button
-            }
+            }}
         ''', timeout=2)
 
     async def pick_file_to_edit(self) -> None:
@@ -257,7 +258,7 @@ class PythonEditor:
             self.syntax.set_visibility(False)
 
             # Code editor with syntax highlighting - remove any default margins-top/padding-top
-            with ui.column().classes('editor-container w-full h-96 border border-gray-300 mt-0 pt-0 gap-1'):
+            with ui.column().classes(f'editor-container-{self.container} w-full h-96 border border-gray-300 mt-0 pt-0 gap-1'):
                 with ui.row():
                     if run_type == 'Coldtype' or self.current_file != '':
                         save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
@@ -292,10 +293,13 @@ if __name__ == "__main__":
         # Instantiate and run the editor
         editor_python = PythonEditor(use_capture=False,go_back=False, coldtype=False)
         await editor_python.setup_ui()
+
         editor_file_python = PythonEditor(file_to_load=py_file,use_capture=False,go_back=False, coldtype=False)
         await editor_file_python.setup_ui()
+
         editor_coldtype = PythonEditor(use_capture=True, upload_folder=cfg_mgr.app_root_path('xtra/text'), go_back=False)
         await editor_coldtype.setup_ui()
+
         ui.button('shutdown', on_click=app.shutdown).classes('self-center')
         print('Editor is running')
 

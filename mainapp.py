@@ -359,9 +359,9 @@ async def main_page():
             # logging Level
             cfg_mgr.logger.setLevel(cfg_mgr.app_config['log_level'].upper())
             # handler
-            handler = LogElementHandler(log_ui)
-            cfg_mgr.logger.addHandler(handler)
-            ui.context.client.on_disconnect(lambda: cfg_mgr.logger.removeHandler(handler))
+            log_ui_handler = LogElementHandler(log_ui)
+            cfg_mgr.logger.addHandler(log_ui_handler)
+            ui.context.client.on_disconnect(lambda: cfg_mgr.logger.removeHandler(log_ui_handler))
             # clear / load log file
             with ui.row().classes('w-full'):
                 ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log')
