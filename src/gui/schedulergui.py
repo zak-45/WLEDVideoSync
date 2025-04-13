@@ -187,41 +187,28 @@ class SchedulerGUI:
                 analog_clock_card.set_visibility(True)
 
         def add_recurring_job():
-            """Adds a recurring job to the scheduler."""
+            """Adds a recurring job, supporting 'at' or 'until' with time or datetime."""
             try:
                 interval = int(interval_input.value)
                 period = period_select.value
                 day = day_select.value
-                time_str = time_recurring.value
+                time_str = time_recurring.value  # "HH:MM"
+                until_date_str = date_until.value  # optional (YYYY-MM-DD)
                 job_name = job_select_recurring.value
+                timing_mode = recurring_timing_mode.value  # 'at' or 'until'
 
-                if not job_name:
-                    ui.notify('Please select a job.', type='warning')
-                    return
-
-                if not period:
-                    ui.notify('Please select a period.', type='warning')
-                    return
-
-                if interval == 0:
-                    ui.notify('Please set an interval.', type='warning')
-                    return
-
-                if period != 'second' and not time_str:
-                    ui.notify('Please set a time.', type='warning')
-                    return
-
-                if period == 'week' and not day:
-                    ui.notify('Please select a day of the week.', type='warning')
+                if not job_name or not period or interval == 0:
+                    ui.notify('Please select job, period and interval.', type='warning')
                     return
 
                 job_func = jobs.get_job(job_name)
                 if job_func is None:
-                    ui.notify(f'Error scheduling job: {job_name}', type='negative')
+                    ui.notify(f'Job not found: {job_name}', type='negative')
                     return
 
                 sched = WLEDScheduler.every(interval)
 
+                # Attach period
                 if period == 'second':
                     sched = sched.seconds
                 elif period == 'minute':
@@ -230,14 +217,31 @@ class SchedulerGUI:
                     sched = sched.hours
                 elif period == 'day':
                     sched = sched.days
-                    sched = sched.at(time_str)
-                elif period == 'week':
-                    sched = getattr(sched, day).at(time_str)
+                elif period == 'week' and day:
+                    sched = getattr(sched, day)
 
-                sched.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', job_name)
+                # Handle 'at' or 'until'
+                if time_str:
+                    if timing_mode == 'at':
+                        sched = sched.at(time_str)
+
+                    elif timing_mode == 'until':
+                        if until_date_str:
+                            # Full datetime mode
+                            until_dt = datetime.strptime(f"{until_date_str} {time_str}", "%Y-%m-%d %H:%M")
+                        else:
+                            # Time-only mode, assume today
+                            today = datetime.now().date()
+                            until_dt = datetime.strptime(f"{today} {time_str}", "%Y-%m-%d %H:%M")
+
+                        sched = sched.until(until_dt)
+
+                tag = f"recurring-{job_name}"
+
+                sched.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', tag)
 
                 update_sched()
-                ui.notify(f'Job \"{job_name}\" scheduled successfully.', type='positive')
+                ui.notify(f'Recurring job \"{job_name}\" scheduled successfully.', type='positive')
 
             except Exception as e:
                 ui.notify(f'Error scheduling job: {e}', type='negative')
@@ -337,7 +341,10 @@ class SchedulerGUI:
          add clock
         """
         with ui.card().tight().classes('self-center') as clock_card:
-            clock_card.set_visibility(False)
+            if scheduler.is_running:
+                clock_card.set_visibility(True)
+            else:
+                clock_card.set_visibility(False)
             ui.html("""
                  <div class="wled-clock">
                      <div class="container">
@@ -358,7 +365,10 @@ class SchedulerGUI:
          add analog clock
         """
         with ui.card().tight().classes('self-center') as analog_clock_card:
-            analog_clock_card.set_visibility(True)
+            if scheduler.is_running:
+                analog_clock_card.set_visibility(False)
+            else:
+                analog_clock_card.set_visibility(True)
             ui.html("""
                 <!-- Analog Clock HTML -->
                 <div class="analog-clock-container">
@@ -386,7 +396,14 @@ class SchedulerGUI:
                 day_select = ui.select(
                     ['', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
                     label="day").classes('w-20')
-                ui.select(['', 'at', 'until']).classes('w-10')
+                recurring_timing_mode = ui.select(['', 'at', 'until']).classes('w-10')
+                with ui.input('Date (opt.)').bind_visibility_from(recurring_timing_mode, 'value', value='until') as date_until:
+                    with ui.menu().props('no-parent-event') as menu:
+                        with ui.date().bind_value(date_until):
+                            with ui.row().classes('justify-end'):
+                                ui.button('Close', on_click=menu.close).props('flat')
+                    with date_until.add_slot('append'):
+                        ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
                 with ui.input('Time') as time_recurring:
                     with ui.menu().props('no-parent-event') as menu:
                         with ui.time().bind_value(time_recurring):
