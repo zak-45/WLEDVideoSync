@@ -1019,10 +1019,9 @@ async def main_page_desktop():
                 new_cast_devices = ui.input('Cast Devices', value=str(Desktop.cast_devices))
                 new_cast_devices.tooltip('Click on MANAGE to enter devices for Multicast')
                 new_cast_devices.on('focusout',
-                                    lambda: asyncio.create_task(update_attribute_by_name('Desktop',
-                                                                                         'cast_devices',
-                                                                                         new_cast_devices.value)))
-                ui.button('Manage', on_click=lambda: asyncio.create_task(nice.cast_device_manage(Desktop, Netdevice)))
+                                    lambda: update_attribute_by_name('Desktop','cast_devices',
+                                                                                         new_cast_devices.value))
+                ui.button('Manage', on_click=lambda: nice.cast_device_manage(Desktop, Netdevice))
 
             with ui.card():
                 await nice.edit_protocol(Desktop)
@@ -1229,10 +1228,9 @@ async def main_page_media():
                 new_cast_devices = ui.input('Cast Devices', value=str(Media.cast_devices))
                 new_cast_devices.tooltip('Click on MANAGE to enter devices for Multicast')
                 new_cast_devices.on('focusout',
-                                    lambda: asyncio.create_task(update_attribute_by_name('Media',
-                                                                                         'cast_devices',
-                                                                                         new_cast_devices.value)))
-                ui.button('Manage', on_click=lambda: asyncio.create_task(nice.cast_device_manage(Media, Netdevice)))
+                                    lambda: update_attribute_by_name('Media','cast_devices',
+                                                                                         new_cast_devices.value))
+                ui.button('Manage', on_click=lambda: nice.cast_device_manage(Media, Netdevice))
 
     ui.separator().classes('mt-6')
 
