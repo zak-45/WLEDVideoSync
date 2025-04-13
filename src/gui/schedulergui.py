@@ -67,7 +67,6 @@ job_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/jobs/jobstosc
                                use_capture=False,
                                go_back=False)
 
-
 AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/jobstosched.py'))
 
 WLEDScheduler = scheduler.scheduler

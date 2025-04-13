@@ -12,11 +12,11 @@ from src.gui.schedulergui import jobs
 end required import
 """
 """
-scheduler example (assume job1 exist)
-uncomment #sched.scheduler to use
+scheduler example (assume job2 exist)
+uncomment #WLEDScheduler to use
 """
 
-WLEDScheduler.every(10).seconds.do(scheduler.send_job_to_queue, jobs.job2).tag('Custom', 'job1')
+#WLEDScheduler.every(10).seconds.do(scheduler.send_job_to_queue, jobs.job2).tag('Custom', 'job2')
 
 """
 full schedule help : https://schedule.readthedocs.io/en/stable/examples.html 
