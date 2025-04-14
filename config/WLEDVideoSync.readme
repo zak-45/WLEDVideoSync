@@ -138,4 +138,7 @@
 # manage schedule jobs
 #
 # enable        : True / False, start scheduler
+# num_workers   : 2 ,  number of workers to run in parallel, 1 minimum, max depend of your system; should be necessary
+#                   to adapt only if you have a very intensive usage of the scheduler
+# queue_size    : 20 , number of jobs that can be put in the queue at same time
 [scheduler]

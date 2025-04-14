@@ -176,6 +176,7 @@ class ConsoleCapture:
         while self.running:
             try:
                 log_message = self.log_queue.get(timeout=0.1)
+
                 if self.log_ui is not None:
                     try:
                         self.log_ui.push(log_message.strip())

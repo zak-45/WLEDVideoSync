@@ -23,7 +23,6 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
-import asyncio
 import shelve
 import sys
 import queue
@@ -45,7 +44,6 @@ from src.gui.niceutils import LogElementHandler, apply_custom, media_dev_view_pa
 from src.gui.niceutils import YtSearch
 from src.gui.niceutils import AnimatedElement as Animate
 from src.gui.castcenter import CastCenter
-from src.utl.scheduler import Scheduler
 from src.gui.schedulergui import SchedulerGUI
 from src.txt.fontsmanager import FontPreviewManager
 from src.txt.coldtypemp import RUNColdtype
@@ -67,9 +65,6 @@ if PLATFORM == 'win32':
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
-
-if cfg_mgr.scheduler_config is not None and cfg_mgr.scheduler_config['enable']:
-    wled_scheduler=Scheduler()
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
@@ -993,7 +988,7 @@ async def main_page_desktop():
                     ui.number('', value=Desktop.monitor_number, min=-1, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number', forward=lambda value: int(value or 0)) \
                         .tooltip('Enter monitor number')
-                    ui.button('ScreenArea', on_click=lambda: asyncio.create_task(Utils.select_sc_area(Desktop))) \
+                    ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(Desktop)) \
                         .tooltip('Select area from monitor')
 
             with ui.card():
@@ -1196,9 +1191,7 @@ async def main_page_media():
 
             with ui.card():
                 new_viinput = ui.input('Input', value=str(Media.viinput))
-                new_viinput.on('focusout', lambda: asyncio.create_task(update_attribute_by_name('Media',
-                                                                                                'viinput',
-                                                                                                new_viinput.value)))
+                new_viinput.on('focusout', lambda: update_attribute_by_name('Media','viinput', new_viinput.value))
                 new_viinput.tooltip('Enter desired input : e.g 0..n / file name  etc ...')
                 new_preview = ui.checkbox('Preview')
                 new_preview.bind_value(Media, 'preview')
@@ -1415,7 +1408,7 @@ async def manage_font_page():
                     font_label = ui.label(list_font_name).classes("cursor-pointer hover:underline")
                     font_label.on(
                         "mouseover",
-                        lambda z=list_font_name, x=font_label: asyncio.create_task(set_preview(fonts[z], x))
+                        lambda z=list_font_name, x=font_label: set_preview(fonts[z], x)
                     )
                     font_label.on(
                         "mouseout",
@@ -1455,8 +1448,7 @@ async def manage_font_page():
 
         # slider for font size preview
         s_font_size = ui.slider(min=1, max=100, value=25,
-                                on_change=lambda var: asyncio.create_task(set_preview(font_manager.selected_font_path,
-                                                                  font_manager.selected_font_label)))
+                                on_change=lambda var: set_preview(font_manager.selected_font_path, font_manager.selected_font_label))
 
         s_font_size.bind_value_to(font_manager,'font_size')
 
@@ -1823,8 +1815,8 @@ async def cast_manage_page():
                 else:
                     my_col = 'green'
                 CastAPI.desktop_cast = ui.icon('cast', size='xl', color=my_col)
-                CastAPI.desktop_cast.on('click', lambda: asyncio.create_task(auth_cast(Desktop)))
-                CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: asyncio.create_task(init_cast(Desktop))) \
+                CastAPI.desktop_cast.on('click', lambda: auth_cast(Desktop))
+                CastAPI.desktop_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Desktop)) \
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
                     .tooltip('Initiate Desktop Cast')
@@ -1833,7 +1825,7 @@ async def cast_manage_page():
 
             ui.icon('stop_screen_share', size='xs', color='red') \
                 .style('cursor: pointer') \
-                .on('click', lambda: asyncio.create_task(cast_stop(Desktop))).tooltip('Stop Cast')
+                .on('click', lambda: cast_stop(Desktop)).tooltip('Stop Cast')
 
             if str2bool(cfg_mgr.custom_config['animate_ui']):
                 animated_card = Animate(ui.card, animation_name_in="fadeInUp", duration=2)
@@ -1854,7 +1846,7 @@ async def cast_manage_page():
 
             ui.icon('stop_screen_share', size='xs', color='red') \
                 .style('cursor: pointer') \
-                .on('click', lambda: asyncio.create_task(cast_stop(Media))).tooltip('Stop Cast')
+                .on('click', lambda: cast_stop(Media)).tooltip('Stop Cast')
 
             with ui.column(align_items='end', wrap=False):
                 if Media.count > 0:
@@ -1864,8 +1856,8 @@ async def cast_manage_page():
                 else:
                     my_col = 'green'
                 CastAPI.media_cast = ui.icon('cast', size='xl', color=my_col)
-                CastAPI.media_cast.on('click', lambda: asyncio.create_task(auth_cast(Media)))
-                CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: asyncio.create_task(init_cast(Media))) \
+                CastAPI.media_cast.on('click', lambda: auth_cast(Media))
+                CastAPI.media_cast_run = ui.button(icon='touch_app', on_click=lambda: init_cast(Media)) \
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
                     .tooltip('Initiate Media Cast')

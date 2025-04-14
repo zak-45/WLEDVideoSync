@@ -39,11 +39,9 @@ External Libraries and Modules:
 
 """
 
-
-import asyncio
-
 import src.gui.tkinter_fonts
 
+from asyncio import sleep
 from str2bool import str2bool
 from nicegui import ui, run, app
 
@@ -135,7 +133,7 @@ class CastCenter:
 
             await self.cast_media(cast_type)
         #
-        await asyncio.sleep(1)
+        await sleep(1)
         # run new cast
         class_obj.stopcast=False
         class_obj.cast(shared_buffer=self.Queue)
@@ -225,7 +223,7 @@ class CastCenter:
                         monitor = ui.number('Monitor', value=0, min=-1, max=1)
                         monitor.bind_value(self.Desktop, 'monitor_number')
                         desktop_cast = ui.button(icon='cast').classes('m-4')
-                        desktop_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Desktop, 'Desktop')))
+                        desktop_cast.on('click', lambda : self.cast_class(self.Desktop, 'Desktop'))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -247,10 +245,10 @@ class CastCenter:
                             row_area = ui.row()
 
                         with row_area.classes('self-center'):
-                            ui.button('ScreenArea', on_click=lambda: asyncio.create_task(Utils.select_sc_area(self.Desktop))) \
+                            ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(self.Desktop)) \
                                 .tooltip('Select area from monitor')
                             area_cast = ui.button(icon='cast')
-                            area_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Desktop, 'Area')))
+                            area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -263,7 +261,7 @@ class CastCenter:
                         self.win = ui.select(['** click WINDOWS to refresh **'], label='Select Window')
                         self.win.classes('w-40')
                         win_cast = ui.button(icon='cast').classes('m-4')
-                        win_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Desktop, 'Window')))
+                        win_cast.on('click', lambda : self.cast_class(self.Desktop, 'Window'))
 
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
@@ -283,7 +281,7 @@ class CastCenter:
                         self.device = ui.select(['** click DEVICES to refresh **'], label='Select Device')
                         self.device.classes('w-40')
                         capture_cast = ui.button(icon='cast').classes('m-4')
-                        capture_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Media, 'Capture')))
+                        capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -305,11 +303,11 @@ class CastCenter:
                             row_video = ui.row()
 
                         with row_video.classes('self-center'):
-                            ui.icon('folder',size='xl',color='yellow').on('click',lambda: asyncio.create_task(self.pick_file())).style('cursor: pointer').classes('m-4')
+                            ui.icon('folder',size='xl',color='yellow').on('click',lambda: self.pick_file()).style('cursor: pointer').classes('m-4')
                             self.video = ui.input('enter url / file name ')
                             ui.number('repeat',min=-1,max=99, value=self.Media.repeat).bind_value(self.Media,'repeat')
                             video_cast = ui.button(icon='cast').classes('m-4')
-                            video_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Media, 'Video')))
+                            video_cast.on('click', lambda : self.cast_class(self.Media, 'Video'))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -321,13 +319,13 @@ class CastCenter:
                     with ui.row(wrap=False).classes('self-center'):
                         yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4')
                         yt_icon.style('cursor:pointer')
-                        yt_icon.on('click', lambda: asyncio.create_task(self.search_yt()))
+                        yt_icon.on('click', lambda: self.search_yt())
                         self.yt_input = ui.input('enter YT url')
                         yt_cancel = ui.icon('disabled_visible',size='sm', color='red').classes('m-4')
                         yt_cancel.style('cursor:pointer')
                         yt_cancel.on('click', lambda: self.yt_area.set_visibility(False))
                         yt_cast = ui.button(icon='cast').classes('m-4')
-                        yt_cast.on('click', lambda : asyncio.create_task(self.cast_class(self.Media, 'Youtube')))
+                        yt_cast.on('click', lambda : self.cast_class(self.Media, 'Youtube'))
 
         self.yt_area = ui.scroll_area()
         self.yt_area.set_visibility(False)

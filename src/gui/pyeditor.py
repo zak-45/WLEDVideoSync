@@ -15,7 +15,7 @@ import ast
 import os
 import traceback
 
-from nicegui import ui
+from nicegui import ui, run
 from src.gui.niceutils import LocalFilePicker
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.calculator import Calculator
@@ -66,7 +66,8 @@ class PythonEditor:
         if self.use_capture:
             self.capture = ConsoleCapture(show_console=False)
         self.go_back = go_back
-        self.container = id(self)
+        self.back_ground = None
+        self.container = id(self)  # unique Id help to full screen function
 
     @staticmethod
     async def get_manager_queues():
@@ -105,37 +106,22 @@ class PythonEditor:
         if self.coldtype:
             src_python=RUNColdtype(script_file=self.editor_file.text, log_queue=self.capture.log_queue if self.use_capture else None)
             src_python.start()
-            cfg_mgr.logger.debug(f'File "{self.editor_file.text}" running in Coldtype.')
             ui.notify(f'File "{self.editor_file.text}" running in Coldtype. Wait ...', color='green')
+
         else:
+
             try:
                 code = self.editor.value
-                """
-                # Redirect stdout and stderr to the capture if enabled
-                if self.use_capture:
-                    original_stdout = sys.stdout
-                    original_stderr = sys.stderr
-                    sys.stdout = self.capture.log_queue
-                    sys.stderr = self.capture.log_queue
-                """
 
                 # Execute the code
-                exec(code)
+                if self.back_ground.value is True:
+                    await run.io_bound(lambda: exec(code))
+                else:
+                    exec(code)
 
-                """
-                if self.use_capture:
-                    sys.stdout = original_stdout
-                    sys.stderr = original_stderr
-                """
+                ui.notify(f'Code executed successfully. run in bg : {self.back_ground.value}', color='green')
 
-                cfg_mgr.logger.debug(f'Code executed successfully.')
-                ui.notify(f'Code executed successfully.', color='green')
             except Exception as e:
-                """
-                if self.use_capture:
-                    sys.stdout = original_stdout
-                    sys.stderr = original_stderr
-                """
                 cfg_mgr.logger.error(f'Error executing code: {e}')
                 ui.notify(f'Error executing code: {e}', color='red')
                 if self.use_capture:
@@ -240,7 +226,10 @@ class PythonEditor:
         # UI Layout
         ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
         run_type = 'Coldtype' if self.coldtype else 'Python'
-        ui.label(f'Run Type: {run_type}').classes('self-center text-sm')
+        with ui.row().classes('self-center'):
+            ui.label(f'Run Type: {run_type}').classes('self-center text-sm')
+            self.back_ground = ui.checkbox('Run in Background', value=False)
+            self.back_ground.set_visibility(False) if run_type == 'Coldtype' else True
         if self.go_back:
             ui.button(icon='reply', on_click=self.do_go_back)
         with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):

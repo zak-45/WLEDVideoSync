@@ -45,6 +45,8 @@ External Dependencies: The code depends on several external libraries and module
     str2bool, custom modules like ConsoleCapture, apply_custom, Scheduler, and managejobs.
 
 """
+import uuid
+
 from nicegui import ui, app
 from str2bool import str2bool
 from datetime import datetime
@@ -55,7 +57,12 @@ from src.gui.pyeditor import PythonEditor
 from src.utl.managejobs import *
 
 cfg_mgr = ConfigManager(logger_name='WLEDLogger')
-scheduler = Scheduler(num_workers=2, queue_size=9)
+
+try:
+    scheduler = Scheduler(num_workers=int(cfg_mgr.scheduler_config['num_workers']),
+                          queue_size=int(cfg_mgr.scheduler_config['queue_size']))
+except Exception:
+    scheduler = Scheduler()
 
 schedule_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/scheduler/WLEDScheduler.py'),
                                coldtype=False,
@@ -81,29 +88,77 @@ def format_job_descriptions(job_list, history=False, filter_tag=None):
         return "No jobs scheduled."
 
     lines = []
-    
+
     for job in job_list:
-        if filter_tag and filter_tag not in job.tags:
+        tag_list = sorted(job.tags)
+        if filter_tag and filter_tag not in tag_list:
             continue
 
-        tag_info = '[ONCE]' if any('one-time' in t for t in job.tags) else '[RECURRING]'
+        tag_info = '[ONCE]' if any('one-time' in t for t in tag_list) else '[RECURRING]'
 
-        # Try to extract job metadata
+        # Job name
         try:
             job_name = job.job_func._job_name
         except AttributeError:
             job_name = job.job_func.__name__
 
+        # Scheduled time (for one-time jobs)
         try:
             run_time = job.job_func._run_time.strftime('%Y-%m-%d %H:%M')
-            time_info = f"(scheduled for {run_time})"
+            time_info = f"[{run_time}]"
         except AttributeError:
             time_info = ""
 
-        job_str = repr(job) if history else f"{tag_info} {job_name} {time_info} => {job}"
-        lines.append(job_str)
+        # Tags
+        tag_suffix = f"(tag: {tag_list[-1]})" if tag_list else ""
+
+        # Next & last run times
+        try:
+            next_run = job.next_run.strftime('%Y-%m-%d %H:%M:%S')
+        except Exception:
+            next_run = 'n/a'
+
+        try:
+            last_run = job.last_run.strftime('%Y-%m-%d %H:%M:%S')
+        except Exception:
+            last_run = 'n/a'
+
+        # Interval
+        interval_val = getattr(job, 'interval', None)
+        unit = getattr(job, 'unit', None)
+
+        if interval_val and unit:
+            interval_str = f"every {interval_val} {unit}"
+        else:
+            # fallback: parse from repr
+            r = repr(job)
+            if 'every' in r:
+                interval_str = r.split('every')[-1].split('do')[0].strip()
+                interval_str = f"every {interval_str}"
+            else:
+                interval_str = "n/a"
+
+        # Final label
+        if tag_info == '[ONCE]':
+            readable = f"🕒{tag_info} {job_name} {time_info} {tag_suffix}".strip()
+        else:
+            readable = f"🔁{tag_info} {job.job_func.args}{interval_str} {tag_suffix}".strip()
+
+        if history:
+            job_block = (
+                f"{repr(job)}\n"
+                f"{readable}\n"
+                f"'tags: {tag_list}\n"
+                f"🔁 Interval: {interval_str}\n"
+                f"➡️ Next run: {next_run}\n"
+                f"✅ Last run: {last_run}"
+            )
+            lines.append(job_block)
+        else:
+            lines.append(readable)
 
     return "\n".join(lines) if lines else "No matching jobs."
+
 
 class SchedulerGUI:
     """Creates and manages the scheduler GUI.
@@ -246,18 +301,20 @@ class SchedulerGUI:
                 ui.notify(f'Error scheduling job: {e}', type='negative')
 
         def schedule_one_time_job(run_at: datetime, job_func, job_name: str = ""):
-            """Schedules a one-time job using the schedule module."""
+            """Schedules a one-time job using the schedule module with a unique tag."""
+
+            unique_id = f"{job_name}-{run_at.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
+            tag = f'one-time-{unique_id}'
 
             def one_time_wrapper():
                 now = datetime.now()
                 if now >= run_at:
                     scheduler.send_job_to_queue(job_func)
-                    WLEDScheduler.clear(tag=f'one-time-{job_name}')
+                    WLEDScheduler.clear(tag=tag)
 
             one_time_wrapper._job_name = job_name
-            one_time_wrapper._run_time = run_at  # 💡 store the scheduled datetime
-
-            WLEDScheduler.every(1).minutes.do(one_time_wrapper).tag('WLEDVideoSync', 'one-time', f'one-time-{job_name}')
+            one_time_wrapper._run_time = run_at
+            WLEDScheduler.every(1).seconds.do(one_time_wrapper).tag('WLEDVideoSync', 'one-time', tag)
 
         def add_one_time_job():
             """Adds a one-time job using schedule-based wrapper."""

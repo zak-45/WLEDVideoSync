@@ -20,7 +20,7 @@ Instruction:
 def cast_win_main_desktop(monitor:int = 0):
     """
     Cast entire desktop screen, this is for Win
-    This one take params from mainapp
+    This one take mainapp context
 
         : param: monitor: int 0,1, by default use 0
     """
@@ -36,7 +36,7 @@ def cast_win_main_desktop(monitor:int = 0):
 def cast_win_alone_desktop(monitor:int = 0):
     """
     Cast entire desktop screen, this is for Win
-    This one run on its own
+    This one run on its own context
 
         : param: monitor: int 0,1, by default use 0
     """
@@ -57,8 +57,9 @@ def cast_win_alone_desktop(monitor:int = 0):
 def cast_win_main_media(device_number:int = 0):
     """
     Cast data from device x, this is for Win
-    This one take params from mainapp
-    Depend on your OS configuration. Win give 0 to default USB Webcam
+    This one take mainapp context
+    Device depend on your OS configuration. 
+    Win give 0 to default USB Webcam
 
     :param: device_number : int 0,xxx, by default use 0
 
