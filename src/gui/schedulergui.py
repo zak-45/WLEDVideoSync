@@ -199,7 +199,7 @@ class SchedulerGUI:
             with ui.card().classes('w-full'):
                 with ui.textarea() as schedule_list:
                     schedule_list.classes('w-full')
-                    schedule_list.set_value(format_job_descriptions(scheduler.scheduler.get_jobs(), history=True))
+                    schedule_list.set_value(format_job_descriptions(WLEDScheduler.get_jobs(), history=True))
                 ui.button('close', on_click=running_jobs.close)
 
     async def setup_ui(self):
@@ -211,12 +211,12 @@ class SchedulerGUI:
         """
 
         def refresh_tag_dropdown():
-            tag_dropdown.options = get_all_unique_tags(scheduler.scheduler.get_jobs())
+            tag_dropdown.options = get_all_unique_tags(WLEDScheduler.get_jobs())
 
         def clear_jobs_by_tag(tag: str):
             try:
                 if tag:
-                    scheduler.scheduler.clear(tag=tag)
+                    WLEDScheduler.clear(tag=tag)
                     update_sched()
                     ui.notify(f'Jobs with tag "{tag}" cleared.', type='positive')
                     cfg_mgr.logger.info(f'Jobs with tag "{tag}" cleared.')
@@ -230,7 +230,7 @@ class SchedulerGUI:
             """Clears all jobs from the scheduler."""
             try:
                 slide_item.reset()
-                scheduler.scheduler.clear()
+                WLEDScheduler.clear()
                 update_sched()  # Update the list after clearing
                 ui.notify('All scheduled jobs cancelled.', type='positive')
                 cfg_mgr.logger.info('All scheduled jobs cancelled.')
@@ -246,7 +246,7 @@ class SchedulerGUI:
             scheduler is not running.
             """
             if scheduler.is_running:
-                schedule_list.set_value(format_job_descriptions(scheduler.scheduler.get_jobs()))
+                schedule_list.set_value(format_job_descriptions(WLEDScheduler.get_jobs()))
 
             refresh_tag_dropdown()
             tag_dropdown.update()
@@ -548,7 +548,7 @@ class SchedulerGUI:
                         with ui.row().classes('items-center'):
                             ui.label("Clear by Tag:")
                             tag_dropdown = ui.select(
-                                options=get_all_unique_tags(scheduler.scheduler.get_jobs()),
+                                options=get_all_unique_tags(WLEDScheduler.get_jobs()),
                                 label="Choose Tag"
                             ).classes('w-64')
                             ui.button("Clear", icon="delete", color="red",
