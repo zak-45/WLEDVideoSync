@@ -1,3 +1,97 @@
+"""
+a: zak-45
+d: 14/04/2025
+v: 1.0.0.0
+
+Tracetool 
+
+At its core, tracetool.py is a custom Python script designed to trace the execution of another Python program.
+
+It hooks into the standard sys.settrace mechanism to monitor function calls, line executions, and function returns 
+within your project, while attempting to filter out noise from external libraries or unwanted modules/paths.
+ 
+It logs this trace information to both a plain text file (trace_log.txt) and a more interactive HTML file(trace_log.html).
+
+Key Features & Workflow
+
+1.Configuration (tracetool.ini):
+    •The script first looks for a tracetool.ini file in the same directory.
+    •If the file doesn't exist, it creates one with default settings (defined in DEFAULT_CONFIG). 
+    These defaults enable call tracing but disable line-by-line tracing and set up some basic filtering examples.
+    
+    •It reads settings like whether to trace function calls (trace_calls), individual lines (trace_lines), 
+    or local variables (trace_vars).
+    
+    •It also reads filtering rules:
+    
+    •allowed_paths: Only files within these relative paths (e.g., src) will be traced.
+    •blocked_modules: Functions within these modules (e.g., src.gui.schedulergui) will be ignored.
+    •blocked_paths: Specific file paths to ignore.
+    •function_name_contains, file_name_contains: Optional filters to only trace functions/files whose names include 
+    specific substrings.
+    
+2.Filtering Logic:•Before tracing anything within a function call or line event, the script performs several checks:
+    •is_external_file: Tries to determine if a file belongs to the standard library, 
+    a virtual environment (.venv, Lib/site-packages), or installed site packages. These are generally skipped.
+    •is_allowed_file: Checks if the file's absolute path starts with one of the configured ALLOWED_PATHS.
+    •It then checks against the BLOCKED_MODULES, BLOCKED_PATHS, FUNC_FILTERS, and FILE_FILTERS from the config file.
+    •Only if a frame passes all these checks will it be traced and logged.
+    
+3.Tracing Mechanism (sys.settrace):
+    •The script defines a function trace_calls(frame, event, arg).
+    •sys.settrace(trace_calls) tells the Python interpreter to call this function whenever certain events occur during execution.
+    •The event argument tells the function what happened:
+    •'call': A function is being called.
+    •'line': The interpreter is about to execute a line of code.
+    •'return': A function is about to return.
+    •(Other events like 'exception' exist but aren't explicitly handled here).
+    
+4.Event Handling (trace_calls function):
+    •On 'call':
+    •If TRACE_CALLS is enabled and the frame passes filters:
+    •It records the start time (call_times).
+    •It stores the initial local variables (last_locals).
+    •It logs the function name, file path, line number, and optionally the initial local variables to both log files.
+    •Crucially, it returns trace_calls itself. This tells sys.settrace to keep tracing events within this function 
+    call (like 'line' and 'return'). If it returned None, tracing would stop for the scope of that function.    
+    •On 'line':
+    •If TRACE_LINES is enabled and the frame passes filters:
+    •It logs the file, line number, and the source code of that line.
+    •If TRACE_VARS is enabled, it compares current local variables to the previously stored ones (last_locals) and 
+    logs any changes.
+    •On 'return':
+    •If TRACE_CALLS is enabled and the frame passes filters:
+    •It calculates the execution duration using the stored start time.
+    •It logs the return value and the duration.
+    •It cleans up the stored start time and local variables for that frame.
+    
+5.Logging (log function):
+    •Takes a message and writes it to trace_log.txt.
+    •Formats the message as HTML (escaping special characters, optionally wrapping in a styled <span> or using 
+    raw HTML for <details> tags) and appends it to trace_log.html.
+    •Includes basic error handling for UnicodeEncodeError.
+    
+6.HTML Output (html_log_init, log):
+    •html_log_init creates the trace_log.html file if it doesn't exist, writing the basic HTML structure, CSS styles, 
+    and JavaScript for interactivity.
+    •The HTML includes:
+    •Buttons to expand/collapse all sections or just the call details.
+    •Collapsible sections for System Info, Trace Settings, and the filter lists (Allowed/Blocked Paths/Modules).
+    •CSS to style the different log message types (call, line, return, locals).
+    •The log function uses <details> and <summary> tags for function calls, making the call blocks collapsible 
+    in the HTML output.
+    
+How to Use It
+
+    You would typically import this script at the very beginning of your main application script (main.py or similar). 
+    Just importing it (import tracetool) is enough to activate the tracing, 
+    as sys.settrace(trace_calls) is called at the bottom of tracetool.py. 
+    Your application then runs as usual, 
+    and tracetool intercepts and logs the execution flow according to its configuration.
+
+"""
+
+
 import sys
 import os
 import time
@@ -27,23 +121,67 @@ DEFAULT_CONFIG = {
 config = configparser.ConfigParser()
 
 def write_default_config(path):
+    """Writes the default configuration to the specified path.
+
+    This function iterates through the DEFAULT_CONFIG dictionary and writes each
+    section and its key-value pairs to a configuration file at the given path.
+    It then prints a confirmation message indicating the file's location.
+
+    Args:
+        path (str): The path to write the default configuration file.
+    """
     for section, values in DEFAULT_CONFIG.items():
         config[section] = values
     with open(path, 'w') as f:
         config.write(f)
     print(f"[TRACE] Default config written to {path}")
 
+
 if not os.path.exists(CONFIG_PATH):
     write_default_config(CONFIG_PATH)
 else:
     config.read(CONFIG_PATH)
 
+
 def get_bool(section, key, default=False):
+    """Retrieves a boolean value from the configuration.
+
+    This function attempts to read a value from the specified section and key
+    in the configuration. It handles various truthy/falsy string representations
+    (1, true, yes) and returns a boolean. If the key is not found, it returns
+    the provided default value.
+
+    Args:
+        section (str): The configuration section.
+        key (str): The configuration key.
+        default (bool, optional): The default value if the key is not found.
+            Defaults to False.
+
+    Returns:
+        bool: The boolean value from the configuration or the default.
+    """
     return config.get(section, key, fallback=str(default)).lower() in ('1', 'true', 'yes')
 
 def get_list(section, key, default=None):
+    """Retrieves a list of strings from the configuration.
+
+    This function reads a comma-separated string from the specified section and key
+    in the configuration, splits it into a list of strings, and strips whitespace
+    from each item. If the key is not found or the value is empty, it returns
+    the provided default value or an empty list.
+
+    Args:
+        section (str): The configuration section.
+        key (str): The configuration key.
+        default (list, optional): The default value if the key is not found or the value is empty.
+            Defaults to None.
+
+    Returns:
+        list: A list of strings from the configuration or the default.
+    """
     raw = config.get(section, key, fallback='')
     return [item.strip() for item in raw.split(',') if item.strip()] if raw else (default or [])
+
 
 TRACE_CALLS = get_bool('trace', 'trace_calls', True)
 TRACE_LINES = get_bool('trace', 'trace_lines', False)
@@ -59,6 +197,7 @@ ALLOWED_PATHS = [
     for path in ALLOWED_PATHS_CONFIG
 ]
 
+
 SITE_PACKAGES_PATHS = set(site.getsitepackages())
 VENVS = ('.venv', 'env', 'venv', 'Lib\\site-packages', 'site-packages')
 
@@ -67,7 +206,20 @@ last_locals = {}
 # Track current active frames to isolate HTML blocks
 active_call_ids = set()
 
+
 def is_external_file(filename):
+    """Checks if a file is likely part of an external library or environment.
+
+    This function determines if a given filename belongs to the Python standard library,
+    a virtual environment, or installed site packages. These external files are typically
+    excluded from tracing.
+
+    Args:
+        filename (str): The absolute path to the file.
+
+    Returns:
+        bool: True if the file is considered external, False otherwise.
+    """
     if not filename or not os.path.isabs(filename):
         return True
     filename = os.path.abspath(filename)
@@ -80,16 +232,47 @@ def is_external_file(filename):
     return False
 
 def is_allowed_file(filename):
+    """Checks if a file is within the allowed paths for tracing.
+
+    This function determines if the given filename's absolute path starts with any of the
+    configured allowed paths. This is used to filter which files are traced.
+
+    Args:
+        filename (str): The path to the file.
+
+    Returns:
+        bool: True if the file is within an allowed path, False otherwise.
+    """
     filename = os.path.abspath(filename)
     return any(filename.startswith(path) for path in ALLOWED_PATHS)
 
 def safe_repr(value):
+    """Returns a safe representation of a value, handling potential exceptions.
+
+    This function attempts to get the string representation of a value using repr().
+    If any exception occurs during this process, it returns a string indicating
+    that the value is unrepresentable, along with the exception message.
+
+    Args:
+        value: The value to represent.
+
+    Returns:
+        str: The string representation of the value, or an error message if representation fails.
+    """
     try:
         return repr(value)
     except Exception as e:
         return f"<unreprable: {e}>"
 
 def html_log_init():
+    """Initializes the HTML log file.
+
+    This function creates the HTML log file (trace_log.html) if it doesn't exist.
+    It writes the basic HTML structure, including CSS styles for different log message types,
+    JavaScript for interactive elements (expanding/collapsing sections), and initial content
+    like system information and trace settings. It also adds sections for allowed/blocked paths
+    and modules, fetched from the configuration.
+    """
     def html_list(title, items, ident):
         if not items:
             return f'<div class="section"><h3 onclick="toggle(\'{ident}\')">▶ {title}</h3><div id="{ident}" class="collapsible-content"><p><i>None</i></p></div></div>'
@@ -184,7 +367,21 @@ def html_log_init():
 """)
 
 def log(msg, style_class=None, raw_html=False):
+    """Logs a message to both the text and HTML log files.
+
+    This function prints the given message to the console and appends it to both the plain text
+    log file (trace_log.txt) and the HTML log file (trace_log.html). It handles UnicodeEncodeErrors
+    gracefully and applies HTML formatting (escaping special characters, adding CSS classes)
+    as needed. It also allows for logging raw HTML directly.
+
+    Args:
+        msg (str): The message to log.
+        style_class (str, optional): The CSS class to apply to the message in the HTML log. Defaults to None.
+        raw_html (bool, optional): Whether the message is raw HTML and should not be escaped. Defaults to False.
+    """
+
     print(msg)
+
     try:
         with open(LOG_FILE, 'a', encoding='utf-8') as f:
             f.write(msg + '\n')
@@ -206,6 +403,22 @@ def log(msg, style_class=None, raw_html=False):
 
 
 def trace_calls(frame, event, arg):
+    """Traces function calls, lines, and returns, logging details to files.
+
+    This function acts as the trace function for sys.settrace, receiving events about function calls,
+    line executions, and returns. It filters events based on configuration settings (allowed/blocked paths,
+    modules, function/file name filters), logs relevant information (function name, file, line number,
+    local variables, return values, execution time) to both text and HTML log files, and manages
+    tracing within nested function calls.
+
+    Args:
+        frame (frame): The current stack frame.
+        event (str): The type of event ('call', 'line', 'return').
+        arg: An argument specific to the event type.
+
+    Returns:
+        function: The trace_calls function itself to continue tracing within the current scope, or None to stop tracing.
+    """
     code = frame.f_code
     filename = code.co_filename
     module_name = frame.f_globals.get('__name__', '')

@@ -52,7 +52,7 @@ def root_path(filename):
                 This env not exist when run from the extracted program.
                 Expected way to work.
                 """
-                # Nuitka compressed version extract binaries to "WLEDVideoSync" folder
+                # Nuitka compressed version extract binaries to "WLEDVideoSync" folder (as set in the GitHub action)
                 base_path = os.path.join(os.path.dirname(sys.argv[0]), 'WLEDVideoSync')
             else:
                 base_path = os.path.dirname(sys.argv[0])
@@ -324,7 +324,7 @@ class ConfigManager:
             else:
                 logger = logging.getLogger(self.logger_name)
 
-            # take basename from config file and add root_path + log ( from the config file we take only the name )
+            # take basename from config file and add root_path + log ( on the config file we set only the name )
             # handler[0] should be stdout, handler[1] should be ConcurrentRotatingFileHandler
             if 'ConcurrentRotatingFileHandler' in str(logger.handlers[1]):
                 #: change to new file location
@@ -373,8 +373,22 @@ class ConfigManager:
             return None
 
     def load_config(self):
+        """Loads configuration from the INI file.
+
+        Returns:
+            tuple: A tuple containing dictionaries for each configuration section.
+                   Returns None for sections not found in the file.
+                   Returns None if the configuration cannot be loaded at all.
+        """
         cast_config = app_cfg.load(self.config_file)
-        # config keys
+
+        # Explicitly check if loading the config resulted in None
+        if cast_config is None:
+            if self.logger is not None:
+                self.logger.error('Config file not found')
+            return (None,) * 10 # Adjust the number based on how many sections expected
+
+        # Proceed with getting sections if cast_config is valid
         server_config = cast_config.get('server')
         app_config = cast_config.get('app')
         colors_config = cast_config.get('colors')
