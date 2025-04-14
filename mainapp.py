@@ -205,7 +205,7 @@ async def main_page():
     """
     dark = ui.dark_mode(CastAPI.dark_mode).bind_value_to(CastAPI, 'dark_mode')
 
-    apply_custom()
+    await apply_custom()
 
     if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
@@ -423,7 +423,7 @@ async def main_page_cast_manage():
 
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_custom()
+    await apply_custom()
 
     """
     Header with button menu
@@ -843,7 +843,7 @@ async def main_page_desktop():
     Desktop param page
     """
     ui.dark_mode(CastAPI.dark_mode)
-    apply_custom()
+    await apply_custom()
     await nice.head_menu(name='Desktop Params', target='/Desktop', icon='computer')
 
     async def validate():
@@ -1100,7 +1100,7 @@ async def main_page_media():
     """
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_custom()
+    await apply_custom()
 
     await nice.head_menu(name='Media Params', target='/Media', icon='image')
 
@@ -1385,7 +1385,7 @@ async def manage_font_page():
 
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_custom()
+    await apply_custom()
 
     def selected_font(i_font_name):
         ui.notify(f'Selected font : {i_font_name}')
@@ -1462,7 +1462,7 @@ async def coldtype_test_page():
 
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_custom()
+    await apply_custom()
 
     def cold_run():
         cold = RUNColdtype()
@@ -1478,7 +1478,7 @@ async def pyeditor_test_page():
 
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_custom()
+    await apply_custom()
 
     # Instantiate and run the editor
     editor_app = PythonEditor()
@@ -1492,7 +1492,7 @@ async def stop_app():
 
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_custom()
+    await apply_custom()
 
     ui.button('ShutDown', on_click=app.shutdown).classes('flex h-screen m-auto')
 
@@ -1505,7 +1505,7 @@ async def cast_center_page():
 async def scheduler_page():
     ui.dark_mode(CastAPI.dark_mode)
 
-    apply_custom()
+    await apply_custom()
     await nice.head_menu(name='Scheduler', target='/Scheduler', icon='more_time')
     await scheduler_app.setup_ui()
 

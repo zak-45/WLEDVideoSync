@@ -98,7 +98,7 @@ class CastCenter:
         result = await LocalFilePicker(cfg_mgr.app_root_path('/'), multiple=False)
         ui.notify(f'Selected :  {result}')
 
-        if result is not None:
+        if result is not None and len(result) > 0:
             result = str(result[0])
             self.video.set_value(result)
             self.video.update()
@@ -188,7 +188,7 @@ class CastCenter:
 
         dark = ui.dark_mode(self.CastAPI.dark_mode).bind_value_to(self.CastAPI, 'dark_mode')
 
-        apply_custom()
+        await apply_custom()
 
         if str2bool(cfg_mgr.custom_config['animate_ui']):
             # Add Animate.css to the HTML head

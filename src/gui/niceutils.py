@@ -806,7 +806,7 @@ async def edit_artnet(class_obj):
     new_channels_per_pixel.tooltip('Channels to use for e131/artnet, RGB = 3 RGBW = 4.')
     """
 
-def apply_custom():
+async def apply_custom():
     """
     Layout Colors come from config file
     bg image can be customized

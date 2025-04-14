@@ -160,6 +160,17 @@ def format_job_descriptions(job_list, history=False, filter_tag=None):
     return "\n".join(lines) if lines else "No matching jobs."
 
 
+
+def get_all_unique_tags(job_list):
+    """Returns a sorted list of all unique tags from a list of jobs."""
+    tag_set = set()
+
+    for job in job_list:
+        tag_set.update(job.tags)
+
+    return sorted(tag_set)
+
+
 class SchedulerGUI:
     """Creates and manages the scheduler GUI.
 
@@ -199,6 +210,22 @@ class SchedulerGUI:
         scheduled jobs.
         """
 
+        def refresh_tag_dropdown():
+            tag_dropdown.options = get_all_unique_tags(scheduler.scheduler.get_jobs())
+
+        def clear_jobs_by_tag(tag: str):
+            try:
+                if tag:
+                    scheduler.scheduler.clear(tag=tag)
+                    update_sched()
+                    ui.notify(f'Jobs with tag "{tag}" cleared.', type='positive')
+                    cfg_mgr.logger.info(f'Jobs with tag "{tag}" cleared.')
+                else:
+                    ui.notify("No tag selected.", type='warning')
+            except Exception as e:
+                ui.notify(f"Error clearing jobs: {e}", type='negative')
+                cfg_mgr.logger.error(f"Error clearing jobs by tag: {e}")
+
         def cancel_all_jobs():
             """Clears all jobs from the scheduler."""
             try:
@@ -220,6 +247,9 @@ class SchedulerGUI:
             """
             if scheduler.is_running:
                 schedule_list.set_value(format_job_descriptions(scheduler.scheduler.get_jobs()))
+
+            refresh_tag_dropdown()
+            tag_dropdown.update()
 
         def activate_scheduler():
             """Activates or deactivates the scheduler based on the scheduler switch.
@@ -291,8 +321,9 @@ class SchedulerGUI:
                         sched = sched.until(until_dt)
 
                 tag = f"recurring-{job_name}"
+                unique_id = f"{job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
 
-                sched.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', tag)
+                sched.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', tag, unique_id)
 
                 update_sched()
                 ui.notify(f'Recurring job \"{job_name}\" scheduled successfully.', type='positive')
@@ -359,7 +390,7 @@ class SchedulerGUI:
 
         dark = ui.dark_mode(self.CastAPI.dark_mode).bind_value_to(self.CastAPI, 'dark_mode')
 
-        apply_custom()
+        await apply_custom()
 
         if str2bool(cfg_mgr.custom_config['animate_ui']):
             # Add Animate.css to the HTML head
@@ -512,6 +543,17 @@ class SchedulerGUI:
                                   on_value_change=lambda: update_sched()).classes('w-2/3'):
                     schedule_list = ui.textarea().classes('w-full')
                 ui.space()
+                with ui.dialog() as clear_tag:
+                    with ui.card().classes('self-center w-full'):
+                        with ui.row().classes('items-center'):
+                            ui.label("Clear by Tag:")
+                            tag_dropdown = ui.select(
+                                options=get_all_unique_tags(scheduler.scheduler.get_jobs()),
+                                label="Choose Tag"
+                            ).classes('w-64')
+                            ui.button("Clear", icon="delete", color="red",
+                                      on_click=lambda: clear_jobs_by_tag(tag_dropdown.value))
+                ui.button('Cancel Job(s)',icon='clear', on_click=clear_tag.open)
                 with ui.slide_item('Cancel All') as slide_item:
                     slide_item.classes('bg-sky-800')
                     with slide_item.right():
