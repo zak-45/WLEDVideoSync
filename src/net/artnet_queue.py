@@ -14,9 +14,12 @@ import threading
 import queue
 import numpy as np
 from stupidArtnet import StupidArtnet
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.artnet')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.artnet')
+artnet_logger = logger_manager.logger
 
 
 class ArtNetQueue:
@@ -93,7 +96,7 @@ class ArtNetQueue:
         """
         with self._device_lock:
             if self._artnet:
-                cfg_mgr.logger.warning(f"Art-Net sender already started for {self._name}")
+                artnet_logger.warning(f"Art-Net sender already started for {self._name}")
                 return
 
             self._artnet = StupidArtnet(
@@ -106,7 +109,7 @@ class ArtNetQueue:
             )
 
             self._flush_thread.start()
-            cfg_mgr.logger.info(f"Art-Net sender for {self._name} started.")
+            artnet_logger.info(f"Art-Net sender for {self._name} started.")
 
     def deactivate(self):
         """Deactivates the Art-Net sender and stops the queue processing thread.
@@ -123,7 +126,7 @@ class ArtNetQueue:
             self._artnet.blackout() # Blackout before closing
             self._artnet.close()
             self._artnet = None
-            cfg_mgr.logger.info(f"Art-Net sender for {self._name} stopped.")
+            artnet_logger.info(f"Art-Net sender for {self._name} stopped.")
 
     def send_to_queue(self, data):
         """Adds data to the queue for sending.
@@ -148,7 +151,7 @@ class ArtNetQueue:
                 self.flush(data)
                 self._data_queue.task_done()
             except Exception as e:
-                cfg_mgr.logger.error(f"Error processing queue: {e}")
+                artnet_logger.error(f"Error processing queue: {e}")
                 self.deactivate()
 
     def flush(self, data):
@@ -169,7 +172,7 @@ class ArtNetQueue:
                 return
 
             if data.size != self._channel_count:
-                cfg_mgr.logger.error(f"Invalid buffer size. {data.size} != {self._channel_count}")
+                artnet_logger.error(f"Invalid buffer size. {data.size} != {self._channel_count}")
                 self.deactivate()
 
             data = data.flatten()

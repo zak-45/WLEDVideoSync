@@ -6,9 +6,12 @@ from datetime import datetime
 from coldtype.renderer import Renderer
 from multiprocessing.shared_memory import ShareableList
 import multiprocessing
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.text')
+text_logger = logger_manager.logger
 
 
 class DualStream:

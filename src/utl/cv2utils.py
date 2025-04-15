@@ -25,9 +25,12 @@ import contextlib
 import os
 from datetime import datetime
 from str2bool import str2bool
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(config_file='config/WLEDVideoSync.ini',logger_name='WLEDLogger.api')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.cv2utils')
+cv2utils_logger = logger_manager.logger
 
 class CV2Utils:
     """Provides utility functions for OpenCV (cv2) operations.
@@ -115,12 +118,12 @@ class CV2Utils:
     def cv2_win_close(server_port, class_name, t_name, t_viinput):
         """ Close cv2 window created by imshow """
 
-        cfg_mgr.logger.debug(f'{t_name} Stop window preview if any for {class_name}')
+        cv2utils_logger.debug(f'{t_name} Stop window preview if any for {class_name}')
         window_name = f"{server_port}-{t_name}-{str(t_viinput)}"
 
         # check if window run into sub process so data come from ShareableList
         if str2bool(cfg_mgr.app_config['preview_proc']):
-            cfg_mgr.logger.debug('Preview Window on sub process')
+            cv2utils_logger.debug('Preview Window on sub process')
             sl_name = f'{t_name}_p'
             try:
                 # attach to a shareable list by name
@@ -128,7 +131,7 @@ class CV2Utils:
                 sl[6] = False
                 sl[18] = '0,0,0'
             except Exception as e:
-                cfg_mgr.logger.error(f'Error to access SharedList  {sl_name} with error : {e} ')
+                cv2utils_logger.error(f'Error to access SharedList  {sl_name} with error : {e} ')
 
         else:
             # for window into thread
@@ -137,7 +140,7 @@ class CV2Utils:
                 if win != 0:
                     cv2.destroyWindow(window_name)
             except Exception as e:
-                cfg_mgr.logger.error(f'Error on thread  {t_name} closing window with error : {e} ')
+                cv2utils_logger.error(f'Error on thread  {t_name} closing window with error : {e} ')
 
     @staticmethod
     def sl_main_preview(shared_list, class_name, window_name):
@@ -171,7 +174,7 @@ class CV2Utils:
         default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
         default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
 
-        cfg_mgr.logger.info(f'Preview from ShareAbleList for {class_name}')
+        cv2utils_logger.info(f'Preview from ShareAbleList for {class_name}')
 
         if not CV2Utils.window_exists(window_name):
             cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
@@ -246,13 +249,13 @@ class CV2Utils:
 
             # Stop if requested
             if sl[11] is True:
-                cfg_mgr.logger.debug(f'SL STOP Cast for : {sl_t_name}')
+                cv2utils_logger.debug(f'SL STOP Cast for : {sl_t_name}')
                 break
             elif sl[6] is False:
-                cfg_mgr.logger.debug(f'SL END Preview for : {sl_t_name}')
+                cv2utils_logger.debug(f'SL END Preview for : {sl_t_name}')
                 break
 
-        cfg_mgr.logger.debug(f'Child process exit for : {sl_t_name}')
+        cv2utils_logger.debug(f'Child process exit for : {sl_t_name}')
 
     @staticmethod
     def cv2_display_frame(total_frame,
@@ -315,7 +318,7 @@ class CV2Utils:
                     cv2.destroyWindow(window_name)
             t_preview = False
             t_todo_stop = True
-            cfg_mgr.logger.debug(f'Request to stop {t_name}')
+            cv2utils_logger.debug(f'Request to stop {t_name}')
 
         elif key_pressed == ord("p"):
             with contextlib.suppress(Exception):
@@ -420,7 +423,7 @@ class CV2Utils:
             capture.release()
 
         except Exception as e:
-            cfg_mgr.logger.error(f'Error to get cv2 info : {e}')
+            cv2utils_logger.error(f'Error to get cv2 info : {e}')
 
         finally:
             return dict_media
@@ -472,14 +475,14 @@ class CV2Utils:
                                duration=duration,
                                loop=0,
                                disposal=2)
-                cfg_mgr.logger.info(f"GIF created successfully: {gif_path}")
+                cv2utils_logger.info(f"GIF created successfully: {gif_path}")
             else:
-                cfg_mgr.logger.error("No frames extracted. GIF not created.")
+                cv2utils_logger.error("No frames extracted. GIF not created.")
 
             cap.release()
 
         except Exception as e:
-            cfg_mgr.logger.error(f"Error creating GIF: {e}")
+            cv2utils_logger.error(f"Error creating GIF: {e}")
 
     # resize image to specific width/height, optional ratio
     @staticmethod
@@ -574,7 +577,7 @@ class CV2Utils:
         # Get the absolute path of the folder
         absolute_img_folder = cfg_mgr.app_root_path(cfg_mgr.app_config['img_folder'])
         if not os.path.isdir(absolute_img_folder):
-            cfg_mgr.logger.error(f"The folder {absolute_img_folder} does not exist.")
+            cv2utils_logger.error(f"The folder {absolute_img_folder} does not exist.")
             return
 
         # select buffer
@@ -630,7 +633,7 @@ class CV2Utils:
             img = cv2.cvtColor(buffer[image_number], cv2.COLOR_RGB2BGR)
             cv2.imwrite(t_filename, img)
 
-        cfg_mgr.logger.debug(f"Image saved to {t_filename}")
+        cv2utils_logger.debug(f"Image saved to {t_filename}")
 
 
 class ImageUtils:
@@ -799,7 +802,7 @@ class ImageUtils:
         """
 
         if cols == 0 or rows == 0:
-            cfg_mgr.logger.error('Rows / cols should not be zero')
+            cv2utils_logger.error('Rows / cols should not be zero')
 
         else:
 
@@ -952,7 +955,7 @@ class VideoThumbnailExtractor:
         else:
             # Provide blank frames if the file is not a valid media file
             self.thumbnail_frames = [self.create_blank_frame() for _ in times_in_seconds]
-            cfg_mgr.logger.warning(f"{self.media_path} is not a valid media file. Generated blank frames.")
+            cv2utils_logger.warning(f"{self.media_path} is not a valid media file. Generated blank frames.")
 
     def extract_thumbnails_from_image(self):
         """Extract a thumbnail from an image.
@@ -965,7 +968,7 @@ class VideoThumbnailExtractor:
             self.resize_thumbnails_from_image(image)
         else:
             self.thumbnail_frames = [self.create_blank_frame()]
-            cfg_mgr.logger.error("Failed to read image. Generated a blank frame.")
+            cv2utils_logger.error("Failed to read image. Generated a blank frame.")
 
     def resize_thumbnails_from_image(self, image):
         # Resize the image to the specified thumbnail width while maintaining aspect ratio
@@ -974,7 +977,7 @@ class VideoThumbnailExtractor:
         new_height = int(self.thumbnail_width * aspect_ratio)
         resized_image = cv2.resize(image, (self.thumbnail_width, new_height))
         self.thumbnail_frames = [resized_image]  # Single thumbnail for images
-        cfg_mgr.logger.debug(f"Thumbnail extracted from image: {self.media_path}")
+        cv2utils_logger.debug(f"Thumbnail extracted from image: {self.media_path}")
 
     async def extract_thumbnails_from_video(self, times_in_seconds):
         """Extract thumbnails from a video at specified times.
@@ -984,7 +987,7 @@ class VideoThumbnailExtractor:
         """
         cap = cv2.VideoCapture(self.media_path)
         if not cap.isOpened():
-            cfg_mgr.logger.error(f"Failed to open video file: {self.media_path}")
+            cv2utils_logger.error(f"Failed to open video file: {self.media_path}")
             self.thumbnail_frames = [self.create_blank_frame() for _ in times_in_seconds]
             return
 
@@ -993,7 +996,7 @@ class VideoThumbnailExtractor:
 
         for time_in_seconds in times_in_seconds:
             if time_in_seconds > video_length:
-                cfg_mgr.logger.warning(f"Specified time {time_in_seconds}s is greater than video length {video_length}s. "
+                cv2utils_logger.warning(f"Specified time {time_in_seconds}s is greater than video length {video_length}s. "
                                f"Setting time to {video_length}s.")
                 time_in_seconds = video_length
 
@@ -1009,9 +1012,9 @@ class VideoThumbnailExtractor:
                 resized_frame = cv2.resize(frame, (self.thumbnail_width, new_height))
 
                 self.thumbnail_frames.append(resized_frame)
-                cfg_mgr.logger.debug(f"Thumbnail extracted at {time_in_seconds}s.")
+                cv2utils_logger.debug(f"Thumbnail extracted at {time_in_seconds}s.")
             else:
-                cfg_mgr.logger.error("Failed to extract frame.")
+                cv2utils_logger.error("Failed to extract frame.")
                 self.thumbnail_frames.append(self.create_blank_frame())
 
         cap.release()

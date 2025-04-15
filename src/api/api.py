@@ -17,11 +17,14 @@ from src.utl.presets import load_filter_preset, load_cast_preset
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
-from configmanager import ConfigManager
 
 from src.utl.winutil import *
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.api')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.api')
+api_logger = logger_manager.logger
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
 action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview', 'reset', 'multicast']
@@ -138,7 +141,7 @@ async def update_attribute_by_name(class_name: str, param: str, value: str):
         try:
             value = int(value)
         except ValueError:
-            cfg_mgr.logger.debug("viinput act as string only")
+            api_logger.debug("viinput act as string only")
 
     # check valid IP
     if param == 'cast_devices':
@@ -310,7 +313,7 @@ async def util_download_yt(yt_url: str):
         await Utils.youtube_download(yt_url=yt_url, interactive=False)
 
     except Exception as e:
-        cfg_mgr.logger.error(f'youtube error: {e}')
+        api_logger.error(f'youtube error: {e}')
         raise HTTPException(
             status_code=400,
             detail=f"Not able to retrieve video from : {yt_url} {e}",
@@ -333,7 +336,7 @@ async def util_blackout():
     """
         Put ALL ddp devices Off and stop all Casts
     """
-    cfg_mgr.logger.warning('** BLACKOUT **')
+    api_logger.warning('** BLACKOUT **')
     ApiData.Desktop.t_exit_event.set()
     ApiData.Media.t_exit_event.set()
     ApiData.Desktop.stopcast = True
@@ -360,7 +363,7 @@ async def util_casts_info(img: bool = False):
         Generate image for preview if requested
     :param: img : False/true
     """
-    cfg_mgr.logger.debug('Request Cast(s) info')
+    api_logger.debug('Request Cast(s) info')
 
     # clear
     child_info_data = {}
@@ -384,7 +387,7 @@ async def util_casts_info(img: bool = False):
 
     # use to stop the loop in case of
     # start_time = time.time()
-    cfg_mgr.logger.debug(f'Need to receive info from : {child_list}')
+    api_logger.debug(f'Need to receive info from : {child_list}')
 
     # iterate through all Cast Names
     for _ in child_list:
@@ -394,7 +397,7 @@ async def util_casts_info(img: bool = False):
             child_info_data |= data
             ApiData.Queue.task_done()
         except Empty:
-            cfg_mgr.logger.error('Empty queue, but Desktop/Media cast names list not')
+            api_logger.error('Empty queue, but Desktop/Media cast names list not')
             break
 
     # sort the dict
@@ -402,7 +405,7 @@ async def util_casts_info(img: bool = False):
 
     ApiData.Desktop.t_todo_event.clear()
     ApiData.Media.t_todo_event.clear()
-    cfg_mgr.logger.debug('End request info')
+    api_logger.debug('End request info')
 
     return {"t_info": sort_child_info_data}
 
@@ -461,21 +464,21 @@ def action_to_thread(class_name: str = PathAPI(description=f'Class name, should 
         class_obj = get_class(class_name)
 
     if cast_name is not None and cast_name not in class_obj.cast_names:
-        cfg_mgr.logger.error(f"Invalid Cast name: {cast_name}")
+        api_logger.error(f"Invalid Cast name: {cast_name}")
         raise HTTPException(status_code=400,
                             detail=f"Invalid Cast name: {cast_name}")
 
     if not hasattr(class_obj, 'cast_name_todo'):
-        cfg_mgr.logger.error("Invalid attribute name")
+        api_logger.error("Invalid attribute name")
         raise HTTPException(status_code=400, detail="Invalid attribute name")
 
     if clear:
         class_obj.cast_name_todo = []
-        cfg_mgr.logger.debug(f" To do cleared for {class_obj}'")
+        api_logger.debug(f" To do cleared for {class_obj}'")
         return {"message": f" To do cleared for {class_obj}'"}
 
     if action not in action_to_test and action is not None:
-        cfg_mgr.logger.error(f"Invalid action name. Allowed : {str(action_to_test)}")
+        api_logger.error(f"Invalid action name. Allowed : {str(action_to_test)}")
         raise HTTPException(
             status_code=400,
             detail=f"Invalid action name {action}. Allowed : {str(action_to_test)}",
@@ -492,7 +495,7 @@ def action_to_thread(class_name: str = PathAPI(description=f'Class name, should 
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            cfg_mgr.logger.error(f"Invalid Cast/Thread name or action not set")
+            api_logger.error(f"Invalid Cast/Thread name or action not set")
             raise HTTPException(status_code=400,
                                 detail=f"Invalid Cast/Thread name or action not set")
         else:
@@ -509,7 +512,7 @@ def action_to_thread(class_name: str = PathAPI(description=f'Class name, should 
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            cfg_mgr.logger.debug(f"Action '{action}' added successfully to : '{class_obj}'")
+            api_logger.debug(f"Action '{action}' added successfully to : '{class_obj}'")
             return {"message": f"Action '{action}' added successfully to : '{class_obj}'"}
 
     else:
@@ -520,7 +523,7 @@ def action_to_thread(class_name: str = PathAPI(description=f'Class name, should 
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
             class_obj.t_todo_event.set()
-            cfg_mgr.logger.debug(f"Actions in queue will be executed")
+            api_logger.debug(f"Actions in queue will be executed")
             return {"message": "Actions in queue will be executed"}
 
         elif cast_name is None or action is None:
@@ -528,7 +531,7 @@ def action_to_thread(class_name: str = PathAPI(description=f'Class name, should 
                 class_obj.t_desktop_lock.release()
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
-            cfg_mgr.logger.error("Invalid Cast/Thread name or action not set")
+            api_logger.error("Invalid Cast/Thread name or action not set")
             raise HTTPException(status_code=400,
                                 detail="Invalid Cast/Thread name or action not set")
 
@@ -541,7 +544,7 @@ def action_to_thread(class_name: str = PathAPI(description=f'Class name, should 
             elif class_name == 'Media':
                 class_obj.t_media_lock.release()
             class_obj.t_todo_event.set()
-            cfg_mgr.logger.debug(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
+            api_logger.debug(f"Action '{action}' added successfully to : '{class_obj} and execute is On'")
             return {"message": f"Action '{action}' added successfully to : '{class_obj} and execute is On'"}
 
 
@@ -616,7 +619,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if not Utils.validate_ws_json_input(data):
                 ws_msg = 'WEBSOCKET: received data not compliant with expected format ({"action":{"type":"","param":{}}})'
-                cfg_mgr.logger.error(ws_msg)
+                api_logger.error(ws_msg)
                 raise ValueError(ws_msg)
 
             action = data["action"]["type"]
@@ -624,7 +627,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             if action not in allowed_actions:
                 ws_msg = 'WEBSOCKET: received data contains unexpected action'
-                cfg_mgr.logger.error(ws_msg)
+                api_logger.error(ws_msg)
                 raise ValueError(ws_msg)
 
             if action == 'cast_image':
@@ -632,7 +635,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 for param in required_params:
                     if param not in params:
                         ws_msg = f'WEBSOCKET: missing required parameter: {param}'
-                        cfg_mgr.logger.error(ws_msg)
+                        api_logger.error(ws_msg)
                         raise ValueError(ws_msg)
 
                 optional_params = {
@@ -669,10 +672,10 @@ async def websocket_endpoint(websocket: WebSocket):
             await websocket.send_json({"action": action, "result": "success", "data": result})
 
     except WebSocketDisconnect:
-        cfg_mgr.logger.warning('ws closed')
+        api_logger.warning('ws closed')
     except Exception as e:
         error_msg = traceback.format_exc()
-        cfg_mgr.logger.error(error_msg)
+        api_logger.error(error_msg)
         await websocket.send_json({"action": action, "result": "internal error", "error": str(e), "data": error_msg})
         await websocket.close()
 
@@ -696,8 +699,8 @@ def get_class(class_name):
 
 
 def init_wvs(metadata, mouthCues):
-    cfg_mgr.logger.info('websocket connection initiated')
-    cfg_mgr.logger.debug(metadata, mouthCues)
+    api_logger.info('websocket connection initiated')
+    api_logger.debug(metadata, mouthCues)
 
 
 def cast_image(image_number,
@@ -726,14 +729,14 @@ def cast_image(image_number,
     on 10/04/2024: device_number come from list entry order (0...n)
     """
 
-    cfg_mgr.logger.debug('Cast one image from buffer')
-    cfg_mgr.logger.debug(f"image number: {image_number}")
-    cfg_mgr.logger.debug(f"device number: {device_number}")
-    cfg_mgr.logger.debug(f"FPS: {fps_number}")
-    cfg_mgr.logger.debug(f"Duration (in ms):  {duration_number}")
-    cfg_mgr.logger.debug(f"retry packet number:  {retry_number}")
-    cfg_mgr.logger.debug(f"class name: {class_name}")
-    cfg_mgr.logger.debug(f"Image from buffer: {buffer_name}")
+    api_logger.debug('Cast one image from buffer')
+    api_logger.debug(f"image number: {image_number}")
+    api_logger.debug(f"device number: {device_number}")
+    api_logger.debug(f"FPS: {fps_number}")
+    api_logger.debug(f"Duration (in ms):  {duration_number}")
+    api_logger.debug(f"retry packet number:  {retry_number}")
+    api_logger.debug(f"class name: {class_name}")
+    api_logger.debug(f"Image from buffer: {buffer_name}")
 
     if device_number == -1:  # instruct to use IP from the class.host
         ip = class_obj.host
@@ -741,11 +744,11 @@ def cast_image(image_number,
         try:
             ip = class_obj.cast_devices[device_number][1]  # IP is on 2nd position
         except IndexError:
-            cfg_mgr.logger.error('No device set in Cast Devices list')
+            api_logger.error('No device set in Cast Devices list')
             return
 
     if ip == '127.0.0.1':
-        cfg_mgr.logger.warning('WEBSOCKET: Nothing to do for localhost 127.0.0.1')
+        api_logger.warning('WEBSOCKET: Nothing to do for localhost 127.0.0.1')
         return
 
     if buffer_name.lower() == 'buffer':
@@ -777,7 +780,7 @@ def cast_image(image_number,
                 if fps_number != 0:
                     time.sleep(1 / fps_number)  # Sleep in s for the time required to send one frame
             except IndexError:
-                cfg_mgr.logger.error(f'No image set for this index: {image_number}')
+                api_logger.error(f'No image set for this index: {image_number}')
                 return
     else:
-        cfg_mgr.logger.warning('Not DDP')
+        api_logger.warning('Not DDP')

@@ -42,9 +42,11 @@ import threading
 import time
 import queue
 import schedule
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.scheduler')
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.scheduler')
+scheduler_logger = logger_manager.logger
 
 
 class Scheduler:
@@ -81,13 +83,13 @@ class Scheduler:
                 job_thread = threading.Thread(target=job_func, args=args, kwargs=kwargs)
                 job_thread.daemon = True
                 job_thread.start()
-                cfg_mgr.logger.info(f'Scheduler run function: {job_func.__name__} in thread: {job_thread} '
+                scheduler_logger.info(f'Scheduler run function: {job_func.__name__} in thread: {job_thread} '
                                     f'from worker: {threading.current_thread()}')
                 self.job_queue.task_done()
             except queue.Empty:
                 pass
             except Exception as er:
-                cfg_mgr.logger.error(f'Error to run job in thread : {er}')
+                scheduler_logger.error(f'Error to run job in thread : {er}')
 
     def stop(self):
         """
@@ -105,11 +107,11 @@ class Scheduler:
         if self.bg_thread:
             self.bg_thread.join()
         #
-        cfg_mgr.logger.info(f'stop worker(s): {self.worker_threads}')
-        cfg_mgr.logger.info(f'stop scheduler: {self.bg_thread}')
+        scheduler_logger.info(f'stop worker(s): {self.worker_threads}')
+        scheduler_logger.info(f'stop scheduler: {self.bg_thread}')
         jobs = self.scheduler.get_jobs()
-        cfg_mgr.logger.info(f'Number of job(s) submitted : {len(jobs)}')
-        cfg_mgr.logger.info(f'Name   of job(s) to run    : {jobs}')
+        scheduler_logger.info(f'Number of job(s) submitted : {len(jobs)}')
+        scheduler_logger.info(f'Name   of job(s) to run    : {jobs}')
 
     def start(self, delay=.1):
         """
@@ -123,7 +125,7 @@ class Scheduler:
         """
 
         if self.is_running:
-            cfg_mgr.logger.error('Scheduler is already running')
+            scheduler_logger.error('Scheduler is already running')
             return
 
         self.bg_stop = threading.Event()
@@ -152,7 +154,7 @@ class Scheduler:
 
         self.bg_thread = ScheduleThread(self.scheduler, self.bg_stop, delay)
         self.bg_thread.start()
-        cfg_mgr.logger.info(f'start scheduler: {self.bg_thread}')
+        scheduler_logger.info(f'start scheduler: {self.bg_thread}')
 
     def send_job_to_queue(self, job: Callable, *args, **kwargs):
         """
@@ -164,16 +166,16 @@ class Scheduler:
         try:
             self.job_queue.put((job, args, kwargs), block=False)  # block=False to prevent blocking if the queue is full
         except queue.Full:
-            cfg_mgr.logger.error(f'Schedule not executed, queue is full : {self.job_queue.qsize()}, no more entries accepted')
+            scheduler_logger.error(f'Schedule not executed, queue is full : {self.job_queue.qsize()}, no more entries accepted')
 
 
 if __name__ == "__main__":
     def my_test(name: str = 'default'):
-        cfg_mgr.logger.info(f'this is a test function using this value : {name}, '
+        scheduler_logger.info(f'this is a test function using this value : {name}, '
                             f'running on : {threading.current_thread()}')
 
 
-    cfg_mgr.logger.info('start main')
+    scheduler_logger.info('start main')
     # limit queue to 2 entries
     my_scheduler = Scheduler(num_workers=2, queue_size=2)
     # add some jobs
@@ -183,17 +185,17 @@ if __name__ == "__main__":
     my_scheduler.scheduler.every(4).seconds.do(my_scheduler.send_job_to_queue, my_test, name='test4')
     my_scheduler.scheduler.every(4).seconds.do(my_scheduler.send_job_to_queue, my_test)
     # start scheduler
-    cfg_mgr.logger.info('start scheduler')
+    scheduler_logger.info('start scheduler')
     my_scheduler.start()
     # some sleep to let it do some work
     time.sleep(8)
     # stop scheduler
-    cfg_mgr.logger.info('stop scheduler')
+    scheduler_logger.info('stop scheduler')
     my_scheduler.stop()
     time.sleep(1)
     # clear jobs
-    cfg_mgr.logger.info('we clean all jobs')
+    scheduler_logger.info('we clean all jobs')
     my_scheduler.scheduler.clear()
     my_scheduler.stop()
     time.sleep(1)
-    cfg_mgr.logger.info('stop main')
+    scheduler_logger.info('stop main')

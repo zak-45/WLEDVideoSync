@@ -5,9 +5,11 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from configmanager import ConfigManager
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.text')
+logger_manager = LoggerManager(logger_name='WLEDLogger.text')
+text_logger = logger_manager.logger
 
 class BackgroundOverlay:
     """
@@ -114,7 +116,6 @@ class TextAnimator:
         self.delta_x = None
         self.y_pos = None
         self.x_pos = None
-        self.logger = cfg_mgr.logger
         self.text = text
         self.width = width
         self.height = height
@@ -154,7 +155,7 @@ class TextAnimator:
         self.effect_params = self.init_effect_params()
 
         # Initialize text image
-        self.logger.debug("Initializing TextAnimator")
+        text_logger.debug("Initializing TextAnimator")
         self.text_image = self.create_text_image()
 
         # Initialize scrolling positions based on direction
@@ -180,7 +181,7 @@ class TextAnimator:
             else:
                 self.font = ImageFont.load_default(size=self.font_size)
         except Exception as e:
-            self.logger.error(f"Failed to load font: {e}")
+            text_logger.error(f"Failed to load font: {e}")
             self.font = ImageFont.load_default(size=self.font_size)
 
     def create_text_image(self, text=None, color=None, opacity=None, shadow=None) -> Image.Image:
@@ -214,7 +215,7 @@ class TextAnimator:
             canvas_width = max(self.width, int(text_width))  # ensure canvas width accommodates text
             canvas_height = text_height + self.height
         else:
-            self.logger.warning(f"Unknown direction '{self.direction}'. Defaulting to 'left'.")
+            text_logger.warning(f"Unknown direction '{self.direction}'. Defaulting to 'left'.")
             self.direction = "left"
             canvas_width = text_width + self.width
             canvas_height = max(self.height, int(text_height))
@@ -586,7 +587,7 @@ class TextAnimator:
                 overlay[y_start:y_end, x_start:x_end] = frame_cv[text_y_start:text_y_end, text_x_start:text_x_end]
             except ValueError as e:
                 # Handle potential shape mismatch during scrolling/exploding transitions
-                self.logger.error(f"ValueError during overlay: {e}")
+                text_logger.error(f"ValueError during overlay: {e}")
                 return self.current_frame # Return last valid frame to avoid crash
 
         frame_bgra = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
@@ -644,7 +645,7 @@ class TextAnimator:
             out.write(frame)
 
         out.release()
-        self.logger.info(f"Video saved to {output_file}")
+        text_logger.info(f"Video saved to {output_file}")
 
     def pause(self):
         """Pauses the animation."""
@@ -660,4 +661,4 @@ class TextAnimator:
     def stop(self):
         """Stops the animator."""
 
-        self.logger.debug("Stopping TextAnimator")
+        text_logger.debug("Stopping TextAnimator")

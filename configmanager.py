@@ -190,17 +190,16 @@ class ConfigManager:
 
     """
 
-    def __init__(self, config_file='config/WLEDVideoSync.ini', logging_config_path='config/logging.ini', logger_name='WLEDLogger'):
+    def __init__(self, config_file='config/WLEDVideoSync.ini'):
         """
         Initializes the configuration manager with default or specified logging configuration settings.
         Sets up initial configuration attributes and prepares for configuration loading.
 
         Args:
-            logging_config_path (str, optional): Path to the logging configuration file. Defaults to 'config/logging.ini'.
-            logger_name (str, optional): Name of the logger to be used. Defaults to 'WLEDLogger'.
+            config_file
 
-        The method initializes configuration-related attributes to None and sets the provided logging configuration path
-        and logger name. It then calls the initialize method to set up the configuration based on the current environment.
+        The method initializes configuration-related attributes to None.
+        It then calls the initialize method to set up the configuration based on the current environment.
         """
         self.manager_config = None
         self.logger = None
@@ -213,9 +212,7 @@ class ConfigManager:
         self.ws_config = None
         self.text_config = None
         self.scheduler_config = None
-        self.logging_config_path = self.app_root_path(logging_config_path)
         self.config_file = self.app_root_path(config_file)
-        self.logger_name = logger_name
         self.initialize()
 
     @staticmethod
@@ -292,59 +289,6 @@ class ConfigManager:
                 print('Config file not found')
             sys.exit(5)
 
-        # create logger
-        self.logger = self.setup_logging()
-
-
-    def setup_logging(self):
-        """
-        Sets up the logging system for the application based on a configuration file or default settings.
-        Configures logging handlers and formatters according to the specified configuration file, or falls back to basic
-        configuration if the file is not found.
-
-        Returns:
-            logging.Logger: The configured logger instance.
-
-        Examples:
-            >> logger = config_manager.setup_logging()
-            >> logger.info('Application started')
-
-        Ensures that logging is properly configured, even if the specified configuration file is missing.
-        """
-        # Set the custom logger class
-        logging.setLoggerClass(CustomLogger)
-
-        # read the config file
-        if os.path.exists(self.logging_config_path):
-
-            logging.config.fileConfig(self.logging_config_path, disable_existing_loggers=False)
-            # trick: use the same name for all modules, ui.log will receive message from alls
-            if self.app_config is not None and str2bool(self.app_config['log_to_main']):
-                logger = logging.getLogger('WLEDLogger')
-            else:
-                logger = logging.getLogger(self.logger_name)
-
-            # take basename from config file and add root_path + log ( on the config file we set only the name )
-            # handler[0] should be stdout, handler[1] should be ConcurrentRotatingFileHandler
-            if 'ConcurrentRotatingFileHandler' in str(logger.handlers[1]):
-                #: change to new file location
-                logger.handlers[1].baseFilename = self.app_root_path(f"log/{os.path.basename(logger.handlers[1].baseFilename)}")
-                logger.handlers[1].lockFilename = self.app_root_path(f"log/{os.path.basename(logger.handlers[1].lockFilename)}")
-            else:
-                logger.error(f'ConcurrentRotatingFileHandler not found in key 1 : {str(logger.handlers)}')
-
-            logger.debug(f"Logging configured using {self.logging_config_path} for {self.logger_name}")
-
-        else:
-
-            # if not found config, set default param
-            logging.basicConfig(level=logging.INFO)
-            logger = logging.getLogger(self.logger_name)
-            logger.debug(f"Logging config file {self.logging_config_path} not found. Using basic configuration.")
-
-        return logger
-
-
     def read_config(self):
         """
         Reads and parses the application's configuration file.
@@ -380,6 +324,7 @@ class ConfigManager:
                    Returns None for sections not found in the file.
                    Returns None if the configuration cannot be loaded at all.
         """
+        # load config file
         cast_config = app_cfg.load(self.config_file)
 
         # Explicitly check if loading the config resulted in None
@@ -410,3 +355,113 @@ class ConfigManager:
                 text_config,
                 manager_config,
                 scheduler_config)
+
+
+
+class LoggerManager:
+    """
+    Manages configuration settings for the application across different environments.
+    This class handles logging setup.
+
+    Attributes:
+        logger: Configured logger instance for the application.
+        logging_config_path: Path to the logging configuration file.
+        logger_name: Name of the logger to be used.
+
+
+    # Usage
+    config_manager = LoggerManager(logging_config_path='path/to/logging.ini', logger_name='CustomLoggerName')
+
+    """
+
+    def __init__(self, logging_config_path='config/logging.ini', logger_name='WLEDLogger'):
+        """
+        Initializes the configuration manager with default or specified logging configuration settings.
+        Sets up initial configuration attributes and prepares for configuration loading.
+
+        Args:
+            logging_config_path (str, optional): Path to the logging configuration file. Defaults to 'config/logging.ini'.
+            logger_name (str, optional): Name of the logger to be used. Defaults to 'WLEDLogger'.
+
+        The method initializes configuration-related attributes to None and sets the provided logging configuration path
+        and logger name. It then calls the initialize method to set up the configuration based on the current environment.
+        """
+
+        self.logging_config_path = self.app_root_path(logging_config_path)
+        self.logger_name = logger_name
+        self.logger = self.setup_logging()
+
+    @staticmethod
+    def app_root_path(file):
+        """
+        Provides a static method to access the root path of the application.
+        This method simply calls the root_path function to determine the application's root directory.
+
+        Args:
+            file (str): The name of the file or directory relative to the application's root.
+
+        Returns:
+            str: The absolute path to the specified file or directory.
+
+        Examples:
+            >> ConfigManager.app_root_path('data/config.ini')
+            '/path/to/app/data/config.ini'
+
+        This static method provides a convenient way to access the root_path functionality within the ConfigManager class.
+        """
+        return root_path(file)
+
+
+    def setup_logging(self):
+        """
+        Sets up the logging system for the application based on a configuration file or default settings.
+        Configures logging handlers and formatters according to the specified configuration file, or falls back to basic
+        configuration if the file is not found.
+
+        Returns:
+            logging.Logger: The configured logger instance.
+
+        Examples:
+            >> logger = config_manager.setup_logging()
+            >> logger.info('Application started')
+
+        Ensures that logging is properly configured, even if the specified configuration file is missing.
+        """
+        # Set the custom logger class
+        logging.setLoggerClass(CustomLogger)
+
+        # read the config file
+        if os.path.exists(self.logging_config_path):
+
+            logging.config.fileConfig(self.logging_config_path, disable_existing_loggers=False)
+            # trick: use the same name for all modules, ui.log will receive message from alls
+            if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['log_to_main']):
+                logger = logging.getLogger('WLEDLogger')
+            else:
+                logger = logging.getLogger(self.logger_name)
+
+            # take basename from config file and add root_path + log ( on the config file we set only the name )
+            # handler[0] should be stdout, handler[1] should be ConcurrentRotatingFileHandler
+            if 'ConcurrentRotatingFileHandler' in str(logger.handlers[1]):
+                #: change to new file location
+                logger.handlers[1].baseFilename = self.app_root_path(f"log/{os.path.basename(logger.handlers[1].baseFilename)}")
+                logger.handlers[1].lockFilename = self.app_root_path(f"log/{os.path.basename(logger.handlers[1].lockFilename)}")
+            else:
+                logger.error(f'ConcurrentRotatingFileHandler not found in key 1 : {str(logger.handlers)}')
+
+            logger.debug(f"Logging configured using {self.logging_config_path} for {self.logger_name}")
+
+        else:
+
+            # if not found config, set default param
+            logging.basicConfig(level=logging.INFO)
+            logger = logging.getLogger(self.logger_name)
+            logger.debug(f"Logging config file {self.logging_config_path} not found. Using basic configuration.")
+
+        return logger
+
+# --- Add this line at the end of the file ---
+# Create a single, shared instance of the ConfigManager
+# This code runs only ONCE when the module is first imported.
+cfg_mgr = ConfigManager()
+# --- End of addition ---

@@ -4,9 +4,12 @@ import shelve
 import tkinter as tk
 
 from screeninfo import get_monitors
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.tkarea')
+cfg_mgr.logger = logger_manager.logger
 
 class ScreenAreaSelection:
     """ Retrieve coordinates from selected monitor region
@@ -107,10 +110,7 @@ class ScreenAreaSelection:
         monitors = get_monitors()
         ScreenAreaSelection.monitors = monitors
         ScreenAreaSelection.pid_file = pid_file
-        """
-        for i, m in enumerate(monitors):
-            print(f"Monitor {i}: {m}")
-        """
+
         # Change the monitor index as needed
         monitor_index = monitor_number  # Change this to the desired monitor index (0 for first , 1 for second, etc.)
         if monitor_index >= len(monitors):

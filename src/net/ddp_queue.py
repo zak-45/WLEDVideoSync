@@ -3,9 +3,12 @@ import socket
 import numpy as np
 from queue import Queue
 from threading import Thread
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.ddp')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.ddp')
+ddp_logger = logger_manager.logger
 
 
 class DDPDevice:
@@ -56,7 +59,7 @@ class DDPDevice:
         while True:
             # if too much packet waiting, we stop all
             if self._data_queue.qsize() > 500:
-                cfg_mgr.logger.error(f'Queue size too big {self._data_queue.qsize()}. Maybe Better to stop the Cast')
+                ddp_logger.error(f'Queue size too big {self._data_queue.qsize()}. Maybe Better to stop the Cast')
             data = self._data_queue.get()  # Get data from the queue
             self.flush_from_queue(data)  # Call flush with the data
             self._data_queue.task_done()  # Mark the task as done
@@ -87,12 +90,12 @@ class DDPDevice:
                 retry_number=self.retry_number
             )
             if self.connection_warning:
-                cfg_mgr.logger.warning(f"DDP connection reestablished to {self._destination}")
+                ddp_logger.warning(f"DDP connection reestablished to {self._destination}")
                 self.connection_warning = False
                 self._online = True
         except OSError as error:
             if not self.connection_warning:
-                cfg_mgr.logger.error(f"Error in DDP connection to {self._destination}: {error}")
+                ddp_logger.error(f"Error in DDP connection to {self._destination}: {error}")
                 self.connection_warning = True
                 self._online = False
 

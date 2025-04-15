@@ -51,9 +51,12 @@ from src.utl.utils import CASTUtils as Utils
 from src.utl.winutil import windows_names
 from src.gui.niceutils import AnimatedElement as Animate
 
-from configmanager import ConfigManager
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+logger_manager = LoggerManager(logger_name='WLEDLogger.center')
+center_logger = logger_manager.logger
+
 
 class CastCenter:
     def __init__(self, Desktop, Media, CastAPI, t_data_buffer):
@@ -147,7 +150,7 @@ class CastCenter:
         elif cast_type == 'Area':
             self.Desktop.viinput = 'area'
         else:
-            cfg_mgr.logger.error('Error on cast_type')
+            center_logger.error('Error on cast_type')
 
         self.desktop_status.props('color="red"')
 
@@ -158,7 +161,7 @@ class CastCenter:
             try:
                 self.Media.viinput = self.device.value[2]
             except Exception as er:
-                cfg_mgr.logger.error(f'Error on device: {er}')
+                center_logger.error(f'Error on device: {er}')
         elif cast_type == 'Video':
             self.Media.viinput = self.video.value
         elif cast_type == 'Youtube':
@@ -166,7 +169,7 @@ class CastCenter:
             yt_url = await Utils.get_yt_video_url(video_url=self.yt_input.value,iformat="best")
             self.Media.viinput = yt_url
         else:
-            cfg_mgr.logger.error('Error on cast_type')
+            center_logger.error('Error on cast_type')
 
     async def center_timer_action(self):
 
@@ -435,10 +438,10 @@ class CastCenter:
 if __name__ == "__main__":
     from mainapp import Desktop as Dk, Media as Md, CastAPI as Api, t_data_buffer as queue
 
-    app.add_static_files('/assets',cfg_mgr.app_root_path('assets'))
+    app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     cast_app = CastCenter(Dk, Md, Api, queue)
 
-    print('start main')
+    print('start cast center main')
     @ui.page('/')
     async def main_page():
         print('main page')
@@ -446,4 +449,4 @@ if __name__ == "__main__":
 
     ui.run(reload=False)
 
-    print('End main')
+    print('End cast center main')

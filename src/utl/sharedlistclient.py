@@ -51,6 +51,11 @@ import ast
 from multiprocessing.managers import BaseManager
 from multiprocessing.shared_memory import ShareableList
 
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.slclient')
+slclient_logger = logger_manager.logger
+
 
 class SLManager(BaseManager):
     pass
@@ -78,19 +83,19 @@ class SharedListClient:
         self.manager = SLManager(address=self.address, authkey=self.authkey)
         try:
             self.manager.connect()
-            print("Connected to SharedListManager.")
+            slclient_logger.info("Connected to SharedListManager.")
             return True
         except ConnectionRefusedError as con:
-            print(f'No SL manager server: {con}')
+            slclient_logger.error(f'No SL manager server: {con}')
             return False
         except Exception as er:
-            print(f'Error with  SL client : {er}')
+            slclient_logger.error(f'Error with  SL client : {er}')
             return None
 
     def create_shared_list(self, name, w, h, start_time=0):
         """Requests the server to create a shared list and returns a ShareableList."""
 
-        print(f"Request to Create SL '{name}' for  {w}-{h}.")
+        slclient_logger.info(f"Request to Create SL '{name}' for  {w}-{h}.")
         shm_name_proxy = self.manager.create_shared_list(name, w, h, start_time)  # This is an AutoProxy object
 
         # Instead of treating the proxy as a normal string, access its actual value using 'shm_name_proxy'
@@ -106,17 +111,17 @@ class SharedListClient:
 
             if proxy_result == 'True':  # Now comparing the string directly
                 try:
-                    print(f'Attach to SL : {name}')
+                    slclient_logger.info(f'Attach to SL : {name}')
                     return ShareableList(name=name)  # Attach to the existing list
                 except Exception as er:
-                    print(f"Error attaching to SL '{name}': {er}")
+                    slclient_logger.error(f"Error attaching to SL '{name}': {er}")
                     return None
             else:
-                print(f"Failed to create SL '{name}'. Received unexpected response: {proxy_result}")
+                slclient_logger.error(f"Failed to create SL '{name}'. Received unexpected response: {proxy_result}")
                 return None
 
         except Exception as er:
-            print(f"Failed to resolve proxy value: {er}")
+            slclient_logger.info(f"Failed to resolve proxy value: {er}")
             return None
 
     @staticmethod
@@ -125,45 +130,45 @@ class SharedListClient:
 
     def get_shared_lists(self):
         """Retrieves all shared list names."""
-        print('Request to receive existing SLs list')
+        slclient_logger.info('Request to receive existing SLs list')
         return f'{self.manager.get_shared_lists()}'
 
     def get_shared_lists_info(self):
         """Retrieves all shared list names with width and height."""
-        print('Request to receive existing SLs info dict')
+        slclient_logger.info('Request to receive existing SLs info dict')
         shared_lists_info_proxy = self.manager.get_shared_lists_info()
         shared_lists_info_str = f'{shared_lists_info_proxy}'
         try:
             return ast.literal_eval(shared_lists_info_str)
         except (SyntaxError, ValueError) as er:
-            print(f"Error parsing shared list info: {er}")
+            slclient_logger.error(f"Error parsing shared list info: {er}")
             return None
 
     def get_shared_list_info(self, name):
         """Retrieves size information for a specific shared list."""
-        print(f'Request to receive existing SL info dict for: {name}')
+        slclient_logger.info(f'Request to receive existing SL info dict for: {name}')
         shared_list_info_proxy = self.manager.get_shared_list_info(name)
         shared_list_info_str = f'{shared_list_info_proxy}'
         try:
             return ast.literal_eval(shared_list_info_str)
         except (SyntaxError, ValueError) as er:
-            print(f"Error parsing shared list info: {er}")
+            slclient_logger.error(f"Error parsing shared list info: {er}")
             return None
 
     def delete_shared_list(self, name):
         """Deletes a shared list."""
-        print(f"Request to delete SL '{name}'.")
+        slclient_logger.info(f"Request to delete SL '{name}'.")
         self.manager.delete_shared_list(name)
 
     def stop_server(self):
         """Requests the server to stop."""
         try:
             self.manager.stop_manager()  # This method now shuts down the server
-            print("SL manager shutdown request sent.")
+            slclient_logger.info("SL manager shutdown request sent.")
         except ConnectionResetError:
             pass
         except Exception as er:
-            print(f"Error stopping the SL manager: {er}")
+            slclient_logger.error(f"Error stopping the SL manager: {er}")
 
 if __name__ == "__main__":
     client = SharedListClient()
@@ -172,26 +177,26 @@ if __name__ == "__main__":
         client.connect()
         if shared_list := client.create_shared_list("mylist", 128, 128, 3):
             # List shared lists
-            print("Current SLs lists:", client.get_shared_lists())
+            slclient_logger.info("Current SLs lists:", client.get_shared_lists())
             # List shared lists info
-            print("Current shared lists info :", client.get_shared_lists_info())
+            slclient_logger.info("Current shared lists info :", client.get_shared_lists_info())
             # List shared lists info
-            print("Current shared list info for 'mylist' :", client.get_shared_list_info('mylist'))
+            slclient_logger.info("Current shared list info for 'mylist' :", client.get_shared_list_info('mylist'))
             # Attach to SL
             client.attach_to_shared_list('mylist')
-            print("Attach to 'mylist': ok" )
+            slclient_logger.info("Attach to 'mylist': ok" )
             if mylist_info := client.get_shared_list_info('mylist'):
                 width = mylist_info['w']
                 height = mylist_info['h']
-                print(f"Size of 'mylist' (using get_shared_list_info): {width}x{height}")
+                slclient_logger.info(f"Size of 'mylist' (using get_shared_list_info): {width}x{height}")
 
             # Cleanup
             client.delete_shared_list("mylist")
             shared_list.shm.close()  # Manually close shared memory
 
     except Exception as e:
-        print("Client Error:", e)
+        slclient_logger.error("Client Error:", e)
 
     finally:
-        print("Client shutting down.")
+        slclient_logger.info("Client shutting down.")
         # client.stop_server()

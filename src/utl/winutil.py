@@ -4,6 +4,11 @@ import json
 
 from nicegui import run
 
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.winutil')
+winutil_logger = logger_manager.logger
+
 
 def get_window_rect(title):
     """Find window position and size using pywinctl (cross-platform)."""
@@ -20,7 +25,7 @@ def get_window_rect(title):
             return win.left, win.top, win.width, win.height
 
     except Exception as er:
-        print(f"Not able to retrieve info for window name {title}. Error: {er}")
+        winutil_logger.error(f"Not able to retrieve info for window name {title}. Error: {er}")
 
     return None
 
@@ -61,7 +66,7 @@ async def windows_titles():
         windows_by_app = json.loads(all_windows)
 
     except Exception as er:
-        print(f"Error retrieving windows: {er}")
+        winutil_logger.error(f"Error retrieving windows: {er}")
         return {}
 
     return windows_by_app
@@ -79,7 +84,7 @@ async def windows_names():
         windows.sort()
 
     except Exception as er:
-        print(f'Error to retrieve windows names : {er}')
+        winutil_logger.error(f'Error to retrieve windows names : {er}')
 
     finally:
         return windows

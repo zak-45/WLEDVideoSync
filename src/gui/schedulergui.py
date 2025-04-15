@@ -56,7 +56,11 @@ from src.utl.scheduler import Scheduler
 from src.gui.pyeditor import PythonEditor
 from src.utl.managejobs import *
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.scheduler')
+scheduler_logger = logger_manager.logger
 
 try:
     scheduler = Scheduler(num_workers=int(cfg_mgr.scheduler_config['num_workers']),
@@ -70,9 +74,9 @@ schedule_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/schedule
                                go_back=False)
 
 job_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/jobs/jobstosched.py'),
-                               coldtype=False,
-                               use_capture=False,
-                               go_back=False)
+                          coldtype=False,
+                          use_capture=False,
+                          go_back=False)
 
 AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/jobstosched.py'))
 
@@ -219,12 +223,12 @@ class SchedulerGUI:
                     WLEDScheduler.clear(tag=tag)
                     update_sched()
                     ui.notify(f'Jobs with tag "{tag}" cleared.', type='positive')
-                    cfg_mgr.logger.info(f'Jobs with tag "{tag}" cleared.')
+                    scheduler_logger.info(f'Jobs with tag "{tag}" cleared.')
                 else:
                     ui.notify("No tag selected.", type='warning')
             except Exception as e:
                 ui.notify(f"Error clearing jobs: {e}", type='negative')
-                cfg_mgr.logger.error(f"Error clearing jobs by tag: {e}")
+                scheduler_logger.error(f"Error clearing jobs by tag: {e}")
 
         def cancel_all_jobs():
             """Clears all jobs from the scheduler."""
@@ -233,10 +237,10 @@ class SchedulerGUI:
                 WLEDScheduler.clear()
                 update_sched()  # Update the list after clearing
                 ui.notify('All scheduled jobs cancelled.', type='positive')
-                cfg_mgr.logger.info('All scheduled jobs cancelled.')
+                scheduler_logger.info('All scheduled jobs cancelled.')
             except Exception as e:
                 ui.notify(f'Error cancelling jobs: {e}', type='negative')
-                cfg_mgr.logger.error(f'Error cancelling jobs: {e}')
+                scheduler_logger.error(f'Error cancelling jobs: {e}')
 
         def update_sched():
             """Updates the displayed list of scheduled jobs.
@@ -258,13 +262,13 @@ class SchedulerGUI:
             and updates the scheduler status indicator accordingly.
             """
             if scheduler_switch.value:
-                cfg_mgr.logger.info('start scheduler')
+                scheduler_logger.info('start scheduler')
                 scheduler.start()
                 scheduler_status.props('color=green')
                 clock_card.set_visibility(True)
                 analog_clock_card.set_visibility(False)
             else:
-                cfg_mgr.logger.info('stop scheduler')
+                scheduler_logger.info('stop scheduler')
                 scheduler.stop()
                 scheduler_status.props('color=yellow')
                 clock_card.set_visibility(False)

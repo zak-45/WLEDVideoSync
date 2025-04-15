@@ -49,9 +49,11 @@ from coldtype.text.reader import Font
 
 from src.gui.tkarea import ScreenAreaSelection as SCArea
 
-from configmanager import ConfigManager
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
+logger_manager = LoggerManager(logger_name='WLEDLogger.utils')
+utils_logger = logger_manager.logger
 
 class CASTUtils:
     """Provides utility functions for various CAST operations.
@@ -101,10 +103,10 @@ class CASTUtils:
                 with shelve.open(tmp_file, 'r') as process_file:
                     if saved_screen_coordinates := process_file.get("sc_area"):
                         SCArea.screen_coordinates = saved_screen_coordinates
-                        cfg_mgr.logger.debug(f"Loaded screen coordinates from shelve: {saved_screen_coordinates}")
+                        utils_logger.debug(f"Loaded screen coordinates from shelve: {saved_screen_coordinates}")
 
             except Exception as er:
-                cfg_mgr.logger.error(f"Error loading screen coordinates from shelve: {er}")
+                utils_logger.error(f"Error loading screen coordinates from shelve: {er}")
         else:
 
             await run.io_bound(SCArea.run, monitor, tmp_file)
@@ -112,9 +114,9 @@ class CASTUtils:
         # For Calculate crop parameters
         class_obj.screen_coordinates = SCArea.screen_coordinates
         #
-        cfg_mgr.logger.debug(f'Monitor infos: {SCArea.monitors}')
-        cfg_mgr.logger.debug(f'Area Coordinates: {SCArea.coordinates} from monitor {monitor}')
-        cfg_mgr.logger.debug(f'Area screen Coordinates: {SCArea.screen_coordinates} from monitor {monitor}')
+        utils_logger.debug(f'Monitor infos: {SCArea.monitors}')
+        utils_logger.debug(f'Area Coordinates: {SCArea.coordinates} from monitor {monitor}')
+        utils_logger.debug(f'Area screen Coordinates: {SCArea.screen_coordinates} from monitor {monitor}')
 
 
     @staticmethod
@@ -145,7 +147,7 @@ class CASTUtils:
                             return response.status, await response.json()
                         elif response.status == 400:
                             error_data = await response.text()
-                            cfg_mgr.logger.error(f"GET request error: {error_data}")
+                            utils_logger.error(f"GET request error: {error_data}")
                             return response.status, None
                         else:
                             return response.status, None
@@ -158,7 +160,7 @@ class CASTUtils:
                             return response.status, await response.json()
                         elif response.status == 400:
                             error_data = await response.text()
-                            cfg_mgr.logger.error(f"POST request error: {error_data}")
+                            utils_logger.error(f"POST request error: {error_data}")
                             return response.status, None
                         else:
                             return response.status, None
@@ -171,16 +173,16 @@ class CASTUtils:
                             return response.status, await response.json()
                         elif response.status == 400:
                             error_data = await response.text()
-                            cfg_mgr.logger.error(f"PUT request error: {error_data}")
+                            utils_logger.error(f"PUT request error: {error_data}")
                             return response.status, None
                         else:
                             return response.status, None
                 else:
-                    cfg_mgr.logger.error(f"Invalid HTTP method: {method}")
+                    utils_logger.error(f"Invalid HTTP method: {method}")
                     return None, None # Return (None, None) for invalid method
 
         except aiohttp.ClientError as er:
-            cfg_mgr.logger.error(f"API request error: {er}")
+            utils_logger.error(f"API request error: {er}")
             return None, None
 
     @staticmethod
@@ -231,18 +233,18 @@ class CASTUtils:
             if gif_path_size_kb < remaining_space_kb:
                 response = requests.post(url, files=files, timeout=10)  # Add timeout
                 response.raise_for_status()
-                cfg_mgr.logger.info(f"GIF uploaded successfully: {response.text} to: {url}")
+                utils_logger.info(f"GIF uploaded successfully: {response.text} to: {url}")
             else:
-                cfg_mgr.logger.error(f'Not enough space on wled device : {wled_ip}')
+                utils_logger.error(f'Not enough space on wled device : {wled_ip}')
 
         except requests.exceptions.Timeout:
-            cfg_mgr.logger.error(f"Timeout error uploading GIF to: {url}")
+            utils_logger.error(f"Timeout error uploading GIF to: {url}")
         except requests.exceptions.HTTPError as errh:
-            cfg_mgr.logger.error(f"HTTP Error uploading GIF: {errh} to: {url}")
+            utils_logger.error(f"HTTP Error uploading GIF: {errh} to: {url}")
         except requests.exceptions.ConnectionError as errc:
-            cfg_mgr.logger.error(f"Error Connecting to WLED: {errc} at: {url}")
+            utils_logger.error(f"Error Connecting to WLED: {errc} at: {url}")
         except requests.exceptions.RequestException as err:
-            cfg_mgr.logger.error(f"Error uploading GIF: {err} to: {url}")
+            utils_logger.error(f"Error uploading GIF: {err} to: {url}")
 
 
     @staticmethod
@@ -274,12 +276,12 @@ class CASTUtils:
                                duration=stream.average_rate.denominator)
 
             else:
-                cfg_mgr.logger.error(f'Not a GIF file : {video_in}')
+                utils_logger.error(f'Not a GIF file : {video_in}')
 
             container_in.close()
 
         except Exception as er:
-            cfg_mgr.logger.error(f"Error resizing GIF: {er}")
+            utils_logger.error(f"Error resizing GIF: {er}")
 
 
     @staticmethod
@@ -316,7 +318,7 @@ class CASTUtils:
             container_in.close()
 
         except Exception as er:
-            cfg_mgr.logger.error(f"Error resizing video: {er}")
+            utils_logger.error(f"Error resizing video: {er}")
 
 
     @staticmethod
@@ -368,7 +370,7 @@ class CASTUtils:
             container.close()
             return width, height
         except Exception as er:
-            cfg_mgr.logger.error(f"Error getting video dimensions: {er}")
+            utils_logger.error(f"Error getting video dimensions: {er}")
             return None, None
 
     @staticmethod
@@ -388,7 +390,7 @@ class CASTUtils:
             else:  # It's a local path
                 return os.path.basename(path_or_url)
         except Exception as er:
-            cfg_mgr.logger.error(f"Error extracting filename: {er}")
+            utils_logger.error(f"Error extracting filename: {er}")
             return None
 
     @staticmethod
@@ -400,8 +402,8 @@ class CASTUtils:
         try:
 
             # some cleaning
-            cfg_mgr.logger.info('Cleaning ...')
-            cfg_mgr.logger.debug('Remove tmp files')
+            utils_logger.info('Cleaning ...')
+            utils_logger.debug('Remove tmp files')
             for tmp_filename in PathLib("tmp/").glob("*_file.*"):
                 tmp_filename.unlink()
 
@@ -417,7 +419,7 @@ class CASTUtils:
 
 
         except Exception as error:
-            cfg_mgr.logger.error(f'Error to remove tmp files : {error}')
+            utils_logger.error(f'Error to remove tmp files : {error}')
 
 
     @staticmethod
@@ -503,7 +505,7 @@ class CASTUtils:
         config = configparser.ConfigParser()
 
         try:
-            cfg_mgr.logger.info(f'In update_ini_key , ini file : {file_path}')
+            utils_logger.info(f'In update_ini_key , ini file : {file_path}')
         except (NameError, AttributeError):
             # this will be print only during init app as logger is not yet defined (NameError)
             print(f'In update_ini_key , ini file : {file_path}')
@@ -526,7 +528,7 @@ class CASTUtils:
             config.write(configfile)
 
         try:
-            cfg_mgr.logger.info(f"INI Updated '{key}' to '{new_value}' in section '{section}'.")
+            utils_logger.info(f"INI Updated '{key}' to '{new_value}' in section '{section}'.")
         except (NameError, AttributeError):
             # this will be print only during init app as logger is not yet defined (NameError)
             print(f"INI Updated '{key}' to '{new_value}' in section '{section}'.")
@@ -553,10 +555,10 @@ class CASTUtils:
                 # destroy the shared memory
                 sl.shm.unlink()
             if sl_process is not None:
-                cfg_mgr.logger.debug(f'Stopping Child Process for Preview if any : {t_name}')
+                utils_logger.debug(f'Stopping Child Process for Preview if any : {t_name}')
                 sl_process.kill()
         except Exception as err:
-            cfg_mgr.logger.error(f'Error on SL clean : {err}')
+            utils_logger.error(f'Error on SL clean : {err}')
 
     @staticmethod
     def list_av_formats():
@@ -626,14 +628,14 @@ class CASTUtils:
                 final_filename = d.get('info_dict').get('_filename')
                 CASTUtils.yt_file_name = final_filename
                 CASTUtils.yt_file_size_remain_bytes = 0
-                cfg_mgr.logger.debug(f"Finished Post Process {final_filename}")
+                utils_logger.debug(f"Finished Post Process {final_filename}")
 
         if interactive:
             """
             if log_ui is not None:
                 handler = LogElementHandler(log_ui)
-                cfg_mgr.logger.addHandler(handler)
-                ui.context.client.on_disconnect(lambda: cfg_mgr.logger.removeHandler(handler))
+                utils_logger.addHandler(handler)
+                ui.context.client.on_disconnect(lambda: utils_logger.removeHandler(handler))
             """
             def progress_hook(d):
                 if d['status'] == 'downloading':
@@ -644,11 +646,11 @@ class CASTUtils:
                         CASTUtils.yt_file_size_bytes = d['total_bytes']
                         CASTUtils.yt_file_size_remain_bytes = d['total_bytes'] - d['downloaded_bytes']
 
-                    cfg_mgr.logger.debug(f"Downloading: {d['_percent_str']} of "
+                    utils_logger.debug(f"Downloading: {d['_percent_str']} of "
                                 f"{d['_total_bytes_str']} at {d['_speed_str']} ETA {d['_eta_str']}")
 
                 elif d['status'] == 'finished':
-                    cfg_mgr.logger.debug(f"Finished downloading {d['filename']}")
+                    utils_logger.debug(f"Finished downloading {d['filename']}")
 
             ydl_opts = {
                 'format': f'{download_format}',
@@ -683,7 +685,7 @@ class CASTUtils:
 
         except Exception as err:
             CASTUtils.yt_file_name = ''
-            cfg_mgr.logger.error(f'Youtube download error : {err}')
+            utils_logger.error(f'Youtube download error : {err}')
 
         return CASTUtils.yt_file_name
 
@@ -702,11 +704,11 @@ class CASTUtils:
             with shelve.open(tmp_file) as db:
                 server_port = db['server_port']
         except Exception as er:
-            cfg_mgr.logger.debug(f'Error to retrieve Server Port  from {tmp_file}: {er}')
+            utils_logger.debug(f'Error to retrieve Server Port  from {tmp_file}: {er}')
             server_port = 8080
         finally:
             if server_port == 0:
-                cfg_mgr.logger.error(f'Server Port should not be 0 from {tmp_file}')
+                utils_logger.error(f'Server Port should not be 0 from {tmp_file}')
 
         return server_port
 
@@ -727,11 +729,11 @@ class CASTUtils:
                 # Get WLED info's
                 response = await wled.request("/json/info")
                 matrix = response["leds"]["matrix"]
-                cfg_mgr.logger.debug(f'WLED matrix : {str(matrix["w"])} x {str(matrix["h"])}')
+                utils_logger.debug(f'WLED matrix : {str(matrix["w"])} x {str(matrix["h"])}')
             await wled.close()
         except Exception as error:
-            cfg_mgr.logger.error(traceback.format_exc())
-            cfg_mgr.logger.error(f'An exception occurred: {error}')
+            utils_logger.error(traceback.format_exc())
+            utils_logger.error(f'An exception occurred: {error}')
             await wled.close()
 
         return matrix["w"], matrix["h"]
@@ -749,7 +751,7 @@ class CASTUtils:
             result = requests.get(url, timeout=timeout)
             result = result.json()
         except Exception as error:
-            cfg_mgr.logger.error(f'Not able to get WLED info : {error}')
+            utils_logger.error(f'Not able to get WLED info : {error}')
             result = {}
 
         return result
@@ -776,11 +778,11 @@ class CASTUtils:
                 await wled.close()
                 return True
             else:
-                cfg_mgr.logger.warning(f"Not able to connect to WLED device: {host}")
+                utils_logger.warning(f"Not able to connect to WLED device: {host}")
                 return False
         except Exception as error:
-            cfg_mgr.logger.error(traceback.format_exc())
-            cfg_mgr.logger.error(f"Not able to set WLED device {host} in 'live' mode. Got this error : {error}")
+            utils_logger.error(traceback.format_exc())
+            utils_logger.error(f"Not able to set WLED device {host} in 'live' mode. Got this error : {error}")
             await wled.close()
             return False
         
@@ -807,8 +809,8 @@ class CASTUtils:
                     av.open('', 'r', format='avfoundation', options={'list_devices': 'True'})
 
             except Exception as error:
-                cfg_mgr.logger.error(traceback.format_exc())
-                cfg_mgr.logger.error(f'An exception occurred: {error}')
+                utils_logger.error(traceback.format_exc())
+                utils_logger.error(f'An exception occurred: {error}')
 
         # linux
         if platform.system().lower() == 'linux':
@@ -843,24 +845,24 @@ class CASTUtils:
         """
 
         if not isinstance(input_data, dict):
-            cfg_mgr.logger.error('WEBSOCKET: input not valid format--> need dict')
+            utils_logger.error('WEBSOCKET: input not valid format--> need dict')
             return False
 
         if "action" not in input_data:
-            cfg_mgr.logger.error('WEBSOCKET: action key is missing')
+            utils_logger.error('WEBSOCKET: action key is missing')
             return False
 
         action = input_data["action"]
         if not isinstance(action, dict):
-            cfg_mgr.logger.error('WEBSOCKET: input not valid format--> need dict')
+            utils_logger.error('WEBSOCKET: input not valid format--> need dict')
             return False
 
         if "type" not in action or not isinstance(action["type"], str):
-            cfg_mgr.logger.error('WEBSOCKET: need type str')
+            utils_logger.error('WEBSOCKET: need type str')
             return False
 
         if "param" not in action or not isinstance(action["param"], dict):
-            cfg_mgr.logger.error('WEBSOCKET: missing "param" or wrong type')
+            utils_logger.error('WEBSOCKET: missing "param" or wrong type')
             return False
 
         return True
@@ -950,8 +952,8 @@ class CASTUtils:
                 # Check if the connection was successful
                 return result == 0
             except Exception as error:
-                cfg_mgr.logger.error(traceback.format_exc())
-                cfg_mgr.logger.error(f'Error on check IP : {error}')
+                utils_logger.error(traceback.format_exc())
+                utils_logger.error(f'Error on check IP : {error}')
                 return False
             finally:
                 # Close the socket
@@ -962,7 +964,7 @@ class CASTUtils:
         """
         clean the to do list for a Class
         """
-        cfg_mgr.logger.warning(f'Something wrong happened. To Do list has been cleared for {class_name}')
+        utils_logger.warning(f'Something wrong happened. To Do list has been cleared for {class_name}')
         class_name.cast_name.todo = []
 
 
@@ -978,17 +980,17 @@ class CASTUtils:
             file_path = f'{download_path}/{file_name}'
 
             if os.path.isfile(file_path):
-                cfg_mgr.logger.error(f'Image already exist : {file_path}')
+                utils_logger.error(f'Image already exist : {file_path}')
             else:
                 with open(file_path, "wb") as f:
                     image.save(f, "JPEG")
 
-                cfg_mgr.logger.debug(f'Image saved to : {file_path}')
+                utils_logger.debug(f'Image saved to : {file_path}')
 
             return True
 
         except Exception as err:
-            cfg_mgr.logger.error(f'Error to save image from {url} :  {err}')
+            utils_logger.error(f'Error to save image from {url} :  {err}')
 
             return False
 
@@ -1001,7 +1003,7 @@ class CASTUtils:
             content_type = response.headers.get('Content-Type')
             return bool(content_type and content_type.startswith('image/'))
         except requests.RequestException as err:
-            cfg_mgr.logger.error(f"Error checking URL: {err}")
+            utils_logger.error(f"Error checking URL: {err}")
             return False
 
     @staticmethod
@@ -1054,7 +1056,7 @@ class HTTPDiscovery:
     def discover(self):
         zeroconf = Zeroconf()
         ServiceBrowser(zeroconf, "_http._tcp.local.", self)
-        cfg_mgr.logger.debug('Scanning network devices ...')
+        utils_logger.debug('Scanning network devices ...')
         time.sleep(self.duration)
         zeroconf.close()
-        cfg_mgr.logger.debug('Scanning network devices ... Done')
+        utils_logger.debug('Scanning network devices ... Done')

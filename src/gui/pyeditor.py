@@ -21,9 +21,12 @@ from src.txt.coldtypemp import RUNColdtype
 from src.gui.calculator import Calculator
 from src.utl.console import ConsoleCapture
 from src.utl.utils import CASTUtils as Utils
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.pyedit')
+pyedit_logger = logger_manager.logger
 
 
 class PythonEditor:
@@ -89,7 +92,6 @@ class PythonEditor:
         JSON editor within a dialog box.
         """
         queues = await PythonEditor.get_manager_queues()
-        print(queues)
         with ui.dialog() as dialog, ui.card():
             dialog.open()
             await ui.json_editor({'content': {'json': queues}}) \
@@ -122,7 +124,7 @@ class PythonEditor:
                 ui.notify(f'Code executed successfully. run in bg : {self.back_ground.value}', color='green')
 
             except Exception as e:
-                cfg_mgr.logger.error(f'Error executing code: {e}')
+                pyedit_logger.error(f'Error executing code: {e}')
                 ui.notify(f'Error executing code: {e}', color='red')
                 if self.use_capture:
                     self.capture.log_queue.write(traceback.format_exc())
@@ -133,10 +135,10 @@ class PythonEditor:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             self.preview.set_value(content)
-            cfg_mgr.logger.debug(f'Pyeditor File "{self.current_file}" loaded.')
+            pyedit_logger.debug(f'Pyeditor File "{self.current_file}" loaded.')
             ui.notify(f'File "{self.current_file}" loaded.', color='green')
         except Exception as e:
-            cfg_mgr.logger.error(f'Pyeditor Error to load File "{self.current_file}".')
+            pyedit_logger.error(f'Pyeditor Error to load File "{self.current_file}".')
             ui.notify(f'Error loading file: {e}', color='red')
 
     async def save_file(self, editor_file):
@@ -148,7 +150,7 @@ class PythonEditor:
                 self.preview.value = self.editor.value
                 ui.notify(f'File "{editor_file}" saved successfully!', color='green')
             except Exception as e:
-                cfg_mgr.logger.error(f'File "{editor_file}" not saved: {e} ')
+                pyedit_logger.error(f'File "{editor_file}" not saved: {e} ')
         else:
             ui.notify('No file to save. Please upload a file first.', color='red')
 
@@ -198,7 +200,7 @@ class PythonEditor:
                 self.editor_file.set_text(self.current_file)
                 self.syntax.set_text('')
         else:
-            cfg_mgr.logger.warning(f'Folder do not exist: {self.upload_folder}')
+            pyedit_logger.warning(f'Folder do not exist: {self.upload_folder}')
 
 
     def get_text(self):

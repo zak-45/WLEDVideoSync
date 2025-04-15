@@ -35,9 +35,8 @@ sys.exit():
 import sys
 import tkinter as tk
 from tkinter import PhotoImage
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+from configmanager import cfg_mgr
 
 def init():
     """Display an informational window on macOS after initial setup.

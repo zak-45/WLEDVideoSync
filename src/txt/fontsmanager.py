@@ -7,9 +7,11 @@ from coldtype.raster import *
 from nicegui import ui, app
 import fontTools.ttLib
 
-from configmanager import ConfigManager
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+logger_manager = LoggerManager(logger_name='WLEDLogger.text')
+text_logger = logger_manager.logger
 
 class FontSetApplication:
     """

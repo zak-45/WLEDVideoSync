@@ -34,7 +34,6 @@
  to fix it, cv2.imshow can run from its own process with cost of additional overhead: set preview_proc = True
 
 """
-
 import errno
 import ast
 import sys
@@ -59,9 +58,11 @@ from src.utl.sharedlistmanager import SharedListManager
 
 from src.utl.actionutils import *
 
-from configmanager import ConfigManager
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.desktop')
+logger_manager = LoggerManager(logger_name='WLEDLogger.desktop')
+desktop_logger = logger_manager.logger
 
 Process, Queue = Utils.mp_setup()
 
@@ -207,7 +208,7 @@ class CASTDesktop:
             CASTDesktop.total_frame = 0
             CASTDesktop.total_packet = 0
 
-        cfg_mgr.logger.debug(f'Child thread: {t_name}')
+        desktop_logger.debug(f'Child thread: {t_name}')
 
         t_send_frame = threading.Event()  # thread listen event to send frame via ddp, for multicast synchro
 
@@ -264,7 +265,7 @@ class CASTDesktop:
         if self.rate != 0:
             interval: float = 1.0 / self.rate
         else:
-            cfg_mgr.logger.error(f'{t_name} Rate could not be zero')
+            desktop_logger.error(f'{t_name} Rate could not be zero')
             return False
 
         """
@@ -288,7 +289,7 @@ class CASTDesktop:
                             CASTDesktop.total_packet += dev.frame_count
                             break
                 else:
-                    cfg_mgr.logger.warning(f'{t_name} Multicast frame dropped')
+                    desktop_logger.warning(f'{t_name} Multicast frame dropped')
 
         def send_multicast_images_to_ips(images_buffer, to_ip_addresses):
             """
@@ -332,31 +333,31 @@ class CASTDesktop:
 
             # only one running cast at time will take care of that
             CASTDesktop.t_desktop_lock.acquire()
-            cfg_mgr.logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
+            desktop_logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
             # will read cast_name_todo list and see if something to do
             i_todo_stop, i_preview = execute_actions(CASTDesktop,
-                                                         iframe,
-                                                         t_name,
-                                                         t_viinput,
-                                                         t_scale_width,
-                                                         t_scale_height,
-                                                         t_multicast,
-                                                         ip_addresses,
-                                                         ddp_host,
-                                                         t_cast_x,
-                                                         t_cast_y,
-                                                         start_time,
-                                                         i_todo_stop,
-                                                         i_preview,
-                                                         t_fps,
-                                                         frame_count,
-                                                         media_length,
-                                                         swapper,
-                                                         shared_buffer,
-                                                         self.frame_buffer,
-                                                         self.cast_frame_buffer,
-                                                         cfg_mgr.logger,
-                                                         t_protocol)
+                                                     iframe,
+                                                     t_name,
+                                                     t_viinput,
+                                                     t_scale_width,
+                                                     t_scale_height,
+                                                     t_multicast,
+                                                     ip_addresses,
+                                                     ddp_host,
+                                                     t_cast_x,
+                                                     t_cast_y,
+                                                     start_time,
+                                                     i_todo_stop,
+                                                     i_preview,
+                                                     t_fps,
+                                                     frame_count,
+                                                     media_length,
+                                                     swapper,
+                                                     shared_buffer,
+                                                     self.frame_buffer,
+                                                     self.cast_frame_buffer,
+                                                     desktop_logger,
+                                                     t_protocol)
             # if list is empty, no more for any cast
             if len(CASTDesktop.cast_name_todo) == 0:
                 CASTDesktop.t_todo_event.clear()
@@ -443,7 +444,7 @@ class CASTDesktop:
 
                     # validate cast_devices number
                     if len(ip_addresses) != len(self.cast_frame_buffer):
-                        cfg_mgr.logger.error(
+                        desktop_logger.error(
                             f'{t_name} Cast devices number != sub images number: check cast_devices ')
                         raise ExitFromLoop
 
@@ -455,8 +456,8 @@ class CASTDesktop:
                     send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                 except Exception as err:
-                    cfg_mgr.logger.error(traceback.format_exc())
-                    cfg_mgr.logger.error(f'{t_name} An exception occurred: {err}')
+                    desktop_logger.error(traceback.format_exc())
+                    desktop_logger.error(f'{t_name} An exception occurred: {err}')
                     raise ExitFromLoop
 
 
@@ -479,8 +480,8 @@ class CASTDesktop:
                                 ddp_host.send_to_queue(frame_to_send, self.retry_number)
                                 CASTDesktop.total_packet += ddp_host.frame_count
                         except Exception as tr_error:
-                            cfg_mgr.logger.error(traceback.format_exc())
-                            cfg_mgr.logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
+                            desktop_logger.error(traceback.format_exc())
+                            desktop_logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
                             raise ExitFromLoop
 
                     # if multicast and more than one ip address and matrix size 1 * 1
@@ -495,13 +496,13 @@ class CASTDesktop:
                             send_multicast_images_to_ips(t_cast_frame_buffer, ip_addresses)
 
                         except Exception as err:
-                            cfg_mgr.logger.error(traceback.format_exc())
-                            cfg_mgr.logger.error(f'{t_name} An exception occurred: {err}')
+                            desktop_logger.error(traceback.format_exc())
+                            desktop_logger.error(f'{t_name} An exception occurred: {err}')
                             raise ExitFromLoop
 
                     # if multicast and only one IP
                     else:
-                        cfg_mgr.logger.error(f'{t_name} Not enough IP devices defined. Modify Multicast param')
+                        desktop_logger.error(f'{t_name} Not enough IP devices defined. Modify Multicast param')
                         raise ExitFromLoop
 
                 elif t_protocol == 'e131':
@@ -639,12 +640,12 @@ class CASTDesktop:
 
             except OSError as err:
                 if err.errno == errno.EEXIST:  # errno.EEXIST is 17 (File exists)
-                    cfg_mgr.logger.warning(f"Shared memory '{sl_name_p}' already exists. Attaching to it.")
+                    desktop_logger.warning(f"Shared memory '{sl_name_p}' already exists. Attaching to it.")
                     i_sl = ShareableList(name=sl_name_p)
 
             except Exception as err:
-                cfg_mgr.logger.error(traceback.format_exc())
-                cfg_mgr.logger.error(f'{t_name} Exception on shared list {sl_name_p} creation : {err}')
+                desktop_logger.error(traceback.format_exc())
+                desktop_logger.error(f'{t_name} Exception on shared list {sl_name_p} creation : {err}')
 
             # run main_preview in another process
             # create a child process, so cv2.imshow() will run from its own Main Thread
@@ -654,7 +655,7 @@ class CASTDesktop:
             # start the child process
             # small delay should occur, OS take some time to initiate the new process
             i_sl_process.start()
-            cfg_mgr.logger.debug(f'Starting Child Process for Preview : {sl_name_p}')
+            desktop_logger.debug(f'Starting Child Process for Preview : {sl_name_p}')
 
             return i_sl, i_sl_process
 
@@ -678,9 +679,9 @@ class CASTDesktop:
         # check IP
         if self.host != '127.0.0.1' and not self.wled:  # 127.0.0.1 should always exist
             if Utils.check_ip_alive(self.host, ping=True):
-                cfg_mgr.logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
+                desktop_logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
             else:
-                cfg_mgr.logger.error(f'{t_name} Error looks like IP {self.host} do not respond to ping')
+                desktop_logger.error(f'{t_name} Error looks like IP {self.host} do not respond to ping')
                 return
 
         if t_protocol == 'ddp':
@@ -720,7 +721,7 @@ class CASTDesktop:
             if status:
                 t_scale_width, t_scale_height = as_run(Utils.get_wled_matrix_dimensions(self.host))
             else:
-                cfg_mgr.logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
+                desktop_logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return
 
         swapper = None
@@ -729,10 +730,10 @@ class CASTDesktop:
         if t_multicast:
             # validate cast_devices list
             if not Multi.is_valid_cast_device(str(self.cast_devices)):
-                cfg_mgr.logger.error(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
+                desktop_logger.error(f"{t_name} Error Cast device list not compliant to format [(0,'xx.xx.xx.xx')...]")
                 return
             else:
-                cfg_mgr.logger.info(f'{t_name} Virtual Matrix size is : \
+                desktop_logger.info(f'{t_name} Virtual Matrix size is : \
                             {str(t_scale_width * t_cast_x)}x{str(t_scale_height * t_cast_y)}')
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
@@ -742,7 +743,7 @@ class CASTDesktop:
                         if self.wled:
                             status = as_run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
-                                cfg_mgr.logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
+                                desktop_logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                                 return
 
                         ip_addresses.append(cast_ip)
@@ -752,7 +753,7 @@ class CASTDesktop:
                             ddp_exist = False
                             for device in t_ddp_multi_names:
                                 if cast_ip == device._destination:
-                                    cfg_mgr.logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
+                                    desktop_logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
                                     ddp_exist = True
                                     break
                             if ddp_exist is not True:
@@ -760,9 +761,9 @@ class CASTDesktop:
                                 t_ddp_multi_names.append(new_ddp)
                                 # add to global DDP list
                                 Utils.update_ddp_list(cast_ip,new_ddp)
-                                cfg_mgr.logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
+                                desktop_logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
-                        cfg_mgr.logger.error(f'{t_name} Not able to validate ip : {cast_ip}')
+                        desktop_logger.error(f'{t_name} Not able to validate ip : {cast_ip}')
 
                 # initiate IPSwapper
                 swapper = IPSwapper(ip_addresses)
@@ -831,7 +832,7 @@ class CASTDesktop:
 
                     input_options |= area_options
                 except Exception as er:
-                    cfg_mgr.logger.error(f'Error into area, selection already done ???: {er}')
+                    desktop_logger.error(f'Error into area, selection already done ???: {er}')
 
             elif self.viinput.lower().startswith('win='):
                 # specific window content
@@ -861,17 +862,17 @@ class CASTDesktop:
                             window_options = {'window_id': str(win_id)}
                         # more than one, do not know what to do
                         else:
-                            cfg_mgr.logger.warning(f'More than one hWnd (ID) returned, you need to put it by yourself: {window_ids}')
+                            desktop_logger.warning(f'More than one hWnd (ID) returned, you need to put it by yourself: {window_ids}')
                             return
 
                         input_options |= window_options
 
                     except Exception as e:
-                        cfg_mgr.logger.error(f'Not able to retrieve Window ID (hWnd) : {e}')
+                        desktop_logger.error(f'Not able to retrieve Window ID (hWnd) : {e}')
                         return
 
 
-            cfg_mgr.logger.debug(f'Options passed to av: {input_options}')
+            desktop_logger.debug(f'Options passed to av: {input_options}')
 
         elif capture_methode == 'mss':
 
@@ -882,7 +883,7 @@ class CASTDesktop:
                 self.viinput = 'desktop'
 
         else:
-            cfg_mgr.logger.error(f'Do not know what to do from {self.viinput} with this capture : {capture_methode}')
+            desktop_logger.error(f'Do not know what to do from {self.viinput} with this capture : {capture_methode}')
             return
 
 
@@ -917,8 +918,8 @@ class CASTDesktop:
                 input_container = av.open(t_viinput, 'r', format=self.viformat, options=input_options)
 
             except Exception as error:
-                cfg_mgr.logger.error(traceback.format_exc())
-                cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
+                desktop_logger.error(traceback.format_exc())
+                desktop_logger.error(f'{t_name} An exception occurred: {error}')
                 return
 
             # Decoding with auto threading...if True Decode using both FRAME and SLICE methods
@@ -941,8 +942,8 @@ class CASTDesktop:
                     output_stream.thread_type = "AUTO"
 
             except Exception as error:
-                cfg_mgr.logger.error(traceback.format_exc())
-                cfg_mgr.logger.error(f'{t_name} An exception occurred: {error}')
+                desktop_logger.error(traceback.format_exc())
+                desktop_logger.error(f'{t_name} An exception occurred: {error}')
                 return
 
         """
@@ -969,9 +970,9 @@ class CASTDesktop:
         #
         if input_container is not None or sl_queue is not None or capture_methode == 'mss':
 
-            cfg_mgr.logger.info(f"{t_name} Capture from {t_viinput}")
-            cfg_mgr.logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
-            cfg_mgr.logger.debug(f"{t_name} used methode : {capture_methode}")
+            desktop_logger.info(f"{t_name} Capture from {t_viinput}")
+            desktop_logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
+            desktop_logger.debug(f"{t_name} used methode : {capture_methode}")
 
             # Main frame loop
             # Stream loop
@@ -1038,7 +1039,7 @@ class CASTDesktop:
                                     if frame_count == 1 and str2bool(cfg_mgr.app_config['preview_proc']):
                                         sl, sl_process = create_preview_sl(frame, grid)
                                         if sl is None or sl_process is None:
-                                            cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
+                                            desktop_logger.error(f'{t_name} Error on SharedList creation')
                                             raise ExitFromLoop
 
                                     t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
@@ -1049,11 +1050,11 @@ class CASTDesktop:
 
                     except av.BlockingIOError as av_err:
                         if PLATFORM != 'darwin':
-                            cfg_mgr.logger.error(f'{t_name} An exception occurred: {av_err}')
+                            desktop_logger.error(f'{t_name} An exception occurred: {av_err}')
 
                 elif sl_queue is not None:
 
-                    cfg_mgr.logger.debug('process from ShareAbleList-queue')
+                    desktop_logger.debug('process from ShareAbleList-queue')
                     # Default image to display when no more frame
                     default_img = cv2.imread(cfg_mgr.app_root_path('assets/Source-intro.png'))
                     default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
@@ -1065,7 +1066,7 @@ class CASTDesktop:
                     if t_preview and str2bool(cfg_mgr.app_config['preview_proc']):
                         sl, sl_process = create_preview_sl(i_frame=frame, i_grid=False)
                         if sl is None or sl_process is None:
-                            cfg_mgr.logger.error(f'{t_name} Error on SharedList creation for Preview')
+                            desktop_logger.error(f'{t_name} Error on SharedList creation for Preview')
                             raise ExitFromLoop
 
                     # infinite loop for queue-ShareAbleList
@@ -1112,7 +1113,7 @@ class CASTDesktop:
                                     t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
 
                             else:
-                                cfg_mgr.logger.debug('skip frame of size = 0')
+                                desktop_logger.debug('skip frame of size = 0')
                         else:
                             # preview default image
                             if t_preview:
@@ -1157,11 +1158,11 @@ class CASTDesktop:
                                 sc_monitor = {"top": top, "left": left, "width": width, "height": height}
 
                             else:
-                                cfg_mgr.logger.error(f"Window '{mss_window_name}' not found.")
+                                desktop_logger.error(f"Window '{mss_window_name}' not found.")
                                 raise ExitFromLoop
 
                         else:
-                            cfg_mgr.logger.error('Not available with mss')
+                            desktop_logger.error('Not available with mss')
                             raise ExitFromLoop
 
                         while True:
@@ -1203,7 +1204,7 @@ class CASTDesktop:
                                 if frame_count == 1 and str2bool(cfg_mgr.app_config['preview_proc']):
                                     sl, sl_process = create_preview_sl(frame, grid)
                                     if sl is None or sl_process is None:
-                                        cfg_mgr.logger.error(f'{t_name} Error on SharedList creation')
+                                        desktop_logger.error(f'{t_name} Error on SharedList creation')
                                         raise ExitFromLoop
 
                                 t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
@@ -1211,15 +1212,15 @@ class CASTDesktop:
                             need_to_sleep()
 
                 else:
-                    cfg_mgr.logger.error(f'Do not know what to do from this input: {t_viinput}')
+                    desktop_logger.error(f'Do not know what to do from this input: {t_viinput}')
                     raise ExitFromLoop
 
             except ExitFromLoop as ext:
-                cfg_mgr.logger.info(f'{t_name} Requested to end cast loop {ext}')
+                desktop_logger.info(f'{t_name} Requested to end cast loop {ext}')
 
             except Exception as e:
-                cfg_mgr.logger.error(traceback.format_exc())
-                cfg_mgr.logger.error(f'{t_name} An exception occurred: {e}')
+                desktop_logger.error(traceback.format_exc())
+                desktop_logger.error(f'{t_name} An exception occurred: {e}')
 
             finally:
                 """
@@ -1228,7 +1229,7 @@ class CASTDesktop:
                 # close av input
                 if input_container is not None:
                     input_container.close()
-                    cfg_mgr.logger.info(f'{t_name} AV Input container closed')
+                    desktop_logger.info(f'{t_name} AV Input container closed')
                 # close av output if any
                 if output_container:
                     # Pass None to the encoder at the end - flush last packets
@@ -1246,7 +1247,7 @@ class CASTDesktop:
                     CV2Utils.cv2_win_close(port, 'Desktop', t_name, t_viinput)
         else:
 
-            cfg_mgr.logger.error(f'{t_name} av input_container not defined or no queue')
+            desktop_logger.error(f'{t_name} av input_container not defined or no queue')
 
         """
         END +
@@ -1278,12 +1279,12 @@ class CASTDesktop:
                 # stop manager
                 sl_manager.stop_manager()
 
-        cfg_mgr.logger.debug("_" * 50)
-        cfg_mgr.logger.debug(f'Cast {t_name} end using this input: {t_viinput}')
-        cfg_mgr.logger.debug(f'Using these devices: {ip_addresses}')
-        cfg_mgr.logger.debug("_" * 50)
+        desktop_logger.debug("_" * 50)
+        desktop_logger.debug(f'Cast {t_name} end using this input: {t_viinput}')
+        desktop_logger.debug(f'Using these devices: {ip_addresses}')
+        desktop_logger.debug("_" * 50)
 
-        cfg_mgr.logger.info(f'{t_name} Cast closed')
+        desktop_logger.info(f'{t_name} Cast closed')
 
     def cast(self, shared_buffer=None, log_ui=None):
         """
@@ -1293,15 +1294,15 @@ class CASTDesktop:
             log_ui : logger to send data to main logger on root page
         """
         if log_ui is not None:
-            root_logger = cfg_mgr.logger.getLogger()
+            root_logger = desktop_logger.getLogger()
             if log_ui not in root_logger:
-                cfg_mgr.logger.addHandler(log_ui)
+                desktop_logger.addHandler(log_ui)
         if os.getenv('WLEDVideoSync_trace'):
             threading.settrace(self.t_desktop_cast())
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,Utils.get_server_port()))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
-        cfg_mgr.logger.debug('Child Desktop cast initiated')
+        desktop_logger.debug('Child Desktop cast initiated')
 
 # example of screen capture using 'mss' method
 if __name__ == "__main__":
@@ -1316,4 +1317,4 @@ if __name__ == "__main__":
         time.sleep(10)
         break
     test.stopcast=True
-    print('end')
+    print('desktop cast end')

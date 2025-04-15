@@ -29,11 +29,14 @@ Key Components
 
 import ast
 import json
-from types import FunctionType
-from configmanager import ConfigManager
 import inspect
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.scheduler')
+from types import FunctionType
 
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.jobs')
+jobs_logger = logger_manager.logger
 
 class JobWrapper:
     """Wraps a function and its source code.

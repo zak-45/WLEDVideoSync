@@ -49,6 +49,12 @@ import numpy as np
 import time
 from src.utl.cv2utils import CV2Utils
 
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.slmanager')
+slmanager_logger = logger_manager.logger
+
+
 class SLManager(SyncManager):
     """Custom SyncManager for SharedListManager.
 
@@ -94,7 +100,7 @@ class SharedListManager:
         self.manager.start()
         self.is_running = True
         self.pid = self.manager._process.pid
-        print(f"SharedListManager started on {self.address} with PID: {self.pid}")
+        slmanager_logger.info(f"SharedListManager started on {self.address} with PID: {self.pid}")
 
 
     def get_pid(self):
@@ -113,21 +119,21 @@ class SharedListManager:
         Cleans up shared lists, terminates the manager process, and prints status messages.
         """
 
-        print("Shutting down the SharedListManager...")
+        slmanager_logger.info("Shutting down the SharedListManager...")
 
         if self.manager:
             # Cleanup shared lists before shutdown
             for name in list(self.shared_lists.keys()):
                 self.delete_shared_list(name)
 
-            print("Cleaning up shared lists...")
+            slmanager_logger.info("Cleaning up shared lists...")
 
             # Check if the manager process exists and is alive
             if self.manager._process and self.manager._process.is_alive():
                 os.kill(self.manager._process.pid, signal.SIGTERM)
-                print("Manager process has been terminated.")
+                slmanager_logger.info("Manager process has been terminated.")
             else:
-                print("Manager process was already stopped or not initialized.")
+                slmanager_logger.warning("Manager process was already stopped or not initialized.")
 
 
     def create_shared_list(self, name, width, height, start_time=0):
@@ -138,7 +144,7 @@ class SharedListManager:
         """
 
         if name in self.shared_lists:
-            print(f"Shared list '{name}' already exists, nothing to do.")
+            slmanager_logger.info(f"Shared list '{name}' already exists, nothing to do.")
             return None  # Return None if exist
 
         # ShareAbleList need a fixed amount of memory, size need to be calculated for max
@@ -151,11 +157,11 @@ class SharedListManager:
         try:
             self.shared_lists[name] = ShareableList([full_array, start_time], name=name)
             self.shared_lists_info[name] = {"w":width, "h":height}
-            print(f"Created shared list '{name}'  for : {width} - {height} of size {size}.")
+            slmanager_logger.info(f"Created shared list '{name}'  for : {width} - {height} of size {size}.")
             return True
 
         except Exception as e:
-            print(f"Error creating shared list '{name}': {e}")
+            slmanager_logger.error(f"Error creating shared list '{name}': {e}")
             return False  # Return False on failure
 
     def get_shared_lists(self):
@@ -177,10 +183,10 @@ class SharedListManager:
             try:
                 return self.clean_shared_list(name)
             except Exception as e:
-                print(f"Error deleting shared list '{name}': {e}")
+                slmanager_logger.error(f"Error deleting shared list '{name}': {e}")
                 return False
         else:
-            print(f"Shared list '{name}' does not exist.")
+            slmanager_logger.warning(f"Shared list '{name}' does not exist.")
             return False
 
 
@@ -189,7 +195,7 @@ class SharedListManager:
         self.shared_lists[name].shm.unlink()
         del self.shared_lists[name]
         del self.shared_lists_info[name]
-        print(f"Deleted shared list '{name}'.")
+        slmanager_logger.info(f"Deleted shared list '{name}'.")
         return True
 
     def is_alive(self):
@@ -197,13 +203,13 @@ class SharedListManager:
         try:
             return psutil.pid_exists(self.pid) and psutil.Process(self.pid).is_running()
         except psutil.NoSuchProcess:
-            print(f"process: {self.pid} do not exist")
+            slmanager_logger.info(f"process: {self.pid} do not exist")
             return False
         except psutil.AccessDenied:
-            print("Access denied")
+            slmanager_logger.error("Access denied")
             return False
         except Exception as e:
-            print(f"Error checking process: {e}")
+            slmanager_logger.error(f"Error checking process: {e}")
             return False
 
 
@@ -213,10 +219,10 @@ if __name__ == "__main__":
     manager = SharedListManager(ip_address, port)
     manager.start()
 
-    print("Manager started. Waiting for clients...")
+    slmanager_logger.info("Manager started. Waiting for clients...")
 
     while manager.is_alive():
         time.sleep(2)  # Check every 2 seconds
 
-    print("\nShutting down manager.")
+    slmanager_logger.info("\nShutting down manager.")
     manager.stop_manager()  # not necessary , but ...

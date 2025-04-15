@@ -45,9 +45,13 @@ import queue
 
 import numpy as np
 import sacn
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.e131')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.e131')
+e131_logger = logger_manager.logger
+
 
 class E131Queue:
     """E1.31 device support with queuing"""
@@ -132,13 +136,13 @@ class E131Queue:
         """
         with self._device_lock:
             if self._sacn:
-                cfg_mgr.logger.warning(f"sACN sender already started for {self._name}")
+                e131_logger.warning(f"sACN sender already started for {self._name}")
                 return
 
             self._sacn = sacn.sACNsender(source_name=self._name)
 
             for universe in range(self._universe, self._universe_end + 1):
-                cfg_mgr.logger.info(f"sACN activating universe {universe}")
+                e131_logger.info(f"sACN activating universe {universe}")
                 self._sacn.activate_output(universe)
                 self._sacn[universe].priority = self._packet_priority
                 if self._ip_address.lower() != "multicast":
@@ -150,7 +154,7 @@ class E131Queue:
             self._sacn.manual_flush = True
             self._flush_thread.start()
 
-            cfg_mgr.logger.info(f"sACN sender for {self._name} started.")
+            e131_logger.info(f"sACN sender for {self._name} started.")
 
     def deactivate(self):
         """Deactivates the sACN sender and stops the queue processing thread.
@@ -166,7 +170,7 @@ class E131Queue:
         with self._device_lock:
             self._sacn.stop()
             self._sacn = None
-            cfg_mgr.logger.info(f"sACN sender for {self._name} stopped.")
+            e131_logger.info(f"sACN sender for {self._name} stopped.")
 
     def send_to_queue(self, data):
         """Adds data to the queue for sending.
@@ -191,7 +195,7 @@ class E131Queue:
                 self.flush(data)
                 self._data_queue.task_done()
             except Exception as e:
-                cfg_mgr.logger.error(f"Error processing queue: {e}")
+                e131_logger.error(f"Error processing queue: {e}")
                 self.deactivate()
 
 
@@ -208,11 +212,11 @@ class E131Queue:
         """
         with self._device_lock:
             if self._sacn is None:
-                cfg_mgr.logger.warning('e131 not active')
+                e131_logger.warning('e131 not active')
                 return
 
             if data.size != self._channel_count:
-                cfg_mgr.logger.error(f"Invalid buffer size. {data.size} != {self._channel_count}")
+                e131_logger.error(f"Invalid buffer size. {data.size} != {self._channel_count}")
                 self.deactivate()
                 return
 

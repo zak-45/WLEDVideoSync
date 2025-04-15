@@ -10,9 +10,12 @@ from str2bool import str2bool
 
 from src.gui.niceutils import LocalFilePicker
 
-from configmanager import ConfigManager
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.presets')
+logger_manager = LoggerManager(logger_name='WLEDLogger.presets')
+presets_logger = logger_manager.logger
+
 
 """
 Filter preset mgr
@@ -84,7 +87,7 @@ async def save_filter_preset(class_name: str, class_obj = None) -> None:
             dialog.close()
             ui.notify(f'Preset saved for {class_name} as {f_name}', type='info')
         except Exception as e:
-            cfg_mgr.logger.error(f'Error saving preset: {e}')
+            presets_logger.error(f'Error saving preset: {e}')
             ui.notify(f'Error saving preset: {e}', type='negative')
 
     with ui.dialog() as dialog:
@@ -112,7 +115,7 @@ async def load_filter_preset(class_name: str, class_obj: object = None, interact
     - bool: True if the preset was applied successfully, False otherwise.
     """
     if class_name not in ['Desktop', 'Media']:
-        cfg_mgr.logger.error(f'Unknown Class Name: {class_name}')
+        presets_logger.error(f'Unknown Class Name: {class_name}')
         return False
 
     def apply_preset_filter(preset_data: dict):
@@ -144,15 +147,15 @@ async def load_filter_preset(class_name: str, class_obj: object = None, interact
                         value = conversion[0](value)
                     setattr(class_obj, attr, value)
                 except KeyError:
-                    cfg_mgr.logger.warning(f'Key {section}.{key} does not exist in the preset data')
+                    presets_logger.warning(f'Key {section}.{key} does not exist in the preset data')
 
             if interactive:
                 ui.notify('Preset applied', type='info')
             return True
 
         except Exception as er:
-            cfg_mgr.logger.error(traceback.format_exc())
-            cfg_mgr.logger.error(f'Error applying preset: {er}')
+            presets_logger.error(traceback.format_exc())
+            presets_logger.error(f'Error applying preset: {er}')
             ui.notify('Error applying preset', type='negative', position='center')
             return False
 
@@ -186,7 +189,7 @@ async def load_filter_preset(class_name: str, class_obj: object = None, interact
             return apply_preset_filter(preset_filter_data)
 
         except Exception as e:
-            cfg_mgr.logger.error(f'Error loading preset: {e}')
+            presets_logger.error(f'Error loading preset: {e}')
             return False
 
 
@@ -257,7 +260,7 @@ async def save_cast_preset(class_name: str, class_obj = None) -> None:
             dialog.close()
             ui.notify(f'Preset saved for {class_name} as {f_name}', type='info')
         except Exception as e:
-            cfg_mgr.logger.error(f'Error saving preset: {e}')
+            presets_logger.error(f'Error saving preset: {e}')
             ui.notify(f'Error saving preset: {e}', type='negative')
 
     with ui.dialog() as dialog:
@@ -286,7 +289,7 @@ async def load_cast_preset(class_name: str, class_obj: object = None, interactiv
     - bool: True if the preset was applied successfully, False otherwise.
     """
     if class_name not in ['Desktop', 'Media']:
-        cfg_mgr.logger.error(f'Unknown Class Name: {class_name}')
+        presets_logger.error(f'Unknown Class Name: {class_name}')
         return False
 
     def apply_preset_cast(preset_cast_data: dict):
@@ -322,15 +325,15 @@ async def load_cast_preset(class_name: str, class_obj: object = None, interactiv
                         value = conversion[0](value)
                     setattr(class_obj, attr, value)
                 except KeyError:
-                    cfg_mgr.logger.warning(f'Key {section}.{key} does not exist in the preset data')
+                    presets_logger.warning(f'Key {section}.{key} does not exist in the preset data')
 
             if interactive:
                 ui.notify('Preset applied', type='info')
             return True
 
         except Exception as er:
-            cfg_mgr.logger.error(traceback.format_exc())
-            cfg_mgr.logger.error(f'Error applying preset: {er}')
+            presets_logger.error(traceback.format_exc())
+            presets_logger.error(f'Error applying preset: {er}')
             ui.notify('Error applying preset', type='negative', position='center')
             return False
 
@@ -362,7 +365,7 @@ async def load_cast_preset(class_name: str, class_obj: object = None, interactiv
             preset_data = cfg.load(cfg_mgr.app_root_path(f'config/presets/cast/{class_name}/{file_name}'))
             return apply_preset_cast(preset_data)
         except Exception as e:
-            cfg_mgr.logger.error(f'Error loading preset: {e}')
+            presets_logger.error(f'Error loading preset: {e}')
             return False
 
 
@@ -389,7 +392,7 @@ def str2list_ini(value: str):
     try:
         value = ast.literal_eval(value)
     except Exception as e:
-        cfg_mgr.logger.warning(f'Not able to convert to list: {value} Error : {e}')
+        presets_logger.warning(f'Not able to convert to list: {value} Error : {e}')
     return value
 
 

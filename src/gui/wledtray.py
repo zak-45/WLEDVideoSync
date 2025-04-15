@@ -4,7 +4,7 @@ d: 07/03/2025
 v: 1.0.0.0
 
 Overview
-This Python file (wledtray.py) manages the system tray icon and menu for the WLEDVideoSync application.
+This Python file manages the system tray icon and menu for the WLEDVideoSync application.
 It uses the pystray library to create the tray icon and define its associated menu options.
 The menu provides quick access to various functionalities of the application, such as opening the main interface,
 accessing API documentation, and viewing system information. It also offers the option to open these functionalities in
@@ -48,9 +48,12 @@ from pystray import Icon, Menu, MenuItem
 from str2bool import str2bool
 from src.utl.utils import CASTUtils as Utils
 from src.gui.webviewmanager import WebviewManager
-from configmanager import ConfigManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger')
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
+
+logger_manager = LoggerManager(logger_name='WLEDLogger.systray')
+systray_logger = logger_manager.logger
 
 server_port = Utils.get_server_port()
 server_ip = 'localhost'

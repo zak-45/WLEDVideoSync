@@ -29,10 +29,11 @@ from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils
 from src.utl.cv2utils import VideoThumbnailExtractor
 
-from configmanager import ConfigManager
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.utils')
-
+logger_manager = LoggerManager(logger_name='WLEDLogger.nice')
+cfg_mgr.logger = logger_manager.logger
 
 # Define a factory function to create a wheel event handler for a given slider
 def create_wheel_handler(slider):

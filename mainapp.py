@@ -52,9 +52,11 @@ from src.gui.pyeditor import PythonEditor
 from src.utl.presets import *
 from src.api.api import *
 
-from configmanager import ConfigManager
+from configmanager import cfg_mgr
+from configmanager import LoggerManager
 
-cfg_mgr = ConfigManager(logger_name='WLEDLogger.main')
+logger_manager = LoggerManager(logger_name='WLEDLogger.main')
+cfg_mgr.logger = logger_manager.logger
 
 PLATFORM = sys.platform.lower()
 
