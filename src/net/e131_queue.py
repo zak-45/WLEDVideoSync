@@ -53,7 +53,7 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.e131')
 e131_logger = logger_manager.logger
 
 
-class E131Queue:
+class E131Device:
     """E1.31 device support with queuing"""
 
     def __init__(self,

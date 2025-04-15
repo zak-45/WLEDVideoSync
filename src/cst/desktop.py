@@ -50,8 +50,9 @@ from multiprocessing.shared_memory import ShareableList
 from asyncio import run as as_run
 from src.utl.multicast import IPSwapper
 from src.utl.multicast import MultiUtils as Multi
-from src.net.e131_queue import E131Queue
-from src.net.artnet_queue import ArtNetQueue
+from src.net.ddp_queue import DDPDevice
+from src.net.e131_queue import E131Device
+from src.net.artnet_queue import ArtNetDevice
 from src.utl.winutil import get_window_rect
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
@@ -324,7 +325,7 @@ class CASTDesktop:
         """
         actions processing
         """
-        def do_action(iframe, i_preview, i_todo_stop):
+        def do_action():
             """
             check if something to do
             manage concurrent access to the list by using lock feature
@@ -335,36 +336,14 @@ class CASTDesktop:
             CASTDesktop.t_desktop_lock.acquire()
             desktop_logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
             # will read cast_name_todo list and see if something to do
-            i_todo_stop, i_preview = execute_actions(CASTDesktop,
-                                                     iframe,
-                                                     t_name,
-                                                     t_viinput,
-                                                     t_scale_width,
-                                                     t_scale_height,
-                                                     t_multicast,
-                                                     ip_addresses,
-                                                     ddp_host,
-                                                     t_cast_x,
-                                                     t_cast_y,
-                                                     start_time,
-                                                     i_todo_stop,
-                                                     i_preview,
-                                                     t_fps,
-                                                     frame_count,
-                                                     media_length,
-                                                     swapper,
-                                                     shared_buffer,
-                                                     self.frame_buffer,
-                                                     self.cast_frame_buffer,
-                                                     desktop_logger,
-                                                     t_protocol)
+            i_todo_stop, i_preview, i_frame_buffer, i_cast_frame_buffer = action_executor.process_actions(frame, frame_count)
             # if list is empty, no more for any cast
             if len(CASTDesktop.cast_name_todo) == 0:
                 CASTDesktop.t_todo_event.clear()
             # release once task finished for this cast
             CASTDesktop.t_desktop_lock.release()
 
-            return i_preview, i_todo_stop
+            return i_todo_stop, i_preview, i_frame_buffer, i_cast_frame_buffer
 
         """
         end actions
@@ -690,27 +669,27 @@ class CASTDesktop:
             Utils.update_ddp_list(self.host, ddp_host)
 
         elif t_protocol == 'e131':
-            e131_host = E131Queue(name=self.e131_name,
-                                  ip_address=self.host,
-                                  universe=int(self.universe),
-                                  pixel_count=int(self.pixel_count),
-                                  packet_priority=int(self.packet_priority),
-                                  universe_size=int(self.universe_size),
-                                  channel_offset=int(self.channel_offset),
-                                  channels_per_pixel=int(self.channels_per_pixel),
-                                  blackout=True)
+            e131_host = E131Device(name=self.e131_name,
+                                   ip_address=self.host,
+                                   universe=int(self.universe),
+                                   pixel_count=int(self.pixel_count),
+                                   packet_priority=int(self.packet_priority),
+                                   universe_size=int(self.universe_size),
+                                   channel_offset=int(self.channel_offset),
+                                   channels_per_pixel=int(self.channels_per_pixel),
+                                   blackout=True)
 
             e131_host.activate()
 
         elif t_protocol == 'artnet':
-            artnet_host = ArtNetQueue(name=self.e131_name,
-                                      ip_address=self.host,
-                                      universe=int(self.universe),
-                                      pixel_count=int(self.pixel_count),
-                                      universe_size=int(self.universe_size),
-                                      channel_offset=int(self.channel_offset),
-                                      channels_per_pixel=int(self.channels_per_pixel)
-                                      )
+            artnet_host = ArtNetDevice(name=self.e131_name,
+                                       ip_address=self.host,
+                                       universe=int(self.universe),
+                                       pixel_count=int(self.pixel_count),
+                                       universe_size=int(self.universe_size),
+                                       channel_offset=int(self.channel_offset),
+                                       channels_per_pixel=int(self.channels_per_pixel)
+                                       )
 
             artnet_host.activate()
 
@@ -787,8 +766,6 @@ class CASTDesktop:
         self.scale_width = t_scale_width
         self.scale_height = t_scale_height
 
-        self.frame_buffer = []
-        self.cast_frame_buffer = []
         t_fps = self.rate
 
         if self.viinput == 'queue':
@@ -965,6 +942,30 @@ class CASTDesktop:
 
         start_time = time.time()
 
+        # --- Initialization (do this once before the loop starts) ---
+        action_executor = ActionExecutor(
+            class_obj=self,  # Pass the instance of Media/Desktop itself
+            port=port,
+            t_name=t_name,
+            t_viinput=t_viinput,
+            t_scale_width=t_scale_width,
+            t_scale_height=t_scale_height,
+            t_multicast=t_multicast,
+            ip_addresses=ip_addresses,  # Pass the list reference
+            ddp_host=ddp_host,  # Pass the DDP device instance
+            t_cast_x=t_cast_x,
+            t_cast_y=t_cast_y,
+            start_time=start_time,
+            initial_preview_state=t_preview,  # Pass the initial preview state
+            interval=interval,
+            media_length=media_length,
+            swapper=swapper,
+            shared_buffer=shared_buffer,  # queue
+            logger=desktop_logger,
+            t_protocol=t_protocol
+        )
+        # --- End Initialization ---
+
         #
         # Main loop
         #
@@ -1044,9 +1045,14 @@ class CASTDesktop:
 
                                     t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
 
-                            # check here as frame is an array now
+                            # check to see if something to do
                             if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
-                                t_preview, t_todo_stop = do_action(frame,t_preview,t_todo_stop)
+                                t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = do_action()
+                                if add_frame_buffer is not None:
+                                    self.frame_buffer.append(add_frame_buffer)
+                                if add_cast_frame_buffer is not None:
+                                    self.cast_frame_buffer.append(add_cast_frame_buffer)
+
 
                     except av.BlockingIOError as av_err:
                         if PLATFORM != 'darwin':
@@ -1074,7 +1080,11 @@ class CASTDesktop:
 
                         # check to see if something to do
                         if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
-                            t_preview, t_todo_stop = do_action(frame,t_preview,t_todo_stop)
+                            t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = do_action()
+                            if add_frame_buffer is not None:
+                                self.frame_buffer.append(add_frame_buffer)
+                            if add_cast_frame_buffer is not None:
+                                self.cast_frame_buffer.append(add_cast_frame_buffer)
 
                         """
                         instruct the thread to exit 
@@ -1172,7 +1182,11 @@ class CASTDesktop:
 
                             # check to see if something to do
                             if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
-                                t_preview, t_todo_stop = do_action(frame, t_preview, t_todo_stop)
+                                t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = do_action()
+                                if add_frame_buffer is not None:
+                                    self.frame_buffer.append(add_frame_buffer)
+                                if add_cast_frame_buffer is not None:
+                                    self.cast_frame_buffer.append(add_cast_frame_buffer)
 
                             """
                             instruct the thread to exit 

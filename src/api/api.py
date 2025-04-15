@@ -17,6 +17,7 @@ from src.utl.presets import load_filter_preset, load_cast_preset
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
+from src.utl.actionutils import action_to_test
 
 from src.utl.winutil import *
 
@@ -27,7 +28,6 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.api')
 api_logger = logger_manager.logger
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
-action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview', 'reset', 'multicast']
 
 """
 Receive obj from mainapp

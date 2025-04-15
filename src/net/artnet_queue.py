@@ -22,7 +22,7 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.artnet')
 artnet_logger = logger_manager.logger
 
 
-class ArtNetQueue:
+class ArtNetDevice:
     """Art-Net device support with queuing"""
 
     def __init__(self,

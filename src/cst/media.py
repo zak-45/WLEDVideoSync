@@ -29,11 +29,11 @@ import time
 from asyncio import run as as_run
 from multiprocessing.shared_memory import ShareableList
 
-from src.cst.desktop import desktop_logger
 from src.utl.multicast import IPSwapper
 from src.utl.multicast import MultiUtils as Multi
-from src.net.e131_queue import E131Queue
-from src.net.artnet_queue import ArtNetQueue
+from src.net.ddp_queue import DDPDevice
+from src.net.e131_queue import E131Device
+from src.net.artnet_queue import ArtNetDevice
 
 from src.utl.actionutils import *
 
@@ -280,27 +280,27 @@ class CASTMedia:
             Utils.update_ddp_list(self.host, ddp_host)
 
         elif t_protocol =='e131':
-            e131_host = E131Queue(name=self.e131_name,
-                                  ip_address=self.host,
-                                  universe=int(self.universe),
-                                  pixel_count=int(self.pixel_count),
-                                  packet_priority=int(self.packet_priority),
-                                  universe_size=int(self.universe_size),
-                                  channel_offset=int(self.channel_offset),
-                                  channels_per_pixel=int(self.channels_per_pixel),
-                                  blackout=True)
+            e131_host = E131Device(name=self.e131_name,
+                                   ip_address=self.host,
+                                   universe=int(self.universe),
+                                   pixel_count=int(self.pixel_count),
+                                   packet_priority=int(self.packet_priority),
+                                   universe_size=int(self.universe_size),
+                                   channel_offset=int(self.channel_offset),
+                                   channels_per_pixel=int(self.channels_per_pixel),
+                                   blackout=True)
 
             e131_host.activate()
 
         elif t_protocol =='artnet':
-            artnet_host = ArtNetQueue(name=self.e131_name,
-                                      ip_address=self.host,
-                                      universe=int(self.universe),
-                                      pixel_count=int(self.pixel_count),
-                                      universe_size=int(self.universe_size),
-                                      channel_offset=int(self.channel_offset),
-                                      channels_per_pixel=int(self.channels_per_pixel)
-                                      )
+            artnet_host = ArtNetDevice(name=self.e131_name,
+                                       ip_address=self.host,
+                                       universe=int(self.universe),
+                                       pixel_count=int(self.pixel_count),
+                                       universe_size=int(self.universe_size),
+                                       channel_offset=int(self.channel_offset),
+                                       channels_per_pixel=int(self.channels_per_pixel)
+                                       )
 
             artnet_host.activate()
 
@@ -426,6 +426,30 @@ class CASTMedia:
         media_logger.debug(f'{t_name} Cast running ...')
 
         start_time = time.time()
+
+        # --- Initialization (do this once before the loop starts) ---
+        action_executor = ActionExecutor(
+            class_obj=self,  # Pass the instance of Media/Desktop itself
+            port=port,
+            t_name=t_name,
+            t_viinput=t_viinput,
+            t_scale_width=t_scale_width,
+            t_scale_height=t_scale_height,
+            t_multicast=t_multicast,
+            ip_addresses=ip_addresses,  # Pass the list reference
+            ddp_host=ddp_host,  # Pass the DDP device instance
+            t_cast_x=t_cast_x,
+            t_cast_y=t_cast_y,
+            start_time=start_time,
+            initial_preview_state=t_preview,  # Pass the initial preview state
+            interval=interval,
+            media_length=media_length,
+            swapper=swapper,
+            shared_buffer=shared_buffer,  # queue
+            logger=media_logger,
+            t_protocol=t_protocol
+        )
+        # --- End Initialization ---
 
         """
             Media Loop
@@ -610,35 +634,18 @@ class CASTMedia:
             event clear only when no more item in list
             this should be owned by the first cast which take control
             """
-
             if CASTMedia.t_todo_event.is_set() and shared_buffer is not None:
                 # only one running cast at time will take care of that
                 CASTMedia.t_media_lock.acquire()
                 media_logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
                 # will read cast_name_todo list and see if something to do
-                t_todo_stop, t_preview = execute_actions(CASTMedia,
-                                                         frame,
-                                                         t_name,
-                                                         t_viinput,
-                                                         t_scale_width,
-                                                         t_scale_height,
-                                                         t_multicast,
-                                                         ip_addresses,
-                                                         ddp_host,
-                                                         t_cast_x,
-                                                         t_cast_y,
-                                                         start_time,
-                                                         t_todo_stop,
-                                                         t_preview,
-                                                         frame_interval,
-                                                         frame_count,
-                                                         media_length,
-                                                         swapper,
-                                                         shared_buffer,
-                                                         self.frame_buffer,
-                                                         self.cast_frame_buffer,
-                                                         media_logger,
-                                                         t_protocol)
+                t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = action_executor.process_actions(frame,
+                                                                                                              frame_count)
+                if add_frame_buffer is not None:
+                    self.frame_buffer.append(add_frame_buffer)
+                if add_cast_frame_buffer is not None:
+                    self.cast_frame_buffer.append(add_cast_frame_buffer)
+
                 # if list is empty, no more for any cast
                 if len(CASTMedia.cast_name_todo) == 0:
                     CASTMedia.t_todo_event.clear()
