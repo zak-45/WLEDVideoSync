@@ -20,7 +20,7 @@ Key Components
     cfg_mgr Instance: An instance of ConfigManager is used for accessing configuration settings,
     such as UI animation preferences and file paths. It also provides a logger.
 
-    jobs Instance: An instance of AllJobs, loaded from a configuration file (jobstosched.py),
+    jobs Instance: An instance of AllJobs, loaded from a configuration file (WLEDJobs.py),
     provides the available jobs that can be scheduled.
 
     setup_ui() Method: This method builds the user interface using nicegui elements. It includes controls for:
@@ -73,12 +73,12 @@ schedule_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/schedule
                                use_capture=False,
                                go_back=False)
 
-job_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/jobs/jobstosched.py'),
+job_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'),
                           coldtype=False,
                           use_capture=False,
                           go_back=False)
 
-AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/jobstosched.py'))
+AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'))
 
 WLEDScheduler = scheduler.scheduler
 jobs = AllJobs()
@@ -151,11 +151,12 @@ def format_job_descriptions(job_list, history=False, filter_tag=None):
         if history:
             job_block = (
                 f"{repr(job)}\n"
-                f"{readable}\n"
                 f"'tags: {tag_list}\n"
+                f"{readable}\n"
                 f"🔁 Interval: {interval_str}\n"
                 f"➡️ Next run: {next_run}\n"
-                f"✅ Last run: {last_run}"
+                f"✅ Last run: {last_run}\n"
+                "|-----------------------------------------------------|"
             )
             lines.append(job_block)
         else:
@@ -202,7 +203,7 @@ class SchedulerGUI:
             running_jobs.open()
             with ui.card().classes('w-full'):
                 with ui.textarea() as schedule_list:
-                    schedule_list.classes('w-full')
+                    schedule_list.classes('w-full bg-gray-100 dark:bg-gray-800')
                     schedule_list.set_value(format_job_descriptions(WLEDScheduler.get_jobs(), history=True))
                 ui.button('close', on_click=running_jobs.close)
 
@@ -530,22 +531,11 @@ class SchedulerGUI:
                 ui.space()
                 ui.button(icon='add_to_queue', on_click=add_one_time_job)
 
-        with ui.card().tight().classes('w-full').props('flat'):
-            with ui.row().classes('w-full'):
-                ui.space()
-                ui.button('editor', on_click=lambda: editor_row.set_visibility(not editor_row.visible))
-                with ui.row().classes('w-full') as editor_row:
-                    editor_row.set_visibility(False)
-                    with ui.expansion('Custom Schedule', icon='feed', value=False):
-                        await schedule_editor.setup_ui()
-                    with ui.expansion('Jobs', icon='feed', value=False):
-                        await job_editor.setup_ui()
-
         with ui.card().classes('w-full'):
             with ui.row().classes('w-full'):
                 with ui.expansion(text='Scheduled Job(s)', icon='task',
                                   on_value_change=lambda: update_sched()).classes('w-2/3'):
-                    schedule_list = ui.textarea().classes('w-full')
+                    schedule_list = ui.textarea().classes('w-full bg-gray-100 dark:bg-gray-800')
                 ui.space()
                 with ui.dialog() as clear_tag:
                     with ui.card().classes('self-center w-full'):
@@ -564,6 +554,19 @@ class SchedulerGUI:
                         ui.button(icon='cancel',color='red', on_click=cancel_all_jobs)
                     with slide_item.left():
                         ui.button(icon='cancel',color='red', on_click=cancel_all_jobs)
+
+        with ui.card().tight().classes('w-full').props('flat'):
+            with ui.row().classes('w-full'):
+                ui.space()
+                ui.button('editor', on_click=lambda: editor_row.set_visibility(not editor_row.visible))
+
+                with ui.row().classes('w-full') as editor_row:
+                    editor_row.set_visibility(False)
+                    ui.separator()
+                    with ui.expansion('Custom Schedule', icon='feed', value=False).classes('bg-gray-200 mt-2 dark:bg-gray-600'):
+                        await schedule_editor.setup_ui()
+                    with ui.expansion('Jobs', icon='feed', value=False).classes('bg-gray-200 mt-2 dark:bg-gray-600'):
+                        await job_editor.setup_ui()
 
         ui.separator()
 

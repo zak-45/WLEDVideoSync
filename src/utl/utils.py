@@ -45,6 +45,7 @@ from wled import WLED
 from zeroconf import ServiceBrowser, Zeroconf
 from nicegui import run
 from PIL import Image
+from unidecode import unidecode
 from coldtype.text.reader import Font
 
 from src.gui.tkarea import ScreenAreaSelection as SCArea
@@ -187,26 +188,40 @@ class CASTUtils:
 
     @staticmethod
     def wled_name_format(wled_name):
-        """Formats a WLED filename to be at most 32 characters long.
+        """Formats a WLED filename to be at most 32 characters long,
+           replacing extended characters with ASCII equivalents.
 
          Args:
              wled_name (str): The original filename.
 
          Returns:
-             str: The formatted filename, truncated to 30 characters if necessary.
+             str: The formatted filename, transliterated, cleaned, and truncated if necessary.
          """
-        # remove unicode control char
-        # wled_name = wled_name.encode('UTF-8', 'ignore').decode('UTF-8')
+        # Transliterate extended characters to ASCII
+        try:
+            wled_name = unidecode(wled_name)  # <-- Apply unidecode here
+        except Exception as er:
+            utils_logger.warning(f"Unidecode failed for '{wled_name}': {er}. Proceeding without transliteration.")
+            # Fallback or re-raise depending on desired behavior
+
         # remove YT prefix
-        wled_name = wled_name.replace('yt-tmp-','')
+        wled_name = wled_name.replace('yt-tmp-', '')
         #
         wled_name = wled_name.replace('/', '-')
-        wled_name = wled_name.replace(' ', '')
-        #
-        if len(wled_name) > 25:
+        wled_name = wled_name.replace(' ', '')  # Remove spaces after transliteration
+
+        # Truncate if necessary (adjust length if needed, WLED limit is 32)
+        # Let's keep it slightly shorter to be safe, e.g., 30 + extension
+        max_base_len = 30
+        if len(wled_name) > max_base_len:
             name, ext = os.path.splitext(wled_name)
-            return wled_name[:25] + ext  # Truncate to 30 characters
+            # Ensure the base name doesn't exceed the limit after adding extension
+            allowed_name_len = max_base_len - len(ext)
+            if allowed_name_len < 1:  # Handle cases with very long extensions
+                allowed_name_len = 1
+            return name[:allowed_name_len] + ext
         return wled_name
+
 
     @staticmethod
     def wled_upload_gif_file(wled_ip, gif_path):

@@ -182,9 +182,9 @@ def load_jobs(filename, class_name="Jobs"):
 
 if __name__ == '__main__':
     """ usage example """
-    MyJobs=load_jobs(cfg_mgr.app_root_path('xtra/jobs/jobstosched.py'))
+    MyJobs=load_jobs(cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'))
     mjobs=MyJobs()
-    print(20*'-> ' + 'List all jobs defined in jobstosched.py')
+    print(20*'-> ' + 'List all jobs defined in WLEDJobs.py')
     print(mjobs.names)
     print(20*'-> ' + 'provide some help')
     print(mjobs.help())

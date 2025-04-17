@@ -337,6 +337,7 @@ def run_gui():
         if PLATFORM == 'linux':
             systray_backend = cfg_mgr.app_config['systray_backend'].lower()
             if systray_backend in ['appindicator', 'gtk', 'xorg']:
+
                 os.environ["PYSTRAY_BACKEND"] = systray_backend
             else:
                 cfg_mgr.logger.error(f'Bad value for systray_backend : {systray_backend}')
@@ -384,9 +385,6 @@ def run_gui():
     """
 
     wled_proc_file.close()
-
-    # some cleaning
-    Utils.clean_tmp()
 
     # stop pystray
     if str2bool(cfg_mgr.app_config['put_on_systray']):

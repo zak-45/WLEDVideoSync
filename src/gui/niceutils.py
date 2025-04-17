@@ -33,7 +33,7 @@ from configmanager import cfg_mgr
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.nice')
-cfg_mgr.logger = logger_manager.logger
+nice_logger = logger_manager.logger
 
 # Define a factory function to create a wheel event handler for a given slider
 def create_wheel_handler(slider):

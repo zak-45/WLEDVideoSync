@@ -9,7 +9,7 @@ from configmanager import cfg_mgr
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.tkarea')
-cfg_mgr.logger = logger_manager.logger
+tkarea_logger = logger_manager.logger
 
 class ScreenAreaSelection:
     """ Retrieve coordinates from selected monitor region
@@ -78,7 +78,7 @@ class ScreenAreaSelection:
         coordinates = self.canvas.coords(self.rect)
         ScreenAreaSelection.coordinates = coordinates
 
-        cfg_mgr.logger.debug(event)
+        tkarea_logger.debug(event)
 
         # Adjust coordinates to be relative to the screen
         screen_coordinates = [
@@ -114,7 +114,7 @@ class ScreenAreaSelection:
         # Change the monitor index as needed
         monitor_index = monitor_number  # Change this to the desired monitor index (0 for first , 1 for second, etc.)
         if monitor_index >= len(monitors):
-            cfg_mgr.logger.warning(f"Monitor index {monitor_index} is out of range. Using the first monitor instead.")
+            tkarea_logger.warning(f"Monitor index {monitor_index} is out of range. Using the first monitor instead.")
             monitor_index = 0
         # monitor obj
         monitor = monitors[monitor_index]
@@ -136,4 +136,4 @@ if __name__ == '__main__':
                 if saved_screen_coordinates := proc_file.get("sc_area"):
                     print(f'for darwin : {saved_screen_coordinates}')
         except Exception as e:
-            cfg_mgr.logger.error(f"Error loading screen coordinates from shelve: {e}")
+            tkarea_logger.error(f"Error loading screen coordinates from shelve: {e}")

@@ -26,14 +26,11 @@ Web GUI based on NiceGUI
 import shelve
 import sys
 import queue
-import urllib.parse
-import re
 import tkinter as tk
 
-from wled import WLED
 from threading import current_thread
 from subprocess import Popen
-from asyncio import set_event_loop_policy,sleep,create_task
+from asyncio import set_event_loop_policy
 from datetime import datetime
 from PIL import Image
 
@@ -41,13 +38,13 @@ from src.cst import desktop, media
 from src.gui import niceutils as nice
 from src.utl.utils import HTTPDiscovery as Net
 from src.gui.niceutils import LogElementHandler, apply_custom, media_dev_view_page
-from src.gui.niceutils import YtSearch
 from src.gui.niceutils import AnimatedElement as Animate
 from src.gui.castcenter import CastCenter
 from src.gui.schedulergui import SchedulerGUI
 from src.txt.fontsmanager import FontPreviewManager
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
+from src.gui.videoplayer import VideoPlayer
 
 from src.utl.presets import *
 from src.api.api import *
@@ -56,7 +53,7 @@ from configmanager import cfg_mgr
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
-cfg_mgr.logger = logger_manager.logger
+main_logger = logger_manager.logger
 
 PLATFORM = sys.platform.lower()
 
@@ -94,9 +91,9 @@ Actions to do at application initialization
 async def init_actions():
     """ Done at start of app and before GUI available """
 
-    cfg_mgr.logger.info(f'Main running {current_thread().name}')
-    cfg_mgr.logger.info(f'Root page : {root_page}')
-    cfg_mgr.logger.info(f"Scheduler enabled : {cfg_mgr.scheduler_config['enable']}")
+    main_logger.info(f'Main running {current_thread().name}')
+    main_logger.info(f'Root page : {root_page}')
+    main_logger.info(f"Scheduler enabled : {cfg_mgr.scheduler_config['enable']}")
 
     # Apply some default params only once
     if str2bool(cfg_mgr.app_config['init_config_done']) is not True:
@@ -131,24 +128,24 @@ async def init_actions():
     try:
         if str2bool(cfg_mgr.preset_config['load_at_start']):
             if cfg_mgr.preset_config['filter_media'] != '':
-                cfg_mgr.logger.debug(f"apply : {cfg_mgr.preset_config['filter_media']} to filter Media")
+                main_logger.debug(f"apply : {cfg_mgr.preset_config['filter_media']} to filter Media")
                 await load_filter_preset('Media', Media, interactive=False, file_name=cfg_mgr.preset_config['filter_media'])
             if cfg_mgr.preset_config['filter_desktop'] != '':
-                cfg_mgr.logger.debug(f"apply : {cfg_mgr.preset_config['filter_desktop']} to filter Desktop")
+                main_logger.debug(f"apply : {cfg_mgr.preset_config['filter_desktop']} to filter Desktop")
                 await load_filter_preset('Desktop', Desktop, interactive=False, file_name=cfg_mgr.preset_config['filter_desktop'])
             if cfg_mgr.preset_config['cast_media'] != '':
-                cfg_mgr.logger.debug(f"apply : {cfg_mgr.preset_config['cast_media']} to cast Media")
+                main_logger.debug(f"apply : {cfg_mgr.preset_config['cast_media']} to cast Media")
                 await load_cast_preset('Media', Media, interactive=False, file_name=cfg_mgr.preset_config['cast_media'])
             if cfg_mgr.preset_config['cast_desktop'] != '':
-                cfg_mgr.logger.debug(f"apply : {cfg_mgr.preset_config['cast_desktop']} to cast Desktop")
+                main_logger.debug(f"apply : {cfg_mgr.preset_config['cast_desktop']} to cast Desktop")
                 await load_cast_preset('Desktop', Desktop, interactive=False, file_name=cfg_mgr.preset_config['cast_desktop'])
 
         # check if linux and wayland
         if PLATFORM == 'linux' and os.getenv('WAYLAND_DISPLAY') is not None:
-            cfg_mgr.logger.error('Wayland detected, preview should not work !!. Switch to X11 session if want to see preview.')
+            main_logger.error('Wayland detected, preview should not work !!. Switch to X11 session if want to see preview.')
 
     except Exception as e:
-        cfg_mgr.logger.error(f"Error on app startup {e}")
+        main_logger.error(f"Error on app startup {e}")
 
 """
 Class
@@ -190,10 +187,12 @@ class CastAPI:
 
 # Instantiate Cast Center with Desktop and Media
 cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
-# Instantiate Cast Center with Desktop and Media
+# Instantiate SchedulerGUI with Desktop and Media
 scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer, True)
 # Instantiate API to pass Desktop and Media
 api_data = ApiData(Desktop, Media, Netdevice, t_data_buffer)
+# Instantiate VideoPlayer with Media
+video_app = VideoPlayer(Media, CastAPI, t_data_buffer)
 
 """
 NiceGUI
@@ -257,7 +256,7 @@ async def main_page():
     Video player
     """
     if str2bool(cfg_mgr.custom_config['player']):
-        await video_player_page()
+        await video_app.video_player_page()
         CastAPI.player.set_visibility(False)
 
     """
@@ -354,11 +353,11 @@ async def main_page():
         with ui.expansion('Show log', icon='feed').classes('w-full'):
             log_ui = ui.log(max_lines=250).classes('w-full h-30 bg-black text-white')
             # logging Level
-            cfg_mgr.logger.setLevel(cfg_mgr.app_config['log_level'].upper())
+            main_logger.setLevel(cfg_mgr.app_config['log_level'].upper())
             # handler
             log_ui_handler = LogElementHandler(log_ui)
-            cfg_mgr.logger.addHandler(log_ui_handler)
-            ui.context.client.on_disconnect(lambda: cfg_mgr.logger.removeHandler(log_ui_handler))
+            main_logger.addHandler(log_ui_handler)
+            ui.context.client.on_disconnect(lambda: main_logger.removeHandler(log_ui_handler))
             # clear / load log file
             with ui.row().classes('w-full'):
                 ui.button('Clear Log', on_click=lambda: log_ui.clear()).tooltip('Erase the log')
@@ -372,7 +371,7 @@ async def main_page():
                             log_data = my_file.read()
                     else:
                         log_data = 'ERROR Log File Not Found ERROR'
-                        cfg_mgr.logger.warning(f'Log File Not Found {log_filename}')
+                        main_logger.warning(f'Log File Not Found {log_filename}')
                     ui.button('Close', on_click=dialog.close, color='red')
                     log_area = ui.textarea(value=log_data).classes('w-full').props(add='bg-color=blue-grey-4')
                     log_area.props(add="rows='25'")
@@ -459,384 +458,7 @@ async def run_video_player_page():
     #
     #if CastAPI.player_timer is None:
     CastAPI.player_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
-    await video_player_page()
-
-async def update_video_information():
-    video_info = await CV2Utils.get_media_info(CastAPI.player.source)
-    CastAPI.video_fps = int(video_info['CAP_PROP_FPS'])
-    CastAPI.video_frames = int(video_info['CAP_PROP_FRAME_COUNT'])
-
-async def video_player_page():
-    """
-    Video player
-    """
-
-    async def player_video_info():
-        # video info
-        await update_video_information()
-
-        if str2bool(cfg_mgr.custom_config['gif_enabled']):
-            # set gif info
-            start_gif.max = CastAPI.video_frames
-            end_gif.max = CastAPI.video_frames
-            end_gif.set_value(CastAPI.video_frames)
-
-    async def player_set_file():
-        await nice.player_pick_file(CastAPI)
-        await player_video_info()
-
-    async def validate_player_url():
-        url_path = False
-        #
-        parsed_url = urllib.parse.urlparse(video_img_url.value)
-        if parsed_url.scheme and not re.match(r'^[a-zA-Z]$', parsed_url.scheme):  # Check for valid URL scheme (not drive letter)
-            url_path = True
-
-        if url_path and 'youtube' in parsed_url.netloc.lower():
-            yt_format = cfg_mgr.custom_config['yt_format']
-            yt_url = await Utils.get_yt_video_url(video_img_url.value, iformat=yt_format)
-
-            cfg_mgr.logger.info(f'Player set to : {yt_url}')
-
-            # set video player media
-            CastAPI.player.set_source(yt_url)
-            CastAPI.player.update()
-
-            await player_video_info()
-
-
-    async def player_set_url(url):
-        """ Download video/image from Web url or local path
-
-        url: video url
-        start_in : ui.input for frame start
-        end_in : ui.input for frame end
-        """
-
-        #  this can be Web or local
-        url_path = False
-        #
-        encoded_str = url
-        decoded_str = urllib.parse.unquote(encoded_str)
-        #
-        parsed_url = urllib.parse.urlparse(url)
-        if parsed_url.scheme and not re.match(r'^[a-zA-Z]$', parsed_url.scheme):  # Check for valid URL scheme (not drive letter)
-            url_path = True
-        #
-        # init value for progress bar
-        CastAPI.progress_bar.value = 0
-        CastAPI.progress_bar.update()
-        #
-        # if this is Web url
-        if url_path:
-            # check if YT Url, so will download to media
-            if 'youtube' in parsed_url.netloc.lower():
-
-                # this will run async loop in background and continue...
-                create_task(bar_get_size())
-                # wait YT download finished
-                yt_video_name = await Utils.youtube_download(url, interactive=True)
-                # if no error, set local YT file name to video player
-                if yt_video_name != '':
-                    decoded_str = yt_video_name
-
-            # check if this is an image, so will download to media
-            elif await Utils.is_image_url(url):
-
-                # generate a unique name
-                # Get the current date and time
-                current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-                # Format the unique name with prefix, date, time, and extension
-                # hardcoded jpg format, this need to be reviewed
-                image_name = f"image-tmp_{current_time}.jpg"
-
-                result = await Utils.download_image(cfg_mgr.app_root_path('media'), url, image_name)
-                if result:
-                    decoded_str = cfg_mgr.app_root_path(f'media/{image_name}')
-            else:
-                cfg_mgr.logger.debug('No yt or image url')
-        #
-        ui.notify(f'Player set to : {decoded_str}')
-        cfg_mgr.logger.debug(f'Player set to : {decoded_str}')
-
-        # put max value to progress bar
-        CastAPI.progress_bar.value = 1
-        CastAPI.progress_bar.update()
-
-        # set video player media
-        CastAPI.player.set_source(decoded_str)
-        CastAPI.player.update()
-
-        await player_video_info()
-
-    async def gif_to_wled():
-        """
-        Upload GIF to Wled device
-        :return:
-        """
-        video_in = CastAPI.player.source
-        ui.notify('Start GIF Uploading')
-        send_gif.props(add='loading')
-        gif_to_upload = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
-        await run.io_bound(lambda: Utils.wled_upload_gif_file(Media.host, gif_to_upload))
-        led = WLED(Media.host)
-        try:
-            presets = await led.request('/presets.json')
-            preset_number = max(int(key) for key in presets.keys()) + 1
-            preset_name = f'WLEDVideoSync-{preset_number}'
-            segment_name = Utils.wled_name_format(Utils.extract_filename(gif_to_upload))
-            # set segment name as gif file
-            wled_data={"on":1,"bri":10,"transition":0,"bs":0,"mainseg":0,"seg":[{"id":0,"n":f"{segment_name}","fx":53}]}
-            await led.request('/json/state', method='POST', data=wled_data)
-            # create preset
-            await led.request('/json/state', method='POST', data={"ib":1,
-                                                                  "sb":1,
-                                                                  "sc":0,
-                                                                  "psave":preset_number,
-                                                                  "n":preset_name,
-                                                                  "v":1,
-                                                                  "time":time.time()})
-        except Exception as er:
-            cfg_mgr.logger.error(f'Error in WLED upload: {er}')
-        finally:
-            await led.close()
-
-        send_gif.props(remove='loading')
-        ui.notify('End GIF Uploading')
-
-    async def open_gif():
-        sync_buttons.set_visibility(False)
-        gif_buttons.set_visibility(True)
-
-    async def close_gif():
-        sync_buttons.set_visibility(True)
-        gif_buttons.set_visibility(False)
-
-    async def create_gif():
-        video_in = CastAPI.player.source
-        gen_gif.props(add='loading')
-        if Media.wled:
-            send_gif.disable()
-        # generate a unique name
-        # Get the current date and time
-        # current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        gif_out = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
-        ui.notify(f'Generating GIF : {gif_out} ...')
-        await run.io_bound(lambda: CV2Utils.video_to_gif(video_in,gif_out,
-                                                         Media.rate,
-                                                         int(start_gif.value),
-                                                         int(end_gif.value),
-                                                         Media.scale_width,
-                                                         Media.scale_height))
-        ui.notify('GIF finished !')
-        if Media.wled:
-            send_gif.enable()
-            send_gif.props(remove='loading')
-        gen_gif.props(remove='loading')
-
-    async def manage_visibility(visible):
-        CastAPI.player.set_visibility(visible)
-        await nice.animate_wled_image(CastAPI, visible)
-
-    if str2bool(cfg_mgr.custom_config['animate_ui']):
-        center_card_anim = Animate(ui.card, animation_name_in='fadeInUp', duration=1)
-        center_card = center_card_anim.create_element()
-    else:
-        center_card = ui.card()
-
-    center_card.classes('self-center w-2/3 bg-gray-500')
-    with center_card:
-        video_file = cfg_mgr.app_root_path(cfg_mgr.app_config["video_file"])
-        CastAPI.player = ui.video(src=video_file).classes('self-center')
-        CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
-        CastAPI.player.on('timeupdate', lambda: get_player_time())
-        CastAPI.player.on('durationchange', lambda: player_duration())
-        CastAPI.player.set_visibility(True)
-
-        await update_video_information()
-
-        with ui.row(wrap=False).classes('self-center'):
-            ui.label() \
-                .bind_text_from(Media, 'sync_to_time') \
-                .classes('self-center bg-slate-400') \
-                .bind_visibility_from(CastAPI.player)
-            ui.label('+').bind_visibility_from(CastAPI.player)
-            ui.label() \
-                .bind_text_from(Media, 'add_all_sync_delay') \
-                .classes('self-center bg-slate-400') \
-                .bind_visibility_from(CastAPI.player)
-        CastAPI.video_slider = ui.slider(min=0, max=7200, step=1, value=0,
-                                         on_change=lambda var: slider_time(var.value)).props('label-always') \
-            .bind_visibility_from(CastAPI.player)
-
-        with ui.row() as sync_buttons:
-            sync_buttons.classes('self-center')
-            media_frame = ui.knob(0, min=-1000, max=1000, step=1, show_value=True).classes('bg-gray')
-            media_frame.bind_value(Media, 'cast_skip_frames')
-            media_frame.tooltip('+ / - frames to CAST')
-            media_frame.bind_visibility_from(CastAPI.player)
-
-            CastAPI.media_button_sync = ui.button('VSync', on_click=player_sync, color='green') \
-                .tooltip('Sync Cast with Video Player Time') \
-                .bind_visibility_from(CastAPI.player)
-
-            media_reset_icon = ui.icon('restore')
-            media_reset_icon.tooltip('sync Reset')
-            media_reset_icon.style("cursor: pointer")
-            media_reset_icon.on('click', lambda: reset_sync())
-            media_reset_icon.bind_visibility_from(CastAPI.player)
-
-            await nice.sync_button(CastAPI, Media)
-
-            CastAPI.slider_button_sync = ui.button('TSync', on_click=slider_sync, color='green') \
-                .tooltip('Sync Cast with Slider Time') \
-                .bind_visibility_from(CastAPI.player)
-
-            media_sync_delay = ui.knob(1, min=1, max=59, step=1, show_value=True).classes('bg-gray')
-            media_sync_delay.bind_value(Media, 'auto_sync_delay')
-            media_sync_delay.tooltip('Interval in sec to auto sync')
-            media_sync_delay.bind_visibility_from(CastAPI.player)
-
-            ui.checkbox('Auto Sync') \
-                .bind_value(Media, 'auto_sync') \
-                .tooltip('Auto Sync Cast with Time every x sec (based on interval set)') \
-                .bind_visibility_from(CastAPI.player)
-
-            ui.knob(1, min=-2000, max=2000, step=1, show_value=True).classes('bg-gray') \
-                .bind_value(Media, 'add_all_sync_delay') \
-                .tooltip('Add Delay in ms to all sync') \
-                .bind_visibility_from(CastAPI.player)
-
-            ui.checkbox('Sync All') \
-                .bind_value(Media, 'all_sync') \
-                .tooltip('Sync All Casts with selected time') \
-                .bind_visibility_from(CastAPI.player)
-
-        if str2bool(cfg_mgr.custom_config['gif_enabled']):
-            with ui.row() as gif_buttons:
-                gif_buttons.classes('self-center')
-                gif_buttons.set_visibility(False)
-
-                if gif_buttons.visible:
-                    gif_buttons.classes(add='animate__animated animate__flipOutX',
-                                        remove='animate__animated animate__flipInX')
-                    sync_buttons.classes(add='animate__animated animate__flipOutX',
-                                         remove='animate__animated animate__flipInX')
-
-                else:
-                    gif_buttons.classes(add='animate__animated animate__flipInX',
-                                        remove='animate__animated animate__flipOutX')
-                    sync_buttons.classes(add='animate__animated animate__flipInX',
-                                         remove='animate__animated animate__flipOutX')
-
-                start_gif = ui.number('Start',value=0, min=0, max=CastAPI.video_frames, precision=0)
-                start_gif.bind_value(CastAPI,'current_frame')
-                end_gif = ui.number('End', value=CastAPI.video_frames, min=0, max=CastAPI.video_frames, precision=0)
-
-                gen_gif = ui.button(text='GIF',icon='image', on_click=create_gif)
-                gen_gif.tooltip('Create GIF')
-                gen_gif.bind_visibility_from(CastAPI.player)
-
-                if Media.wled:
-                    send_gif = ui.button(text='WLED',icon='apps', on_click=gif_to_wled)
-                    send_gif.tooltip('Upload GIF to WLED device')
-                    send_gif.bind_visibility_from(CastAPI.player)
-                    open_wled = ui.button('APP', icon='web', on_click=lambda: ui.navigate.to(f'http://{Media.host}', new_tab=True))
-                    open_wled.tooltip('Open WLED Web Page')
-                    open_wled.bind_visibility_from(CastAPI.player)
-
-        with ui.row().classes('self-center'):
-            show_player = ui.icon('switch_video', color='blue', size='xl')
-            show_player.style("cursor: pointer")
-            show_player.on('click', lambda: manage_visibility(True))
-            show_player.tooltip("Show Video player")
-            show_player.bind_visibility_from(CastAPI.player, backward=lambda v: not v)
-
-            hide_player = ui.icon('disabled_visible', color='red', size='sm').classes('m-1')
-            hide_player.style("cursor: pointer")
-            hide_player.on('click', lambda: manage_visibility(False))
-            hide_player.tooltip("Hide Video player")
-            hide_player.bind_visibility_from(CastAPI.player)
-
-            cast_number = ui.number(min=-1, max=9999, precision=0, placeholder='Repeat')
-            cast_number.tooltip('Enter number of time you want to re-cast Media')
-            cast_number.bind_value(Media, 'repeat')
-            cast_number.bind_visibility_from(CastAPI.player)
-
-            ui.icon('cast', size='md') \
-                .style("cursor: pointer") \
-                .on('click', lambda: player_cast(CastAPI.player.source)) \
-                .tooltip('Play/Cast Video') \
-                .bind_visibility_from(CastAPI.player)
-
-            ui.icon('info', size='sd') \
-                .style("cursor: pointer") \
-                .on('click', lambda: nice.player_media_info(CastAPI.player.source)) \
-                .tooltip('Media Info') \
-                .bind_visibility_from(CastAPI.player)
-
-            ui.icon('folder', color='orange', size='md').classes('m-4') \
-                .style("cursor: pointer") \
-                .on('click', lambda: player_set_file()) \
-                .tooltip('Select audio / video file') \
-                .bind_visibility_from(CastAPI.player)
-
-            video_img_url = ui.input('Enter video/image Url / Path', placeholder='http://....') \
-                .bind_visibility_from(CastAPI.player)
-            video_img_url.tooltip('Enter Url, select icon to download video/image, or stream video')
-            video_img_url.on('focus', js_handler='''(event) => {const input = event.target;input.select();}''')
-            video_stream_icon = ui.icon('published_with_changes', size='sm')
-            video_stream_icon.style("cursor: pointer")
-            video_stream_icon.tooltip("stream from Url")
-            video_stream_icon.on('click', lambda: validate_player_url())
-            video_stream_icon.bind_visibility_from(CastAPI.player)
-            video_url_icon = ui.icon('file_download', size='sm')
-            video_url_icon.style("cursor: pointer")
-            video_url_icon.tooltip("Download video/image from Url")
-            video_url_icon.on('click', lambda: player_set_url(video_img_url.value))
-            video_url_icon.bind_visibility_from(CastAPI.player)
-
-            # if yt_enabled is True display YT info icon
-            if str2bool(cfg_mgr.custom_config['yt_enabled']):
-                video_url_info = ui.icon('info')
-                video_url_info.style("cursor: pointer")
-                video_url_info.tooltip("Youtube/Url information's, including formats etc ...")
-                video_url_info.on('click', lambda: nice.player_url_info(video_img_url.value))
-                video_url_info.bind_visibility_from(CastAPI.player)
-
-            # Progress bar
-            CastAPI.progress_bar = ui.linear_progress(value=0, show_value=False, size='8px')
-
-        with ui.row(wrap=True).classes('w-full'):
-            # if yt_enabled is True display YT search buttons
-            if str2bool(cfg_mgr.custom_config['yt_enabled']):
-                # YT search
-                yt_icon = ui.chip('YT Search',
-                                  icon='youtube_searched_for',
-                                  color='indigo-3',
-                                  on_click=lambda: youtube_search(video_img_url))
-                yt_icon.classes('fade')
-                yt_icon.bind_visibility_from(CastAPI.player)
-                yt_icon_2 = ui.chip('Clear YT Search',
-                                  icon='clear',
-                                  color='indigo-3',
-                                  on_click=lambda: youtube_clear_search())
-                yt_icon_2.bind_visibility_from(CastAPI.player)
-
-            # if gif_enabled is True display GIF buttons
-            if str2bool(cfg_mgr.custom_config['gif_enabled']):
-                # YT search
-                gif_icon = ui.chip('GIF Menu',
-                                  icon='image',
-                                  color='indigo-2',
-                                  on_click=open_gif)
-                gif_icon.classes('fade')
-                gif_icon.bind_visibility_from(CastAPI.player)
-                gif_icon_2 = ui.chip('GIF Close',
-                                  icon='clear',
-                                  color='indigo-2',
-                                  on_click=close_gif)
-                gif_icon_2.bind_visibility_from(CastAPI.player)
+    await video_app.video_player_page()
 
 
 @ui.page('/Desktop')
@@ -1068,8 +690,8 @@ async def main_page_desktop():
                             img = Image.fromarray(img)
                             await light_box_image(i, img, i, '', Desktop, 'cast_frame_buffer')
                     except Exception as m_error:
-                        cfg_mgr.logger.error(traceback.format_exc())
-                        cfg_mgr.logger.error(f'An exception occurred: {m_error}')
+                        main_logger.error(traceback.format_exc())
+                        main_logger.error(f'An exception occurred: {m_error}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -1263,8 +885,8 @@ async def main_page_media():
                             img = Image.fromarray(img)
                             await light_box_image(i, img, i, '', Media, 'cast_frame_buffer')
                     except Exception as e:
-                        cfg_mgr.logger.error(traceback.format_exc())
-                        cfg_mgr.logger.error(f'An exception occurred: {e}')
+                        main_logger.error(traceback.format_exc())
+                        main_logger.error(f'An exception occurred: {e}')
             else:
                 with ui.card():
                     ui.label('No frame captured yet...').style('background: red')
@@ -1535,7 +1157,7 @@ async def animate_toggle(img):
 
     ui.notify(f'Animate :{cfg_mgr.custom_config["animate_ui"]}')
 
-    cfg_mgr.logger.debug(f'Animate :{cfg_mgr.custom_config["animate_ui"]}')
+    main_logger.debug(f'Animate :{cfg_mgr.custom_config["animate_ui"]}')
 
 
 async def grab_windows():
@@ -1563,44 +1185,6 @@ async def net_view_page():
     ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
 
 
-async def youtube_search(player_url):
-    """
-    display search result from pytube
-    player_url :  ui.input from the player to be updated
-    """
-    anime = False
-    if str2bool(cfg_mgr.custom_config['animate_ui']):
-        animated_yt_area = Animate(ui.scroll_area, animation_name_in="backInDown", duration=1.5)
-        yt_area = animated_yt_area.create_element()
-        anime = True
-    else:
-        yt_area = ui.scroll_area()
-
-    yt_area.bind_visibility_from(CastAPI.player)
-    yt_area.classes('w-full border')
-    CastAPI.search_areas.append(yt_area)
-    with yt_area:
-        YtSearch(player_url, anime)
-
-
-async def youtube_clear_search():
-    """
-    Clear search results
-    """
-
-    for area in CastAPI.search_areas:
-        try:
-            if str2bool(cfg_mgr.custom_config['animate_ui']):
-                animated_area = Animate(area, animation_name_out="backOutUp", duration=1)
-                animated_area.delete_element(area)
-            else:
-                area.delete()
-        except Exception as e:
-            cfg_mgr.logger.error(traceback.format_exc())
-            cfg_mgr.logger.error(f'Search area does not exist: {e}')
-    CastAPI.search_areas = []
-
-
 async def reset_total():
     """ reset frames / packets total values for Media and Desktop """
     Media.reset_total = True
@@ -1625,86 +1209,6 @@ async def reset_total():
         ui.notify(result)
 
     ui.notify('Reset Total')
-
-
-async def player_sync():
-    """ Set Sync cast to True """
-
-    # client need to be connected
-    await ui.context.client.connected()
-    current_time = round(await ui.run_javascript("document.querySelector('video').currentTime", timeout=2))
-    ui.notify(f'Player Time : {current_time}')
-    # set time
-    Media.sync_to_time = current_time * 1000
-    Media.cast_sync = True
-    CastAPI.type_sync = 'player'
-    CastAPI.last_type_sync = 'player'
-    # gui update
-    CastAPI.media_button_sync.props(add="color=red")
-    CastAPI.media_button_sync.text = current_time
-    CastAPI.media_button_sync.classes('animate-pulse')
-    CastAPI.slider_button_sync.props(remove="color=red")
-    CastAPI.slider_button_sync.text = "TSYNC"
-
-
-async def slider_sync():
-    """ Set Sync Cast to True """
-
-    current_time = CastAPI.video_slider.value
-    ui.notify(f'Slider Time : {current_time}')
-    # set time
-    Media.sync_to_time = current_time * 1000
-    Media.cast_sync = True
-    CastAPI.type_sync = 'slider'
-    CastAPI.last_type_sync = 'slider'
-    # gui update
-    CastAPI.slider_button_sync.props(add="color=red")
-    CastAPI.slider_button_sync.text = current_time
-    CastAPI.slider_button_sync.classes('animate-pulse')
-    CastAPI.media_button_sync.props(remove="color=red")
-    CastAPI.media_button_sync.text = "VSYNC"
-
-
-def slider_time(current_time):
-    """ Set player time for Cast """
-
-    if CastAPI.type_sync == 'slider':
-        Media.sync_to_time = current_time * 1000
-
-
-def reset_sync():
-    """ Reset player sync value to default """
-
-    Media.cast_sync = False
-    Media.auto_sync_delay = 30
-    Media.add_all_sync_delay = 0
-    cfg_mgr.logger.info('Reset Sync')
-
-
-async def get_player_time():
-    """
-    Retrieve current play time from the Player
-    Set player time for Cast to Sync & current frame number
-    """
-    if CastAPI.type_sync == 'player':
-        await ui.context.client.connected()
-        current_time = float(await ui.run_javascript("document.querySelector('video').currentTime", timeout=2))
-        Media.sync_to_time = current_time * 1000
-        # Calculate current frame number
-        current_frame = int(current_time * CastAPI.video_fps)
-        CastAPI.current_frame = current_frame
-
-async def player_duration():
-    """
-    Return current duration time from the Player
-    Set slider max value to video duration
-    """
-    await ui.context.client.connected()
-    current_duration = await ui.run_javascript("document.querySelector('video').duration", timeout=2)
-    cfg_mgr.logger.info(f'Video duration:{current_duration}')
-    Media.player_duration = current_duration
-    CastAPI.video_slider._props["max"] = current_duration
-    CastAPI.video_slider.update()
 
 
 def charts_select():
@@ -1757,7 +1261,7 @@ def dev_stats_info_page():
     Popen(["devstats"] + dev_ip + ips_list + dark,
           executable=select_chart_exe())
 
-    cfg_mgr.logger.debug('Run Device(s) Charts')
+    main_logger.debug('Run Device(s) Charts')
     CastAPI.charts_row.set_visibility(False)
 
 
@@ -1769,7 +1273,7 @@ def net_stats_info_page():
           executable=select_chart_exe())
 
     CastAPI.charts_row.set_visibility(False)
-    cfg_mgr.logger.debug('Run Network Chart')
+    main_logger.debug('Run Network Chart')
 
 
 def sys_stats_info_page():
@@ -1780,25 +1284,11 @@ def sys_stats_info_page():
           executable=select_chart_exe())
 
     CastAPI.charts_row.set_visibility(False)
-    cfg_mgr.logger.debug('Run System Charts')
+    main_logger.debug('Run System Charts')
 
 
 def select_chart_exe():
     return cfg_mgr.app_root_path(cfg_mgr.app_config['charts_exe'])
-
-
-async def player_cast(source):
-    """ Cast from video CastAPI.player only for Media """
-
-    media_info = await CV2Utils.get_media_info(source)
-    if Media.stopcast:
-        ui.notify(f'Cast NOT allowed to run from : {source}', type='warning')
-    else:
-        Media.viinput = source
-        Media.rate = int(media_info['CAP_PROP_FPS'])
-        ui.notify(f'Cast running from : {source}')
-        Media.cast(shared_buffer=t_data_buffer)
-    CastAPI.player.play()
 
 
 async def cast_manage_page():
@@ -2141,7 +1631,7 @@ async def cast_to_wled(class_obj, image_number):
             buffer_name=buffer_name
         )
     else:
-        cfg_mgr.logger.warning('Device do not accept connection to port 80')
+        main_logger.warning('Device do not accept connection to port 80')
         ui.notify('Device do not accept connection to port 80', type='warning')
 
 
@@ -2174,7 +1664,7 @@ async def init_cast(class_obj):
     """
     class_obj.cast(shared_buffer=t_data_buffer)
     await nice.cast_manage(CastAPI, Desktop, Media)
-    cfg_mgr.logger.info(f'Run Cast for {str(class_obj)}')
+    main_logger.info(f'Run Cast for {str(class_obj)}')
     # ui.notify(f'Cast initiated for :{str(class_obj)}')
 
 
@@ -2184,7 +1674,7 @@ async def cast_stop(class_obj):
     class_obj.stopcast = True
     # ui.notify(f'Cast(s) stopped and blocked for : {class_obj}', position='center', type='info', close_button=True)
     await nice.cast_manage(CastAPI, Desktop, Media)
-    cfg_mgr.logger.info(f' Stop Cast for {str(class_obj)}')
+    main_logger.info(f' Stop Cast for {str(class_obj)}')
 
 
 async def auth_cast(class_obj):
@@ -2193,7 +1683,7 @@ async def auth_cast(class_obj):
     class_obj.stopcast = False
     # ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
     await nice.cast_manage(CastAPI, Desktop, Media)
-    cfg_mgr.logger.info(f' Cast auth. for {str(class_obj)}')
+    main_logger.info(f' Cast auth. for {str(class_obj)}')
 
 
 async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
@@ -2240,17 +1730,9 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
             ui.button('', icon='preview', on_click=dialog.open, color='bg-red-800').tooltip('View image')
 
         except Exception as im_error:
-            cfg_mgr.logger.error(traceback.format_exc())
-            cfg_mgr.logger.error(f'An exception occurred: {im_error}')
+            main_logger.error(traceback.format_exc())
+            main_logger.error(f'An exception occurred: {im_error}')
 
-
-async def bar_get_size():
-    """ Read data from YT download, loop until no more data to download """
-
-    while Utils.yt_file_size_remain_bytes != 0:
-        CastAPI.progress_bar.value = 1 - (Utils.yt_file_size_remain_bytes / Utils.yt_file_size_bytes)
-        CastAPI.progress_bar.update()
-        await sleep(.1)
 
 # do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 if __name__ == "__main__":
