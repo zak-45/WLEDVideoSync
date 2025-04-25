@@ -13,16 +13,16 @@ urllib3==1.26.20 ; sys_platform == "darwin"
 # Specific version & Common to all OS
 numpy==1.26.4
 opencv-python==4.11.0.86
-zeroconf==0.143.0
+zeroconf==0.146.5
 nicegui==2.15.0
-pillow==11.1.0
+pillow==11.2.1
 fastapi==0.115.8
 starlette==0.45.3
 requests==2.32.3
-av==14.2.0
+av==14.3.0
 mss==10.0.0
 moviepy==1.0.3
-coldtype[viewer]==0.11.6
+coldtype[viewer]==0.12.2
 aiohttp==3.11.0
 
 # any version & Common to all OS

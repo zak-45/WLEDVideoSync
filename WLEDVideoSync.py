@@ -120,7 +120,7 @@ def init_linux_win():
     elif PLATFORM == 'linux':
         linux_settings(config_file)
     else:
-        cfg_mgr.logger.error(f'PLATFORM NOT MANAGED : {PLATFORM}')
+        main_logger.error(f'PLATFORM NOT MANAGED : {PLATFORM}')
 
     # common all OS
     init_common(config_file)
@@ -242,7 +242,7 @@ def check_server():
     srv_ip = cfg_mgr.server_config['server_ip']
 
     if not Utils.validate_ip_address(srv_ip):
-        cfg_mgr.logger.error(f'Bad server IP: {srv_ip}')
+        main_logger.error(f'Bad server IP: {srv_ip}')
         return None, None
 
     srv_port = cfg_mgr.server_config['server_port']
@@ -253,7 +253,7 @@ def check_server():
         srv_port = int(cfg_mgr.server_config['server_port'])
 
     if srv_port not in range(1, 65536):
-        cfg_mgr.logger.error(f'Bad server Port: {srv_port}')
+        main_logger.error(f'Bad server Port: {srv_port}')
         return srv_ip, None
 
     return srv_ip, srv_port
@@ -292,7 +292,7 @@ def select_gui():
             native_ui_size = None
             native_ui = False
     except Exception as error:
-        cfg_mgr.logger.error(f'Error in config file to select GUI from native_ui : {native_ui} - {error}')
+        main_logger.error(f'Error in config file to select GUI from native_ui : {native_ui} - {error}')
         sys.exit(3)
 
     return show, native_ui, native_ui_size
@@ -315,9 +315,9 @@ def run_gui():
         server_ip, server_port = check_server()
         if server_ip is None or server_port is None:
             print('Exiting due to invalid server configuration.')
-            cfg_mgr.logger.error('Exiting due to invalid server configuration.')
+            main_logger.error('Exiting due to invalid server configuration.')
             Utils.clean_tmp()
-            cfg_mgr.logger.info('Application Terminated')
+            main_logger.info('Application Terminated')
             sys.exit(4)
 
     # store server port info for others processes, add sc_area for macOS
@@ -340,7 +340,7 @@ def run_gui():
 
                 os.environ["PYSTRAY_BACKEND"] = systray_backend
             else:
-                cfg_mgr.logger.error(f'Bad value for systray_backend : {systray_backend}')
+                main_logger.error(f'Bad value for systray_backend : {systray_backend}')
                 sys.exit(5)
 
         # run systray in no blocking mode
@@ -358,16 +358,6 @@ def run_gui():
     """
     RUN
     """
-    # settings
-    app.openapi = custom_openapi
-    app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
-    app.add_media_files('/media', cfg_mgr.app_root_path('media'))
-    app.add_static_files('/log', cfg_mgr.app_root_path('log'))
-    app.add_static_files('/config', cfg_mgr.app_root_path('config'))
-    app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
-    app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
-    app.on_startup(init_actions)
-
     ui.run(title=f'WLEDVideoSync - {server_port}',
            favicon=cfg_mgr.app_root_path("favicon.ico"),
            host=server_ip,
@@ -398,6 +388,17 @@ def run_gui():
 """
 MAIN Logic 
 """
+
+# app settings set here so no problem with native if used, see: https://github.com/zauberzeug/nicegui/pull/4627
+app.openapi = custom_openapi
+app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
+app.add_media_files('/media', cfg_mgr.app_root_path('media'))
+app.add_static_files('/log', cfg_mgr.app_root_path('log'))
+app.add_static_files('/config', cfg_mgr.app_root_path('config'))
+app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
+app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
+app.on_startup(init_actions)
+
 # do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 if __name__ == "__main__":
     # instruct user to go to WLEDVideoSync folder to execute program and exit
@@ -433,4 +434,4 @@ if __name__ == "__main__":
 
     Utils.clean_tmp()
 
-    cfg_mgr.logger.info('Application Terminated')
+    main_logger.info('Application Terminated')

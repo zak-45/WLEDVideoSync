@@ -193,6 +193,10 @@ class SchedulerGUI:
         if self.use_capture:
             self.capture = ConsoleCapture(show_console=False)
 
+    def restart_capture(self):
+        self.capture._create_stream_handler()
+
+
     @staticmethod
     async def show_running():
         """Displays currently running scheduled jobs.
@@ -573,6 +577,7 @@ class SchedulerGUI:
         if self.use_capture:
             sched_exp_param = ui.expansion('Console', icon='feed', value=False)
             with sched_exp_param.classes('w-full bg-sky-800 mt-2'):
+                ui.button('re-capture', on_click=self.restart_capture)
                 self.capture.setup_ui()
 
 
