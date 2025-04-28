@@ -49,17 +49,17 @@ from src.gui.videoplayer import VideoPlayer
 from src.utl.presets import *
 from src.api.api import *
 
-from configmanager import cfg_mgr
+from configmanager import cfg_mgr, PLATFORM
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
 
-PLATFORM = sys.platform.lower()
-
+"""
 if PLATFORM == 'win32':
     from asyncio import WindowsSelectorEventLoopPolicy
     set_event_loop_policy(WindowsSelectorEventLoopPolicy())
+"""
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()

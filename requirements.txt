@@ -9,6 +9,8 @@ pycairo ; sys_platform == "linux"
 PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
 urllib3==1.26.20 ; sys_platform == "darwin"
+winloop ; sys_platform == "win32"
+
 
 # Specific version & Common to all OS
 numpy==1.26.4

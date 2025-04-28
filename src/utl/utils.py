@@ -21,7 +21,6 @@ import inspect
 import traceback
 import json
 import re
-import platform
 import subprocess
 import configparser
 import io
@@ -50,7 +49,7 @@ from coldtype.text.reader import Font
 
 from src.gui.tkarea import ScreenAreaSelection as SCArea
 
-from configmanager import cfg_mgr
+from configmanager import cfg_mgr, PLATFORM
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.utils')
@@ -94,7 +93,7 @@ class CASTUtils:
         tmp_file = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
 
         # run in no blocking mode, another process for macOS else thread
-        if sys.platform.lower() == 'darwin':
+        if PLATFORM == 'darwin':
 
             await run.cpu_bound(SCArea.run, monitor, tmp_file)
 
@@ -505,7 +504,7 @@ class CASTUtils:
     def compile_info():
         """ read version info file """
 
-        with open(cfg_mgr.app_root_path(f'assets/version-{sys.platform.lower()}.json'), 'r') as file:
+        with open(cfg_mgr.app_root_path(f'assets/version-{PLATFORM}.json'), 'r') as file:
             json_info = json.loads(file.read().replace("\\", "\\\\"))
 
         return json_info
@@ -555,7 +554,7 @@ class CASTUtils:
         Main test for platform
             macOS / linux need specific case
         """
-        if sys.platform.lower() != 'linux':
+        if PLATFORM != 'linux':
             return multiprocessing.Process, multiprocessing.Queue # Direct return
         ctx = multiprocessing.get_context('spawn')
         return ctx.Process, ctx.Queue # Direct return
@@ -816,7 +815,7 @@ class CASTUtils:
         devicenumber = 0
         devices_list = []
 
-        if platform.system().lower() == 'darwin':
+        if PLATFORM == 'darwin':
             try:
                 import av
 
@@ -828,7 +827,7 @@ class CASTUtils:
                 utils_logger.error(f'An exception occurred: {error}')
 
         # linux
-        if platform.system().lower() == 'linux':
+        if PLATFORM == 'linux':
             from linuxpy.video import device as linux_dev
 
             dev = linux_dev.iter_devices()
@@ -837,7 +836,7 @@ class CASTUtils:
                 (str(item), typedev, i) for i, item in enumerate(dev, start=1)
             )
 
-        elif platform.system().lower() == 'windows':
+        elif PLATFORM == 'win32':
             from pygrabber.dshow_graph import FilterGraph
 
             graph = FilterGraph()
@@ -943,7 +942,7 @@ class CASTUtils:
 
         if ping:
 
-            param = '-n' if platform.system().lower() == 'windows' else '-c'
+            param = '-n' if PLATFORM == 'win32' else '-c'
 
             command = ['ping', param, '1', ip_address]
             try:

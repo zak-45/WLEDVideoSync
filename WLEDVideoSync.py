@@ -5,6 +5,7 @@
 # nuitka-project: --include-raw-dir=xtra=xtra
 # nuitka-project-if: {OS} == "Windows":
 #   nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
+#   nuitka-project: --include-module=winloop
 # nuitka-project-if: os.getenv("DEBUG_COMPILATION", "no") == "yes":
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
@@ -389,7 +390,7 @@ def run_gui():
 MAIN Logic 
 """
 
-# app settings set here so no problem with native if used, see: https://github.com/zauberzeug/nicegui/pull/4627
+# app settings set here to avoid problem with native if used, see: https://github.com/zauberzeug/nicegui/pull/4627
 app.openapi = custom_openapi
 app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
 app.add_media_files('/media', cfg_mgr.app_root_path('media'))
@@ -421,6 +422,18 @@ if __name__ == "__main__":
     # Update necessary params and exit
     if PLATFORM == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
         init_darwin()
+
+    """
+    Windows:
+    There is a performance increase of about 5 times vs using the WindowsSelectorEventLoopPolicy and 
+    WindowsProactorEventLoopPolicy which have been known to trigger ssl problems in python 3.9. 
+    Winloop is a very good replacement for solving those ssl problems as well. 
+    This library also has comparable performance to it's brother uvloop
+    """
+    # set winloop
+    if PLATFORM == 'win32':
+        import winloop
+        winloop.install()
 
     """
     Start infinite loop

@@ -59,15 +59,13 @@ from src.utl.sharedlistmanager import SharedListManager
 
 from src.utl.actionutils import *
 
-from configmanager import cfg_mgr
+from configmanager import cfg_mgr, PLATFORM
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.desktop')
 desktop_logger = logger_manager.logger
 
 Process, Queue = Utils.mp_setup()
-
-PLATFORM = sys.platform.lower()
 
 """
 When this env var exist, this mean run from the one-file executable.

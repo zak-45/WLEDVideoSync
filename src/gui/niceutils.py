@@ -10,7 +10,6 @@
 # used by CastAPI mainly
 #
 """
-import sys
 import psutil
 import logging
 
@@ -29,7 +28,7 @@ from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils
 from src.utl.cv2utils import VideoThumbnailExtractor
 
-from configmanager import cfg_mgr
+from configmanager import cfg_mgr, PLATFORM
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.nice')
@@ -938,7 +937,7 @@ class LocalFilePicker(ui.dialog):
         self.thumbs = thumbs
 
     def add_drives_toggle(self):
-        if sys.platform.lower() == 'win32':
+        if PLATFORM == 'win32':
             import win32api
             drives = win32api.GetLogicalDriveStrings().split('\000')[:-1]
             self.drives_toggle = ui.toggle(drives, value=drives[0], on_change=self.update_drive)
