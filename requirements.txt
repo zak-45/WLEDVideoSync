@@ -5,6 +5,7 @@
 # Platform dependant
 pywebview==5.4 ; sys_platform != "linux"
 pywebview[pyside6]==5.4 ; sys_platform == "linux"
+linuxpy; sys_platform == "linux"
 pycairo ; sys_platform == "linux"
 PyGObject ; sys_platform == "linux"
 qtpy ; sys_platform == "linux"
@@ -35,7 +36,6 @@ screeninfo
 psutil
 wled
 yt-dlp
-linuxpy
 imageio
 pygrabber
 concurrent-log-handler
@@ -46,9 +46,7 @@ stupidArtnet
 fonttools
 noise
 simpleeval
-pydantic
 pytubefix
-certifi
 schedule
 unidecode
 
