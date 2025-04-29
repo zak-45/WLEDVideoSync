@@ -30,7 +30,6 @@ import tkinter as tk
 
 from threading import current_thread
 from subprocess import Popen
-from asyncio import set_event_loop_policy
 from datetime import datetime
 from PIL import Image
 
@@ -54,12 +53,6 @@ from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
-
-"""
-if PLATFORM == 'win32':
-    from asyncio import WindowsSelectorEventLoopPolicy
-    set_event_loop_policy(WindowsSelectorEventLoopPolicy())
-"""
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()

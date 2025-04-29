@@ -36,7 +36,6 @@
 """
 import errno
 import ast
-import sys
 import os
 import time
 import imageio.v3 as iio
