@@ -56,8 +56,7 @@ from src.utl.scheduler import Scheduler
 from src.gui.pyeditor import PythonEditor
 from src.utl.managejobs import *
 
-from configmanager import cfg_mgr
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.scheduler')
 scheduler_logger = logger_manager.logger

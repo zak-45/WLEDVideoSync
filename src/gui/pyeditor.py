@@ -22,8 +22,7 @@ from src.gui.calculator import Calculator
 from src.utl.console import ConsoleCapture
 from src.utl.utils import CASTUtils as Utils
 
-from configmanager import cfg_mgr
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.pyedit')
 pyedit_logger = logger_manager.logger

@@ -15,8 +15,7 @@ from src.utl.cv2utils import CV2Utils
 from src.gui.niceutils import YtSearch
 from src.gui.niceutils import AnimatedElement as Animate
 
-from configmanager import cfg_mgr
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.player')
 player_logger = logger_manager.logger

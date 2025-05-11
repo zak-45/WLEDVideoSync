@@ -49,8 +49,7 @@ from str2bool import str2bool
 from src.utl.utils import CASTUtils as Utils
 from src.gui.webviewmanager import WebviewManager
 
-from configmanager import cfg_mgr
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.systray')
 systray_logger = logger_manager.logger

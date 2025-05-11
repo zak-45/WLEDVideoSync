@@ -1,3 +1,16 @@
+"""
+a: zak-45
+d: 01/05/2025
+v: 1.0.0.0
+
+overview
+    This code provides a graphical user interface (GUI) for selecting a rectangular area on a specific monitor.
+    It uses the tkinter library to create a transparent window overlayed on the chosen monitor.
+    The user can click and drag to define a rectangle, and the coordinates of the selected area are then stored
+    in the class variables coordinates and screen_coordinates.
+
+"""
+
 import os
 import sys
 import shelve
@@ -5,7 +18,6 @@ import tkinter as tk
 
 from screeninfo import get_monitors
 
-from configmanager import cfg_mgr
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.tkarea')
@@ -13,11 +25,6 @@ tkarea_logger = logger_manager.logger
 
 class ScreenAreaSelection:
     """ Retrieve coordinates from selected monitor region
-
-    This code provides a graphical user interface (GUI) for selecting a rectangular area on a specific monitor.
-    It uses the tkinter library to create a transparent window overlayed on the chosen monitor.
-    The user can click and drag to define a rectangle, and the coordinates of the selected area are then stored
-    in the class variables coordinates and screen_coordinates.
 
     The ScreenAreaSelection class initializes a tkinter window positioned over the specified monitor.
     It uses a canvas to draw a rectangle based on user mouse input.
@@ -95,9 +102,7 @@ class ScreenAreaSelection:
             with shelve.open(pid_tmp_file, 'c') as process_file:
                 process_file["sc_area"] = ScreenAreaSelection.screen_coordinates
 
-        self.root.quit()
         self.root.destroy()
-
 
     @staticmethod
     def run(monitor_number: int = 0, pid_file: str = str(os.getpid())):

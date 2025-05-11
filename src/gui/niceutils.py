@@ -28,8 +28,7 @@ from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils
 from src.utl.cv2utils import VideoThumbnailExtractor
 
-from configmanager import cfg_mgr, PLATFORM
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, PLATFORM, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.nice')
 nice_logger = logger_manager.logger

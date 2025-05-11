@@ -51,8 +51,7 @@ from src.utl.utils import CASTUtils as Utils
 from src.utl.winutil import windows_names
 from src.gui.niceutils import AnimatedElement as Animate
 
-from configmanager import cfg_mgr
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.center')
 center_logger = logger_manager.logger
