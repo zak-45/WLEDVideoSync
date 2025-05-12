@@ -11,6 +11,7 @@
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
 # nuitka-project-if: {OS} == "Linux":
 #   nuitka-project: --enable-plugins=pyside6
+#   nuitka-project: --static-libpython=yes
 """
 a : zak-45
 d : 07/04/2024
