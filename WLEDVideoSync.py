@@ -161,6 +161,21 @@ def linux_settings(config_file):
 
 
 def linux_cmd(arg0, arg1, arg2, arg3):
+    """Execute a Linux command for file or icon configuration.
+
+    Runs a shell command using the provided arguments to perform actions such as changing file permissions or
+    setting custom icons.
+    Prints the process information and returns the command string.
+
+    Args:
+        arg0 (str): Path argument for the file or resource.
+        arg1 (str): Command prefix (e.g., 'chmod +x ').
+        arg2 (str): Description for process output.
+        arg3 (str): Additional description for process output.
+
+    Returns:
+        str: The command string that was executed.
+    """
     # chmod +x info window
     info_window = cfg_mgr.app_root_path(arg0)
     result = f'{arg1}{info_window}'
@@ -219,6 +234,20 @@ def init_common(config_file):
     Utils.update_ini_key(config_file, 'custom', 'bg_image', '')
 
 def parse_native_ui_size(size_str):
+    """Parse the native UI size string into a tuple of integers.
+
+    Converts a comma-separated string representing the native UI window size into a tuple of two integers.
+    Raises a ValueError if the format is invalid or does not contain exactly two values.
+
+    Args:
+        size_str (str): The native UI size as a comma-separated string (e.g., "800,600").
+
+    Returns:
+        tuple: A tuple containing two integers representing the width and height.
+
+    Raises:
+        ValueError: If the input string is not properly formatted or does not contain two values.
+    """
     try:
         size_tuple = tuple(map(int, size_str.split(',')))
         if len(size_tuple) != 2:
@@ -351,6 +380,10 @@ def run_gui():
     # set QT in linux when compiled version (let choice when run from source)
     if  PLATFORM == 'linux' and (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])):
         os.environ["PYWEBVIEW_GUI"] = "qt"
+    # Force software-based OpenGL rendering on Ubuntu
+    if  PLATFORM == 'linux' and str2bool(cfg_mgr.app_config['libgl']):
+        os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
+
     # choose GUI
     show, native_ui, native_ui_size = select_gui()
 

@@ -87,6 +87,8 @@
 # gif_enabled   : True / False, display GIF buttons in Player
 # gif_quality   : True /False, if true better quality else smaller size
 # pixel_art     : True / False, generate pixel_art on preview window, disable to free some resources
+# libgl         : True / False,  ==> LIBGL_ALWAYS_SOFTWARE=1 (True)
+#                   https://superuser.com/questions/106056/force-software-based-opengl-rendering-on-ubuntu
 [custom]
 
 
