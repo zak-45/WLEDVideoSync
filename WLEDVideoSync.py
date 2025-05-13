@@ -381,7 +381,7 @@ def run_gui():
     if  PLATFORM == 'linux' and (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])):
         os.environ["PYWEBVIEW_GUI"] = "qt"
     # Force software-based OpenGL rendering on Ubuntu
-    if  PLATFORM == 'linux' and str2bool(cfg_mgr.app_config['libgl']):
+    if  PLATFORM == 'linux' and str2bool(cfg_mgr.custom_config['libgl']):
         os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
 
     # choose GUI
