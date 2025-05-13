@@ -308,6 +308,8 @@ Default behaviour:
     >see: https://pywebview.flowrl.com/guide/installation.html
   
 - "native" mode has not been deeply tested on macOS/Linux, so may provide some trouble.
+- On linux, if you got trouble with "native" mode and use openGL, try this : 
+  - `export LIBGL_ALWAYS_SOFTWARE=1`
 
 Put on Systray:
 - To use the systray:
