@@ -1074,7 +1074,6 @@ class YtSearch:
         self.yt_search = None
         self.yt_anime = anime
         self.videos_search = None
-        self.limit = 5
         self.yt_url_copied = None
         self.input_url = input_url
 
@@ -1133,6 +1132,7 @@ class YtSearch:
         self.number_found.text = f'Number found: {number}'
         # activate 'more' button
         if number > 0:
+            await run.io_bound(self.search_first_iterate)
             self.next_button.set_visibility(True)
             # re-create  result page
             await self.create_yt_page()
@@ -1141,15 +1141,25 @@ class YtSearch:
 
         self.search_button.props(remove='loading')
 
+    def search_first_iterate(self):
+        """Iterates through the YouTube search results and prints each video title.
+
+        This method loops over the current YouTube search results and prints the title of each video to the console.
+        It is primarily used for debugging or logging purposes.
+        Since release 8.13.1 of Pytubefix, first time access search result is very long....this avoids connect timeout
+        """
+        for i in range(len(self.yt_search)):
+            a=self.yt_search[i].title
+            nice_logger.info(f'We prepare data for : {a}')
+
     async def next_search(self):
         """ Next if you want more """
 
-        self.limit += 5
-        # await ui.context.client.connected()
         self.search_button.props('loading')
         await run.io_bound(self.videos_search.get_next_results)
         self.yt_search = self.videos_search.videos
         self.number_found.text = f'Number found: {len(self.yt_search)}'
+        await run.io_bound(self.search_first_iterate)
         await self.create_yt_page()
         self.search_button.props(remove='loading')
 

@@ -38,6 +38,7 @@ External Libraries and Modules:
     Configuration Management: The ConfigManager class is used to load and access application settings.
 
 """
+import os
 
 import src.gui.tkinter_fonts
 
@@ -51,7 +52,7 @@ from src.utl.utils import CASTUtils as Utils
 from src.utl.winutil import windows_names
 from src.gui.niceutils import AnimatedElement as Animate
 
-from configmanager import cfg_mgr, LoggerManager
+from configmanager import cfg_mgr, LoggerManager, PLATFORM
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.center')
 center_logger = logger_manager.logger
@@ -73,6 +74,11 @@ class CastCenter:
         self.media_status = None
 
     async def validate(self):
+        """Validates the current casting configuration and updates the user interface.
+
+        This method retrieves WLED matrix dimensions for both media and desktop sources,
+        then reloads the UI to reflect any changes.
+        """
         await CastCenter.validate_data(self.Media)
         await CastCenter.validate_data(self.Desktop)
         ui.navigate.reload()
@@ -85,11 +91,19 @@ class CastCenter:
 
 
     async def upd_windows(self):
+        """Refreshes the list of available windows and updates the user interface.
+
+        This method queries the system for available windows and updates the window selection UI element.
+        """
         self.win.options = await windows_names()
         self.win.update()
         ui.notify('Windows refresh finished')
 
     async def upd_devices(self):
+        """Refreshes the list of available video devices and updates the user interface.
+
+        This method queries the system for available video capture devices and updates the device selection UI element.
+        """
         self.device.options = await Utils.video_device_list()
         self.device.update()
         ui.notify('Device refresh finished')
@@ -106,6 +120,10 @@ class CastCenter:
             self.video.update()
 
     async def search_yt(self):
+        """Displays the YouTube search area and initializes the YouTube search widget.
+
+        This method clears the YouTube area, makes it visible, and sets up the search interface for YouTube videos.
+        """
         self.yt_area.clear()
         self.yt_area.set_visibility(True)
         self.yt_area.classes('w-full border')
@@ -117,7 +135,11 @@ class CastCenter:
         await run.cpu_bound(src.gui.tkinter_fonts.run)
 
     async def cast_class(self,class_obj, cast_type):
+        """Stops any running cast, configures the selected casting type, and starts a new cast.
 
+        This method determines the class type, stops the current cast, configures the casting source, 
+        and initiates the casting process.
+        """
         class_name = 'unknown'
         if 'Desktop' in str(class_obj):
             class_name = 'Desktop'
@@ -140,10 +162,15 @@ class CastCenter:
         class_obj.stopcast=False
         class_obj.cast(shared_buffer=self.Queue)
 
-    async def cast_desktop(self,cast_type):
+    async def cast_desktop(self, cast_type):
+        """Configures the desktop casting source based on the selected cast type.
+
+        This method sets the appropriate input for desktop casting, such as full desktop, window, or area, 
+        and updates the UI status indicator.
+        """
         # select cast
         if cast_type == 'Desktop':
-            self.Desktop.viinput = 'desktop'
+            self.Desktop.viinput = 'desktop' if PLATFORM != 'linux' else os.getenv('DISPLAY')
         elif cast_type == 'Window':
             self.Desktop.viinput = f'win={self.win.value}'
         elif cast_type == 'Area':
@@ -155,6 +182,10 @@ class CastCenter:
 
 
     async def cast_media(self,cast_type):
+        """Configures the media casting source based on the selected cast type.
+
+        This method sets the appropriate input for media casting, such as capture device, video file, or YouTube URL.
+        """
         # select cast
         if cast_type == 'Capture':
             try:
@@ -171,7 +202,11 @@ class CastCenter:
             center_logger.error('Error on cast_type')
 
     async def center_timer_action(self):
+        """Updates the status icons in the user interface based on the current casting state.
 
+        This method sets the color of the desktop and media status icons to indicate whether casting is active, 
+        stopped, or idle.
+        """
         if self.Desktop.count > 0:
             self.desktop_status.props('color="red"')
         elif self.Desktop.stopcast:
@@ -187,7 +222,11 @@ class CastCenter:
             self.media_status.props('color="green"')
 
     async def setup_ui(self):
+        """Initializes and displays the main user interface for the casting application.
 
+        This method constructs the NiceGUI-based UI, sets up all controls, status indicators, 
+        and event handlers for casting operations.
+        """
         dark = ui.dark_mode(self.CastAPI.dark_mode).bind_value_to(self.CastAPI, 'dark_mode')
 
         await apply_custom()
@@ -233,8 +272,8 @@ class CastCenter:
                     with ui.row().classes('w-full'):
                         ui.space()
                         ui.icon('cancel_presentation', size='lg', color='red') \
-                            .on('click', lambda: setattr(self.Desktop, 'stopcast', True)) \
-                            .style('cursor: pointer')
+                                .on('click', lambda: setattr(self.Desktop, 'stopcast', True)) \
+                                .style('cursor: pointer')
 
                     card_area = ui.card().classes('w-full')
                     card_area.set_visibility(True)
@@ -248,7 +287,7 @@ class CastCenter:
 
                         with row_area.classes('self-center'):
                             ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(self.Desktop)) \
-                                .tooltip('Select area from monitor')
+                                    .tooltip('Select area from monitor')
                             area_cast = ui.button(icon='cast')
                             area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))
 
@@ -291,8 +330,8 @@ class CastCenter:
                     with ui.row().classes('w-full'):
                         ui.space()
                         ui.icon('cancel_presentation', size='lg', color='red') \
-                            .on('click', lambda: setattr(self.Media, 'stopcast', True)) \
-                            .style('cursor: pointer')
+                                .on('click', lambda: setattr(self.Media, 'stopcast', True)) \
+                                .style('cursor: pointer')
 
                     card_video = ui.card().classes('w-full')
                     card_video.set_visibility(True)
@@ -422,10 +461,7 @@ class CastCenter:
                     with ui.slide_item('Expert Mode') as slide_item:
                         with slide_item.right():
                             root_page_url = Utils.root_page()
-                            if root_page_url == '/Cast-Center':
-                                go_to_url = '/main'
-                            else:
-                                go_to_url = '/'
+                            go_to_url = '/main' if root_page_url == '/Cast-Center' else '/'
                             ui.button('RUN', on_click=lambda: ui.navigate.to(go_to_url))
 
                 with ui.list().props('bordered'):

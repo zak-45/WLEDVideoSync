@@ -8,7 +8,7 @@
 # new section need to be added at end .........
 #-------------------------------------------
 
-
+########################################################################################################################
 # uvicorn server
 # server_port	    : 1...65536 port number , need to be free one, 'auto' to let system found a free one from 8000...
 # server_ip 	    : 0.0.0.0 server bind in all net interfaces
@@ -23,6 +23,7 @@
 [server]
 
 
+########################################################################################################################
 # app default
 # mac_first_run : True, False after first time executed. used to set some params at init, mac specific.
 # win_first_run : True, False after first time executed. used to set some params at init.
@@ -69,12 +70,14 @@
 [app]
 
 
+########################################################################################################################
 # ui.colors() color theme
 # change default colors on UI look
 # see: https://quasar.dev/style/theme-builder
 [colors]
 
 
+########################################################################################################################
 # More customization
 # bg_image      : background image, can be animated, relative to installed folder
 # system_stats  : display CPU and RAM usage, can be disabled to free some resources (True or False)
@@ -92,6 +95,7 @@
 [custom]
 
 
+########################################################################################################################
 # presets to load at app startup
 # file name must exist on related folder
 # in case of trouble (non exist etc ...) this will gently bypassed ....
@@ -103,6 +107,7 @@
 [presets]
 
 
+########################################################################################################################
 # specific to Desktop Cast
 # multi_thread      :   True or False, if True will use AUTO
                     """
@@ -116,11 +121,15 @@
 # capture           : av or mss  module to use for desktop capture (mainly for macOS)
 [desktop]
 
+
+########################################################################################################################
 # Websocket
 # allowed-actions   : list of actions executed from websocket connection, e.g.: cast_image,read_api_root...
 #                       /ws is the websocket endpoint
 [ws]
 
+
+########################################################################################################################
 # TextAnimator
 # font_path     : full path name of the font to load. will be take if nothing specified at class init
 #                   e.g. C:\Windows\Fonts\Isabelle.ttf
@@ -128,6 +137,8 @@
 #
 [text]
 
+
+########################################################################################################################
 # ShareAbleList Manager
 # here to manage objects between processes
 #
@@ -136,6 +147,7 @@
 [shared-list]
 
 
+########################################################################################################################
 # Scheduler
 # manage schedule jobs
 #

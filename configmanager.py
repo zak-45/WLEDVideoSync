@@ -7,7 +7,6 @@ Manages configuration settings for the application across different environments
 
 """
 
-
 import os
 import logging
 import subprocess

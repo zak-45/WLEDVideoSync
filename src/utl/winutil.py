@@ -73,6 +73,10 @@ async def windows_titles():
 
 
 async def windows_names():
+    """Retrieves a sorted list of all non-empty window names from all running applications.
+
+    This function gathers window titles from all applications and returns them as a sorted list.
+    """
     windows = []
     try:
         win_dict = await windows_titles()
