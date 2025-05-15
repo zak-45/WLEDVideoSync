@@ -2,8 +2,6 @@ import pywinctl as pwc
 import time
 import json
 
-from nicegui import run
-
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.winutil')
@@ -60,7 +58,7 @@ async def windows_titles():
             raise TypeError(f"Type {type(obj)} not serializable")
 
         # Your dictionary
-        data = await run.cpu_bound(pwc.getAllWindowsDict)
+        data = pwc.getAllWindowsDict()
         # Convert dictionary to JSON
         all_windows = json.dumps(data, default=custom_serializer, ensure_ascii=False, sort_keys=True, indent=4)
         windows_by_app = json.loads(all_windows)

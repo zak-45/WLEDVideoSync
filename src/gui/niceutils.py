@@ -885,7 +885,9 @@ async def media_dev_view_page():
 
     ui.button('Media devices', on_click=fetch_dev, color='bg-red-800').tooltip('View Media devices')
 
-
+"""
+local file picker class
+"""
 
 class LocalFilePicker(ui.dialog):
     """Local File Picker
@@ -1124,6 +1126,9 @@ class AnimatedElement:
         ui.timer(self.duration, lambda: element.delete(), once=True)
 
 
+"""
+Youtube search class
+"""
 
 class YtSearch:
     """
@@ -1268,6 +1273,10 @@ class YtSearch:
                             yt_watch.style('cursor: pointer')
                             yt_watch.on('click', lambda yt_str=self.yt_search[i]: self.youtube_player(yt_str.video_id))
 
+
+"""
+ui log element class
+"""
 
 class LogElementHandler(logging.Handler):
     """ A logging handler that emits messages to a log element."""
