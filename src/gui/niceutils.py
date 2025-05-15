@@ -4,6 +4,11 @@
 # v: 1.0.0
 #
 # niceutils
+# This file serves as a collection of utility functions and classes
+# specifically designed to build and manage user interface components using the NiceGUI framework.
+# It includes functions for creating and providing reusable UI elements and logic for various parts of the application,
+# such as displaying system stats, managing cast devices, handling media information, and providing file picking
+# capabilities.
 #
 #          NiceGUI utilities
 #
@@ -936,16 +941,29 @@ class LocalFilePicker(ui.dialog):
         self.thumbs = thumbs
 
     def add_drives_toggle(self):
+        """Adds a drive selection toggle for Windows platforms.
+
+        This method creates a toggle UI element listing available drives if running on Windows.
+        """
         if PLATFORM == 'win32':
             import win32api
             drives = win32api.GetLogicalDriveStrings().split('\000')[:-1]
             self.drives_toggle = ui.toggle(drives, value=drives[0], on_change=self.update_drive)
 
     def update_drive(self):
+        """Updates the current directory based on the selected drive.
+
+        This method sets the file picker's path to the selected drive and refreshes the file grid.
+        """
         self.path = Path(self.drives_toggle.value).expanduser()
         self.update_grid()
 
     def update_grid(self) -> None:
+        """Updates the file grid with the contents of the current directory.
+
+        This method refreshes the grid to display files and directories in the current path,
+        applying filters and sorting as needed, and optionally includes a parent directory entry.
+        """
         if self.filter:
             paths = list(self.path.glob(f'*{self.filter}'))
         else:
@@ -971,6 +989,14 @@ class LocalFilePicker(ui.dialog):
         self.grid.update()
 
     def handle_double_click(self, e: events.GenericEventArguments) -> None:
+        """Handles double-click events on the file grid to open directories or select files.
+
+        If a directory is double-clicked, the grid updates to show its contents.
+        If a file is double-clicked, its path is submitted for selection.
+
+        Args:
+            e: The event arguments containing information about the double-clicked cell.
+        """
         self.path = Path(e.args['data']['path'])
         if self.path.is_dir():
             self.update_grid()
@@ -978,15 +1004,35 @@ class LocalFilePicker(ui.dialog):
             self.submit([str(self.path)])
 
     async def _handle_ok(self):
+        """Handles the OK button click event to submit selected file paths.
+
+        This method retrieves the selected rows from the file grid and submits their paths.
+        """
         rows = await self.grid.get_selected_rows()
         self.submit([r['path'] for r in rows])
 
     def click(self, e: events.GenericEventArguments) -> None:
+        """Handles click events on file grid cells to prompt for preview.
+
+        If the clicked file is a supported image or video, a notification is shown
+        suggesting the user to right-click for a preview.
+
+        Args:
+            e: The event arguments containing information about the clicked cell.
+        """
         self.path = Path(e.args['data']['path'])
         if self.path.suffix.lower() in self.supported_thumb_extensions and self.path.is_file() and self.thumbs:
             ui.notify('Right-click for Preview', position='top')
 
     async def right_click(self, e: events.GenericEventArguments) -> None:
+        """Handles right-click events to preview image or video thumbnails.
+
+        When a supported file is right-clicked, this method opens a dialog displaying
+        a thumbnail preview of the image or video at a specific timestamp.
+
+        Args:
+            e: The event arguments containing information about the clicked cell.
+        """
         self.path = Path(e.args['data']['path'])
         if self.path.suffix.lower() in self.supported_thumb_extensions and self.path.is_file() and self.thumbs:
             with ui.dialog() as thumb:
@@ -1030,12 +1076,28 @@ class AnimatedElement:
         self.duration = duration
 
     def generate_animation_classes(self, animation_name):
+        """Generates animation and duration CSS classes for Animate.css.
+
+        This method returns the appropriate animation and duration class names
+        based on the provided animation name and the configured duration.
+
+        Args:
+            animation_name: The name of the animation to use.
+
+        Returns:
+            A tuple containing the animation class and the duration class.
+        """
         # Generate the animation and duration classes
         animation_class = f'animate__{animation_name}'
         duration_class = f'custom-duration-{self.duration}s'
         return animation_class, duration_class
 
     def add_custom_css(self):
+        """Adds custom CSS for animation duration to the UI.
+
+        This method injects a style block into the HTML head to set the animation duration
+        for elements using the custom duration class.
+        """
         # Add custom CSS for animation duration
         custom_css = f"""
         <style>
@@ -1141,17 +1203,6 @@ class YtSearch:
 
         self.search_button.props(remove='loading')
 
-    def search_first_iterate(self):
-        """Iterates through the YouTube search results and prints each video title.
-
-        This method loops over the current YouTube search results and prints the title of each video to the console.
-        It is primarily used for debugging or logging purposes.
-        Since release 8.13.1 of Pytubefix, first time access search result is very long....this avoids connect timeout
-        """
-        for i in range(len(self.yt_search)):
-            a=self.yt_search[i].title
-            nice_logger.info(f'We prepare data for : {a}')
-
     async def next_search(self):
         """ Next if you want more """
 
@@ -1163,7 +1214,26 @@ class YtSearch:
         await self.create_yt_page()
         self.search_button.props(remove='loading')
 
+    def search_first_iterate(self):
+        """Iterates through the YouTube search results and prints each video title.
+
+        This method loops over the current YouTube search results and prints the title of each video to the console.
+        It is primarily used for debugging or logging purposes.
+        Since release 8.13.1 of Pytubefix, access search result at first time is very long...this avoids connect timeout
+        """
+        for i in range(len(self.yt_search)):
+            a=self.yt_search[i].title
+            nice_logger.info(f'We prepare data for : {a}')
+
     def url_copied(self, url):
+        """Copies the provided YouTube URL to the clipboard and updates the input field.
+
+        This method writes the given URL to the clipboard, updates the internal state,
+        sets the input field value, and displays a notification to the user.
+
+        Args:
+            url: The YouTube URL to copy and set.
+        """
         ui.clipboard.write(url),
         self.yt_url_copied = url
         self.input_url.value = url
@@ -1203,6 +1273,15 @@ class LogElementHandler(logging.Handler):
     """ A logging handler that emits messages to a log element."""
 
     def __init__(self, element: ui.log, level: int = logging.NOTSET) -> None:
+        """Initializes the LogElementHandler with a UI log element and log level.
+
+        This constructor sets up the handler to emit log messages to the provided UI log element,
+        and configures the log message format.
+
+        Args:
+            element: The NiceGUI log element to which log messages will be pushed.
+            level: The logging level for the handler.
+        """
         self.element = element
         super().__init__(level)
         # define format for the LogRecord
@@ -1212,6 +1291,14 @@ class LogElementHandler(logging.Handler):
 
 
     def emit(self, record: logging.LogRecord) -> None:
+        """Emits a log record to the associated UI log element.
+
+        This method formats the log record and pushes it to the UI log element for display.
+        If an error occurs during emission, it is handled by the logging framework.
+
+        Args:
+            record: The log record to be emitted.
+        """
         try:
             msg = self.format(record)
             self.element.push(msg)
