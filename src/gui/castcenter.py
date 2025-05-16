@@ -49,10 +49,10 @@ from nicegui import ui, run, app
 from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet, apply_custom
 from src.gui.niceutils import LocalFilePicker, YtSearch
 from src.utl.utils import CASTUtils as Utils
-from src.utl.winutil import windows_names
 from src.gui.niceutils import AnimatedElement as Animate
 
 from configmanager import cfg_mgr, LoggerManager, PLATFORM
+from src.utl.winutil import all_titles
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.center')
 center_logger = logger_manager.logger
@@ -95,7 +95,7 @@ class CastCenter:
 
         This method queries the system for available windows and updates the window selection UI element.
         """
-        self.win.options = await windows_names()
+        self.win.options = await all_titles()
         self.win.update()
         ui.notify('Windows refresh finished')
 
@@ -301,6 +301,9 @@ class CastCenter:
                     with ui.row().classes('self-center'):
                         self.win = ui.select(['** click WINDOWS to refresh **'], label='Select Window')
                         self.win.classes('w-40')
+                        #
+                        await self.upd_windows()
+                        #
                         win_cast = ui.button(icon='cast').classes('m-4')
                         win_cast.on('click', lambda : self.cast_class(self.Desktop, 'Window'))
 

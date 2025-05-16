@@ -73,7 +73,7 @@ async def windows_titles():
 async def windows_names():
     """Retrieves a sorted list of all non-empty window names from all running applications.
 
-    This function gathers window titles from all applications and returns them as a sorted list.
+    This function gathers window titles with all datas from all applications and returns them as a sorted list.
     """
     windows = []
     try:
@@ -88,6 +88,21 @@ async def windows_names():
     except Exception as er:
         winutil_logger.error(f'Error to retrieve windows names : {er}')
 
-    finally:
-        return windows
+    return windows
 
+
+async def all_titles():
+    """Retrieves a sorted list of all non-empty window names.
+
+    This function gathers window titles from all applications and returns them as a sorted list.
+    """
+    windows = []
+    try:
+        win_list = pwc.getAllTitles()
+        windows = [win for win in win_list if win ]
+        windows.sort()
+
+    except Exception as er:
+        winutil_logger.error(f'Error to retrieve windows names : {er}')
+
+    return windows
