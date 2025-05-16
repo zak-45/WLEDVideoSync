@@ -103,6 +103,6 @@ async def all_titles():
         windows.sort()
 
     except Exception as er:
-        winutil_logger.error(f'Error to retrieve windows names : {er}')
+        winutil_logger.error(f'Error to retrieve windows titles : {er}')
 
     return windows

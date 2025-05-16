@@ -339,22 +339,6 @@ class SchedulerGUI:
             except Exception as e:
                 ui.notify(f'Error scheduling job: {e}', type='negative')
 
-        def schedule_one_time_job(run_at: datetime, job_func, job_name: str = ""):
-            """Schedules a one-time job using the schedule module with a unique tag."""
-
-            unique_id = f"{job_name}-{run_at.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
-            tag = f'one-time-{unique_id}'
-
-            def one_time_wrapper():
-                now = datetime.now()
-                if now >= run_at:
-                    scheduler.send_job_to_queue(job_func)
-                    WLEDScheduler.clear(tag=tag)
-
-            one_time_wrapper._job_name = job_name
-            one_time_wrapper._run_time = run_at
-            WLEDScheduler.every(1).seconds.do(one_time_wrapper).tag('WLEDVideoSync', 'one-time', tag)
-
         def add_one_time_job():
             """Adds a one-time job using schedule-based wrapper."""
             try:
@@ -376,7 +360,7 @@ class SchedulerGUI:
                     return
 
                 run_at_time = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
-                schedule_one_time_job(run_at_time, job_func, job_name)
+                SchedulerGUI.schedule_one_time_job(run_at_time, job_func, job_name)
 
                 update_sched()
                 ui.notify(f'Job \"{job_name}\" scheduled for {run_at_time}.', type='positive')
@@ -578,6 +562,32 @@ class SchedulerGUI:
             with sched_exp_param.classes('w-full bg-sky-800 mt-2'):
                 ui.button('re-capture', on_click=self.restart_capture)
                 self.capture.setup_ui()
+
+    @staticmethod
+    async def start_scheduler():
+        """Starts the scheduler.
+
+        Initiates the scheduler to begin executing scheduled jobs.
+        """
+        scheduler.start()
+
+    @staticmethod
+    def schedule_one_time_job(run_at: datetime, job_func, job_name: str = ""):
+        """Schedules a one-time job using the schedule module with a unique tag."""
+
+        unique_id = f"{job_name}-{run_at.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
+        tag = f'one-time-{unique_id}'
+
+        def one_time_wrapper():
+            now = datetime.now()
+            if now >= run_at:
+                scheduler.send_job_to_queue(job_func)
+                WLEDScheduler.clear(tag=tag)
+
+        one_time_wrapper._job_name = job_name
+        one_time_wrapper._run_time = run_at
+        WLEDScheduler.every(1).seconds.do(one_time_wrapper).tag('WLEDVideoSync', 'one-time', tag)
+
 
 
 if __name__ == "__main__":

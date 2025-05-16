@@ -4,8 +4,8 @@
 # This means that if you need other datatypes, you should convert on your own
 #
 # ------------ ATTENTION -------------------
-# do not change order entries: server, app, ...
-# new section need to be added at end .........
+# do not change order entries: server, app,.
+# new section need to be added at end ......
 #-------------------------------------------
 
 ########################################################################################################################
@@ -142,8 +142,8 @@
 # ShareAbleList Manager
 # here to manage objects between processes
 #
-# manager_ip    : 127.0.0.1, IP address for the manager server
-# manager_port  : 50000 , port number
+# manager_ip    : 127.0.0.1, IP address for the manager server, localhost is good option
+# manager_port  : 50000 , port number, need to be changed only if you know what you do
 [shared-list]
 
 
@@ -151,7 +151,9 @@
 # Scheduler
 # manage schedule jobs
 #
-# enable        : True / False, start scheduler
+# enable        : True / False, enable scheduler, if you do not need it, put it to false to free some resources
+# activate      : True / False, start scheduler process on init, so jobs execution will start
+# start_job_name: job2 , name of the job to start at app init, must exist into  xtra/jobs/WLEDJobs.py
 # num_workers   : 2 ,  number of workers to run in parallel, 1 minimum, max depend of your system; should be necessary
 #                   to adapt only if you have a very intensive usage of the scheduler
 # queue_size    : 20 , number of jobs that can be put in the queue at same time

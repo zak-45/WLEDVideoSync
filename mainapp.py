@@ -117,8 +117,8 @@ async def init_actions():
 
         sys.exit()
 
-    # Apply presets
     try:
+        # Apply presets
         if str2bool(cfg_mgr.preset_config['load_at_start']):
             if cfg_mgr.preset_config['filter_media'] != '':
                 main_logger.debug(f"apply : {cfg_mgr.preset_config['filter_media']} to filter Media")
@@ -136,6 +136,22 @@ async def init_actions():
         # check if linux and wayland
         if PLATFORM == 'linux' and os.getenv('WAYLAND_DISPLAY') is not None:
             main_logger.error('Wayland detected, preview should not work !!. Switch to X11 session if want to see preview.')
+
+        # start scheduler
+        if str2bool(cfg_mgr.scheduler_config['enable']) and str2bool(cfg_mgr.scheduler_config['activate']):
+            main_logger.debug('start scheduler')
+            await scheduler_app.start_scheduler()
+            job_to_start = cfg_mgr.scheduler_config['start_job_name']
+            if job_to_start != '':
+                from src.gui.schedulergui import jobs
+                main_logger.debug(f'job to start: {job_to_start}')
+                # put the job to queue
+                if jobs.get_job(job_to_start):
+                    start_time = datetime.now()
+                    job_to_run = jobs.get_job(job_to_start)
+                    scheduler_app.schedule_one_time_job(start_time, job_to_run)
+                else:
+                    main_logger.error(f'jobs to start not found : {job_to_start}')
 
     except Exception as e:
         main_logger.error(f"Error on app startup {e}")

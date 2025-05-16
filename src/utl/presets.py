@@ -232,6 +232,7 @@ async def save_cast_preset(class_name: str, class_obj = None) -> None:
 
             preset['GENERAL'] = {
                 'rate': str(class_obj.rate),
+                'preview': str(class_obj.preview),
                 'stopcast': str(class_obj.stopcast),
                 'scale_width': str(class_obj.scale_width),
                 'scale_height': str(class_obj.scale_height),
@@ -296,6 +297,7 @@ async def load_cast_preset(class_name: str, class_obj: object = None, interactiv
         try:
             keys_to_check = [
                 ('rate', 'GENERAL', 'rate', int),
+                ('preview', 'GENERAL', 'preview', str2bool_ini),
                 ('stopcast', 'GENERAL', 'stopcast', str2bool_ini),
                 ('scale_width', 'GENERAL', 'scale_width', int),
                 ('scale_height', 'GENERAL', 'scale_height', int),
