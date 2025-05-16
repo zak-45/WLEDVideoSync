@@ -142,6 +142,7 @@ async def init_actions():
             main_logger.debug('start scheduler')
             await scheduler_app.start_scheduler()
             job_to_start = cfg_mgr.scheduler_config['start_job_name']
+            # execute job if set
             if job_to_start != '':
                 from src.gui.schedulergui import jobs
                 main_logger.debug(f'job to start: {job_to_start}')

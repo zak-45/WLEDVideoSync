@@ -192,8 +192,53 @@ class SchedulerGUI:
         if self.use_capture:
             self.capture = ConsoleCapture(show_console=False)
 
-    def restart_capture(self):
-        self.capture._create_stream_handler()
+    @staticmethod
+    async def start_scheduler():
+        """Starts the scheduler.
+
+        Initiates the scheduler to begin executing scheduled jobs.
+        """
+        scheduler.start()
+
+    @staticmethod
+    def schedule_one_time_job(run_at: datetime, job_func, job_name: str = ""):
+        """Schedules a one-time job to run at a specific datetime.
+
+        Adds a job to the scheduler that will execute only once at the specified date and time.
+
+        Args:
+            run_at: The datetime when the job should be executed.
+            job_func: The function to execute at the scheduled time.
+            job_name: An optional name for the job.
+        """
+        unique_id = f"{job_name}-{run_at.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
+        tag = f'one-time-{unique_id}'
+
+        def one_time_wrapper():
+            now = datetime.now()
+            if now >= run_at:
+                scheduler.send_job_to_queue(job_func)
+                WLEDScheduler.clear(tag=tag)
+
+        one_time_wrapper._job_name = job_name
+        one_time_wrapper._run_time = run_at
+        WLEDScheduler.every(1).seconds.do(one_time_wrapper).tag('WLEDVideoSync', 'one-time', tag)
+
+    @staticmethod
+    def schedule_recurring_job(run_at: WLEDScheduler, job_func, job_name: str = ""):
+        """Schedules a recurring job using the scheduler.
+
+        Adds a job to the scheduler that will execute repeatedly according to the specified schedule.
+
+        Args:
+            run_at: The schedule object specifying when the job should run.
+            job_func: The function to execute on each scheduled run.
+            job_name: An optional name for the job.
+        """
+        tag = f"recurring-{job_name}"
+        unique_id = f"{job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
+
+        run_at.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', tag, unique_id)
 
 
     @staticmethod
@@ -209,6 +254,9 @@ class SchedulerGUI:
                     schedule_list.classes('w-full bg-gray-100 dark:bg-gray-800')
                     schedule_list.set_value(format_job_descriptions(WLEDScheduler.get_jobs(), history=True))
                 ui.button('close', on_click=running_jobs.close)
+
+    def restart_capture(self):
+        self.capture._create_stream_handler()
 
     async def setup_ui(self):
         """Sets up the user interface for the scheduler.
@@ -328,10 +376,7 @@ class SchedulerGUI:
 
                         sched = sched.until(until_dt)
 
-                tag = f"recurring-{job_name}"
-                unique_id = f"{job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
-
-                sched.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', tag, unique_id)
+                SchedulerGUI.schedule_recurring_job(sched, job_func, job_name)
 
                 update_sched()
                 ui.notify(f'Recurring job \"{job_name}\" scheduled successfully.', type='positive')
@@ -562,32 +607,6 @@ class SchedulerGUI:
             with sched_exp_param.classes('w-full bg-sky-800 mt-2'):
                 ui.button('re-capture', on_click=self.restart_capture)
                 self.capture.setup_ui()
-
-    @staticmethod
-    async def start_scheduler():
-        """Starts the scheduler.
-
-        Initiates the scheduler to begin executing scheduled jobs.
-        """
-        scheduler.start()
-
-    @staticmethod
-    def schedule_one_time_job(run_at: datetime, job_func, job_name: str = ""):
-        """Schedules a one-time job using the schedule module with a unique tag."""
-
-        unique_id = f"{job_name}-{run_at.strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
-        tag = f'one-time-{unique_id}'
-
-        def one_time_wrapper():
-            now = datetime.now()
-            if now >= run_at:
-                scheduler.send_job_to_queue(job_func)
-                WLEDScheduler.clear(tag=tag)
-
-        one_time_wrapper._job_name = job_name
-        one_time_wrapper._run_time = run_at
-        WLEDScheduler.every(1).seconds.do(one_time_wrapper).tag('WLEDVideoSync', 'one-time', tag)
-
 
 
 if __name__ == "__main__":
