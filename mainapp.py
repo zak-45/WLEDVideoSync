@@ -74,8 +74,6 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.app_config is not None:
         cast_center_url = '/'
         root_page = '/Cast-Center'
     else:
-        main_page_url = '/'
-        cast_center_url = '/Cast-Center'
         root_page = '/'
 
 """

@@ -1,4 +1,8 @@
 """
+a: zak-45
+d: 01/02/2025
+v: 1.0.0.0
+
 Overview
 This Python file provides a mechanism to dynamically load and manage user-defined jobs from a specified Python file. 
 It parses the file, extracts function definitions, wraps them into callable JobWrapper objects, and makes them 
@@ -23,7 +27,7 @@ Key Components
     and search (to find jobs by name).
 
     Configuration Integration (ConfigManager): The script uses ConfigManager to determine the path to the jobs file, 
-    making it configurable. This allows the location of the jobs file to be managed outside of the code.
+    making it configurable. This allows the location of the jobs file to be managed outside the code.
 
 """
 
@@ -32,8 +36,7 @@ import json
 import inspect
 from types import FunctionType
 
-from configmanager import cfg_mgr
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.jobs')
 jobs_logger = logger_manager.logger
