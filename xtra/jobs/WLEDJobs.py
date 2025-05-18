@@ -10,7 +10,6 @@ Instruction:
     you can use any python command, any WLEDVideoSync classes, methods, Desktop, Media, Text etc ...
     the job will run on its own thread to no block the main one, this mean parallel execution occur
     if you need sequential statement, put all commands into one job
-    a defined job could not call another one, but you can define inside function
     pre-defined jobs are provided for Desktop, Media cast
 
     this give lots of power, so take care....
@@ -89,7 +88,11 @@ def job1(name='test'):
             print(i)
 
     print(f'job1 :{name} ')
+    # inside function
     inside()
+    # call another job
+    job2()
+    # cast desktop
     print(sys.platform.lower())
     Desktop.stopcast=False
     Desktop.cast()

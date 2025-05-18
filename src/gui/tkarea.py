@@ -12,13 +12,12 @@ overview
 """
 
 import os
-import sys
 import shelve
 import tkinter as tk
 
 from screeninfo import get_monitors
 
-from configmanager import LoggerManager
+from configmanager import LoggerManager, PLATFORM
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.tkarea')
 tkarea_logger = logger_manager.logger
@@ -97,10 +96,13 @@ class ScreenAreaSelection:
 
         ScreenAreaSelection.screen_coordinates = screen_coordinates
 
-        if sys.platform.lower() == 'darwin':
+        if PLATFORM == 'darwin':
             pid_tmp_file = ScreenAreaSelection.pid_file
-            with shelve.open(pid_tmp_file, 'c') as process_file:
-                process_file["sc_area"] = ScreenAreaSelection.screen_coordinates
+            try:
+                with shelve.open(pid_tmp_file, 'c') as process_file:
+                    process_file["sc_area"] = ScreenAreaSelection.screen_coordinates
+            except Exception as er:
+                tkarea_logger.error(f"Error saving screen coordinates to shelve: {er}")
 
         self.root.destroy()
 
@@ -134,7 +136,7 @@ if __name__ == '__main__':
 
     ScreenAreaSelection.run(monitor_number=1)
     print(ScreenAreaSelection.screen_coordinates)
-    if sys.platform.lower() == 'darwin':
+    if PLATFORM == 'darwin':
         # Read saved screen coordinates from shelve file
         try:
             with shelve.open(str(os.getpid()), 'r') as proc_file:
