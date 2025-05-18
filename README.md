@@ -226,6 +226,17 @@ All of this could be configured later, for the moment focus on default.
 
 ``Main of these values can be saved into Preset to be reloaded``
 
+- SCHEDULER: Manage & Schedule Jobs.
+    > a job is a Python function, this mean that you have a full Python scripting possibilities
+
+![scheduler.png](docs/img/scheduler.png)
+
+- This is a GUI implementation of the 'schedule' module. Not all possibilities have been set.
+  > see : https://schedule.readthedocs.io/en/stable/
+  - You can define recurring jobs, one-time jobs or custom time jobs (need advanced knowledge)
+  - You can create your own jobs and/or modify existing ones
+  - A job can be scheduled to run at app initialization (see config/WLEDVideoSync.ini)
+  
 
 - API: Redirect to API docs/endpoint.
 
@@ -251,21 +262,28 @@ All of this could be configured later, for the moment focus on default.
   - Play/Cast: if video format managed by the player, this will initiate on same time, play and cast, otherwise only cast
   - Re-cast: number of additional time you want to cast the MEDIA, -1 for infinite, max 9999
   - Url/Path field: enter local media name or WebUrl link, even YouTube
-  - Download Icon: click on it to initiate required action depend on previous Url/Path entry
+  - Stream Icon: click on it for direct stream from url/path
+  - Download Icon: click on it to save Url/Path entry locally (Yt / image)
+    - if this is a YouTube, this will download the video and put it into the app media/ folder
+    - if this is an image, this will download it and put it into the app media/ folder
+
     - if local path, this will set the player to it (video/image)
     
     >player had limited codec capacity, preview could not work but cast yes
     
     - if video WebUrl, try to directly manage it by the player
-    - if YouTube, this will download the video and put it into the app media/ folder
-    - if this is an image, this will download it and put it into the app media/ folder
       
     > if you want to keep downloaded video/image see configuration file
     
   - YT Search: click on it to open YouTube search area, more than one possible
     - just enter some keywords to search for
-    - once result displayed clicked on the link provided to copy it so you can paste into Url/Path field
+    - once result displayed clicked on the link provided to copy it into the Url/Path field / Clipboard
   - Clear YT Search: will clear all YT Search area
+  - GIF Menu: open GIF menu 
+    - you can create a new GIF from the selected video (with start / end frame selection)
+    - if WLED device, you can push the GIF to it.
+      - this will upload the gif file to the device and create corresponding preset, so can be played offline.
+  - GIF Close: close the GIF Menu and restore player one.
 
 
 #### Filters/Effects
