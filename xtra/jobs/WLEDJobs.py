@@ -79,8 +79,7 @@ def job1(name='test'):
     """
     import sys
     import time
-    from src.cst import desktop
-    Desktop=desktop.CASTDesktop()
+    from mainapp import Desktop, t_data_buffer
 
     def inside():
         i=0
@@ -91,7 +90,7 @@ def job1(name='test'):
     # inside function
     inside()
     # call another job
-    job2()
+    job3()
     # cast desktop
     print(sys.platform.lower())
     Desktop.stopcast=False
@@ -101,7 +100,50 @@ def job1(name='test'):
     time.sleep(1)
     print('End of job1')
 
-def job2():
-    print('Inside job2')
+def job2(name='test'):
+    """
+    job2 documentation
+    will run for 10 seconds and cast media
+    """
+    import sys
+    import time
+    from mainapp import Media, t_data_buffer    
+
+    def inside():
+        i=0
+        for  i in range(10):
+            print(i)
+
+    print(f'job2 :{name} ')
+    # inside function
+    inside()
+    # call another job
+    job3()
+    # cast desktop
+    print(sys.platform.lower())
+    Media.stopcast=False
+    Media.cast()
+    time.sleep(10)
+    Media.stopcast=True
+    time.sleep(1)
+    print('End of job2')
+
+
+def job3():
+    print('Inside job3')
+
+def job4():
+    """
+    will run already defined jobs in sequential order
+    """
+    import time
+    cast_win_main_desktop()
+    time.sleep(5)
+    cast_win_main_media()
+    time.sleep(5)
+    job1()
+    time.sleep(5)
+    job2()
+
     
-print('End of jobs file')
+print('End of jobs files')

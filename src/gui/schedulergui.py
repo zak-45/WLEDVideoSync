@@ -77,9 +77,9 @@ job_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/jobs/WLEDJobs
                           use_capture=False,
                           go_back=False)
 
-AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'))
-
 WLEDScheduler = scheduler.scheduler
+
+AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'))
 jobs = AllJobs()
 
 def format_job_descriptions(job_list, history=False, filter_tag=None):
@@ -174,6 +174,12 @@ def get_all_unique_tags(job_list):
 
     return sorted(tag_set)
 
+def refresh_all_jobs():
+    global jobs
+
+    new_jobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'))
+    jobs = new_jobs()
+    ui.navigate.reload()
 
 class SchedulerGUI:
     """Creates and manages the scheduler GUI.
@@ -599,6 +605,8 @@ class SchedulerGUI:
                         await schedule_editor.setup_ui()
                     with ui.expansion('Jobs', icon='feed', value=False).classes('bg-gray-200 mt-2 dark:bg-gray-600'):
                         await job_editor.setup_ui()
+                        ui.separator()
+                        ui.button(icon='refresh', on_click=refresh_all_jobs)
 
         ui.separator()
 
