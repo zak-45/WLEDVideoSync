@@ -114,7 +114,7 @@ async def discovery_net_notify():
 
 async def net_view_button(show_only: bool = True):
     """
-    Display network devices into the Json Editor
+    Display network devices into the Json Editor and create  ui.button if requested
     :return:
     """
     from mainapp import Netdevice
@@ -126,8 +126,10 @@ async def net_view_button(show_only: bool = True):
             ui.button('Close', on_click=dialog.close, color='red')
 
     if not show_only:
+        # create button
         ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
     else:
+        # display net devices
         fetch_net()
 
 async def animate_wled_image(CastAPI, visible):
@@ -714,7 +716,7 @@ async def edit_ip(class_obj):
         new_host.on('blur', lambda: Utils.api_request(method='PUT',
                                                           endpoint=endpoint,
                                                           params={"param":"host","value":new_host.value}))
-        net_icon = ui.icon('network', size='xs')
+        net_icon = ui.icon('view_list', size='xs')
         net_icon.style(add='cursor: pointer')
         net_icon.on('click', lambda: net_view_button())
 
