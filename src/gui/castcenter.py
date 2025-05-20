@@ -46,10 +46,10 @@ from asyncio import sleep
 from str2bool import str2bool
 from nicegui import ui, run, app
 
-from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet, apply_custom
-from src.gui.niceutils import LocalFilePicker, YtSearch
+from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet
+from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_button
+from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Animate
 from src.utl.utils import CASTUtils as Utils
-from src.gui.niceutils import AnimatedElement as Animate
 
 from configmanager import cfg_mgr, LoggerManager, PLATFORM
 from src.utl.winutil import all_titles
@@ -390,7 +390,10 @@ class CastCenter:
                 tool_capture.set_visibility(True)
                 tool_capture.props('flat')
                 with tool_capture:
-                    ui.button('Devices', on_click=self.upd_devices)
+                    with ui.row():
+                        ui.button('Devices', on_click=self.upd_devices)
+                        ui.button('Net Scan', on_click=discovery_net_notify)
+                        await net_view_button(show_only=False)
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
 

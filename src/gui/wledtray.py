@@ -84,7 +84,7 @@ def on_open_main():
     """
     select_win(f"http://{server_ip}:{server_port}", f'WLEDVideoSync Main Window : {server_port}', 1200, 720)
 
-def on_open_main_bro():
+def on_open_main_browser():
     """Force open the main application in the default browser.
 
     Opens the main application URL in the default web browser,
@@ -171,7 +171,7 @@ pystray_image = Image.open(cfg_mgr.app_root_path('favicon.ico'))
 
 pystray_menu = Menu(
     MenuItem('Open', on_open_main, visible=True,default=True),
-    MenuItem('Open in Browser: Force', on_open_main_bro),
+    MenuItem('Open in Browser: Force', on_open_main_browser),
     Menu.SEPARATOR,
     MenuItem('BLACKOUT', on_blackout),
     Menu.SEPARATOR,

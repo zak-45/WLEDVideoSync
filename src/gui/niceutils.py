@@ -21,6 +21,7 @@ import logging
 from fastapi.openapi.utils import get_openapi
 from nicegui import ui, events, run, app
 from datetime import datetime
+
 from str2bool import str2bool
 from asyncio import create_task
 from pytubefix import Search
@@ -100,6 +101,34 @@ async def system_stats(CastAPI, Desktop, Media):
     if CastAPI.ram >= 95:
         ui.notify('High Memory utilization', type='negative', close_button=True)
 
+
+async def discovery_net_notify():
+    """ Call Run zero conf net discovery """
+    from mainapp import Netdevice
+    ui.notification('NET Discovery process on go ... let it finish',
+                close_button=True,
+                type='warning',
+                timeout=6)
+    await run.io_bound(Netdevice.discover)
+
+
+async def net_view_button(show_only: bool = True):
+    """
+    Display network devices into the Json Editor
+    :return:
+    """
+    from mainapp import Netdevice
+    def fetch_net():
+        with ui.dialog() as dialog, ui.card():
+            dialog.open()
+            ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
+                .run_editor_method('updateProps', {'readOnly': True})
+            ui.button('Close', on_click=dialog.close, color='red')
+
+    if not show_only:
+        ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
+    else:
+        fetch_net()
 
 async def animate_wled_image(CastAPI, visible):
     """ toggle main image animation """
@@ -673,17 +702,22 @@ async def edit_ip(class_obj):
     new_wled = ui.checkbox('wled')
     new_wled.bind_value(class_obj, 'wled')
     new_wled.tooltip('Is That a WLED Device ?')
-    new_host = ui.input('IP', value=class_obj.host)
-    new_host.tooltip('IP address of the device')
-    class_name = 'unknown'
-    if 'Media' in str(class_obj):
-        class_name = 'Media'
-    elif 'Desktop' in str(class_obj):
-        class_name = 'Desktop'
-    endpoint = f'/api/{class_name}/update_attribute'
-    new_host.on('blur', lambda: Utils.api_request(method='PUT',
-                                                      endpoint=endpoint,
-                                                      params={"param":"host","value":new_host.value}))
+    with ui.row():
+        new_host = ui.input('IP', value=class_obj.host)
+        new_host.tooltip('IP address of the device')
+        class_name = 'unknown'
+        if 'Media' in str(class_obj):
+            class_name = 'Media'
+        elif 'Desktop' in str(class_obj):
+            class_name = 'Desktop'
+        endpoint = f'/api/{class_name}/update_attribute'
+        new_host.on('blur', lambda: Utils.api_request(method='PUT',
+                                                          endpoint=endpoint,
+                                                          params={"param":"host","value":new_host.value}))
+        net_icon = ui.icon('network', size='xs')
+        net_icon.style(add='cursor: pointer')
+        net_icon.on('click', lambda: net_view_button())
+
 
 
 async def edit_rate_x_y(class_obj):

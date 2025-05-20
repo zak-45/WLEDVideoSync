@@ -13,7 +13,6 @@
 
 import contextlib
 import urllib.parse
-import time
 import shelve
 import os
 import sys
@@ -41,7 +40,6 @@ except Exception as e:
 from str2bool import str2bool
 from pathlib import Path as PathLib
 from wled import WLED
-from zeroconf import ServiceBrowser, Zeroconf
 from nicegui import run
 from PIL import Image
 from unidecode import unidecode
@@ -49,8 +47,7 @@ from coldtype.text.reader import Font
 
 from src.gui.tkarea import ScreenAreaSelection as SCArea
 
-from configmanager import cfg_mgr, PLATFORM
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, PLATFORM, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.utils')
 utils_logger = logger_manager.logger
@@ -1042,35 +1039,3 @@ class CASTUtils:
         # Convert the list of dictionaries to a JSON string
         json_output = json.dumps(func_with_params)
         return json.loads(json_output)
-
-
-class HTTPDiscovery:
-    """
-     zeroconf browse for network devices (http: this includes wled)
-    """
-
-    def __init__(self):
-        self.http_devices: dict = {}
-        self.duration: int = 5
-
-    def add_service(self, zeroconf, ser_type, name):
-        info = zeroconf.get_service_info(ser_type, name)
-        name = name.replace('._http._tcp.local.', '')
-        address = socket.inet_ntoa(info.addresses[0])
-        port = info.port
-        self.http_devices[name] = {"address": address, "port": port}
-
-    def remove_service(self, name):
-        if name in self.http_devices:
-            del self.http_devices[name]
-
-    def update_service(self, zeroconf, ser_type, name):
-        pass
-
-    def discover(self):
-        zeroconf = Zeroconf()
-        ServiceBrowser(zeroconf, "_http._tcp.local.", self)
-        utils_logger.debug('Scanning network devices ...')
-        time.sleep(self.duration)
-        zeroconf.close()
-        utils_logger.debug('Scanning network devices ... Done')

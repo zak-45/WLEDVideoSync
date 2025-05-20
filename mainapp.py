@@ -35,9 +35,9 @@ from PIL import Image
 
 from src.cst import desktop, media
 from src.gui import niceutils as nice
-from src.utl.utils import HTTPDiscovery as Net
-from src.gui.niceutils import LogElementHandler, apply_custom, media_dev_view_page
-from src.gui.niceutils import AnimatedElement as Animate
+from src.net.discover import HTTPDiscovery as Net
+from src.gui.niceutils import apply_custom, media_dev_view_page, discovery_net_notify, net_view_button
+from src.gui.niceutils import AnimatedElement as Animate, LogElementHandler
 from src.gui.castcenter import CastCenter
 from src.gui.schedulergui import SchedulerGUI
 from src.txt.fontsmanager import FontPreviewManager
@@ -48,8 +48,7 @@ from src.gui.videoplayer import VideoPlayer
 from src.utl.presets import *
 from src.api.api import *
 
-from configmanager import cfg_mgr, PLATFORM
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, PLATFORM, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
@@ -391,7 +390,7 @@ async def main_page():
     with ui.footer(value=False).classes('items-center bg-red-900') as footer:
         ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip('Change Layout Mode')
 
-        await net_view_page()
+        await net_view_button(show_only=False)
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
         ui.button('SysStats', on_click=charts_select, color='bg-red-800')
@@ -448,7 +447,7 @@ async def main_page_cast_manage():
     Footer
     """
     with ui.footer():
-        await net_view_page()
+        await net_view_button(show_only=False)
 
         await media_dev_view_page()
 
@@ -711,7 +710,7 @@ async def main_page_desktop():
 
     with ui.footer():
 
-        await net_view_page()
+        await net_view_button(show_only=False)
 
         async def display_windows():
             with ui.dialog() as dialog, ui.card():
@@ -908,7 +907,7 @@ async def main_page_media():
 
     with ui.footer():
 
-        await net_view_page()
+        await net_view_button(show_only=False)
 
         await media_dev_view_page()
 
@@ -1176,22 +1175,6 @@ async def grab_windows():
 
     ui.notification('Retrieved all windows information', close_button=True, timeout=3)
     Desktop.windows_titles = await windows_titles()
-
-
-async def net_view_page():
-    """
-    Display network devices into the Json Editor
-    :return:
-    """
-    def fetch_net():
-        with ui.dialog() as dialog, ui.card():
-            dialog.open()
-            ui.json_editor({'content': {'json': Netdevice.http_devices}}) \
-                .run_editor_method('updateProps', {'readOnly': True})
-            ui.button('Close', on_click=dialog.close, color='red')
-
-    ui.button('Net devices', on_click=fetch_net, color='bg-red-800').tooltip('View network devices')
-
 
 async def reset_total():
     """ reset frames / packets total values for Media and Desktop """
@@ -1641,17 +1624,6 @@ async def cast_to_wled(class_obj, image_number):
     else:
         main_logger.warning('Device do not accept connection to port 80')
         ui.notify('Device do not accept connection to port 80', type='warning')
-
-
-async def discovery_net_notify():
-    """ Call Run zero conf net discovery """
-
-    ui.notification('NET Discovery process on go ... let it finish',
-                    close_button=True,
-                    type='warning',
-                    timeout=6)
-    await run_in_threadpool(Netdevice.discover)
-    # net_view_page.refresh()
 
 
 async def discovery_media_notify():

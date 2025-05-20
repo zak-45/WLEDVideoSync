@@ -21,8 +21,7 @@ from src.utl.actionutils import action_to_test
 
 from src.utl.winutil import *
 
-from configmanager import cfg_mgr
-from configmanager import LoggerManager
+from configmanager import cfg_mgr, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.api')
 api_logger = logger_manager.logger
