@@ -64,6 +64,7 @@ Temporary File Handling:
 
 """
 import os
+
 if os.getenv('WLEDVideoSync_trace'):
     import tracetool
 
@@ -344,15 +345,11 @@ def run_gui():
         if server_ip is None or server_port is None:
             print('Exiting due to invalid server configuration.')
             main_logger.error('Exiting due to invalid server configuration.')
-            Utils.clean_tmp()
             main_logger.info('Application Terminated')
             sys.exit(4)
 
     # store server port info for others processes, add sc_area for macOS
-    wled_pid = os.getpid()
-
-    wled_pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{wled_pid}_file")
-    with shelve.open(wled_pid_tmp_file) as wled_proc_file:
+    with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
         wled_proc_file["server_port"] = server_port
         wled_proc_file["sc_area"] = []
 

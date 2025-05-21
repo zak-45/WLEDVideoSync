@@ -1,5 +1,17 @@
+"""
+a:zak-45
+d:21/05/2025
+v: 1.0.0.0
+
+This Python file defines a class HTTPDiscovery responsible for finding HTTP-based services (like WLED devices)
+on the local network using the Zeroconf (also known as Bonjour or mDNS/DNS-SD) protocol.
+Functionality and structure:
+Core Purpose:The primary goal of the HTTPDiscovery class is to scan the local network for a predefined duration,
+identify devices advertising HTTP services, and store their names, IP addresses, and port numbers.
+
+"""
+
 import time
-import logging # Import logging module
 from typing import Dict, Any, Optional # Import typing hints
 
 from zeroconf import ServiceBrowser, Zeroconf, ServiceInfo # Import ServiceInfo
@@ -7,7 +19,7 @@ from zeroconf import ServiceBrowser, Zeroconf, ServiceInfo # Import ServiceInfo
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.utils')
-logger = logger_manager.logger # Use a specific logger name
+logger_utils = logger_manager.logger # Use a specific logger name
 
 class HTTPDiscovery:
     """
@@ -35,7 +47,7 @@ class HTTPDiscovery:
             ser_type: The service type (e.g., '_http._tcp.local.').
             name: The full service name.
         """
-        logger.debug(f"Attempting to add service: {name}")
+        logger_utils.debug(f"Attempting to add service: {name}")
         info: Optional[ServiceInfo] = zeroconf.get_service_info(ser_type, name)
 
         if info:
@@ -57,11 +69,11 @@ class HTTPDiscovery:
             if address_str and port is not None:
                 # Store or update the device information
                 self.http_devices[cleaned_name] = {"address": address_str, "port": port}
-                logger.info(f"Added/Updated service: {cleaned_name} at {address_str}:{port}")
+                logger_utils.info(f"Added/Updated service: {cleaned_name} at {address_str}:{port}")
             else:
-                logger.warning(f"Could not determine valid address/port for service: {name}. Info: {info}")
+                logger_utils.warning(f"Could not determine valid address/port for service: {name}. Info: {info}")
         else:
-            logger.warning(f"Could not get service info for {name}. Service might have disappeared.")
+            logger_utils.warning(f"Could not get service info for {name}. Service might have disappeared.")
 
 
     def remove_service(self, zeroconf: Zeroconf, ser_type: str, name: str) -> None:
@@ -77,11 +89,11 @@ class HTTPDiscovery:
         """
         cleaned_name = name.replace('._http._tcp.local.', '')
         if cleaned_name in self.http_devices:
-            logger.info(f"Removing service: {cleaned_name}")
+            logger_utils.info(f"Removing service: {cleaned_name}")
             del self.http_devices[cleaned_name]
         else:
             # This might happen if the service was never fully added or already removed
-            logger.debug(f"Attempted to remove service '{cleaned_name}', but it was not found in the list.")
+            logger_utils.debug(f"Attempted to remove service '{cleaned_name}', but it was not found in the list.")
 
 
     def update_service(self, zeroconf: Zeroconf, ser_type: str, name: str) -> None:
@@ -95,7 +107,7 @@ class HTTPDiscovery:
             ser_type: The service type.
             name: The full service name of the updated service.
         """
-        logger.debug(f"Service {name} updated. Re-fetching information.")
+        logger_utils.debug(f"Service {name} updated. Re-fetching information.")
         # Re-use add_service logic to fetch and update the info
         self.add_service(zeroconf, ser_type, name)
 
@@ -108,7 +120,7 @@ class HTTPDiscovery:
         http_devices dictionary. This method is blocking for the duration
         of the scan.
         """
-        logger.info(f'Starting network device scan for {self.duration} seconds...')
+        logger_utils.info(f'Starting network device scan for {self.duration} seconds...')
         zeroconf = None
         browser = None
         try:
@@ -117,7 +129,7 @@ class HTTPDiscovery:
             browser = ServiceBrowser(zeroconf, "_http._tcp.local.", self)
             time.sleep(self.duration) # Blocking sleep during discovery
         except Exception as e:
-            logger.error(f"An error occurred during Zeroconf discovery: {e}", exc_info=True)
+            logger_utils.error(f"An error occurred during Zeroconf discovery: {e}", exc_info=True)
         finally:
             if browser:
                  # ServiceBrowser doesn't have a specific close method,
@@ -125,12 +137,13 @@ class HTTPDiscovery:
                  pass
             if zeroconf:
                 zeroconf.close() # Close the zeroconf instance to stop the browser
-                logger.info('Zeroconf instance closed.')
+                logger_utils.info('Zeroconf instance closed.')
 
-        logger.info('Network device scan completed.')
+        logger_utils.info('Network device scan completed.')
 
 # Example Usage (for testing this file directly)
 if __name__ == "__main__":
+    import logging  # Import logging module
     # Basic logging setup for standalone test
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

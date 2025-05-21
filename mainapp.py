@@ -48,7 +48,7 @@ from src.gui.videoplayer import VideoPlayer
 from src.utl.presets import *
 from src.api.api import *
 
-from configmanager import cfg_mgr, PLATFORM, LoggerManager
+from configmanager import cfg_mgr, PLATFORM, WLED_PID_TMP_FILE, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
@@ -1721,14 +1721,10 @@ if __name__ == "__main__":
     print('start nicegui')
 
     # store fake server port info for others processes
-    pid = os.getpid()
     port = 8080
-
-    pid_tmp_file = cfg_mgr.app_root_path(f"tmp/{pid}_file")
-    with shelve.open(pid_tmp_file) as proc_file:
+    with shelve.open(WLED_PID_TMP_FILE) as proc_file:
         proc_file["server_port"] = port
         proc_file["sc_area"] = []
-
 
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     app.add_media_files('/media', cfg_mgr.app_root_path('media'))

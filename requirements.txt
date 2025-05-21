@@ -3,12 +3,7 @@
 #
 
 # Platform dependant
-# pywebview==5.4 ; sys_platform != "linux"
-# pywebview[pyside6]==5.4 ; sys_platform == "linux"
 linuxpy; sys_platform == "linux"
-# pycairo ; sys_platform == "linux"
-# PyGObject ; sys_platform == "linux"
-# qtpy ; sys_platform == "linux"
 urllib3==1.26.20 ; sys_platform == "darwin"
 winloop ; sys_platform == "win32"
 
@@ -17,13 +12,13 @@ winloop ; sys_platform == "win32"
 pywebview[pyside6]==5.4
 numpy==1.26.4
 opencv-python==4.11.0.86
-zeroconf==0.146.5
+zeroconf==0.147.0
 nicegui==2.17.0
 pillow==11.2.1
 fastapi==0.115.8
 starlette==0.45.3
 requests==2.32.3
-av==14.3.0
+av==14.4.0
 mss==10.0.0
 moviepy==1.0.3
 coldtype[viewer]==0.12.2

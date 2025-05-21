@@ -46,7 +46,6 @@ import queue
 import numpy as np
 import sacn
 
-from configmanager import cfg_mgr
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.e131')

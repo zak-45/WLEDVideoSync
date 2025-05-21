@@ -20,6 +20,7 @@ from logging import config
 from str2bool import str2bool
 
 PLATFORM = sys.platform.lower()
+wled_pid = os.getpid()
 
 def root_path(filename):
     """
@@ -464,3 +465,4 @@ class LoggerManager:
 # This code runs only ONCE when the module is first imported.
 cfg_mgr = ConfigManager()
 # --- End of addition ---
+WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{wled_pid}_file")
