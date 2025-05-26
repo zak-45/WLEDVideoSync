@@ -406,10 +406,22 @@ class CASTUtils:
 
     @staticmethod
     def test_compiled():
+        """Determine if the application is running as a compiled executable.
+
+        Returns True if the application is running in a frozen or compiled state, otherwise False.
+
+        Returns:
+            bool: True if running as a compiled executable, False otherwise.
+        """
         return bool(getattr(sys, 'frozen',False) or '__compiled__' in globals())
 
     @staticmethod
     def clean_tmp():
+        """Remove temporary, YouTube, and image files based on configuration.
+
+        Cleans up temporary files, YouTube downloads, and image files from their respective directories
+        according to the application's configuration settings.
+        """
         try:
 
             # some cleaning
@@ -435,7 +447,13 @@ class CASTUtils:
 
     @staticmethod
     def get_queue_manager_settings():
-        
+        """Retrieve the IP address and port for the queue manager.
+
+        Returns the IP address and port from the configuration, or defaults if not set.
+
+        Returns:
+            tuple: A tuple containing the IP address (str) and port (int) for the queue manager.
+        """
         ip = '127.0.0.1'
         port = 50000
         with contextlib.suppress(Exception):
@@ -449,6 +467,13 @@ class CASTUtils:
 
     @staticmethod
     def attach_to_queue_manager():
+        """Create and return a SharedListClient connected to the queue manager.
+
+        Retrieves the queue manager's IP and port from configuration and returns a SharedListClient instance.
+
+        Returns:
+            SharedListClient: An instance connected to the configured queue manager.
+        """
         from src.utl.sharedlistclient import SharedListClient
 
         ip, port = CASTUtils.get_queue_manager_settings()
@@ -456,7 +481,18 @@ class CASTUtils:
 
     @staticmethod
     def attach_to_manager_queue(queue_name):
+        """Attach to a shared manager queue and retrieve its dimensions.
 
+        Connects to the shared list manager and attaches to the specified queue,
+        returning the shared list object and its width and height.
+
+        Args:
+            queue_name (str): The name of the shared queue to attach to.
+
+        Returns:
+            tuple: A tuple containing the shared list object, its width, and its height.
+            Returns (None, None, None) if connection fails.
+        """
         sl = None
         width = None
         height = None
@@ -591,7 +627,18 @@ class CASTUtils:
 
     @staticmethod
     async def get_yt_video_url(video_url, iformat="best"):
+        """Retrieve the direct video URL from a YouTube link.
 
+        Extracts and returns the direct video URL for the specified YouTube link and format.
+        Returns None if no URL is found.
+
+        Args:
+            video_url (str): The YouTube video URL.
+            iformat (str, optional): The desired video format. Defaults to "best".
+
+        Returns:
+            str or None: The direct video URL if found, otherwise None.
+        """
         ydl_opts = {
             'format': iformat,
             'noplaylist': True,  # Prevents playlist processing

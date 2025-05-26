@@ -13,7 +13,7 @@ pywebview[pyside6]==5.4
 numpy==1.26.4
 opencv-python==4.11.0.86
 zeroconf==0.147.0
-nicegui==2.17.0
+nicegui==2.18.0
 pillow==11.2.1
 fastapi==0.115.8
 starlette==0.45.3

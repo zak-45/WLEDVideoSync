@@ -14,12 +14,13 @@ Portable version give you flexibility and nothing installed into your OS.
 WLEDVideoSync is a tool designed to send video content to Net LED Matrix devices like WLED. This project enables users to create immersive lighting experiences that complement their video playback.
 
 **Key Features:**
-- Video stream to e131 / artNet / DDP devices e.g: WLED-controlled LED matrix
+- Stream to e131 / artNet / DDP devices e.g: WLED-controlled LED matrix
 - Multicast feature: aggregate multiple DDP devices to a big, BIG one
 - Support for various video sources: image, video or WebUrl (even Youtube)
 - Support for desktop / desktop area, window content, multiple monitors(2)
 - Customizable LED effects
 - API to integrate with third party application
+- Python Scripting
 - Websocket for image cast if necessary
 - GUI: native, browser: can be accessed remotely, or even "headless": can be used as service
 - GIF creation with upload to WLED device
