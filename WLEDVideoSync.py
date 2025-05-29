@@ -374,7 +374,7 @@ def run_gui():
     """
     GUI
     """
-    # set QT in linux when compiled version (let choice when run from source)
+    # set QT in linux if compiled version (let choice when run from source)
     if  PLATFORM == 'linux' and (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])):
         os.environ["PYWEBVIEW_GUI"] = "qt"
     # Force software-based OpenGL rendering on Ubuntu
@@ -409,8 +409,8 @@ def run_gui():
     if str2bool(cfg_mgr.app_config['put_on_systray']):
         from src.gui.wledtray import WLEDVideoSync_systray
         from src.gui.wledtray import WLEDVideoSync_gui
-        WLEDVideoSync_systray.stop()
         WLEDVideoSync_gui.close_all_webviews()
+        WLEDVideoSync_systray.stop()
 
     print('End WLEDVideoSync - NiceGUI')
 

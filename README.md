@@ -51,17 +51,18 @@ WLEDVideoSync is a tool designed to send video content to Net LED Matrix devices
 5. --> on Mac/linux : python3 -m WLEDVideoSync
 
 **Usage:**
-1. Connect your WLED-controlled LED strips
+1. Connect your WLED-controlled LED matrix
 2. Launch the WLEDVideoSync application
 3. Select your video source
 4. Configure LED mapping and effects
 5. Start the synchronization
 
 **Configuration Options:**
-- LED strip layout, 2D Matrix
+- 2D Matrix size
 - Color mapping
 - Effect intensity
 - Synchronization delay
+- ...
 
 **Troubleshooting:**
 - Ensure your WLED device is properly connected and configured
