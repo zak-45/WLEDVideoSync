@@ -139,7 +139,7 @@ jobs:
         uses: Nuitka/Nuitka-Action@main
         with:
           # nuitka-version: 2.6.2 or main
-          nuitka-version: main
+          nuitka-version: 2.7.3
           script-name: WLEDVideoSync.py
           windows-console-mode: disable
           mode: app
