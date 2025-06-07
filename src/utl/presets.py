@@ -1,3 +1,61 @@
+"""
+a: za-45
+d: 13/03/2024
+v: 1.0.0
+
+This file, presets.py, is responsible for managing the saving and loading of "presets" for two main functional areas
+in the application: filter presets and cast presets.
+These presets are configurations for classes (typically named 'Desktop' or 'Media') that can be saved to and
+loaded from .ini files.
+The file provides both interactive (GUI-based) and non-interactive (programmatic) mechanisms for handling these presets,
+leveraging the NiceGUI library for user interface elements.
+
+The file is structured into three main sections:
+
+Filter Preset Manager: Handles saving/loading of filter-related settings.
+Cast Preset Manager: Handles saving/loading of casting-related settings.
+Common Utilities: Helper functions for type conversion when reading from .ini files.
+
+Logging is integrated throughout for error handling and debugging.
+
+Key Components
+1. Filter Preset Manager
+manage_filter_presets: Adds "save" and "load" preset buttons to the UI for filter presets.
+save_filter_preset: Opens a dialog to save the current filter configuration to an .ini file.
+    It serializes various filter parameters (e.g., RGB balance, scaling, flipping, filters, gamma, preview settings)
+    from the class object.
+load_filter_preset: Loads a filter preset from an .ini file and applies it to the class object.
+    Supports both interactive (file picker dialog) and non-interactive (direct file load) modes.
+apply_preset_filter (inner function): Applies the loaded preset values to the class object,
+    handling type conversion and missing keys gracefully.
+
+2. Cast Preset Manager
+manage_cast_presets: Adds "save" and "load" preset buttons to the UI for cast presets.
+save_cast_preset: Opens a dialog to save the current cast configuration to an .ini file.
+    It serializes general, multicast, and (for Desktop) area-specific parameters.
+load_cast_preset: Loads a cast preset from an .ini file and applies it to the class object, with support for
+    both interactive and non-interactive modes.
+apply_preset_cast (inner function): Applies the loaded cast preset values to the class object,
+    with type conversion and error handling.
+
+3. Common Utilities
+str2bool_ini: Converts string values to boolean, using the str2bool utility.
+str2intstr_ini: Attempts to convert a string to an integer, falling back to the original value if conversion fails.
+str2list_ini: Safely evaluates a string as a Python literal (e.g., list), with error logging on failure.
+
+4. Supporting Elements
+LoggerManager and logging: Provides structured logging for error reporting and debugging.
+NiceGUI Integration: Uses NiceGUI components (dialogs, buttons, notifications) for interactive user experiences.
+Config Management: Uses configparser for .ini file operations and a custom cfg_load module for loading configurations.
+
+Summary
+This file is a central utility for managing user-configurable presets in the application,
+enabling users to easily save and restore complex configurations for both filtering and casting operations.
+It abstracts the details of file I/O, type conversion, and user interaction, providing a consistent and
+robust interface for preset management within the larger system.
+
+"""
+
 import os
 import traceback
 import configparser
@@ -376,21 +434,51 @@ END Cast preset mgr
 """
 
 """
-Common Preset
+Common Preset utility
 """
 
 
 def str2bool_ini(value: str) -> bool:
+    """Convert a string value to a boolean using the str2bool utility.
+
+    Returns True or False based on the string input, following standard boolean string conversions.
+
+    Args:
+        value (str): The string value to convert.
+
+    Returns:
+        bool: The converted boolean value.
+    """
     return str2bool(value)
 
 
 def str2intstr_ini(value: str):
+    """Convert a string to an integer if possible, otherwise return the original value.
+
+    Attempts to convert the input string to an integer, returning the original value if conversion fails.
+
+    Args:
+        value (str): The string value to convert.
+
+    Returns:
+        int or str: The converted integer value, or the original string if conversion fails.
+    """
     with contextlib.suppress(Exception):
         value = int(value)
     return value
 
 
 def str2list_ini(value: str):
+    """Convert a string to a Python list using literal evaluation.
+
+    Attempts to safely evaluate the input string as a Python literal, returning the resulting list or the original value if conversion fails.
+
+    Args:
+        value (str): The string value to convert.
+
+    Returns:
+        list or str: The converted list if successful, otherwise the original string.
+    """
     try:
         value = ast.literal_eval(value)
     except Exception as e:

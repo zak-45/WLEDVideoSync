@@ -1,3 +1,4 @@
+"""
 # a: zak-45
 # d: 13/03/2024
 # v: 1.0.0
@@ -18,6 +19,80 @@
 # camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 # 27/05/2024: cv2.imshow with import av  freeze
 #
+
+Overview
+This file defines the CASTMedia class, which is responsible for casting media (images, videos, or live capture devices
+such as USB cameras) to networked LED devices (e.g., WLED) using protocols like DDP, E1.31, or ArtNet.
+The class is designed to be cross-platform and supports advanced features such as multicast (sending to multiple devices),
+frame synchronization, real-time preview, and various image processing options.
+
+The file also includes logic for managing multiple concurrent casts, handling network reliability via queues,
+and providing a pixel-art style preview using OpenCV. The class is intended to be used as part of a larger system for
+synchronizing video or image content with addressable LED hardware.
+
+
+Key Components
+CASTMedia Class
+Purpose:
+Central class for managing the process of capturing, processing, and transmitting media frames to one or more LED devices
+over the network.
+
+Initialization:
+Sets up a wide range of configuration options, including network protocol, device addresses, image processing parameters,
+preview settings, and synchronization controls.
+
+Threaded Operation:
+The main casting logic runs in a separate thread (t_media_cast) to avoid blocking the main application, allowing for
+responsive UI and concurrent operations.
+
+Media Input Handling:
+Supports various input types: video files, image sequences, live camera feeds, and network streams.
+Uses OpenCV for media capture and processing.
+
+Network Protocol Support:
+
+DDP: Uses DDPDevice for direct device communication.
+E1.31: Uses E131Device for sACN/E1.31 protocol.
+ArtNet: Uses ArtNetDevice for ArtNet protocol. Devices are managed and initialized based on the selected protocol.
+
+Multicast and Matrix Support:
+Can split a single image or video frame into a grid and send each section to a different device, enabling large virtual
+LED matrices composed of multiple physical devices.
+
+Synchronization:
+Supports frame and time synchronization across multiple casts, including auto-sync and manual sync features, to keep
+multiple devices in sync with the media source.
+
+Image Processing:
+Includes options for resizing, gamma correction, brightness/contrast adjustment, color balancing, flipping, and applying
+custom filters.
+
+Preview Functionality:
+Provides real-time preview of the output using OpenCV, with support for running the preview in a separate process for
+cross-platform compatibility.
+
+Action Executor:
+Integrates with an ActionExecutor to handle dynamic actions (e.g., responding to UI events or commands) during casting.
+
+Resource Management:
+Handles proper cleanup of resources, including releasing media streams, closing preview windows, and deactivating
+network devices.
+
+
+Supporting Patterns and Utilities
+Threading and Concurrency:
+Uses Python's threading and concurrent.futures for parallel operations, including multicast sending and action handling.
+
+Shared Memory:
+Utilizes multiprocessing.shared_memory.ShareableList for sharing preview frames between processes.
+
+Logging:
+Integrates with a custom LoggerManager for detailed debug and error logging.
+
+Configuration Management:
+Reads settings from a configuration manager (cfg_mgr) for flexible runtime behavior.
+
+"""
 import errno
 import os
 import threading

@@ -33,6 +33,77 @@
  27/05/2024: cv2.imshow with import av  freeze on not win OS
  to fix it, cv2.imshow can run from its own process with cost of additional overhead: set preview_proc = True
 
+Overview
+This file defines the CASTDesktop class, which is the core component for capturing and streaming desktop video
+(or a window/area) to networked lighting devices (such as WLED) using protocols like Art-Net, E1.31, or DDP.
+The class is designed to be cross-platform (Windows, Linux, macOS) and leverages the PyAV library for video capture and
+encoding, removing the need for a standalone FFmpeg installation. It supports advanced features such as:
+
+    Casting to single or multiple devices (multicast), including virtual matrix arrangements.
+    Real-time preview and video recording.
+    Image adjustments (brightness, contrast, gamma, saturation, etc.).
+    Flexible capture sources: full desktop, specific window, area, or from a shared memory queue.
+    Threaded and process-based architecture for performance and UI responsiveness.
+    Integration with a configuration manager and logging system.
+
+The file also includes a test block for standalone execution, demonstrating a simple desktop capture using the 'mss' method.
+
+Key Components
+1. CASTDesktop Class
+Purpose: Main class for managing the capture, processing, and network streaming of desktop video frames.
+Initialization: Loads configuration, sets up capture parameters, network protocol, and device settings.
+Key Attributes:
+Capture method (av or mss)
+Protocol selection (ddp, e131, artnet, or custom)
+Image processing parameters (scaling, filters, gamma, etc.)
+Multicast and matrix configuration
+Preview and recording options
+
+2. Capture and Processing Methods
+t_desktop_cast: The main worker method (run in a thread) that:
+
+Initializes capture devices and network targets.
+Handles frame capture (via PyAV, MSS, or shared memory).
+Processes each frame (resizing, filtering, splitting for multicast).
+Sends frames to devices using the selected protocol.
+Manages preview windows (with special handling for cross-platform compatibility).
+Supports video recording and action/event handling.
+Cleans up resources on exit.
+Frame Processing Pipeline:
+
+Resize, gamma correction, auto-brightness, filter application, flipping, and splitting for multicast.
+Protocol-specific sending logic (DDP, E1.31, Art-Net).
+Optional recording and preview display.
+
+3. Multicast and Matrix Support
+Device Management: Handles multiple devices as a virtual matrix, splitting frames accordingly.
+IPSwapper: Utility for managing device IPs in multicast scenarios.
+Threaded Sending: Uses thread pools to synchronize frame delivery across devices.
+
+4. Preview and UI Integration
+Preview Handling:
+Uses OpenCV for preview windows.
+On non-Windows platforms, can run preview in a separate process for stability.
+Shared memory (ShareableList) is used for inter-process communication.
+
+5. Action/Event Handling
+ActionExecutor: Integrates with an action utility to process runtime commands (e.g., stop, update preview).
+Thread/Event Management: Uses threading events and locks for safe concurrent operation.
+
+6. Protocol Abstraction
+Device Classes: Abstracts network protocols via DDPDevice, E131Device, and ArtNetDevice.
+Dynamic Protocol Selection: Instantiates and manages the correct device class based on configuration.
+
+
+7. Recording and Output
+Video Recording: Optional recording to file using imageio and PyAV.
+Output Streaming: Supports custom output streams (e.g., UDP) for advanced use cases.
+
+8. Standalone Test Block
+Purpose: Demonstrates how to instantiate and run a simple desktop cast using the 'mss' method.
+
+
+
 """
 import errno
 import ast

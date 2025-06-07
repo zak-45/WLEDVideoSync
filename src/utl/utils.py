@@ -9,6 +9,53 @@
 #
 # pywinctl provide a cross-platform window mgt.
 #
+Overview
+This file, utils.py, provides a comprehensive utility class (CASTUtils) and supporting functions for
+the WLEDVideoSync project. Its primary purpose is to centralize a wide range of helper methods and static utilities
+that support media processing, device management, configuration, networking, and integration with WLED devices and YouTube.
+The utilities are designed to be cross-platform, supporting Windows, macOS, and Linux, and facilitate operations such
+as video and GIF manipulation, device discovery, API communication, configuration management, and more.
+
+The file is a foundational component in the system, acting as a toolkit for higher-level application logic, especially
+for tasks involving media conversion, device interaction, and network communication.
+
+Key Components
+1. CASTUtils Class
+A static utility class containing a large collection of methods and attributes, including:
+
+Media Processing Utilities: Methods for resizing videos and GIFs, converting videos to GIFs, extracting video dimensions,
+    and listing available AV formats and codecs.
+WLED Device Integration: Functions to upload GIFs to WLED devices, retrieve device info, set live mode, and get
+    matrix dimensions.
+YouTube Integration: Methods for downloading YouTube videos, listing available formats, and extracting direct video URLs
+    using yt_dlp.
+Configuration and File Management: Methods for updating INI files, cleaning temporary files, extracting filenames,
+    and reading version info.
+Device and Network Management: Functions to list video devices, validate IP addresses, check if an IP is alive,
+    and manage shared queues for multiprocessing.
+API and WebSocket Utilities: Async methods for making API requests and validating WebSocket JSON input.
+System Font Management: Methods to retrieve system fonts and font directories.
+Miscellaneous Utilities: Human-readable byte conversion, downloading and validating images, and introspection
+    of module functions.
+
+2. Logging and Configuration
+Uses a centralized logger (utils_logger) for consistent logging across all utilities.
+Integrates with a configuration manager (cfg_mgr) to access application settings and paths.
+
+3. Cross-Platform Support
+Handles platform-specific logic for device enumeration and multiprocessing setup, ensuring compatibility across
+Windows, macOS, and Linux.
+
+4. External Integrations
+WLED: Communicates with WLED devices for LED matrix control and media uploads.
+YouTube (yt_dlp): Downloads and processes YouTube videos.
+Media Libraries: Uses av, cv2, and PIL for media manipulation.
+Networking: Utilizes aiohttp, requests, and socket for HTTP and network operations.
+
+5. Error Handling and Robustness
+Extensive use of try/except blocks and context managers to handle errors gracefully and log issues for debugging.
+
+
 """
 
 import contextlib
