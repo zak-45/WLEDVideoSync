@@ -136,13 +136,13 @@ def job4():
     """
     will run already defined jobs in sequential order
     """
-    import time
+    from time import sleep
     cast_win_main_desktop()
-    time.sleep(5)
+    sleep(5)
     cast_win_main_media()
-    time.sleep(5)
+    sleep(5)
     job1()
-    time.sleep(5)
+    sleep(5)
     job2()
 
     
