@@ -785,7 +785,7 @@ class CASTDesktop:
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
-                    valid_ip = Utils.check_ip_alive(cast_ip, ping=True)
+                    valid_ip = Utils.check_ip_alive(cast_ip, ping=False)
                     if valid_ip:
                         if self.wled:
                             status = as_run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
