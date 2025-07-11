@@ -729,7 +729,6 @@ class CASTDesktop:
                 desktop_logger.debug(f'{t_name} We work with this IP {self.host} as first device: number 0')
             else:
                 desktop_logger.error(f'{t_name} Error looks like IP {self.host} do not respond to ping')
-                return
 
         if t_protocol == 'ddp':
             ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
@@ -785,13 +784,15 @@ class CASTDesktop:
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
-                    valid_ip = Utils.check_ip_alive(cast_ip, ping=False)
+                    if self.wled:
+                        valid_ip = Utils.check_ip_alive(cast_ip, ping=False)
+                    else:
+                        valid_ip = Utils.check_ip_alive(cast_ip, ping=True)
                     if valid_ip:
                         if self.wled:
                             status = as_run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
                                 desktop_logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
-                                return
 
                         ip_addresses.append(cast_ip)
 
