@@ -608,7 +608,7 @@ async def cast_devices_view(class_name):
 async def player_pick_file(CastAPI) -> None:
     """ Select file to read for video CastAPI.player """
 
-    result = await LocalFilePicker(cfg_mgr.app_root_path('/'), multiple=False)
+    result = await LocalFilePicker(cfg_mgr.app_root_path('media'), multiple=False)
     ui.notify(f'Selected :  {result}')
 
     if result is not None:

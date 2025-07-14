@@ -325,7 +325,15 @@ class VideoPlayer:
             self.CastAPI.player.update()
     
             await player_video_info()
-    
+
+        async def run_gif_player():
+            player_exist = await Utils.check_wled_file_exists(self.Media.host, 'gifplayer.htm')
+            if player_exist:
+                ui.navigate.to(f'http://{self.Media.host}/gifplayer.htm', new_tab=True)
+            else:
+                await run.io_bound(lambda: Utils.wled_upload_file(self.Media.host, cfg_mgr.app_root_path('xtra/gif/gifplayer.htm')))
+                ui.navigate.to(f'http://{self.Media.host}/gifplayer.htm', new_tab=True)
+
         async def gif_to_wled():
             """
             Upload GIF to Wled device
@@ -335,7 +343,7 @@ class VideoPlayer:
             ui.notify('Start GIF Uploading')
             send_gif.props(add='loading')
             gif_to_upload = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
-            await run.io_bound(lambda: Utils.wled_upload_gif_file(self.Media.host, gif_to_upload))
+            await run.io_bound(lambda: Utils.wled_upload_file(self.Media.host, gif_to_upload, 'media/gif'))
             led = WLED(self.Media.host)
             try:
                 presets = await led.request('/presets.json')
@@ -501,6 +509,11 @@ class VideoPlayer:
                         open_wled = ui.button('APP', icon='web', on_click=lambda: ui.navigate.to(f'http://{self.Media.host}', new_tab=True))
                         open_wled.tooltip('Open WLED Web Page')
                         open_wled.bind_visibility_from(self.CastAPI.player)
+                        #play_gif = ui.button('PLAYER', icon='web', on_click=lambda: ui.navigate.to(f'http://{self.Media.host}/gifplayer.htm', new_tab=True))
+                        play_gif = ui.button('PLAYER', icon='web',on_click=run_gif_player)
+                        play_gif.tooltip('Open WLED GIF Player Page')
+                        play_gif.bind_visibility_from(self.CastAPI.player)
+
     
             with ui.row().classes('self-center'):
                 show_player = ui.icon('switch_video', color='blue', size='xl')

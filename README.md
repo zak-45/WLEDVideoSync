@@ -286,6 +286,8 @@ All of this could be configured later, for the moment focus on default.
     - you can create a new GIF from the selected video (with start / end frame selection)
     - if WLED device, you can push the GIF to it.
       - this will upload the gif file to the device and create corresponding preset, so can be played offline.
+      - You can also run the GIFPLAYER
+        - Thanks to : https://github.com/Manut38/WLED-GifPlayer-UI
   - GIF Close: close the GIF Menu and restore player one.
 
 

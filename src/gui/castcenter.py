@@ -324,6 +324,9 @@ class CastCenter:
                     with ui.row().classes('self-center'):
                         self.device = ui.select(['** click DEVICES to refresh **'], label='Select Device')
                         self.device.classes('w-40')
+                        #
+                        await self.upd_devices()
+                        #
                         capture_cast = ui.button(icon='cast').classes('m-4')
                         capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
 

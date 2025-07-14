@@ -57,7 +57,7 @@ Extensive use of try/except blocks and context managers to handle errors gracefu
 
 
 """
-
+import asyncio
 import contextlib
 import urllib.parse
 import shelve
@@ -91,6 +91,7 @@ from nicegui import run
 from PIL import Image
 from unidecode import unidecode
 from coldtype.text.reader import Font
+from wled.exceptions import WLEDConnectionError, WLEDError # Specific WLED errors
 
 from src.gui.tkarea import ScreenAreaSelection as SCArea
 
@@ -230,6 +231,26 @@ class CASTUtils:
             return None, None
 
     @staticmethod
+    async def get_wled_info(wled_ip: str) -> dict | None:
+        """Fetches general information from WLED, including LED count, using the wled module."""
+        try:
+            # Instantiate the WLED client
+            led = WLED(wled_ip)
+            # Update the client state, which fetches /json/info and other data
+            await led.update()
+            # Return the info dictionary
+            return led.info
+        except WLEDConnectionError as er:
+            utils_logger.error(f"WLED connection error for {wled_ip}: {er}")
+            return None
+        except WLEDError as er:
+            utils_logger.error(f"WLED API error for {wled_ip}: {er}")
+            return None
+        except Exception as er:
+            utils_logger.error(f"Unexpected exception getting WLED info from {wled_ip}: {er}")
+            return None
+
+    @staticmethod
     def wled_name_format(wled_name):
         """Formats a WLED filename to be at most 32 characters long,
            replacing extended characters with ASCII equivalents.
@@ -265,21 +286,66 @@ class CASTUtils:
             return name[:allowed_name_len] + ext
         return wled_name
 
+    @staticmethod
+    async def check_wled_file_exists(wled_ip: str, filename: str) -> bool:
+        """
+        Checks if a specific file exists on the WLED device's filesystem.
+
+        This function performs an HTTP HEAD request to the file's expected URL.
+        A 200 OK response indicates the file exists.
+
+        Args:
+            wled_ip: The IP address of the WLED device.
+            filename: The exact name of the file to check for on the device.
+        Returns:
+            True if the file exists, False otherwise.
+        """
+
+        # WLED serves user-uploaded files from the root of its web server.
+        file_url = f"http://{wled_ip}/{filename}"
+        utils_logger.debug(f"Checking for file existence with HEAD request at: {file_url}")
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                # Use a HEAD request for efficiency - we only need the status, not the content.
+                async with session.head(file_url, timeout=aiohttp.ClientTimeout(total=5)) as response:
+                    if response.status == 200:
+                        utils_logger.info(f"File '{filename}' found on WLED device {wled_ip}.")
+                        return True
+                    elif response.status == 404:
+                        utils_logger.info(f"File '{filename}' not found on WLED device {wled_ip}.")
+                        return False
+                    else:
+                        utils_logger.warning(f"Unexpected status {response.status} when checking for file on {wled_ip}.")
+                        # Assume it doesn't exist to allow upload attempt.
+                        return False
+
+        except aiohttp.ClientError as e:
+            utils_logger.error(f"Network error checking for file on {wled_ip}: {e}", exc_info=True)
+            return False  # Cannot confirm, assume it doesn't exist
+        except asyncio.TimeoutError:
+            utils_logger.error(f"Timeout checking for file on {wled_ip}.")
+            return False  # Cannot confirm, assume it doesn't exist
+        except Exception as e:
+            utils_logger.error(f"An unexpected error occurred while checking for file on {wled_ip}: {e}", exc_info=True)
+            return False  # Cannot confirm, assume it doesn't exist
+
 
     @staticmethod
-    def wled_upload_gif_file(wled_ip, gif_path):
+    def wled_upload_file(wled_ip, file_path, content_type: str = 'text/html; charset=UTF-8'):
         """Uploads a GIF file to WLED via the /upload interface.
             there is a limit of 30 chars to wled file name
         Args:
             wled_ip (str): The IP address of the WLED device.
-            gif_path (str): The path to the GIF file.
+            file_path (str): The path to the file.
+            content_type (str): The content type of the file.
         """
 
-        gif_path_size_kb = int(os.path.getsize(gif_path) / 1024)
+        file_path_size_kb = int(os.path.getsize(file_path) / 1024)
         info_url = f"http://{wled_ip}/json/info"
         url = f"http://{wled_ip}/upload"
-        filename = CASTUtils.wled_name_format(os.path.basename(gif_path))
-        files = {'file': (filename, open(gif_path, 'rb'), 'image/gif')}
+        filename = CASTUtils.wled_name_format(os.path.basename(file_path))
+        files = {'file': (filename, open(file_path, 'rb'), 'image/gif')}
 
         try:
             # check file space on MCU
@@ -288,7 +354,7 @@ class CASTUtils:
             info_data  = response.json()
             remaining_space_kb = info_data['fs']['t'] - info_data['fs']['u']
 
-            if gif_path_size_kb < remaining_space_kb:
+            if file_path_size_kb < remaining_space_kb:
                 response = requests.post(url, files=files, timeout=10)  # Add timeout
                 response.raise_for_status()
                 utils_logger.info(f"GIF uploaded successfully: {response.text} to: {url}")
@@ -296,13 +362,13 @@ class CASTUtils:
                 utils_logger.error(f'Not enough space on wled device : {wled_ip}')
 
         except requests.exceptions.Timeout:
-            utils_logger.error(f"Timeout error uploading GIF to: {url}")
+            utils_logger.error(f"Timeout error uploading to: {url}")
         except requests.exceptions.HTTPError as errh:
-            utils_logger.error(f"HTTP Error uploading GIF: {errh} to: {url}")
+            utils_logger.error(f"HTTP Error uploading : {errh} to: {url}")
         except requests.exceptions.ConnectionError as errc:
             utils_logger.error(f"Error Connecting to WLED: {errc} at: {url}")
         except requests.exceptions.RequestException as err:
-            utils_logger.error(f"Error uploading GIF: {err} to: {url}")
+            utils_logger.error(f"Error uploading : {err} to: {url}")
 
 
     @staticmethod
