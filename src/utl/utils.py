@@ -251,40 +251,47 @@ class CASTUtils:
             return None
 
     @staticmethod
-    def wled_name_format(wled_name):
-        """Formats a WLED filename to be at most 32 characters long,
-           replacing extended characters with ASCII equivalents.
+    def wled_name_format(wled_name: str) -> str:
+        """
+        Formats a WLED filename to be at most 32 characters long,
+        replacing problematic characters with an underscore and transliterating
+        extended characters to their ASCII equivalents.
 
-         Args:
-             wled_name (str): The original filename.
+        Args:
+            wled_name (str): The original filename.
 
-         Returns:
-             str: The formatted filename, transliterated, cleaned, and truncated if necessary.
-         """
-        # Transliterate extended characters to ASCII
+        Returns:
+            str: The formatted filename, transliterated, cleaned, and truncated.
+        """
+        # Transliterate extended characters to ASCII (e.g., 'é' -> 'e')
         try:
-            wled_name = unidecode(wled_name)  # <-- Apply unidecode here
+            wled_name = unidecode(wled_name)
         except Exception as er:
             utils_logger.warning(f"Unidecode failed for '{wled_name}': {er}. Proceeding without transliteration.")
-            # Fallback or re-raise depending on desired behavior
 
-        # remove YT prefix
-        wled_name = wled_name.replace('yt-tmp-', '')
-        #
-        wled_name = wled_name.replace('/', '-')
-        wled_name = wled_name.replace(' ', '')  # Remove spaces after transliteration
+        # Remove the 'yt-tmp-' prefix if it exists
+        if wled_name.startswith('yt-tmp-'):
+            wled_name = wled_name[7:]
 
-        # Truncate if necessary (adjust length if needed, WLED limit is 32)
-        # Let's keep it slightly shorter to be safe, e.g., 30 + extension
-        max_base_len = 30
-        if len(wled_name) > max_base_len:
-            name, ext = os.path.splitext(wled_name)
-            # Ensure the base name doesn't exceed the limit after adding extension
-            allowed_name_len = max_base_len - len(ext)
-            if allowed_name_len < 1:  # Handle cases with very long extensions
-                allowed_name_len = 1
-            return name[:allowed_name_len] + ext
-        return wled_name
+        # Keep only letters, numbers, dot, underscore, and hyphen.
+        # Replace all other characters (like #, ?, =, /, space, etc.) with an underscore.
+        cleaned_name = re.sub(r'[^\w.-]', '_', wled_name)
+
+        # Replace multiple consecutive underscores with a single one
+        cleaned_name = re.sub(r'__+', '_', cleaned_name)
+
+        # Truncate if necessary (WLED filesystem limit is 32 chars total)
+        # We aim for a name that, with its extension, fits this limit.
+        name_part, ext_part = os.path.splitext(cleaned_name)
+        max_base_len = 31 - len(ext_part)
+
+        if max_base_len < 1:  # Handle very long extensions
+            max_base_len = 1
+
+        if len(name_part) > max_base_len:
+            name_part = name_part[:max_base_len]
+
+        return name_part + ext_part
 
     @staticmethod
     async def check_wled_file_exists(wled_ip: str, filename: str) -> bool:
@@ -357,7 +364,7 @@ class CASTUtils:
             if file_path_size_kb < remaining_space_kb:
                 response = requests.post(url, files=files, timeout=10)  # Add timeout
                 response.raise_for_status()
-                utils_logger.info(f"GIF uploaded successfully: {response.text} to: {url}")
+                utils_logger.info(f"File uploaded successfully: {response.text} to: {url}")
             else:
                 utils_logger.error(f'Not enough space on wled device : {wled_ip}')
 
