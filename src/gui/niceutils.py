@@ -1078,6 +1078,28 @@ class LocalFilePicker(ui.dialog):
         if self.path.suffix.lower() in self.supported_thumb_extensions and self.path.is_file() and self.thumbs:
             ui.notify('Right-click for Preview', position='top')
 
+    def media_erase(self, media_name: str, dialog: ui.dialog):
+        """Deletes the specified media file from the filesystem.
+
+        Args:
+            media_name (str): The full path of the file to delete.
+            dialog (ui.dialog): The dialog to close after deletion.
+        """
+        try:
+            file_to_delete = Path(media_name)
+            if file_to_delete.is_file():
+                file_to_delete.unlink()
+                nice_logger.info(f"Successfully deleted: {file_to_delete.name}")
+                ui.notify(f"Successfully deleted: {file_to_delete.name}", type='positive')
+                dialog.close()
+                self.update_grid()  # Refresh the file list
+            else:
+                nice_logger.warning(f"File not found, could not delete: {file_to_delete.name}")
+                ui.notify(f"File not found: {file_to_delete.name}", type='warning')
+        except Exception as e:
+            nice_logger.error(f"Error deleting file {media_name}: {e}")
+            ui.notify(f"Error deleting file: {e}", type='negative')
+
     async def right_click(self, e: events.GenericEventArguments) -> None:
         """Handles right-click events to preview image or video thumbnails.
 
@@ -1099,7 +1121,18 @@ class LocalFilePicker(ui.dialog):
                         thumbnails_frame = extractor.get_thumbnails()
                         img = Image.fromarray(thumbnails_frame[0])
                         ui.image(img)
-                    ui.button('Close', on_click=thumb.close)
+                        ui.label(row['path'])
+                        with ui.row().classes('self-center'):
+                            ui.button('Close', on_click=thumb.close)
+                            with ui.list().props('bordered'):
+                                with ui.slide_item() as slide_item:
+                                    with ui.item():
+                                        with ui.item_section().props('avatar'):
+                                            ui.icon('delete', color='red')
+                                    with slide_item.right():
+                                        ui.button('Erase', on_click=lambda:self.media_erase(row['path'], thumb))
+                    else:
+                        ui.notify('Made a selection before ....', position='center', color='gray')
 
 
 """

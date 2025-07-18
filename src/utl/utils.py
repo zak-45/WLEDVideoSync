@@ -229,6 +229,9 @@ class CASTUtils:
         except aiohttp.ClientError as er:
             utils_logger.error(f"API request error: {er}")
             return None, None
+        except Exception as er:
+            utils_logger.error(f"Unexpected exception getting WLEDVideoSync API: {er}")
+            return None, None
 
     @staticmethod
     async def get_wled_info(wled_ip: str) -> dict | None:
@@ -348,13 +351,13 @@ class CASTUtils:
             content_type (str): The content type of the file.
         """
 
-        file_path_size_kb = int(os.path.getsize(file_path) / 1024)
-        info_url = f"http://{wled_ip}/json/info"
-        url = f"http://{wled_ip}/upload"
-        filename = CASTUtils.wled_name_format(os.path.basename(file_path))
-        files = {'file': (filename, open(file_path, 'rb'), 'image/gif')}
-
         try:
+            file_path_size_kb = int(os.path.getsize(file_path) / 1024)
+            info_url = f"http://{wled_ip}/json/info"
+            url = f"http://{wled_ip}/upload"
+            filename = CASTUtils.wled_name_format(os.path.basename(file_path))
+            files = {'file': (filename, open(file_path, 'rb'), 'image/gif')}
+
             # check file space on MCU
             response = requests.get(info_url, timeout=2)  # Add timeout
             response.raise_for_status()
@@ -376,6 +379,9 @@ class CASTUtils:
             utils_logger.error(f"Error Connecting to WLED: {errc} at: {url}")
         except requests.exceptions.RequestException as err:
             utils_logger.error(f"Error uploading : {err} to: {url}")
+        except Exception as er:
+            utils_logger.error(f"An unexpected error occurred: {er}")
+
 
 
     @staticmethod

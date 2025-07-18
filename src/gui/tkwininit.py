@@ -56,7 +56,7 @@ def init():
     # Create the main window
     root = tk.Tk()
     root.title("WLEDVideoSync Information")
-    root.geometry("800x460")  # Set the size of the window
+    root.geometry("840x460")  # Set the size of the window
     root.configure(bg='#657B83')  # Set the background color
 
     # Change the window icon
