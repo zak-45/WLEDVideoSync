@@ -612,10 +612,13 @@ async def player_pick_file(CastAPI) -> None:
     ui.notify(f'Selected :  {result}')
 
     if result is not None:
-        result = str(result[0])
+        try:
+            result = str(result[0])
 
-        CastAPI.player.set_source(result)
-        CastAPI.player.update()
+            CastAPI.player.set_source(result)
+            CastAPI.player.update()
+        except Exception as e:
+            ui.notify(f'Error :  {e}')
 
 
 async def generate_actions_to_cast(class_name, class_threads, action_to_casts, info_data):
