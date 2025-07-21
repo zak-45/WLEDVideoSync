@@ -290,8 +290,7 @@ All of this could be configured later, for the moment focus on default.
         - Thanks to : https://github.com/Manut38/WLED-GifPlayer-UI
   - GIF Close: close the GIF Menu and restore player one.
 
-
-
+  
 #### Filters/Effects
 ![filters](docs/img/filters.png)
 
