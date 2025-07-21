@@ -47,7 +47,7 @@ from str2bool import str2bool
 from nicegui import ui, run, app
 
 from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet
-from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_button
+from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_button, run_gif_player
 from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Animate
 from src.utl.utils import CASTUtils as Utils
 
@@ -404,7 +404,12 @@ class CastCenter:
                 tool_text.set_visibility(True)
                 tool_text.props('flat')
                 with tool_text:
-                    ui.button('Fonts', on_click=CastCenter.view_fonts)
+                    with ui.row():
+                        ui.button('Fonts', on_click=CastCenter.view_fonts)
+                        play_gif = ui.button('PLAYER', icon='video_library',
+                                             on_click=lambda: run_gif_player(self.Media.host))
+                        play_gif.tooltip('Open WLED GIF Player Page')
+                        play_gif.bind_visibility_from(self.Media,'wled')
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
 
