@@ -10,7 +10,7 @@ winloop ; sys_platform == "win32"
 
 # Specific version & Common to all OS
 pywebview[pyside6]==5.4
-numpy==1.26.4
+numpy==2.2.6
 opencv-python==4.12.0.88
 zeroconf==0.147.0
 nicegui==2.21.1
