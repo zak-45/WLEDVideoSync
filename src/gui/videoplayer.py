@@ -326,6 +326,14 @@ class VideoPlayer:
     
             await player_video_info()
 
+        async def run_gif_player():
+            player_exist = await Utils.check_wled_file_exists(self.Media.host, 'gifplayer.htm')
+            if player_exist:
+                ui.navigate.to(f'http://{self.Media.host}/gifplayer.htm', new_tab=True)
+            else:
+                await run.io_bound(lambda: Utils.wled_upload_file(self.Media.host, cfg_mgr.app_root_path('xtra/gif/gifplayer.htm')))
+                ui.navigate.to(f'http://{self.Media.host}/gifplayer.htm', new_tab=True)
+
         async def gif_to_wled():
             """
             Upload GIF to Wled device
@@ -490,18 +498,19 @@ class VideoPlayer:
                     start_gif.bind_value(self.CastAPI,'current_frame')
                     end_gif = ui.number('End', value=self.CastAPI.video_frames, min=0, max=self.CastAPI.video_frames, precision=0)
     
-                    gen_gif = ui.button(text='GIF',icon='movie_creation', on_click=create_gif)
+                    gen_gif = ui.button(text='GIF',icon='image', on_click=create_gif)
                     gen_gif.tooltip('Create GIF')
                     gen_gif.bind_visibility_from(self.CastAPI.player)
     
                     if self.Media.wled:
-                        send_gif = ui.button(text='WLED',icon='file_upload', on_click=gif_to_wled)
+                        send_gif = ui.button(text='WLED',icon='apps', on_click=gif_to_wled)
                         send_gif.tooltip('Upload GIF to WLED device')
                         send_gif.bind_visibility_from(self.CastAPI.player)
                         open_wled = ui.button('APP', icon='web', on_click=lambda: ui.navigate.to(f'http://{self.Media.host}', new_tab=True))
                         open_wled.tooltip('Open WLED Web Page')
                         open_wled.bind_visibility_from(self.CastAPI.player)
-                        play_gif = ui.button('PLAYER', icon='video_library',on_click=lambda: nice.run_gif_player(self.Media.host))
+                        #play_gif = ui.button('PLAYER', icon='web', on_click=lambda: ui.navigate.to(f'http://{self.Media.host}/gifplayer.htm', new_tab=True))
+                        play_gif = ui.button('PLAYER', icon='web',on_click=run_gif_player)
                         play_gif.tooltip('Open WLED GIF Player Page')
                         play_gif.bind_visibility_from(self.CastAPI.player)
 

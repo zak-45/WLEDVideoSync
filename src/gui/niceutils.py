@@ -907,22 +907,6 @@ def custom_openapi():
     return app.openapi_schema
 
 
-async def run_gif_player(wled_host):
-    """Runs the GIF player on a WLED device.
-
-    This function checks if the 'gifplayer.htm' file exists on the WLED device.
-    If it does not exist, it uploads the file and then navigates to the GIF player page in a new browser tab.
-
-    Args:
-        wled_host: The IP address or hostname of the WLED device.
-    """
-    player_exist = await Utils.check_wled_file_exists(wled_host, 'gifplayer.htm')
-    if not player_exist:
-        await run.io_bound(
-            lambda: Utils.wled_upload_file(wled_host, cfg_mgr.app_root_path('xtra/gif/gifplayer.htm')))
-    ui.navigate.to(f'http://{wled_host}/gifplayer.htm', new_tab=True)
-
-
 async def media_dev_view_page():
     """
     Display media devices into the Json Editor
