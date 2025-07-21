@@ -334,6 +334,7 @@ class VideoPlayer:
                 await run.io_bound(lambda: Utils.wled_upload_file(self.Media.host, cfg_mgr.app_root_path('xtra/gif/gifplayer.htm')))
                 ui.navigate.to(f'http://{self.Media.host}/gifplayer.htm', new_tab=True)
 
+
         async def gif_to_wled():
             """
             Upload GIF to Wled device

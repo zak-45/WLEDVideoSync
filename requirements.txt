@@ -22,7 +22,7 @@ av==15.0.0
 mss==10.0.0
 moviepy==1.0.3
 coldtype[viewer]==0.12.2
-aiohttp==3.11.0
+aiohttp==3.12.14
 
 # any version & Common to all OS
 urllib3
