@@ -291,6 +291,7 @@ All of this could be configured later, for the moment focus on default.
   - GIF Close: close the GIF Menu and restore player one.
 
 
+
 #### Filters/Effects
 ![filters](docs/img/filters.png)
 
