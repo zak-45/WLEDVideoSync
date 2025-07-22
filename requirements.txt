@@ -23,6 +23,7 @@ mss==10.0.0
 moviepy==1.0.3
 coldtype[viewer]==0.12.2
 aiohttp==3.12.14
+fonttools==4.58.5 # problem nuitka/ pkg_resource with 4.59.0
 
 # any version & Common to all OS
 urllib3
@@ -40,7 +41,6 @@ cfg-load
 async-timeout
 sacn
 stupidArtnet
-fonttools
 noise
 simpleeval
 pytubefix
