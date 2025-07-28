@@ -14,7 +14,7 @@ opencv-python==4.12.0.88
 zeroconf==0.147.0
 nicegui==2.21.1
 pillow==11.3.0
-fastapi==0.115.8
+fastapi==0.116.1
 starlette==0.47.2
 requests==2.32.4
 av==15.0.0
