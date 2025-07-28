@@ -3,7 +3,6 @@
 #
 
 # Platform dependant
-linuxpy; sys_platform == "linux"
 # urllib3==1.26.20 ; sys_platform == "darwin"
 winloop ; sys_platform == "win32"
 
@@ -35,7 +34,6 @@ psutil
 wled
 yt-dlp
 imageio
-pygrabber
 concurrent-log-handler
 cfg-load
 async-timeout
@@ -46,4 +44,5 @@ simpleeval
 pytubefix
 schedule
 unidecode
+cv2_enumerate_cameras
 

@@ -189,7 +189,7 @@ class CastCenter:
         # select cast
         if cast_type == 'Capture':
             try:
-                self.Media.viinput = self.device.value[2]
+                self.Media.viinput = int(self.device.value.split(',')[0])
             except Exception as er:
                 center_logger.error(f'Error on device: {er}')
         elif cast_type == 'Video':

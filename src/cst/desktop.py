@@ -770,9 +770,9 @@ class CASTDesktop:
                 desktop_logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
                 return
 
-        swapper = None
-
         # specifics for Multicast
+        swapper = None
+        #
         if t_multicast:
             # validate cast_devices list
             if not Multi.is_valid_cast_device(str(self.cast_devices)):
@@ -793,6 +793,7 @@ class CASTDesktop:
                             status = as_run(Utils.put_wled_live(cast_ip, on=True, live=True, timeout=1))
                             if not status:
                                 desktop_logger.error(f"{t_name} ERROR to set WLED device {self.host} on 'live' mode")
+                                return False
 
                         ip_addresses.append(cast_ip)
 

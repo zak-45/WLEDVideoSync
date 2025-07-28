@@ -13,7 +13,6 @@ from time import sleep
 from random import shuffle, randint
 from threading import Thread
 
-from configmanager import cfg_mgr
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.multicast')

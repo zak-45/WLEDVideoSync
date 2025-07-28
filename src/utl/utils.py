@@ -86,6 +86,7 @@ except Exception as e:
 
 from str2bool import str2bool
 from pathlib import Path as PathLib
+from cv2_enumerate_cameras import enumerate_cameras
 from wled import WLED
 from nicegui import run
 from PIL import Image
@@ -983,41 +984,20 @@ class CASTUtils:
     @staticmethod
     async def video_device_list():
 
-        devicenumber = 0
         devices_list = []
+        backend = None
 
         if PLATFORM == 'darwin':
-            try:
-                import av
-
-                with av.logging.Capture(True):  # this will capture av output
-                    av.open('', 'r', format='avfoundation', options={'list_devices': 'True'})
-
-            except Exception as error:
-                utils_logger.error(traceback.format_exc())
-                utils_logger.error(f'An exception occurred: {error}')
-
-        # linux
-        if PLATFORM == 'linux':
-            from linuxpy.video import device as linux_dev
-
-            dev = linux_dev.iter_devices()
-            typedev = 'VIDEO'
-            devices_list.extend(
-                (str(item), typedev, i) for i, item in enumerate(dev, start=1)
-            )
-
+            backend = cv2.CAP_AVFOUNDATION
+        elif PLATFORM == 'linux':
+            backend = cv2.CAP_V4L2
         elif PLATFORM == 'win32':
-            from pygrabber.dshow_graph import FilterGraph
+            backend = cv2.CAP_DSHOW
 
-            graph = FilterGraph()
-            devices = graph.get_input_devices()
-            typedev = 'video'
-            for item in devices:
-                devname = item
-                devices_list.append((devname, typedev, devicenumber))
-                devicenumber += 1
-
+        devices_list.extend(
+            f'{camera_info.index},{camera_info.name}'
+            for camera_info in enumerate_cameras(backend)
+        )
         return devices_list
 
 
