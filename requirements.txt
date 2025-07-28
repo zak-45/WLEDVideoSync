@@ -15,7 +15,7 @@ zeroconf==0.147.0
 nicegui==2.21.1
 pillow==11.3.0
 fastapi==0.115.8
-starlette==0.45.3
+starlette==0.47.2
 requests==2.32.4
 av==15.0.0
 mss==10.0.0
