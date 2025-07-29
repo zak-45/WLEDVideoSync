@@ -140,11 +140,11 @@ class Scheduler:
             worker_thread.start()
 
         class ScheduleThread(threading.Thread):
-            def __init__(self, scheduler, bg_stop, delay):
+            def __init__(self, scheduler, bg_stop, s_delay):
                 super().__init__()
                 self.scheduler = scheduler
                 self.bg_stop = bg_stop
-                self.delay = delay
+                self.delay = s_delay
                 self.daemon = True
 
             def run(self):
