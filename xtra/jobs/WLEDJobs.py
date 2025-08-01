@@ -1,4 +1,51 @@
 """
+a:zak-45
+d:01/08/2025
+v:1.0.0.0
+
+The WLEDJobs.py file is a user-extendable module designed to define custom, schedulable tasks (jobs) for the
+WLEDVideoSync application. It acts as a powerful scripting interface where users can write their own Python functions
+to automate complex sequences of actions, such as starting and stopping casts, applying presets, or interacting with
+the application's core components at specific times or intervals.The scheduler, configured in schedulergui.py, reads
+this file and allows the user to trigger these defined functions (jobs) on a schedule. Each job is executed in its
+own thread to ensure it doesn't block the main application's UI.
+
+1. Job Definition
+
+Each Python function defined in this file is treated as a distinct "job" that the scheduler can execute.
+The file comes with several pre-defined examples (cast_win_main_desktop, job1, etc.) that serve as templates for users
+to create their own.
+
+2. Accessing Application Components
+
+The jobs demonstrate two primary ways to interact with the main application's casting objects (Desktop, Media):
+ •Using the Main Application Context:
+  •Functions like cast_win_main_desktop import Desktop and Media directly from mainapp.
+  •Example: from mainapp import Desktop, t_data_buffer
+  •Effect: This approach modifies the live, existing instance of the Desktop or Media class that the main GUI is also
+  using. This is the most common and recommended way to control casts that are already configured in the UI.
+
+ •Running in an Independent Context:
+  •Functions like cast_win_alone_desktop import the class definition from its source file (src.cst.desktop) and create
+  a new, independent instance of it.
+  •Example: from src.cst import desktop; Desktop=desktop.CASTDesktop()
+  •Effect: This creates a completely separate casting process with its own default parameters.
+  It will not affect the state of the Desktop object shown in the main UI. This is useful for running isolated,
+  background tasks that shouldn't interfere with the user's current settings.
+
+3. Job Orchestration
+The file demonstrates how to create simple, single-action jobs as well as more complex ones that can call other jobs.
+
+ •Simple Jobs: cast_win_main_desktop is a simple job that performs one primary action: starting a desktop cast.
+ •Complex Jobs: job1 shows a multi-step process: it prints messages, calls another job (job3), and then starts and stops
+  a cast with a time.sleep() delay in between.
+ •Sequential Execution: job4 illustrates how to create a "master" job that runs several other jobs in a specific
+ sequence, with delays. This is powerful for creating automated shows or test sequences.
+
+4. Parameterization
+Jobs can be defined with parameters and default values (e.g., def cast_win_main_desktop(monitor:int = 0):). This makes
+them highly reusable. When setting up a schedule in the GUI, the user can provide specific values for these parameters.
+
 
 JOBS
 
@@ -145,5 +192,27 @@ def job4():
     sleep(5)
     job2()
 
-    
+def my_complex_job():
+    """
+    A more robust job with error handling.
+    """
+    from mainapp import Desktop, main_logger
+    import time
+    try:
+        main_logger.info("Starting my complex job...")
+        # ... code that might fail ...
+        Desktop.stopcast = False
+        Desktop.cast()
+        time.sleep(20)
+        Desktop.stopcast = True
+        main_logger.info("Complex job finished successfully.")
+    except Exception as e:
+        # Log the error so it appears in the main application log
+        main_logger.error(f"An error occurred in my_complex_job: {e}", exc_info=True)
+    finally:
+        # Ensure cleanup happens even if there's an error
+        Desktop.stopcast = True
+        main_logger.info("my_complex_job cleanup complete.")
+
+
 print('End of jobs files')

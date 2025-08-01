@@ -471,7 +471,8 @@ def str2intstr_ini(value: str):
 def str2list_ini(value: str):
     """Convert a string to a Python list using literal evaluation.
 
-    Attempts to safely evaluate the input string as a Python literal, returning the resulting list or the original value if conversion fails.
+    Attempts to safely evaluate the input string as a Python literal,
+    returning the resulting list or the original value if conversion fails.
 
     Args:
         value (str): The string value to convert.
