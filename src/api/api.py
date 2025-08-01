@@ -1,3 +1,87 @@
+"""
+a: zak-45
+d: 01/08/2025
+v: 1.0.0.0
+
+The api.py file defines the backend API for the WLEDVideoSync application.
+It uses the FastAPI framework, which is seamlessly integrated with NiceGUI, to expose a set of RESTful endpoints and
+a WebSocket for real-time communication. The primary purpose of this API is to allow external applications
+(like Chataigne, or any other script/program) to monitor, control, and interact with the core components of WLEDVideoSync,
+namely the Desktop and Media casting objects.
+
+
+Key Architectural Components
+
+1. ApiData Class
+
+This is a simple yet crucial class that acts as a singleton or a namespace.
+Its sole purpose is to hold references to the live instances of Desktop, Media, Netdevice,
+and the shared Queue that are created in mainapp.py.
+Design Rationale: This pattern effectively decouples the API endpoint definitions from the main application logic.
+The API functions don't need to import the core classes directly; they are given access to the live, stateful objects at
+runtime. This is a clean way to manage state in a web application.
+
+2. RESTful API Endpoints (@app.get, @app.put)
+
+The API is well-structured using FastAPI's decorators and is logically grouped by tags, which makes the auto-generated
+documentation at the /docs endpoint clean and easy to navigate.
+
+Endpoint Groups & Functionality:
+•Root & Status (/api, /api/shutdown):
+•Provides basic application version and compilation info.
+•Offers a way to gracefully shut down the entire application, including the system tray icon.
+
+
+•Parameter & Attribute Control (/api/{class_name}/params, /api/{class_name}/update_attribute):
+•all_params: An introspection endpoint to read all current settings (attributes) of a class (Desktop or Media).
+It wisely excludes large data buffers (frame_buffer) to keep the response lightweight.
+•update_attribute: A powerful and flexible endpoint to dynamically change any attribute of a class.
+It includes strong type validation (for bool, int, list, str) and specific business logic checks
+(e.g., validating IP addresses, multicast device lists, and capture methods).
+This is the primary mechanism for remote configuration.
+
+
+•Frame Buffer Interaction (/api/{class_name}/buffer/...):
+•Allows external clients to query the number of captured frames.
+•Provides a way to retrieve a specific captured frame as a base64 encoded image, which is excellent for remote previews.
+•Includes endpoints to save a frame to disk, either as a standard image or as a creative ASCII art text file.
+
+•Casting Control (/api/.../run_cast, /api/util/casts_info, /api/.../cast_actions):
+•run_cast: A simple trigger to start the casting process for a class.
+•util_casts_info: A sophisticated endpoint that communicates with all active casting threads via a shared queue
+to gather real-time status information, including a current thumbnail image. This demonstrates a robust pattern for
+inter-thread communication in a web context.
+•cast_actions: Implements a command queue (cast_name_todo) for running threads. This allows for fine-grained,asynchronous
+control over individual casts (e.g., stopping a specific stream, taking a snapshot, or changing an IP on the fly).
+
+
+•Utilities (/api/util/...):
+•Exposes many of the helper functions from utils.py and winutil.py through the API.
+•This includes getting window titles, listing media devices, triggering a network scan, downloading YouTube videos,
+and a critical blackout function to immediately stop all activity.
+
+
+•Presets (/api/config/presets/...):
+•Allows for the programmatic application of saved filter or cast presets, which is essential for automation and scene
+changes from external controllers.
+
+3. WebSocket Endpoint (/ws)
+
+This endpoint provides a low-latency, persistent connection for real-time actions.
+
+•Purpose: It's primarily designed for the cast_image action, which allows an image from the buffer to be streamed to a
+DDP device at a specific FPS for a set duration. This is perfect for triggering short animations or specific visual cues.
+
+•Protocol: It expects a well-defined JSON structure ({"action":{"type": "...", "param": {...}}}) and validates it.
+It also checks the action type against a list of allowed actions from the configuration file, which is a good
+security practice.
+
+•Error Handling: It correctly handles disconnects and sends detailed error messages back to the client over the
+WebSocket if something goes wrong.
+
+
+"""
+
 import ast
 import traceback
 
@@ -32,6 +116,11 @@ class_to_test = ['Desktop', 'Media', 'Netdevice']
 Receive obj from mainapp
 """
 class ApiData:
+    """Holds references to the main application objects for API access.
+
+    This class acts as a singleton namespace to store live instances of Desktop, Media, Netdevice, and the shared Queue.
+    It enables API endpoints to interact with the application's core components without direct imports or tight coupling.
+    """
     Desktop = None
     Media = None
     Netdevice = None
@@ -74,8 +163,16 @@ async def shutdown_root():
 @app.get("/api/{class_name}/params", tags=["params"])
 async def all_params(
         class_name: str = PathAPI(description=f'Class name, should be in: {class_to_test}')):
-    """
-        Retrieve all 'params/attributes' from a class
+    """Returns all current settings (attributes) of the specified class.
+
+    This endpoint provides a dictionary of all parameters for the given class, excluding large image buffers for
+    Desktop and Media.
+
+    Args:
+        class_name: The name of the class to introspect. Must be one of the allowed class names.
+
+    Returns:
+        dict: A dictionary containing all parameters of the class, with image buffers removed for Desktop and Media.
     """
     class_obj = None
     if validate_class(class_name):
@@ -93,8 +190,22 @@ async def all_params(
 
 @app.put("/api/{class_name}/update_attribute", tags=["params"])
 async def update_attribute_by_name(class_name: str, param: str, value: str):
-    """
-        Update  attribute for a specific class name
+    """Updates a specific attribute of a class instance with strong type validation.
+
+    This endpoint allows dynamic modification of any attribute for Desktop, Media, or Netdevice classes, enforcing type
+    checks and business logic constraints.
+
+    Args:
+        class_name: The name of the class whose attribute is to be updated.
+        param: The attribute name to update.
+        value: The new value to assign to the attribute.
+
+    Returns:
+        dict: A message indicating the result of the update operation.
+
+    Raises:
+        HTTPException: If the class or attribute is invalid, or if the value does not meet type or business logic
+        requirements.
     """
     class_obj = None
     if validate_class(class_name):
@@ -180,8 +291,20 @@ async def buffer_count(class_name: str = PathAPI(description=f'Class name, shoul
 @app.get("/api/{class_name}/buffer/{number}", tags=["buffer"])
 async def buffer_image(class_name: str = PathAPI(description=f'Class name, should be in: {class_to_test}'),
                        number: int = 0):
-    """
-        Retrieve image number from buffer class, result base64 image
+    """Retrieve a specific image from the frame buffer as a base64-encoded string.
+
+    This endpoint allows clients to fetch a single captured frame from the buffer of the specified class for preview or
+    processing.
+
+    Args:
+        class_name: The name of the class whose buffer to access.
+        number: The index of the image in the buffer to retrieve.
+
+    Returns:
+        dict: A dictionary containing the base64-encoded image.
+
+    Raises:
+        HTTPException: If the image number does not exist or an error occurs during encoding.
     """
     class_obj = None
     if validate_class(class_name):
@@ -357,10 +480,16 @@ async def util_blackout():
 
 @app.get("/api/util/casts_info", tags=["casts"])
 async def util_casts_info(img: bool = False):
-    """
-        Get info from all Cast Threads
-        Generate image for preview if requested
-    :param: img : False/true
+    """Collects and returns real-time status information from all active casting threads.
+
+    This endpoint communicates with all running Desktop and Media cast threads to gather their current status,
+    optionally including a thumbnail image.
+
+    Args:
+        img: If True, include a thumbnail image in the status information.
+
+    Returns:
+        dict: A dictionary containing sorted status information for each cast.
     """
     api_logger.debug('Request Cast(s) info')
 
