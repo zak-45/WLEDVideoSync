@@ -850,8 +850,9 @@ class CASTDesktop:
                 sl_client = SharedListClient()
 
             # check server is running
-            result = sl_client.connect()
-            if not result:
+            if sl_manager.is_running:
+                sl_client.connect()
+            else:
                 sl_manager.start()
                 sl_client.connect()
 
@@ -959,7 +960,7 @@ class CASTDesktop:
         win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
 
         # Open av input container in read mode if not SL and not mss
-        if sl_queue is None and capture_methode == 'av':
+        if t_viinput != 'queue' and capture_methode == 'av':
             try:
 
                 input_container = av.open(t_viinput, 'r', format=self.viformat, options=input_options)
@@ -1387,6 +1388,8 @@ class CASTDesktop:
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         desktop_logger.debug('Child Desktop cast initiated')
+        return thread
+
 
 # example of screen capture using 'mss' method
 if __name__ == "__main__":

@@ -124,6 +124,22 @@ class CASTUtils:
         pass
 
     @staticmethod
+    def get_local_ip_address(remote_server="192.0.2.1"):
+        """Returns the local IP address
+
+        Determines the local network interface IP address by connecting to a remote server using a UDP socket.
+
+        Args:
+            remote_server (str): The IP address of the remote server to connect to. Defaults to "192.0.2.1".
+
+        Returns:
+            str: The local IP address as a string.
+        """
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect((remote_server, 80))
+            return s.getsockname()[0]
+
+    @staticmethod
     def root_page():
         return (
             '/Cast-Center'
