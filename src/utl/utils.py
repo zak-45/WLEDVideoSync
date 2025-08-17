@@ -129,15 +129,26 @@ class CASTUtils:
 
         Determines the local network interface IP address by connecting to a remote server using a UDP socket.
 
+        This function's purpose is to discover the primary local IP address of the computer it's running on.
+        This is the IP address that other devices on the same local network (like a mobile phone scanning a QR code)
+        need to use to connect back to this application.
+
         Args:
             remote_server (str): The IP address of the remote server to connect to. Defaults to "192.0.2.1".
 
         Returns:
             str: The local IP address as a string.
+            Returns '127.0.0.1' if the local IP cannot be determined.
         """
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.connect((remote_server, 80))
-            return s.getsockname()[0]
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                # The connect call doesn't send data, it just associates the socket
+                # with a remote address, which forces the OS to pick a local interface.
+                s.connect((remote_server, 80))
+                return s.getsockname()[0]
+        except socket.error:
+            utils_logger.error("Could not determine local IP address. Falling back to localhost '127.0.0.1'.")
+            return '127.0.0.1'
 
     @staticmethod
     def root_page():

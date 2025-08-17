@@ -1,3 +1,71 @@
+"""
+# a: zak-45
+# d: 15/08/2025
+# v: 1.0.0
+#
+#
+This Python script creates a self-contained web application using `nicegui` to stream video from a mobile phone's camera
+ to the main WLEDVideoSync application. It cleverly uses WebSockets for real-time, low-latency communication and a
+ QR code for a seamless user experience, allowing a phone to act as a wireless webcam source.
+
+### How It Works: A Step-by-Step Guide
+
+1.  **Initialization**:
+    *   The script is designed to be run as a separate process. When started, it initializes a `CASTDesktop` instance
+    *   from the main application's library.
+    *   Crucially, it sets this instance's video input to `'queue'` (`Desktop.viinput = 'queue'`).
+    *   This tells the casting engine not to capture the screen, but to instead listen for image frames from
+    *   a shared memory queue.
+    *   It then calls `Desktop.cast()`, which starts the casting process in the background.
+    *   This process creates the shared memory queue and waits for data to be placed into it.
+
+2.  **The Web Server**:
+    *   The script starts a `nicegui` web server using a secure HTTPS connection (SSL/TLS).
+    *   This is a mandatory requirement for modern browsers to grant access to a device's camera.
+    *   The server hosts two main pages.
+
+3.  **The Landing Page (`@ui.page('/')`)**:
+    *   This is the entry point for the user.
+    *   It generates and displays a QR code that contains the URL to the stream page (`https://<server_ip>:4443/stream`).
+    *   A user on a computer can access this page and then simply scan the QR code with their mobile phone to connect,
+    *   eliminating the need to type a complex URL.
+
+4.  **The Stream Page (`@ui.page('/stream')`)**:
+    *   This page is loaded on the mobile device. It contains client-side JavaScript that performs the following actions:
+        *   **Camera Access**: It requests permission to use the phone's camera via the browser's
+        *   `navigator.mediaDevices.getUserMedia` API.
+        *   **WebSocket Connection**: It establishes a secure WebSocket (`wss://`) connection to the server's `/mobile`
+        *   endpoint. This connection is persistent and allows for two-way communication. It also includes logic to
+        *   handle automatically reconnect if the connection is lost.
+        *   **Streaming**: It sets up an interval (running approximately 10 times per second). In each interval, it:
+            1.  Captures the current frame from the video feed.
+            2.  Draws it onto a hidden HTML `<canvas>`.
+            3.  Encodes the canvas image as a Base64 string (in JPEG format).
+            4.  Sends this string over the WebSocket to the Python server.
+        *   **UI**: It displays the live camera feed and a blinking "Streaming..." indicator, which the user can tap to
+        *   pause or resume the stream.
+
+5.  **The WebSocket Endpoint (`@app.websocket('/mobile')`)**:
+    *   This is the server-side component that handles the data coming from the mobile browser.
+    *   It accepts the WebSocket connection.
+    *   It enters a loop, continuously waiting to receive text data (the Base64 image string) from the client.
+    *   For each message received, it:
+        1.  Decodes the Base64 string back into image bytes.
+        2.  Uses the Pillow (`PIL`) library to open these bytes as an image.
+        3.  Converts the image into a NumPy array, a standard format for video processing in Python.
+        4.  Puts this NumPy frame into the shared memory queue that the `CASTDesktop` process is listening on.
+
+
+### Summary
+
+In essence, this file creates a bridge between a mobile phone's camera and the main application's casting engine.
+The mobile browser does the work of capturing and sending frames, while this Python script acts as the receiver,
+decoding the frames and feeding them into the WLEDVideoSync pipeline. This allows the mobile camera to be treated just
+like any other video source, such as a desktop capture or a video file.
+
+
+"""
+
 from nicegui import ui, app
 from PIL import Image
 from io import BytesIO
@@ -9,16 +77,6 @@ import base64
 import qrcode
 import numpy as np
 
-# instantiate
-Desktop = desktop.CASTDesktop()
-# params
-Desktop.stopcast = False
-Desktop.host = '192.168.1.125'
-Desktop.wled = False
-Desktop.viinput = 'queue'
-cert_file = r'C:\Users\zak-4\PycharmProjects\WLEDVideoSync\xtra\cert\cert.pem'
-key_file = r'C:\Users\zak-4\PycharmProjects\WLEDVideoSync\xtra\cert\key.pem'
-stream_url = 'https://192.168.1.32:4443/stream'
 
 @ui.page('/')
 def index():
@@ -28,7 +86,7 @@ def index():
         qr_buf = BytesIO()
         qr.save(qr_buf, format='PNG')
         qr_b64 = base64.b64encode(qr_buf.getvalue()).decode()
-        ui.label('📱 Scan to join stream:').classes('self-center')
+        ui.label('📱 Scan to join WLEDVideoSync stream:').classes('self-center')
         ui.image(f'data:image/png;base64,{qr_b64}').style('width: 100px; height: 100px; border: 1px solid #ccc;') \
             .classes('self-center')
         ui.link('Open stream', stream_url, new_tab=True).classes('self-center')
@@ -172,16 +230,29 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def main():
+def main(port: int = 4443, cert: str = '../../xtra/cert/cert.pem', key: str = '../../xtra/cert/key.pem'):
     ui.run(
-        port=4443,
-        ssl_certfile=cert_file,
-        ssl_keyfile=key_file,
+        port=port,
+        ssl_certfile=cert,
+        ssl_keyfile=key,
         reload=False
     )
 
 if __name__ == "__main__":
+    # Configuration could be loaded from a file or command-line args here
+    # instantiate
+    Desktop = desktop.CASTDesktop()
+    # params
+    Desktop.stopcast = False
+    Desktop.host = '192.168.1.125'
+    Desktop.wled = True
+    Desktop.viinput = 'queue'
+    server_port = 4443
+    # cert_file_path = '../../xtra/cert/cert.pem'
+    # key_file_path = '../../xtra/cert/key.pem'
+    my_ip = Utils.get_local_ip_address()
+    stream_url = f'https://{my_ip}:{server_port}/stream'
     # init cast
     my_sl = Desktop.cast()
     # run app
-    main()
+    main(port=server_port)
