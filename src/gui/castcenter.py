@@ -332,7 +332,7 @@ class CastCenter:
                         capture_cast = ui.button(icon='cast').classes('m-4')
                         capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
                         mobile_cast = ui.button(icon='mobile_screen_share').classes('m-4')
-                        mobile_cast.on('click', lambda : self.cast_class(self.Media, 'Mobile'))
+                        mobile_cast.on('click', lambda : Utils.run_mobile_cast())
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 

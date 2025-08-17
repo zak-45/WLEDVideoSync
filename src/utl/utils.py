@@ -124,6 +124,29 @@ class CASTUtils:
         pass
 
     @staticmethod
+    async def run_mobile_cast(msg: str = '', msg_type: str = 'info'):
+        """
+        Launches the mobile camera server in a separate, isolated process.
+
+        This is the recommended way to run a secondary service from a compiled Nuitka
+        executable. It re-launches the main executable (`sys.executable`) with a special
+        command-line flag (`--run-mobile-server`) that tells it to start the mobile
+        server instead of the main GUI.
+        """
+        executable_path = sys.executable  # This correctly points to the running executable
+        try:
+            utils_logger.info(f"Launching mobile server via subprocess: {executable_path} --run-mobile-server")
+            # Use Popen for a non-blocking call to start the server process
+            if CASTUtils.test_compiled():
+                subprocess.Popen([executable_path, '--run-mobile-server'])
+            else:
+                subprocess.Popen([executable_path, f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}', '--run-mobile-server'])
+
+            utils_logger.info("Mobile server process started.")
+        except Exception as e:
+            utils_logger.error(f'Error launching mobile server subprocess: {e}', exc_info=True)
+
+    @staticmethod
     def get_local_ip_address(remote_server="192.0.2.1"):
         """Returns the local IP address
 

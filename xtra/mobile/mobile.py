@@ -77,19 +77,24 @@ import base64
 import qrcode
 import numpy as np
 
+# Global placeholders to be set by the start_server function.
+# This is a common pattern for web frameworks where route handlers are defined at the module level.
+_stream_url = ''
+_my_sl = None
 
 @ui.page('/')
 def index():
     with ui.column().classes('self-center'):
         # Generate QR code as image
-        qr = qrcode.make(stream_url)
+        qr = qrcode.make(_stream_url)
         qr_buf = BytesIO()
         qr.save(qr_buf, format='PNG')
         qr_b64 = base64.b64encode(qr_buf.getvalue()).decode()
         ui.label('📱 Scan to join WLEDVideoSync stream:').classes('self-center')
         ui.image(f'data:image/png;base64,{qr_b64}').style('width: 100px; height: 100px; border: 1px solid #ccc;') \
             .classes('self-center')
-        ui.link('Open stream', stream_url, new_tab=True).classes('self-center')
+        ui.link('Open stream', _stream_url, new_tab=True).classes('self-center')
+        ui.button('Shutdown', on_click=app.shutdown).classes('self-center')
 
 # JavaScript to capture webcam frames and send via WebSocket
 @ui.page('/stream')
@@ -199,7 +204,7 @@ def stream():
 @app.websocket('/mobile')
 async def websocket_mobile_endpoint(websocket: WebSocket):
     # retrieve shared memory and cast info
-    sl, w, h = Utils.attach_to_manager_queue(f'{my_sl.name}_q')
+    sl, w, h = Utils.attach_to_manager_queue(f'{_my_sl.name}_q')
 
     # accept connection from mobile
     try:
@@ -230,29 +235,41 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def main(port: int = 4443, cert: str = '../../xtra/cert/cert.pem', key: str = '../../xtra/cert/key.pem'):
+def start_server(shared_list, ip_address: str, port: int, cert_path: str, key_path: str):
+    """
+    Configures and starts the mobile streaming server.
+
+    This function sets the necessary global variables for the UI pages and WebSocket
+    endpoint, then launches the secure NiceGUI web server.
+
+    Args:
+        shared_list: The shared list instance from the casting process.
+        ip_address (str): The local IP address of the server.
+        port (int): The port to run the server on.
+        cert_path (str): The file path to the SSL certificate.
+        key_path (str): The file path to the SSL private key.
+    """
+    global _stream_url, _my_sl
+    _stream_url = f'https://{ip_address}:{port}/stream'
+    _my_sl = shared_list
+
     ui.run(
         port=port,
-        ssl_certfile=cert,
-        ssl_keyfile=key,
+        native=False,
+        ssl_certfile=cert_path,
+        ssl_keyfile=key_path,
         reload=False
     )
 
+
 if __name__ == "__main__":
-    # Configuration could be loaded from a file or command-line args here
-    # instantiate
+    # This block is for direct execution of this script (for testing/development)
+    # It is NOT used when launched from the main WLEDVideoSync application.
     Desktop = desktop.CASTDesktop()
-    # params
-    Desktop.stopcast = False
-    Desktop.host = '192.168.1.125'
-    Desktop.wled = True
     Desktop.viinput = 'queue'
-    server_port = 4443
-    # cert_file_path = '../../xtra/cert/cert.pem'
-    # key_file_path = '../../xtra/cert/key.pem'
+    Desktop.stopcast = False
+    Desktop.host = '127.0.0.1'
+    sl_instance = Desktop.cast()
     my_ip = Utils.get_local_ip_address()
-    stream_url = f'https://{my_ip}:{server_port}/stream'
-    # init cast
-    my_sl = Desktop.cast()
-    # run app
-    main(port=server_port)
+    # For testing, assume certs are in a relative path
+    start_server(sl_instance, my_ip, 4443, '../../xtra/cert/cert.pem', '../../xtra/cert/key.pem')

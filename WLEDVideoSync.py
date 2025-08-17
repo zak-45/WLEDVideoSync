@@ -64,6 +64,8 @@ Temporary File Handling:
 
 """
 import os
+import sys
+import multiprocessing
 
 if os.getenv('WLEDVideoSync_trace'):
     import tracetool
@@ -430,6 +432,40 @@ app.on_startup(init_actions)
 
 # do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 if __name__ == "__main__":
+    # This is required for multiprocessing to work correctly in a frozen (Nuitka) app.
+    multiprocessing.freeze_support()
+
+    # Check for special command-line flags to run in a different mode.
+    # This allows the compiled executable to spawn itself to run background services.
+    if '--run-mobile-server' in sys.argv:
+        # This block is executed ONLY when the app is launched as a child process
+        # with the specific purpose of running the mobile camera server.
+
+        # 1. Initialize the desktop cast to create and listen on a shared memory queue.
+        from src.cst import desktop
+        Desktop = desktop.CASTDesktop()
+        Desktop.viinput = 'queue'
+        Desktop.stopcast = False
+        shared_list_instance = Desktop.cast() # This creates the shared list and returns the handle
+
+        # 2. Get necessary info for the mobile server.
+        server_port = 4443  # Port for the mobile server, could be made configurable.
+        local_ip = Utils.get_local_ip_address()
+
+        # 3. Define paths to the bundled SSL certificates.
+        cert_file = cfg_mgr.app_root_path('xtra/cert/cert.pem')
+        key_file = cfg_mgr.app_root_path('xtra/cert/key.pem')
+
+        # 4. Add the mobile script's directory to the Python path to make it importable.
+        sys.path.insert(0, cfg_mgr.app_root_path('xtra/mobile'))
+        import mobile
+
+        # 5. Start the mobile server. This is a blocking call.
+        mobile.start_server(shared_list_instance, local_ip, server_port, cert_file, key_file)
+        sys.exit(0) # Exit cleanly when the server stops.
+
+    # --- Main Application Flow (if no special flags were found) ---
+
     # instruct user to go to WLEDVideoSync folder to execute program and exit
     # We check if executed from compressed version (linux & win)
     if "NUITKA_ONEFILE_PARENT" in os.environ:
