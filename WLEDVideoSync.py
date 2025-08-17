@@ -420,6 +420,7 @@ def run_gui():
 MAIN Logic 
 """
 
+
 # app settings set here to avoid problem with native if used, see: https://github.com/zauberzeug/nicegui/pull/4627
 app.openapi = custom_openapi
 app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
@@ -446,15 +447,19 @@ if __name__ == "__main__":
         Desktop = desktop.CASTDesktop()
         Desktop.viinput = 'queue'
         Desktop.stopcast = False
+        Desktop.host = sys.argv[2] # host IP, come from Media param
+        Desktop.wled = sys.argv[3] == 'True' # come from Media param
         shared_list_instance = Desktop.cast() # This creates the shared list and returns the handle
 
         # 2. Get necessary info for the mobile server.
-        server_port = 4443  # Port for the mobile server, could be made configurable.
+        server_port = int(cfg_mgr.app_config['ssl_port'])  # Port for the mobile server, configurable.
         local_ip = Utils.get_local_ip_address()
 
         # 3. Define paths to the bundled SSL certificates.
-        cert_file = cfg_mgr.app_root_path('xtra/cert/cert.pem')
-        key_file = cfg_mgr.app_root_path('xtra/cert/key.pem')
+        cert_file = cfg_mgr.app_config['ssl_cert_file']
+        cert_file = cfg_mgr.app_root_path(cert_file)
+        key_file = cfg_mgr.app_config['ssl_key_file']
+        key_file = cfg_mgr.app_root_path(key_file)
 
         # 4. Add the mobile script's directory to the Python path to make it importable.
         sys.path.insert(0, cfg_mgr.app_root_path('xtra/mobile'))

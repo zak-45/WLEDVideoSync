@@ -255,7 +255,6 @@ def start_server(shared_list, ip_address: str, port: int, cert_path: str, key_pa
 
     ui.run(
         port=port,
-        native=False,
         ssl_certfile=cert_path,
         ssl_keyfile=key_path,
         reload=False

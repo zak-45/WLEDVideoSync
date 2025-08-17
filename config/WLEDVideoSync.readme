@@ -66,6 +66,9 @@
 #                   and metrics associated with this font
 # keyboard      : fr, for azerty keyboard (see coldtype)
 # py_editor     : notepad, editor to open from coldtype preview window
+# ssl_port      : 4443, port number for https access (mobile server)
+# ssl_cert_file : xtra/cert/cert.pem, path to certificate file 'relative to installed folder'
+# ssl_key_file  : xtra/cert/key.pem, path to key file 'relative to installed folder'
 
 [app]
 
