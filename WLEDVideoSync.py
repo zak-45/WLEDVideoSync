@@ -444,11 +444,18 @@ if __name__ == "__main__":
 
         # 1. Initialize the desktop cast to create and listen on a shared memory queue.
         from src.cst import desktop
+        from src.utl.utils import CASTUtils as Utils
+
         Desktop = desktop.CASTDesktop()
         Desktop.viinput = 'queue'
         Desktop.stopcast = False
-        Desktop.host = sys.argv[2] # host IP, come from Media param
-        Desktop.wled = sys.argv[3] == 'True' # come from Media param
+
+        print(sys.argv)
+
+        if not Utils.test_compiled():
+            Desktop.host = sys.argv[2] # host IP, come from CastCenter Media param
+            Desktop.wled = sys.argv[3] == 'True' # come from CastCenter Media param
+
         shared_list_instance = Desktop.cast() # This creates the shared list and returns the handle
 
         # 2. Get necessary info for the mobile server.
