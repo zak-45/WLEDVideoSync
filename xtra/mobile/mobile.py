@@ -253,12 +253,15 @@ def start_server(shared_list, ip_address: str, port: int, cert_path: str, key_pa
     _stream_url = f'https://{ip_address}:{port}/stream'
     _my_sl = shared_list
 
-    ui.run(
-        port=port,
-        ssl_certfile=cert_path,
-        ssl_keyfile=key_path,
-        reload=False
-    )
+    try:
+        ui.run(
+            port=port,
+            ssl_certfile=cert_path,
+            ssl_keyfile=key_path,
+            reload=False
+        )
+    except Exception as e:
+        print(f'Server error: {e}')
 
 
 if __name__ == "__main__":

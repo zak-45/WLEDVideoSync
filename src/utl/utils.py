@@ -138,10 +138,7 @@ class CASTUtils:
             utils_logger.info(f"Launching mobile server via subprocess: {executable_path} --run-mobile-server")
             # Use Popen for a non-blocking call to start the server process
             if CASTUtils.test_compiled():
-                subprocess.Popen([executable_path,
-                                  '--run-mobile-server',
-                                  host,
-                                  str(wled)])
+                subprocess.Popen([executable_path, '--run-mobile-server'])
             else:
                 subprocess.Popen([executable_path, f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
                                   '--run-mobile-server',

@@ -442,39 +442,42 @@ if __name__ == "__main__":
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server.
 
-        # 1. Initialize the desktop cast to create and listen on a shared memory queue.
-        from src.cst import desktop
-        from src.utl.utils import CASTUtils as Utils
+        try:
+            # 1. Initialize the desktop cast to create and listen on a shared memory queue.
+            from src.cst import desktop
+            from src.utl.utils import CASTUtils as Utils
 
-        Desktop = desktop.CASTDesktop()
-        Desktop.viinput = 'queue'
-        Desktop.stopcast = False
+            Desktop = desktop.CASTDesktop()
+            Desktop.viinput = 'queue'
+            Desktop.stopcast = False
 
-        print(sys.argv)
+            if not Utils.test_compiled():
+                Desktop.host = sys.argv[2] # host IP, come from CastCenter Media param
+                Desktop.wled = sys.argv[3] == 'True' # come from CastCenter Media param
 
-        if not Utils.test_compiled():
-            Desktop.host = sys.argv[2] # host IP, come from CastCenter Media param
-            Desktop.wled = sys.argv[3] == 'True' # come from CastCenter Media param
+            shared_list_instance = Desktop.cast() # This creates the shared list and returns the handle
 
-        shared_list_instance = Desktop.cast() # This creates the shared list and returns the handle
+            # 2. Get necessary info for the mobile server.
+            server_port = int(cfg_mgr.app_config['ssl_port'])  # Port for the mobile server, configurable.
+            local_ip = Utils.get_local_ip_address()
 
-        # 2. Get necessary info for the mobile server.
-        server_port = int(cfg_mgr.app_config['ssl_port'])  # Port for the mobile server, configurable.
-        local_ip = Utils.get_local_ip_address()
+            # 3. Define paths to the bundled SSL certificates.
+            cert_file = cfg_mgr.app_config['ssl_cert_file']
+            cert_file = cfg_mgr.app_root_path(cert_file)
+            key_file = cfg_mgr.app_config['ssl_key_file']
+            key_file = cfg_mgr.app_root_path(key_file)
 
-        # 3. Define paths to the bundled SSL certificates.
-        cert_file = cfg_mgr.app_config['ssl_cert_file']
-        cert_file = cfg_mgr.app_root_path(cert_file)
-        key_file = cfg_mgr.app_config['ssl_key_file']
-        key_file = cfg_mgr.app_root_path(key_file)
+            # 4. Add the mobile script's directory to the Python path to make it importable.
+            sys.path.insert(0, cfg_mgr.app_root_path('xtra/mobile'))
+            import mobile
 
-        # 4. Add the mobile script's directory to the Python path to make it importable.
-        sys.path.insert(0, cfg_mgr.app_root_path('xtra/mobile'))
-        import mobile
-
-        # 5. Start the mobile server. This is a blocking call.
-        mobile.start_server(shared_list_instance, local_ip, server_port, cert_file, key_file)
-        sys.exit(0) # Exit cleanly when the server stops.
+            # 5. Start the mobile server. This is a blocking call.
+            mobile.start_server(shared_list_instance, local_ip, server_port, cert_file, key_file)
+        except Exception as e:
+            print(f'error: {e}')
+            sys.exit(1)
+        finally:
+            sys.exit(0) # Exit cleanly when the server stops.
 
     # --- Main Application Flow (if no special flags were found) ---
 
