@@ -81,6 +81,8 @@ import numpy as np
 # This is a common pattern for web frameworks where route handlers are defined at the module level.
 _stream_url = ''
 _my_sl = None
+_my_host = ''
+_my_wled = False
 
 @ui.page('/')
 def index():
@@ -235,7 +237,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def start_server(shared_list, ip_address: str, port: int, cert_path: str, key_path: str):
+def start_server(shared_list, ip_address: str, port: int, cert_path: str, key_path: str, host: str = '127.0.0.1', wled: bool = False):
     """
     Configures and starts the mobile streaming server.
 
@@ -248,10 +250,14 @@ def start_server(shared_list, ip_address: str, port: int, cert_path: str, key_pa
         port (int): The port to run the server on.
         cert_path (str): The file path to the SSL certificate.
         key_path (str): The file path to the SSL private key.
+        host (str, optional): The host to bind the server to. Defaults to '127.0.0.1'.
+        wled (str, optional): WLED device, default to False
     """
-    global _stream_url, _my_sl
+    global _stream_url, _my_sl, _my_host, _my_wled
     _stream_url = f'https://{ip_address}:{port}/stream'
     _my_sl = shared_list
+    _my_host = host
+    _my_wled = wled
 
     try:
         ui.run(
@@ -274,4 +280,4 @@ if __name__ == "__main__":
     sl_instance = Desktop.cast()
     my_ip = Utils.get_local_ip_address()
     # For testing, assume certs are in a relative path
-    start_server(sl_instance, my_ip, 4443, '../../xtra/cert/cert.pem', '../../xtra/cert/key.pem')
+    start_server(sl_instance, my_ip, 4443, 'xtra/cert/cert.pem', 'xtra/cert/key.pem')

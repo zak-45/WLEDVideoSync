@@ -467,15 +467,16 @@ if __name__ == "__main__":
             key_file = cfg_mgr.app_config['ssl_key_file']
             key_file = cfg_mgr.app_root_path(key_file)
 
-            # 4. Add the mobile script's directory to the Python path to make it importable.
-            sys.path.insert(0, cfg_mgr.app_root_path('xtra/mobile'))
-            import mobile
+            # 4. import mobile.
+            from xtra.mobile import mobile
 
             # 5. Start the mobile server. This is a blocking call.
             mobile.start_server(shared_list_instance, local_ip, server_port, cert_file, key_file)
+
         except Exception as e:
             print(f'error: {e}')
             sys.exit(1)
+
         finally:
             sys.exit(0) # Exit cleanly when the server stops.
 

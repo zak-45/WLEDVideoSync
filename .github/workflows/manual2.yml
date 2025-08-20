@@ -140,7 +140,9 @@ jobs:
         with:
           # nuitka-version: 2.6.2 or main
           nuitka-version: main
-          script-name: WLEDVideoSync.py
+          script-name: | 
+            WLEDVideoSync.py
+            mobile.py
           windows-console-mode: disable
           mode: app
           deployment: true
