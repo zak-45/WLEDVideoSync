@@ -65,6 +65,7 @@ like any other video source, such as a desktop capture or a video file.
 
 
 """
+import sys
 
 from nicegui import ui, app
 from PIL import Image
@@ -73,6 +74,7 @@ from fastapi import WebSocket
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils as ImgUtils
 from src.cst import desktop
+from configmanager import cfg_mgr
 import base64
 import qrcode
 import numpy as np
@@ -81,8 +83,6 @@ import numpy as np
 # This is a common pattern for web frameworks where route handlers are defined at the module level.
 _stream_url = ''
 _my_sl = None
-_my_host = ''
-_my_wled = False
 
 @ui.page('/')
 def index():
@@ -237,7 +237,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def start_server(shared_list, ip_address: str, port: int, cert_path: str, key_path: str, host: str = '127.0.0.1', wled: bool = False):
+def start_server(shared_list, ip_address: str):
     """
     Configures and starts the mobile streaming server.
 
@@ -247,23 +247,23 @@ def start_server(shared_list, ip_address: str, port: int, cert_path: str, key_pa
     Args:
         shared_list: The shared list instance from the casting process.
         ip_address (str): The local IP address of the server.
-        port (int): The port to run the server on.
-        cert_path (str): The file path to the SSL certificate.
-        key_path (str): The file path to the SSL private key.
-        host (str, optional): The host to bind the server to. Defaults to '127.0.0.1'.
-        wled (str, optional): WLED device, default to False
     """
-    global _stream_url, _my_sl, _my_host, _my_wled
+    global _stream_url, _my_sl
+
+    # params from config
+    port = int(cfg_mgr.app_config['ssl_port'])
+    cert = cfg_mgr.app_config['ssl_cert_file']
+    key = cfg_mgr.app_config['ssl_key_file']
+
     _stream_url = f'https://{ip_address}:{port}/stream'
     _my_sl = shared_list
-    _my_host = host
-    _my_wled = wled
 
     try:
         ui.run(
             port=port,
-            ssl_certfile=cert_path,
-            ssl_keyfile=key_path,
+            show=True,
+            ssl_certfile=cert,
+            ssl_keyfile=key,
             reload=False
         )
     except Exception as e:
@@ -271,13 +271,17 @@ def start_server(shared_list, ip_address: str, port: int, cert_path: str, key_pa
 
 
 if __name__ == "__main__":
-    # This block is for direct execution of this script (for testing/development)
-    # It is NOT used when launched from the main WLEDVideoSync application.
+    # args
+    host = sys.argv[1] if len(sys.argv) > 1 else '127.0.0.1'
+    wled = True if len(sys.argv) > 2 and sys.argv[2] == 'wled' else False
+    # cast
     Desktop = desktop.CASTDesktop()
     Desktop.viinput = 'queue'
     Desktop.stopcast = False
-    Desktop.host = '127.0.0.1'
+    Desktop.host = host
+    Desktop.wled = wled
     sl_instance = Desktop.cast()
+    # local IP
     my_ip = Utils.get_local_ip_address()
-    # For testing, assume certs are in a relative path
-    start_server(sl_instance, my_ip, 4443, 'xtra/cert/cert.pem', 'xtra/cert/key.pem')
+    # run niceGui server
+    start_server(sl_instance, my_ip)

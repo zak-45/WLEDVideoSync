@@ -451,27 +451,17 @@ if __name__ == "__main__":
             Desktop.viinput = 'queue'
             Desktop.stopcast = False
 
-            if not Utils.test_compiled():
-                Desktop.host = sys.argv[2] # host IP, come from CastCenter Media param
-                Desktop.wled = sys.argv[3] == 'True' # come from CastCenter Media param
-
             shared_list_instance = Desktop.cast() # This creates the shared list and returns the handle
 
             # 2. Get necessary info for the mobile server.
             server_port = int(cfg_mgr.app_config['ssl_port'])  # Port for the mobile server, configurable.
             local_ip = Utils.get_local_ip_address()
 
-            # 3. Define paths to the bundled SSL certificates.
-            cert_file = cfg_mgr.app_config['ssl_cert_file']
-            cert_file = cfg_mgr.app_root_path(cert_file)
-            key_file = cfg_mgr.app_config['ssl_key_file']
-            key_file = cfg_mgr.app_root_path(key_file)
+            # 3. import mobile.
+            import mobile
 
-            # 4. import mobile.
-            from xtra.mobile import mobile
-
-            # 5. Start the mobile server. This is a blocking call.
-            mobile.start_server(shared_list_instance, local_ip, server_port, cert_file, key_file)
+            # 4. Start the mobile server. This is a blocking call.
+            mobile.start_server(shared_list_instance, local_ip)
 
         except Exception as e:
             print(f'error: {e}')
