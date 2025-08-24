@@ -64,8 +64,6 @@ Temporary File Handling:
 
 """
 import os
-import sys
-import multiprocessing
 
 if os.getenv('WLEDVideoSync_trace'):
     import tracetool
@@ -256,8 +254,8 @@ def parse_native_ui_size(size_str):
         if len(size_tuple) != 2:
             raise ValueError("native_ui_size must have two comma-separated integer values.")
         return size_tuple
-    except Exception as e:
-        raise ValueError(f"Invalid native_ui_size format: {size_str}") from e
+    except Exception as er:
+        raise ValueError(f"Invalid native_ui_size format: {size_str}") from er
 
 def check_server():
     """Check and validate server IP and port configuration.
@@ -433,14 +431,18 @@ app.on_startup(init_actions)
 
 # do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 if __name__ == "__main__":
-    # This is required for multiprocessing to work correctly in a frozen (Nuitka) app.
-    multiprocessing.freeze_support()
-
     # Check for special command-line flags to run in a different mode.
-    # This allows the compiled executable to spawn itself to run background services.
     if '--run-mobile-server' in sys.argv:
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server.
+
+        # args
+        if not Utils.test_compiled():
+            host = sys.argv[2] if len(sys.argv) > 2 else '127.0.0.1'
+            wled = True if len(sys.argv) > 3 and sys.argv[3] == 'wled' else False
+        else:
+            host = sys.argv[1] if len(sys.argv) > 1 else '127.0.0.1'
+            wled = True if len(sys.argv) > 2 and sys.argv[2] == 'wled' else False
 
         try:
             # 1. Initialize the desktop cast to create and listen on a shared memory queue.
@@ -450,11 +452,12 @@ if __name__ == "__main__":
             Desktop = desktop.CASTDesktop()
             Desktop.viinput = 'queue'
             Desktop.stopcast = False
+            Desktop.host = host
+            Desktop.wled = wled
 
             shared_list_instance = Desktop.cast() # This creates the shared list and returns the handle
 
             # 2. Get necessary info for the mobile server.
-            server_port = int(cfg_mgr.app_config['ssl_port'])  # Port for the mobile server, configurable.
             local_ip = Utils.get_local_ip_address()
 
             # 3. import mobile.

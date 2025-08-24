@@ -260,6 +260,8 @@ def start_server(shared_list, ip_address: str):
 
     try:
         ui.run(
+            title=f'WLEDVideoSync - {port}',
+            favicon=cfg_mgr.app_root_path("favicon.ico"),
             port=port,
             show=True,
             ssl_certfile=cert,
