@@ -136,18 +136,19 @@ class CASTUtils:
         executable_path = sys.executable  # This correctly points to the running executable
         try:
             utils_logger.info(f"Launching mobile server via subprocess: {executable_path} --run-mobile-server")
+            wled = "wled" if wled else ""
             # Use Popen for a non-blocking call to start the server process
-            if CASTUtils.test_compiled():
-                subprocess.Popen([executable_path, '--run-mobile-server'])
+            if CASTUtils.is_compiled():
+                subprocess.Popen([executable_path, 
+                                  '--run-mobile-server', 
+                                  host, 
+                                  wled])
             else:
-                if wled:
-                    wled = "wled"
-                else:
-                    wled = ""
-                subprocess.Popen([executable_path, f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
+                subprocess.Popen([executable_path,
+                                  f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
                                   '--run-mobile-server',
                                   host,
-                                  str(wled)])
+                                  wled])
 
             utils_logger.info("Mobile server process started.")
         except Exception as er:
@@ -590,7 +591,7 @@ class CASTUtils:
             return None
 
     @staticmethod
-    def test_compiled():
+    def is_compiled():
         """Determine if the application is running as a compiled executable.
 
         Returns True if the application is running in a frozen or compiled state, otherwise False.
