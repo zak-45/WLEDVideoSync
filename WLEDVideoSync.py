@@ -236,7 +236,10 @@ def init_common(config_file):
 
     # generate self signed cert
     from src.utl.self_signed_cert import generate_self_signed_cert
-    generate_self_signed_cert('xtra/cert/cert.pem','xtra/cert/key.pem', Utils.get_local_ip_address())
+
+    generate_self_signed_cert(cfg_mgr.app_root_path('xtra/cert/cert.pem'),
+                              cfg_mgr.app_root_path('xtra/cert/key.pem'),
+                              Utils.get_local_ip_address())
 
 
 def parse_native_ui_size(size_str):
