@@ -333,6 +333,7 @@ class CastCenter:
                         capture_cast = ui.button(icon='cast').classes('m-4')
                         capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
                         mobile_cast = ui.button(icon='mobile_screen_share').classes('m-4')
+                        mobile_cast.tooltip('Mobile Cam Cast')
                         mobile_cast.on('click', lambda : Utils.run_mobile_cast(self.Media.host, self.Media.wled))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
@@ -433,7 +434,11 @@ class CastCenter:
             left_drawer.hide()
 
             with ui.row().classes('self-center'):
-                ui.icon('video_settings', size='xl')
+                with ui.icon('video_settings', size='xl') as screen:
+                    screen.style('cursor: pointer')
+                    screen.tooltip('click to toggle FullScreen')
+                    fullscreen = ui.fullscreen()
+                    screen.on('click',fullscreen.toggle)
                 ui.label('SETTINGS')
             ui.separator().props(add='size=8px')
 
