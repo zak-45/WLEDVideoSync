@@ -445,12 +445,8 @@ if __name__ == "__main__":
         # with the specific purpose of running the mobile camera server.
 
         # args
-        if not Utils.test_compiled():
-            host = sys.argv[2] if len(sys.argv) > 2 else '127.0.0.1'
-            wled = True if len(sys.argv) > 3 and sys.argv[3] == 'wled' else False
-        else:
-            host = sys.argv[1] if len(sys.argv) > 1 else '127.0.0.1'
-            wled = True if len(sys.argv) > 2 and sys.argv[2] == 'wled' else False
+        host = sys.argv[2] if len(sys.argv) > 2 else '127.0.0.1'
+        wled = True if len(sys.argv) > 3 and sys.argv[3] == 'wled' else False
 
         try:
             # 1. Initialize the desktop cast to create and listen on a shared memory queue.

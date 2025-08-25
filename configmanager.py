@@ -463,5 +463,5 @@ class LoggerManager:
 # Create a single, shared instance of the ConfigManager
 # This code runs only ONCE when the module is first imported.
 cfg_mgr = ConfigManager()
-# --- End of addition ---
 WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
+# --- End of addition ---
