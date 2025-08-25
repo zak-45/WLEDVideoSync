@@ -18,7 +18,7 @@ WLEDVideoSync is a tool designed to send video content to Net LED Matrix devices
 - Multicast feature: aggregate multiple DDP devices to a big, BIG one
 - Support for various video sources: image, video or WebUrl (even Youtube)
 - Support for desktop / desktop area, window content, multiple monitors(2)
-- Mobile Camera: no third party app required, should work on iOS & Android
+- Stream from Mobile Camera: no third party app required, should work on iOS & Android
 - Customizable LED effects
 - API to integrate with third party application
 - Python Scripting
