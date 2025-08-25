@@ -45,12 +45,21 @@ class CV2Utils:
 
     @staticmethod
     def send_to_queue(frame, sl, w, h):
+        """Resizes a frame and adds it to a shared memory queue.
 
-        frame = CV2Utils.resize_image(frame, w, h, keep_ratio=False)
-        frame = CV2Utils.frame_add_one(frame)
+        This method prepares a frame for inter-process communication by resizing it, applying a workaround for ShareableList,
+        and storing it along with a timestamp in the provided shared list.
+        """
 
-        sl[0] = frame
-        sl[1] = time.time()
+        try:
+            frame = CV2Utils.resize_image(frame, w, h, keep_ratio=False)
+            frame = CV2Utils.frame_add_one(frame)
+
+            sl[0] = frame
+            sl[1] = time.time()
+
+        except Exception as e:
+            cv2utils_logger.error(f'Error to put frame in SL queue : {str(e)}')
 
     @staticmethod
     def frame_add_one(frame):

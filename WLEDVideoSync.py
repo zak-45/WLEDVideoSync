@@ -478,51 +478,53 @@ if __name__ == "__main__":
         finally:
             sys.exit(0) # Exit cleanly when the server stops.
 
-    # --- Main Application Flow (if no special flags were found) ---
+    else:
 
-    # instruct user to go to WLEDVideoSync folder to execute program and exit
-    # We check if executed from compressed version (linux & win)
-    if "NUITKA_ONEFILE_PARENT" in os.environ:
+        # --- Main Application Flow (if no special flags were found) ---
+
+        # instruct user to go to WLEDVideoSync folder to execute program and exit
+        # We check if executed from compressed version (linux & win)
+        if "NUITKA_ONEFILE_PARENT" in os.environ:
+            """
+            When this env var exist, this mean run from the one-file compressed executable.
+            This env not exist when run from the extracted program.
+            Expected way to work.
+            """
+            init_linux_win()
+
+        elif PLATFORM == 'win32' and str2bool(cfg_mgr.app_config['win_first_run']):
+            init_linux_win()
+
+        elif PLATFORM == 'linux' and str2bool(cfg_mgr.app_config['linux_first_run']):
+            init_linux_win()
+
+        # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run only
+        # Update necessary params and exit
+        if PLATFORM == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
+            init_darwin()
+
         """
-        When this env var exist, this mean run from the one-file compressed executable.
-        This env not exist when run from the extracted program.
-        Expected way to work.
+        Windows:
+        There is a performance increase of about 5 times vs using the WindowsSelectorEventLoopPolicy and 
+        WindowsProactorEventLoopPolicy which have been known to trigger ssl problems in python 3.9. 
+        Winloop is a very good replacement for solving those ssl problems as well. 
+        This library also has comparable performance to it's brother uvloop
         """
-        init_linux_win()
+        # set winloop
+        if PLATFORM == 'win32':
+            import winloop
+            winloop.install()
 
-    elif PLATFORM == 'win32' and str2bool(cfg_mgr.app_config['win_first_run']):
-        init_linux_win()
+        """
+        Start infinite loop
+        """
 
-    elif PLATFORM == 'linux' and str2bool(cfg_mgr.app_config['linux_first_run']):
-        init_linux_win()
+        run_gui()
 
-    # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run only
-    # Update necessary params and exit
-    if PLATFORM == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
-        init_darwin()
+        """
+        STOP
+        """
 
-    """
-    Windows:
-    There is a performance increase of about 5 times vs using the WindowsSelectorEventLoopPolicy and 
-    WindowsProactorEventLoopPolicy which have been known to trigger ssl problems in python 3.9. 
-    Winloop is a very good replacement for solving those ssl problems as well. 
-    This library also has comparable performance to it's brother uvloop
-    """
-    # set winloop
-    if PLATFORM == 'win32':
-        import winloop
-        winloop.install()
+        Utils.clean_tmp()
 
-    """
-    Start infinite loop
-    """
-
-    run_gui()
-
-    """
-    STOP
-    """
-
-    Utils.clean_tmp()
-
-    main_logger.info('Application Terminated')
+        main_logger.info('Application Terminated')

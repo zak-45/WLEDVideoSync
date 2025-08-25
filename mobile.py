@@ -232,12 +232,12 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
                 ImgUtils.send_to_queue(frame, sl, w, h)
 
         except Exception as e:
-            print(f'Received WebSocket/Sl error: {e}')
+            print(f'Received WebSocket error: {e}')
             break
 
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def start_server(shared_list, ip_address: str):
+def start_server(shared_list, ip_address: str = '127.0.0.1'):
     """
     Configures and starts the mobile streaming server.
 
@@ -258,18 +258,16 @@ def start_server(shared_list, ip_address: str):
     _stream_url = f'https://{ip_address}:{port}/stream'
     _my_sl = shared_list
 
-    try:
-        ui.run(
-            title=f'WLEDVideoSync Mobile - {port}',
-            favicon=cfg_mgr.app_root_path("favicon.ico"),
-            port=port,
-            show=True,
-            ssl_certfile=cert,
-            ssl_keyfile=key,
-            reload=False
-        )
-    except Exception as e:
-        print(f'Server error: {e}')
+
+    ui.run(
+        title=f'WLEDVideoSync Mobile - {port}',
+        favicon=cfg_mgr.app_root_path("favicon.ico"),
+        port=port,
+        show=True,
+        ssl_certfile=cert,
+        ssl_keyfile=key,
+        reload=False
+    )
 
 
 if __name__ == "__main__":
