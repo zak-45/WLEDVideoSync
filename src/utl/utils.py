@@ -140,6 +140,10 @@ class CASTUtils:
             if CASTUtils.test_compiled():
                 subprocess.Popen([executable_path, '--run-mobile-server'])
             else:
+                if wled:
+                    wled = "wled"
+                else:
+                    wled = ""
                 subprocess.Popen([executable_path, f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
                                   '--run-mobile-server',
                                   host,

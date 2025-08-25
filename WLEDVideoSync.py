@@ -234,6 +234,11 @@ def init_common(config_file):
     Utils.update_ini_key(config_file, 'app', 'font_file', '')
     Utils.update_ini_key(config_file, 'custom', 'bg_image', '')
 
+    # generate self signed cert
+    from src.utl.self_signed_cert import generate_self_signed_cert
+    generate_self_signed_cert('xtra/cert/cert.pem','xtra/cert/key.pem', Utils.get_local_ip_address())
+
+
 def parse_native_ui_size(size_str):
     """Parse the native UI size string into a tuple of integers.
 

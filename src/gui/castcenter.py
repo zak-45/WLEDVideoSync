@@ -49,6 +49,7 @@ from nicegui import ui, run, app
 from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet
 from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_button, run_gif_player
 from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Animate
+from src.utl.presets import load_filter_preset
 from src.utl.utils import CASTUtils as Utils
 
 from configmanager import cfg_mgr, LoggerManager, PLATFORM
@@ -452,6 +453,7 @@ class CastCenter:
                 with ui.row():
                     await edit_rate_x_y(self.Desktop)
                     ui.label('')
+            ui.button('PRESET', on_click=lambda: load_filter_preset('Desktop', self.Desktop))
 
             ui.separator().props(add='size=8px')
             with ui.row(wrap=False):
@@ -468,6 +470,7 @@ class CastCenter:
                 with ui.row():
                     await edit_rate_x_y(self.Media)
                     ui.label('')
+            ui.button('PRESET', on_click=lambda: load_filter_preset('Media', self.Media))
 
             ui.separator().props(add='size=8px')
             with ui.row():
