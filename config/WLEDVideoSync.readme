@@ -55,6 +55,7 @@
 #                   1200,720 for example, will run it into pywebview (native OS window of 1200x720)
 #                   need to be installed: pip install pywebview
 # native_set_qt : False or True, this will force qt in linux (export PYWEBVIEW_GUI=qt)
+# fullscreen    : False or True, put app in Full Screen mode
 # fastapi_docs  : True or False, activate /docs FastApi endpoint
 #
 # font_file     : Full font path to apply to the application e.g: C:\Windows\Fonts\Absalom_.ttf

@@ -405,7 +405,8 @@ def run_gui():
            reload=False,
            native=native_ui,
            window_size=native_ui_size,
-           access_log=False)
+           access_log=False,
+           fullscreen=str2bool(cfg_mgr.app_config['fullscreen'] if cfg_mgr.app_config is not None else 'False'))
 
     """
     END
