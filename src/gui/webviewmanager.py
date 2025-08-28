@@ -58,7 +58,7 @@ class WebviewManager:
         self.webview_processes = []
 
     def open_webview(self, url: str, title: str, width: int, height: int):
-        """Open a new webview window."""
+        """Open a new process for a webview window."""
         # Create a new process and pass the parameters to it
         process = Process(target=start_webview, args=(url, title, width, height))
         process.daemon = True
@@ -66,7 +66,7 @@ class WebviewManager:
         self.webview_processes.append(process)
 
     def close_all_webviews(self):
-        """Stop all running webview windows."""
+        """Stop all running processes with webview windows."""
         for process in self.webview_processes:
             if process.is_alive():
                 process.terminate()

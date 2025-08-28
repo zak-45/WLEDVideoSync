@@ -162,6 +162,11 @@ class CustomLogger(logging.Logger):
 
     """
     def error(self, msg, *args, **kwargs):
+        """Logs an error message and displays it in a custom window.
+
+        This method overrides the standard error logging to first show the error in a separate window,
+        then logs the error using the standard logging mechanism.
+        """
         # Custom action before logging the error
         run_window_msg(str(msg), 'error')
         super().error(msg, *args, **kwargs)
@@ -178,8 +183,7 @@ class ConfigManager:
         app_config: General application configuration settings.
         color_config: Color-related configuration settings.
         custom_config: Custom configuration parameters.
-        logging_config_path: Path to the logging configuration file.
-        logger_name: Name of the logger to be used.
+        preset_config: Preset configuration settings.
 
     The configuration management supports both standard and one-file executable environments,
     ensuring flexible configuration loading and logging setup.

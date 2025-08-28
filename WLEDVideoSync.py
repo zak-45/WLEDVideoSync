@@ -438,7 +438,9 @@ app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
 app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
 app.on_startup(init_actions)
 
-# do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
+"""
+Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
+"""
 if __name__ == "__main__":
     # Check for special command-line flags to run in a different mode.
     if '--run-mobile-server' in sys.argv:
@@ -472,7 +474,7 @@ if __name__ == "__main__":
             mobile.start_server(shared_list_instance, local_ip)
 
         except Exception as e:
-            print(f'error: {e}')
+            main_logger.error(f'Error in mobile server : {e}')
             sys.exit(1)
 
         finally:

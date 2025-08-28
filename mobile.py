@@ -115,9 +115,12 @@ def stream():
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;">
         <h2>WLEDVideoSync - Mobile Webcam Stream (iOS/Android)</h2>
         <video id="video" autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
-        <div id="status-indicator" style="display: none; align-items: center; margin-top: 10px; cursor: pointer;">
-            <div id="status-dot" class="blinking-dot" style="width: 15px; height: 15px; background-color: #28a745; border-radius: 50%;"></div>
-            <span id="status-text" style="margin-left: 8px; color: #28a745; font-weight: bold;">Streaming...</span>
+        <div id="controls" style="display: flex; align-items: center; margin-top: 10px; gap: 15px;">
+            <div id="status-indicator" style="display: none; align-items: center; cursor: pointer;">
+                <div id="status-dot" class="blinking-dot" style="width: 15px; height: 15px; background-color: #28a745; border-radius: 50%;"></div>
+                <span id="status-text" style="margin-left: 8px; color: #28a745; font-weight: bold;">Streaming...</span>
+            </div>
+            <button id="switch-camera-btn" style="display: none; padding: 5px 10px; border-radius: 5px; border: 1px solid #ccc; background-color: #f0f0f0; cursor: pointer;">Switch Camera</button>
         </div>
     </div>
     <script>
@@ -125,8 +128,11 @@ def stream():
         const statusIndicator = document.getElementById('status-indicator');
         const statusDot = document.getElementById('status-dot');
         const statusText = document.getElementById('status-text');
+        const switchCameraButton = document.getElementById('switch-camera-btn');
         let socket;
         let intervalId;
+        let currentStream;
+        let currentFacingMode = 'environment'; // Start with 'environment' (rear camera)
 
         function setupWebSocket() {
             // Use wss:// for secure connections, required for getUserMedia on most browsers
@@ -189,16 +195,69 @@ def stream():
             }
         });
 
-        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-            video.srcObject = stream;
-            setupWebSocket(); // Start WebSocket connection after getting camera access
-        }).catch(error => {
-            console.error('Error accessing webcam:', error);
-            const errorDiv = document.createElement('p');
-            errorDiv.textContent = 'Error: Could not access webcam. Please check permissions.';
-            errorDiv.style.color = 'red';
-            video.parentElement.appendChild(errorDiv);
+        function stopCurrentStream() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function startVideoStream(facingMode) {
+            stopCurrentStream();
+
+            // Define a sequence of constraints to try, from most specific to most general
+            const constraintSequence = [];
+            if (facingMode) {
+                constraintSequence.push({ video: { facingMode: { exact: facingMode } } });
+                constraintSequence.push({ video: { facingMode: facingMode } });
+            }
+            constraintSequence.push({ video: true }); // Fallback to any camera
+
+            let promiseChain = Promise.reject();
+
+            constraintSequence.forEach(constraint => {
+                promiseChain = promiseChain.catch(() => {
+                    console.log('Trying constraint:', JSON.stringify(constraint));
+                    return navigator.mediaDevices.getUserMedia(constraint);
+                });
+            });
+
+            promiseChain.then(stream => {
+                currentStream = stream;
+                video.srcObject = stream;
+                switchCameraButton.style.display = 'inline-block';
+
+                // Update our state with the actual facing mode from the resulting stream
+                const videoTrack = stream.getVideoTracks()[0];
+                if (videoTrack) {
+                    const settings = videoTrack.getSettings();
+                    if (settings.facingMode) {
+                        console.log('Successfully started stream with facing mode:', settings.facingMode);
+                        currentFacingMode = settings.facingMode;
+                    }
+                }
+
+                // If WebSocket isn't set up yet, do it now.
+                if (!socket || socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+                    setupWebSocket();
+                }
+            }).catch(error => {
+                console.error('Could not access any camera:', error);
+                const errorDiv = document.createElement('p');
+                errorDiv.textContent = 'Error: Could not access webcam. Please check permissions.';
+                errorDiv.style.color = 'red';
+                video.parentElement.appendChild(errorDiv);
+                switchCameraButton.style.display = 'none';
+            });
+        }
+
+        switchCameraButton.addEventListener('click', () => {
+            // Toggle between 'user' (front) and 'environment' (rear)
+            const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+            startVideoStream(newFacingMode);
         });
+
+        // Initial call to start video with the default camera (rear)
+        startVideoStream(currentFacingMode);
     </script>
     ''')
 
