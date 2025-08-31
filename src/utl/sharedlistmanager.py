@@ -148,8 +148,8 @@ class SharedListManager:
             return None  # Return None if exist
 
         # ShareAbleList need a fixed amount of memory, size need to be calculated for max
-        # Create a (x, y, 3) array with all values set to 255 to reserve memory
-        full_array = np.full((width,height,3), 255, dtype=np.uint8)
+        # Create a (x, y, 3) array with all values set to 111 to reserve memory
+        full_array = np.full((width,height,3), 111, dtype=np.uint8)
         size = full_array.nbytes
         # to bypass ShareAbleList bug
         full_array = CV2Utils.frame_add_one(full_array)

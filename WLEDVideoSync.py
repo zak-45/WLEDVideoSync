@@ -453,14 +453,11 @@ if __name__ == "__main__":
 
         try:
             # 1. Initialize the desktop cast to create and listen on a shared memory queue.
-            from src.cst import desktop
+            from mainapp import Desktop
             from src.utl.utils import CASTUtils as Utils
 
-            Desktop = desktop.CASTDesktop()
             Desktop.viinput = 'queue'
             Desktop.stopcast = False
-            Desktop.host = host
-            Desktop.wled = wled
 
             shared_list_instance = Desktop.cast() # This creates the shared list and returns the handle
 

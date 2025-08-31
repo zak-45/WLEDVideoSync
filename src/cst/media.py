@@ -867,11 +867,11 @@ class CASTMedia:
                     #
                     if frame_count == 1:
                         media_logger.debug(f'{t_name} First frame detected for SL')
-                        # Create a (9999, 9999, 3) array with all values set to 255 to reserve memory
+                        # Create a (9999, 9999, 3) array with all values set to 111 to reserve memory
                         frame_info = frame.shape
                         frame_info_list = list(frame_info)
                         frame_info = tuple(frame_info_list)
-                        full_array = np.full(frame_info, 255, dtype=np.uint8)
+                        full_array = np.full(frame_info, 111, dtype=np.uint8)
                         # create a shared list, name is thread name + _p
                         sl_name = f'{t_name}_p'
                         try:

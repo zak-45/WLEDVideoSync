@@ -651,11 +651,11 @@ class CASTDesktop:
         """
         def create_preview_sl(i_frame, i_grid):
             i_sl = None
-            # Create a (9999, 9999, 3) array with all values set to 255 to reserve memory
+            # Create a (9999, 9999, 3) array with all values set to 111 to reserve memory
             frame_info = i_frame.shape
             frame_info_list = list(frame_info)
             frame_info = tuple(frame_info_list)
-            full_array = np.full(frame_info, 255, dtype=np.uint8)
+            full_array = np.full(frame_info, 111, dtype=np.uint8)
             # create a shared list, name is thread name + _p
             sl_name_p = f'{t_name}_p'
             try:

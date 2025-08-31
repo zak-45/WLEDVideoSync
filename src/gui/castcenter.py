@@ -332,9 +332,6 @@ class CastCenter:
                         #
                         capture_cast = ui.button(icon='cast').classes('m-4')
                         capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
-                        mobile_cast = ui.button(icon='mobile_screen_share').classes('m-4')
-                        mobile_cast.tooltip('Mobile Cam Cast')
-                        mobile_cast.on('click', lambda : Utils.run_mobile_cast(self.Media.host, self.Media.wled))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
@@ -417,6 +414,10 @@ class CastCenter:
                                              on_click=lambda: run_gif_player(self.Media.host))
                         play_gif.tooltip('Open WLED GIF Player Page')
                         play_gif.bind_visibility_from(self.Media,'wled')
+                        mobile_cast = ui.button(icon='mobile_screen_share')
+                        mobile_cast.tooltip('Mobile Cam Cast')
+                        mobile_cast.on('click', lambda : Utils.run_mobile_cast(self.Media.host, self.Media.wled))
+
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
 
