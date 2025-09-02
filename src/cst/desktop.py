@@ -267,6 +267,39 @@ class CASTDesktop:
         self.channel_offset = 0  # The channel offset within the universe. e131/artnet
         self.channels_per_pixel = 3  # Channels to use for e131/artnet
 
+    def set_from_media(self, media_obj):
+        """
+        Copies relevant attributes from a media object (like CASTMedia) to this
+        desktop casting instance.
+
+        This method automatically finds common attributes between the source and
+        destination objects by iterating through the source's instance attributes,
+        and copies their values, while respecting an explicit exclusion list to
+        avoid overwriting critical settings. This makes the process more robust
+        and maintainable.
+
+        Args:
+            media_obj: An instance of CASTMedia or a similar object.
+        """
+        # Attributes to exclude from automatic copying.
+        # - 'viinput' and 'stopcast' are intentionally set for the mobile server
+        #   before this method is called.
+        # - Buffers and other runtime state should not be copied.
+        exclusion_list = {
+            'viinput',
+            'stopcast',
+            'frame_buffer',
+            'cast_frame_buffer',
+        }
+
+        # Iterate over instance attributes of the source object (media_obj).
+        for attr in media_obj.__dict__:
+            # Copy the attribute if it's not in the exclusion list and
+            # if the destination object (self) also has it.
+            if attr not in exclusion_list and hasattr(self, attr):
+                value_to_copy = getattr(media_obj, attr)
+                setattr(self, attr, value_to_copy)
+
     def t_desktop_cast(self, shared_buffer=None, port=0):
         """
             Cast desktop screen or a window content based on the title

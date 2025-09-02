@@ -124,7 +124,7 @@ class CASTUtils:
         pass
 
     @staticmethod
-    async def run_mobile_cast(host: str = '', wled: bool = False):
+    async def run_mobile_cast(file):
         """
         Launches the mobile camera server in a separate, isolated process.
 
@@ -133,22 +133,22 @@ class CASTUtils:
         command-line flag (`--run-mobile-server`) that tells it to start the mobile
         server instead of the main GUI.
         """
+
         executable_path = sys.executable  # This correctly points to the running executable
+
         try:
             utils_logger.info(f"Launching mobile server via subprocess: {executable_path} --run-mobile-server")
-            wled = "wled" if wled else ""
+
             # Use Popen for a non-blocking call to start the server process
             if CASTUtils.is_compiled():
-                subprocess.Popen([executable_path, 
-                                  '--run-mobile-server', 
-                                  host, 
-                                  wled])
+                subprocess.Popen([executable_path,
+                                  '--run-mobile-server',
+                                  file])
             else:
                 subprocess.Popen([executable_path,
                                   f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
                                   '--run-mobile-server',
-                                  host,
-                                  wled])
+                                  file])
 
             utils_logger.info("Mobile server process started.")
         except Exception as er:

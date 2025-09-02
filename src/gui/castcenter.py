@@ -39,6 +39,7 @@ External Libraries and Modules:
 
 """
 import os
+import shelve
 
 import src.gui.tkinter_fonts
 
@@ -52,7 +53,7 @@ from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Anim
 from src.utl.presets import load_filter_preset
 from src.utl.utils import CASTUtils as Utils
 
-from configmanager import cfg_mgr, LoggerManager, PLATFORM
+from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE
 from src.utl.winutil import all_titles
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.center')
@@ -82,6 +83,11 @@ class CastCenter:
         """
         await CastCenter.validate_data(self.Media)
         await CastCenter.validate_data(self.Desktop)
+
+        # store server port info for others processes, add sc_area for macOS
+        with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
+            wled_proc_file["media"] = self.Media
+
         ui.navigate.reload()
 
     @staticmethod
@@ -416,8 +422,7 @@ class CastCenter:
                         play_gif.bind_visibility_from(self.Media,'wled')
                         mobile_cast = ui.button(icon='mobile_screen_share')
                         mobile_cast.tooltip('Mobile Cam Cast')
-                        mobile_cast.on('click', lambda : Utils.run_mobile_cast(self.Media.host, self.Media.wled))
-
+                        mobile_cast.on('click', lambda : Utils.run_mobile_cast(WLED_PID_TMP_FILE))
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
 

@@ -16,7 +16,7 @@ SharedListManager Class: This class is the core of the code, providing methods f
 
 start(): Starts the manager server, making it available for client connections.
 create_shared_list(): Creates a new shared list with a specified name, width, and height.
-    It initializes the shared memory with a numpy array filled with 255 values (white image).
+    It initializes the shared memory with a numpy array filled with 111 values (grey image).
 get_shared_lists(): Returns a list of names of the currently managed shared lists.
 get_shared_lists_info(): Returns a dictionary containing information (width and height) about each shared list.
 get_shared_list_info(): Returns the width and height of a specific shared list.

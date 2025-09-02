@@ -360,6 +360,7 @@ def run_gui():
     with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
         wled_proc_file["server_port"] = server_port
         wled_proc_file["sc_area"] = []
+        wled_proc_file["media"] = "test"
 
     """
     Pystray
@@ -448,18 +449,25 @@ if __name__ == "__main__":
         # with the specific purpose of running the mobile camera server.
 
         # args
-        host = sys.argv[2] if len(sys.argv) > 2 else '127.0.0.1'
-        wled = True if len(sys.argv) > 3 and sys.argv[3] == 'wled' else False
+        file = sys.argv[2] if len(sys.argv) > 2 else 'None'
+
+        # retrieve Media objects from other process
+        with shelve.open(file,"r") as wled_proc_file:
+            media = wled_proc_file["media"]
 
         try:
             # 1. Initialize the desktop cast to create and listen on a shared memory queue.
-            from mainapp import Desktop
+            from src.cst import desktop
             from src.utl.utils import CASTUtils as Utils
 
+            Desktop = desktop.CASTDesktop()
             Desktop.viinput = 'queue'
             Desktop.stopcast = False
 
-            shared_list_instance = Desktop.cast() # This creates the shared list and returns the handle
+            # update Desktop attributes from media
+            Desktop.set_from_media(media)
+
+            shared_list_instance = Desktop.cast()  # This creates the shared list and returns the handle
 
             # 2. Get necessary info for the mobile server.
             local_ip = Utils.get_local_ip_address()
