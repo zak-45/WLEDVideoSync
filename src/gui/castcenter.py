@@ -114,7 +114,7 @@ class CastCenter:
         """
         self.win.options = await all_titles()
         self.win.update()
-        ui.notify('Windows refresh finished')
+        ui.notify('Windows refresh finished', position='top')
 
     async def upd_devices(self):
         """Refreshes the list of available video devices and updates the user interface.
@@ -123,7 +123,7 @@ class CastCenter:
         """
         self.device.options = await Utils.video_device_list()
         self.device.update()
-        ui.notify('Device refresh finished')
+        ui.notify('Device refresh finished', position='top')
 
     async def pick_file(self):
         """ Select file to read as video """
