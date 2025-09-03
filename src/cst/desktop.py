@@ -289,7 +289,7 @@ class CASTDesktop:
             'viinput',
             'stopcast',
             'frame_buffer',
-            'cast_frame_buffer',
+            'cast_frame_buffer'
         }
 
         # Iterate over instance attributes of the source object (media_obj).

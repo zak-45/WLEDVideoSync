@@ -360,7 +360,7 @@ def run_gui():
     with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
         wled_proc_file["server_port"] = server_port
         wled_proc_file["sc_area"] = []
-        wled_proc_file["media"] = "test"
+        wled_proc_file["media"] = None
 
     """
     Pystray
@@ -452,8 +452,8 @@ if __name__ == "__main__":
         file = sys.argv[2] if len(sys.argv) > 2 else 'None'
 
         # retrieve Media objects from other process
-        with shelve.open(file,"r") as wled_proc_file:
-            media = wled_proc_file["media"]
+        with shelve.open(file,"r") as proc_file:
+            media = proc_file["media"]
 
         try:
             # 1. Initialize the desktop cast to create and listen on a shared memory queue.

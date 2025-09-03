@@ -75,6 +75,16 @@ class CastCenter:
         self.desktop_status = None
         self.media_status = None
 
+    async def run_mobile(self):
+
+        await CastCenter.validate_data(self.Media)
+        # store media obj for other process
+        with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
+            wled_proc_file["media"] = self.Media
+        # run mobile cast
+        await Utils.run_mobile_cast(WLED_PID_TMP_FILE)
+
+
     async def validate(self):
         """Validates the current casting configuration and updates the user interface.
 
@@ -421,8 +431,8 @@ class CastCenter:
                         play_gif.tooltip('Open WLED GIF Player Page')
                         play_gif.bind_visibility_from(self.Media,'wled')
                         mobile_cast = ui.button(icon='mobile_screen_share')
-                        mobile_cast.tooltip('Mobile Cam Cast')
-                        mobile_cast.on('click', lambda : Utils.run_mobile_cast(WLED_PID_TMP_FILE))
+                        mobile_cast.tooltip('Mobile Cam Media Cast')
+                        mobile_cast.on('click', lambda : self.run_mobile())
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
 
