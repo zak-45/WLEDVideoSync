@@ -1182,6 +1182,9 @@ class CASTDesktop:
                     # infinite loop for queue-ShareAbleList
                     while sl_queue:
 
+                        # Calculate the expected time for the current frame
+                        expected_time = start_time + frame_count * interval
+
                         # check to see if something to do
                         if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
                             t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = do_action()
@@ -1216,7 +1219,7 @@ class CASTDesktop:
                             # 2D array
                             if frame.nbytes > 0:
                                 # rgb
-                                frame = frame.reshape(int(t_scale_width), int(t_scale_height), 3)
+                                frame = frame.reshape(int(t_scale_height), int(t_scale_width), 3)
                                 #
                                 frame_count += 1
                                 CASTDesktop.total_frame += 1
@@ -1235,6 +1238,8 @@ class CASTDesktop:
                                                                          t_preview,
                                                                          t_todo_stop,
                                                                          i_grid=False)
+
+                        need_to_sleep()
 
                         # some sleep until next, this could add some delay to stream next available frame
                         time.sleep(0.1)

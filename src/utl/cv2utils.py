@@ -82,7 +82,7 @@ class CV2Utils:
         ShareableList bug.  It converts the byte string to a bytearray, removes the last byte, and returns the
         modified byte string.
         """
-        # remove the last byte and convert back to numpy
+        # remove the last byte
         frame = bytearray(frame)
         frame = frame[:-1]
         return bytes(frame)
@@ -228,7 +228,7 @@ class CV2Utils:
             # see https://github.com/python/cpython/issues/106939
             # shape need to be the same
             if sl_frame.nbytes == shape_bytes:
-                # we need to reshape the array to provide right dim. ( w, h, 3-->rgb)
+                # we need to reshape the array to provide right dim. ( h, w, 3-->rgb)
                 frame_to_view = sl_frame.reshape(int(sl_frame_info[0]), int(sl_frame_info[1]), int(sl_frame_info[2]))
             else:
                 # in case of any array data/size problem
