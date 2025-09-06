@@ -10,6 +10,7 @@
 
 ########################################################################################################################
 # uvicorn server
+#
 # server_port	    : 1...65536 port number , need to be free one, 'auto' to let system found a free one from 8000...
 # server_ip 	    : 0.0.0.0 server bind in all net interfaces
 #                  	    127.0.0.1 localhost only, will not allow remote access
@@ -20,11 +21,13 @@
 # workers 	        : Uvicorn also has an option to start and run several worker processes
 #                       on 03/09/2024: niceGUI do not manage it, let to 1
 # reconnect_timeout : maximum time the server waits for the browser to reconnect (default: 3.0 seconds)
+
 [server]
 
 
 ########################################################################################################################
 # app default
+#
 # mac_first_run : True, False after first time executed. used to set some params at init, mac specific.
 # win_first_run : True, False after first time executed. used to set some params at init.
 # linux_first_run : True, False after first time executed. used to set some params at init.
@@ -70,6 +73,16 @@
 # ssl_port      : 4443, port number for https access (mobile server)
 # ssl_cert_file : xtra/cert/cert.pem, path to certificate file 'relative to installed folder'
 # ssl_key_file  : xtra/cert/key.pem, path to key file 'relative to installed folder'
+# interpolation : 3, method to use for Image resizing and rescaling (from 0 to 4)
+# Method	    Description	                                                Best Used For
+#0INTER_NEAREST	Nearest-neighbor interpolation (fastest, but low quality)	Simple, fast resizing
+#                                                                           (e.g., pixel art, binary images)
+#1 INTER_LINEAR	Bilinear interpolation (default method)	                    General-purpose resizing (good balance of
+#                                                                           speed & quality)
+#2 INTER_CUBIC	Bicubic interpolation (uses 4×4 pixel neighborhood)	        High-quality upscaling, smoother results
+#3 INTER_AREA	Resampling using pixel area relation	                    Best for shrinking images (avoids aliasing)
+#INTER_LANCZOS4	Lanczos interpolation using 8×8 pixel neighborhood	        High-quality upscaling & downscaling
+#                                                                           (preserves fine details)
 
 [app]
 
@@ -78,11 +91,13 @@
 # ui.colors() color theme
 # change default colors on UI look
 # see: https://quasar.dev/style/theme-builder
+
 [colors]
 
 
 ########################################################################################################################
 # More customization
+#
 # bg_image      : background image, can be animated, relative to installed folder
 # system_stats  : display CPU and RAM usage, can be disabled to free some resources (True or False)
 # cpu_chart     : display CPU chart, can be disabled to free some resources (True or False)
@@ -96,6 +111,7 @@
 # pixel_art     : True / False, generate pixel_art on preview window, disable to free some resources
 # libgl         : True / False,  ==> LIBGL_ALWAYS_SOFTWARE=1 (True)
 #                   https://superuser.com/questions/106056/force-software-based-opengl-rendering-on-ubuntu
+
 [custom]
 
 
@@ -103,16 +119,19 @@
 # presets to load at app startup
 # file name must exist on related folder
 # in case of trouble (non exist etc ...) this will gently bypassed ....
+#
 # load_at_start  : False, True if you want to load and apply defined presets
 # filter_media   : filter preset name for Media to apply
 # filter_desktop : filter preset name for Desktop to apply
 # cast_media     : cast preset name for Media to apply
 # cast_desktop   : cast preset name for Desktop to apply
+
 [presets]
 
 
 ########################################################################################################################
 # specific to Desktop Cast
+#
 # multi_thread      :   True or False, if True will use AUTO
                     """
                     --> this is for av module
@@ -123,18 +142,22 @@
                     Decode using both FRAME and SLICE methods if True
                     """
 # capture           : av or mss  module to use for desktop capture (mainly for macOS)
+
 [desktop]
 
 
 ########################################################################################################################
 # Websocket
+#
 # allowed-actions   : list of actions executed from websocket connection, e.g.: cast_image,read_api_root...
 #                       /ws is the websocket endpoint
+
 [ws]
 
 
 ########################################################################################################################
 # TextAnimator
+#
 # font_path     : full path name of the font to load. will be take if nothing specified at class init
 #                   e.g. C:\Windows\Fonts\Isabelle.ttf
 # font_size     : size for font
@@ -148,6 +171,7 @@
 #
 # manager_ip    : 127.0.0.1, IP address for the manager server, localhost is good option
 # manager_port  : 50000 , port number, need to be changed only if you know what you do
+
 [shared-list]
 
 
@@ -161,4 +185,5 @@
 # num_workers   : 2 ,  number of workers to run in parallel, 1 minimum, max depend of your system; should be necessary
 #                   to adapt only if you have a very intensive usage of the scheduler
 # queue_size    : 20 , number of jobs that can be put in the queue at same time
+
 [scheduler]

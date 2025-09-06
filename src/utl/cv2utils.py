@@ -532,7 +532,7 @@ class CV2Utils:
         - image: Input image
         - width: Target width (optional)
         - height: Target height (optional)
-        - interpolation: Interpolation method (default: cv2.INTER_AREA)
+        - interpolation: Interpolation method (default: cv2.INTER_AREA:3)
         - keep_ratio : preserve original ratio
 
         Returns:
@@ -556,6 +556,8 @@ class CV2Utils:
 
             elif target_width is None:
                 target_width = int(target_height * aspect_ratio)
+
+        interpolation = int(cfg_mgr.app_config['interpolation'])
 
         return cv2.resize(
             image, (target_width, target_height), interpolation=interpolation
