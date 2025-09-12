@@ -454,7 +454,13 @@ class CastCenter:
                     screen.style('cursor: pointer')
                     screen.tooltip('click to toggle FullScreen')
                     fullscreen = ui.fullscreen()
-                    screen.on('click',fullscreen.toggle)
+                    #
+                    if app.native.main_window is not None:
+                        # native mode
+                        screen.on('click', app.native.main_window.toggle_fullscreen)
+                    else:
+                        # browser mode
+                        screen.on('click', fullscreen.toggle)
                 ui.label('SETTINGS')
             ui.separator().props(add='size=8px')
 
@@ -525,6 +531,6 @@ if __name__ == "__main__":
         print('main page')
         await cast_app.setup_ui()
 
-    ui.run(reload=False)
+    ui.run(reload=False, native=True)
 
     print('End cast center main')
