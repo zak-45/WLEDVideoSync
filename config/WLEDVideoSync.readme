@@ -73,7 +73,7 @@
 # ssl_port      : 4443, port number for https access (mobile server)
 # ssl_cert_file : xtra/cert/cert.pem, path to certificate file 'relative to installed folder'
 # ssl_key_file  : xtra/cert/key.pem, path to key file 'relative to installed folder'
-# interpolation : 3, method to use for Image resizing and rescaling (from 0 to 4)
+# interpolation : 0...4, method to use for Image resizing and rescaling
 # Method	    Description	                                                Best Used For
 #0INTER_NEAREST	Nearest-neighbor interpolation (fastest, but low quality)	Simple, fast resizing
 #                                                                           (e.g., pixel art, binary images)
@@ -162,6 +162,7 @@
 #                   e.g. C:\Windows\Fonts\Isabelle.ttf
 # font_size     : size for font
 #
+
 [text]
 
 

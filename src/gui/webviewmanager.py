@@ -47,6 +47,17 @@ from src.utl.utils import CASTUtils as Utils
 
 Process, Queue = Utils.mp_setup()
 
+def start_webview(url: str, title: str, width: int, height: int):
+    """Start a webview window in a separate process."""
+    webview.create_window(
+        title,
+        url=url,
+        width=width,
+        height=height,
+        resizable=True
+    )
+    webview.start()  # Starts the webview window
+
 class WebviewManager:
     """Manages multiple webview windows in separate processes.
 
@@ -76,18 +87,6 @@ class WebviewManager:
     def get_running_webviews(self):
         """Get a list of running webview processes."""
         return [process.pid for process in self.webview_processes if process.is_alive()]
-
-
-def start_webview(url: str, title: str, width: int, height: int):
-    """Start a webview window in a separate process."""
-    webview.create_window(
-        title,
-        url=url,
-        width=width,
-        height=height,
-        resizable=True
-    )
-    webview.start()  # Starts the webview window
 
 
 # Example usage of WebviewManager
