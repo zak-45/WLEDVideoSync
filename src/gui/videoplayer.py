@@ -492,9 +492,9 @@ class VideoPlayer:
                                              remove='animate__animated animate__flipOutX')
     
                     start_gif = ui.number('Start',value=0, min=0, max=self.CastAPI.video_frames, precision=0)
-                    start_gif.on('click', lambda: start_gif.set_value(self.CastAPI.current_frame))
+                    start_gif.on('dblclick', lambda: start_gif.set_value(self.CastAPI.current_frame))
                     end_gif = ui.number('End', value=self.CastAPI.video_frames, min=0, max=self.CastAPI.video_frames, precision=0)
-                    end_gif.on('click', lambda: end_gif.set_value(self.CastAPI.current_frame))
+                    end_gif.on('dblclick', lambda: end_gif.set_value(self.CastAPI.current_frame))
     
                     gen_gif = ui.button(text='GIF',icon='movie_creation', on_click=create_gif)
                     gen_gif.tooltip('Create GIF')
