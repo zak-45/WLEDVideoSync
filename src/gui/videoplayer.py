@@ -371,26 +371,30 @@ class VideoPlayer:
             gif_buttons.set_visibility(False)
     
         async def create_gif():
-            video_in = self.CastAPI.player.source
-            gen_gif.props(add='loading')
-            if self.Media.wled:
-                send_gif.disable()
-            # generate a unique name
-            # Get the current date and time
-            # current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-            gif_out = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
-            ui.notify(f'Generating GIF : {gif_out} ...')
-            await run.io_bound(lambda: CV2Utils.video_to_gif(video_in,gif_out,
-                                                             self.Media.rate,
-                                                             int(start_gif.value),
-                                                             int(end_gif.value),
-                                                             self.Media.scale_width,
-                                                             self.Media.scale_height))
-            ui.notify('GIF finished !')
-            if self.Media.wled:
-                send_gif.enable()
-                send_gif.props(remove='loading')
-            gen_gif.props(remove='loading')
+
+            if int(start_gif.value) > int(end_gif.value):
+                ui.notify('Error, start frame could not be greater than end frame', type='negative')
+            else:
+                video_in = self.CastAPI.player.source
+                gen_gif.props(add='loading')
+                if self.Media.wled:
+                    send_gif.disable()
+                # generate a unique name
+                # Get the current date and time
+                # current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+                gif_out = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
+                ui.notify(f'Generating GIF : {gif_out} ...')
+                await run.io_bound(lambda: CV2Utils.video_to_gif(video_in,gif_out,
+                                                                 self.Media.rate,
+                                                                 int(start_gif.value),
+                                                                 int(end_gif.value),
+                                                                 self.Media.scale_width,
+                                                                 self.Media.scale_height))
+                ui.notify('GIF finished !')
+                if self.Media.wled:
+                    send_gif.enable()
+                    send_gif.props(remove='loading')
+                gen_gif.props(remove='loading')
     
         async def manage_visibility(visible):
             self.CastAPI.player.set_visibility(visible)
@@ -488,8 +492,9 @@ class VideoPlayer:
                                              remove='animate__animated animate__flipOutX')
     
                     start_gif = ui.number('Start',value=0, min=0, max=self.CastAPI.video_frames, precision=0)
-                    start_gif.bind_value(self.CastAPI,'current_frame')
+                    start_gif.on('click', lambda: start_gif.set_value(self.CastAPI.current_frame))
                     end_gif = ui.number('End', value=self.CastAPI.video_frames, min=0, max=self.CastAPI.video_frames, precision=0)
+                    end_gif.on('click', lambda: end_gif.set_value(self.CastAPI.current_frame))
     
                     gen_gif = ui.button(text='GIF',icon='movie_creation', on_click=create_gif)
                     gen_gif.tooltip('Create GIF')
@@ -502,11 +507,9 @@ class VideoPlayer:
                         open_wled = ui.button('APP', icon='web', on_click=lambda: ui.navigate.to(f'http://{self.Media.host}', new_tab=True))
                         open_wled.tooltip('Open WLED Web Page')
                         open_wled.bind_visibility_from(self.CastAPI.player)
-                        #play_gif = ui.button('PLAYER', icon='web', on_click=lambda: ui.navigate.to(f'http://{self.Media.host}/gifplayer.htm', new_tab=True))
                         play_gif = ui.button('PLAYER', icon='video_library',on_click=lambda:nice.run_gif_player(self.Media.host))
                         play_gif.tooltip('Open WLED GIF Player Page')
                         play_gif.bind_visibility_from(self.CastAPI.player)
-
     
             with ui.row().classes('self-center'):
                 show_player = ui.icon('switch_video', color='blue', size='xl')
@@ -600,4 +603,3 @@ class VideoPlayer:
                                       color='indigo-2',
                                       on_click=close_gif)
                     gif_icon_2.bind_visibility_from(self.CastAPI.player)
-    
