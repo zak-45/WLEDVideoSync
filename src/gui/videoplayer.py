@@ -427,6 +427,8 @@ class VideoPlayer:
                     .bind_text_from(self.Media, 'add_all_sync_delay') \
                     .classes('self-center bg-slate-400') \
                     .bind_visibility_from(self.CastAPI.player)
+                ui.label('Frame').bind_visibility_from(self.CastAPI.player) \
+                    .bind_text_from(self.CastAPI,'current_frame')
             self.CastAPI.video_slider = ui.slider(min=0, max=7200, step=1, value=0,
                                              on_change=lambda var: self.slider_time(var.value)).props('label-always') \
                 .bind_visibility_from(self.CastAPI.player)
