@@ -990,7 +990,7 @@ class CASTDesktop:
                 if self.viinput in ['area'] or self.viinput.lower().startswith('win='):
                     t_viinput = os.getenv('DISPLAY')
 
-        win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
+        win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"[:64]
 
         # Open av input container in read mode if not SL and not mss
         if t_viinput != 'queue' and capture_methode == 'av':
