@@ -680,7 +680,7 @@ class CASTDesktop:
         """
 
         """
-        create shareable list        
+        create shareable list for preview      
         """
         def create_preview_sl(i_frame, i_grid):
             i_sl = None
@@ -881,6 +881,7 @@ class CASTDesktop:
             else:
                 sl_manager = SharedListManager()
                 sl_client = SharedListClient()
+
 
             # check server is running
             if sl_manager.is_running:
@@ -1400,7 +1401,7 @@ class CASTDesktop:
             sl_list = ast.literal_eval(sl_client.get_shared_lists())
             if len(sl_list) == 0:
                 # stop manager
-                sl_manager.stop_manager()
+                sl_manager.stop()
 
         desktop_logger.debug("_" * 50)
         desktop_logger.debug(f'Cast {t_name} end using this input: {t_viinput}')

@@ -110,7 +110,8 @@ class SharedListManager:
             except Exception as e:
                 slmanager_logger.warning(f'already running : {e}')
             finally:
-                self.is_running = True
+                if self.pid is not None:
+                    self.is_running = True
                 slmanager_logger.info(f"SharedListManager run on {self.address} with PID: {self.pid}")
 
 

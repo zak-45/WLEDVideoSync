@@ -3,7 +3,7 @@ from src.txt.textanimator import TextAnimator
 from src.utl.cv2utils import CV2Utils as ImgUtils
 from src.utl.utils import CASTUtils as Utils
 
-sl, w, h = Utils.attach_to_manager_queue('Thread-10 (t_desktop_cast)_q')
+sl, w, h = Utils.attach_to_manager_queue('Thread-12 (t_desktop_cast)_q')
 
 # Example 16: Exploding text with pre-delay
 animator = TextAnimator(
@@ -28,9 +28,9 @@ for _ in range(150):  # Adjust number of frames as needed
         if all(item is not None for item in [sl, w, h]):
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             ImgUtils.send_to_queue(frame, sl, w, h)
-        cv2.imshow("Exploding Text Animation", frame)
+        # cv2.imshow("Exploding Text Animation", frame)
         cv2.waitKey(int(1000 / animator.fps))
 
-cv2.destroyAllWindows()
+# cv2.destroyAllWindows()
 animator.stop()
 
