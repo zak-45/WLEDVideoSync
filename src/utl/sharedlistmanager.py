@@ -106,7 +106,7 @@ class SharedListManager:
             self.manager = SLManager(address=self.address, authkey=self.authkey)
             try:
                 self.manager.start()
-                self.pid = self.manager._process.pid
+                self.pid = self.get_pid()
             except Exception as e:
                 slmanager_logger.warning(f'already running : {e}')
             finally:
