@@ -47,6 +47,7 @@ import signal
 import psutil
 import numpy as np
 import time
+
 from src.utl.cv2utils import CV2Utils
 
 from configmanager import LoggerManager
@@ -94,13 +95,23 @@ class SharedListManager:
         SLManager.register("get_shared_list_info", callable=self.get_shared_list_info)
         SLManager.register("get_server_status", callable=self.get_status)
         SLManager.register("delete_shared_list", callable=self.delete_shared_list)
-        SLManager.register("stop_manager", callable=self.stop_manager)
+        SLManager.register("stop_manager", callable=self.stop)
 
-        self.manager = SLManager(address=self.address, authkey=self.authkey)
-        self.manager.start()
-        self.is_running = True
-        self.pid = self.manager._process.pid
-        slmanager_logger.info(f"SharedListManager started on {self.address} with PID: {self.pid}")
+        if self.is_running:
+            slmanager_logger.warning(f'already running with pid : {self.pid}')
+            if self.pid is None:
+                slmanager_logger.warning('probably another instance initiate it')
+                slmanager_logger.warning('use client to connect to it')
+        else:
+            self.manager = SLManager(address=self.address, authkey=self.authkey)
+            try:
+                self.manager.start()
+                self.pid = self.manager._process.pid
+            except Exception as e:
+                slmanager_logger.warning(f'already running : {e}')
+            finally:
+                self.is_running = True
+                slmanager_logger.info(f"SharedListManager run on {self.address} with PID: {self.pid}")
 
 
     def get_pid(self):
@@ -113,13 +124,14 @@ class SharedListManager:
     def get_status(self):
         return self.is_running
 
-    def stop_manager(self):
+    def stop(self):
         """Stops the SharedListManager.
 
         Cleans up shared lists, terminates the manager process, and prints status messages.
         """
 
         slmanager_logger.info("Shutting down the SharedListManager...")
+        self.is_running = False
 
         if self.manager:
             # Cleanup shared lists before shutdown
@@ -224,5 +236,5 @@ if __name__ == "__main__":
     while manager.is_alive():
         time.sleep(2)  # Check every 2 seconds
 
-    slmanager_logger.info("\nShutting down manager.")
-    manager.stop_manager()  # not necessary , but ...
+    # slmanager_logger.info("\nShutting down manager.")
+    # manager.stop()

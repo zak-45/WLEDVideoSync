@@ -154,8 +154,8 @@ class ConsoleCapture:
             while not self.log_queue.empty():
                 self.log_queue.get_nowait()
             # Consider close/join_thread if using specific multiprocessing queue types requires it
-            # self.log_queue.close()
-            # self.log_queue.join_thread()
+            self.log_queue.close()
+            self.log_queue.join_thread()
         except Exception as e:
             with contextlib.suppress(Exception):
                 self.original_stderr.write(f"ConsoleCapture: Error cleaning up queue: {e}\n")

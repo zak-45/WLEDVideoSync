@@ -83,7 +83,7 @@ class SharedListClient:
         self.manager = SLManager(address=self.address, authkey=self.authkey)
         try:
             self.manager.connect()
-            slclient_logger.info("Connected to SharedListManager.")
+            slclient_logger.info(f"Connected to SharedListManager:{self.manager.address}")
             return True
         except ConnectionRefusedError as con:
             slclient_logger.error(f'No SL manager server: {con}')
@@ -117,7 +117,10 @@ class SharedListClient:
                     slclient_logger.error(f"Error attaching to SL '{name}': {er}")
                     return None
             else:
-                slclient_logger.error(f"Failed to create SL '{name}'. Received unexpected response: {proxy_result}")
+                if proxy_result == 'None':
+                    slclient_logger.warning(f"Failed to create SL '{name}'. Already  exist.: {proxy_result}")
+                else:
+                    slclient_logger.error(f"Failed to create SL '{name}'. Received unexpected response: {proxy_result}")
                 return None
 
         except Exception as er:
@@ -147,7 +150,17 @@ class SharedListClient:
     def get_shared_list_info(self, name):
         """Retrieves size information for a specific shared list."""
         slclient_logger.info(f'Request to receive existing SL info dict for: {name}')
-        shared_list_info_proxy = self.manager.get_shared_list_info(name)
+        try:
+            shared_list_info_proxy = self.manager.get_shared_list_info(name)
+        except Exception as er:
+            # The exception from the remote manager for a missing key is not always a `KeyError`.
+            # We catch the broader `Exception` and inspect its message to provide a specific error log.
+            if isinstance(er, KeyError) or 'KeyError' in repr(er):
+                slclient_logger.error(f"SL Does not exist : {name}")
+            else:
+                slclient_logger.error(f"Error from SL manager retrieving shared list info for '{name}': {er}")
+            return None
+
         shared_list_info_str = f'{shared_list_info_proxy}'
         try:
             return ast.literal_eval(shared_list_info_str)
@@ -160,11 +173,11 @@ class SharedListClient:
         slclient_logger.info(f"Request to delete SL '{name}'.")
         self.manager.delete_shared_list(name)
 
-    def stop_server(self):
+    def stop_manager(self):
         """Requests the server to stop."""
         try:
-            self.manager.stop_manager()  # This method now shuts down the server
             slclient_logger.info("SL manager shutdown request sent.")
+            self.manager.stop_manager()  # This method now shuts down the server
         except ConnectionResetError:
             pass
         except Exception as er:
@@ -177,11 +190,11 @@ if __name__ == "__main__":
         client.connect()
         if shared_list := client.create_shared_list("mylist", 128, 128, 3):
             # List shared lists
-            slclient_logger.info("Current SLs lists:", client.get_shared_lists())
+            slclient_logger.info(f"Current SLs list: {client.get_shared_lists()}")
             # List shared lists info
-            slclient_logger.info("Current shared lists info :", client.get_shared_lists_info())
+            slclient_logger.info(f"Current shared lists info :{client.get_shared_lists_info()}")
             # List shared lists info
-            slclient_logger.info("Current shared list info for 'mylist' :", client.get_shared_list_info('mylist'))
+            slclient_logger.info(f"Current shared list info for 'mylist' : {client.get_shared_list_info('mylist')}")
             # Attach to SL
             client.attach_to_shared_list('mylist')
             slclient_logger.info("Attach to 'mylist': ok" )
@@ -199,4 +212,3 @@ if __name__ == "__main__":
 
     finally:
         slclient_logger.info("Client shutting down.")
-        # client.stop_server()

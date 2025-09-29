@@ -160,9 +160,9 @@ animator = TextAnimator(
     effect="blink", # Try also with just color_cycle, or fade
     # You can combine effects by initializing effect_params with multiple effect settings
 )
-animator.effect_params.apply(animator.init_effect_params()) # re-initialize to add color cycle
+# animator.effect_params.apply(animator.init_effect_params()) # re-initialize to add color cycle
 animator.effect = "color_cycle" # set the effect to color cycle
-animator.effect_params.apply(animator.init_effect_params()) # re-initialize to add fade
+# animator.effect_params.apply(animator.init_effect_params()) # re-initialize to add fade
 animator.effect = "fade" # set the effect to fade
 
 

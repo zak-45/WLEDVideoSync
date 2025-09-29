@@ -399,11 +399,12 @@ class CastCenter:
         with ui.card().tight().classes('self-center w-full'):
             ui.label('TEXT').classes('self-center')
             with ui.row(wrap=False).classes('w-full'):
-                card_desktop = ui.card().tight().classes('w-1/3 self-center')
-                card_desktop.set_visibility(True)
-                with card_desktop:
+                card_text = ui.card().tight().classes('w-1/3 self-center')
+                card_text.set_visibility(True)
+                with card_text:
                     txt_input = ui.input('Enter some text', placeholder='text enter').classes('w-full')
-                ui.label('select effect')
+                ui.button('Fonts')
+                ui.button('Effect')
 
         with ui.card().classes('self-center w-full'):
             ui.label('TOOLS').classes('self-center')
