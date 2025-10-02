@@ -432,7 +432,7 @@ class CastCenter:
                         play_gif.tooltip('Open WLED GIF Player Page')
                         play_gif.bind_visibility_from(self.Media,'wled')
                         mobile_cast = ui.button(icon='mobile_screen_share')
-                        mobile_cast.tooltip('Mobile Cam Media Cast')
+                        mobile_cast.tooltip('SmartPhone Camera Media Cast')
                         mobile_cast.on('click', lambda : self.run_mobile())
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
