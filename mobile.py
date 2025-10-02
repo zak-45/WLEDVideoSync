@@ -86,6 +86,12 @@ _my_sl = None
 
 @ui.page('/')
 def index():
+    """
+    Displays the landing page with a QR code for joining the WLEDVideoSync stream.
+
+    This function generates a QR code containing the stream URL and presents it along with
+    a link and shutdown button for user interaction.
+    """
     with ui.column().classes('self-center'):
         # Generate QR code as image
         qr = qrcode.make(_stream_url)
@@ -101,6 +107,12 @@ def index():
 # JavaScript to capture webcam frames and send via WebSocket
 @ui.page('/stream')
 def stream():
+    """
+    Renders the mobile streaming page for capturing and transmitting video from a phone's camera.
+
+    This function injects the necessary HTML, CSS, and JavaScript to enable live video capture,
+    camera switching, and real-time streaming to the server via WebSocket.
+    """
     ui.add_body_html('''
     <style>
         @keyframes blink {
@@ -117,10 +129,12 @@ def stream():
         <video id="video" autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
         <div id="controls" style="display: flex; align-items: center; margin-top: 10px; gap: 15px;">
             <div id="status-indicator" style="display: none; align-items: center; cursor: pointer;">
-                <div id="status-dot" class="blinking-dot" style="width: 15px; height: 15px; background-color: #28a745; border-radius: 50%;"></div>
+                <div id="status-dot" class="blinking-dot" style="width: 15px; height: 15px; background-color: #28a745; 
+                border-radius: 50%;"></div>
                 <span id="status-text" style="margin-left: 8px; color: #28a745; font-weight: bold;">Streaming...</span>
             </div>
-            <button id="switch-camera-btn" style="display: none; padding: 5px 10px; border-radius: 5px; border: 1px solid #ccc; background-color: #f0f0f0; cursor: pointer;">Switch Camera</button>
+            <button id="switch-camera-btn" style="display: none; padding: 5px 10px; border-radius: 5px; 
+            border: 1px solid #ccc; background-color: #f0f0f0; cursor: pointer;">Switch Camera</button>
         </div>
     </div>
     <script src="/assets/js/mobile.js"></script>
@@ -129,6 +143,12 @@ def stream():
 
 @app.websocket('/mobile')
 async def websocket_mobile_endpoint(websocket: WebSocket):
+    """
+    Handles incoming WebSocket connections from mobile devices streaming video frames.
+
+    This function receives base64-encoded image frames from the client, decodes and converts them
+    to NumPy arrays, and forwards them to the shared memory queue for processing by the casting engine.
+    """
     # retrieve shared memory and cast info
     sl, w, h = Utils.attach_to_manager_queue(f'{_my_sl.name}_q')
 
