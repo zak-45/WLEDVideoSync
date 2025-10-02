@@ -104,7 +104,7 @@ def index():
         ui.link('Open stream', _stream_url, new_tab=True).classes('self-center')
         ui.button('Shutdown', on_click=app.shutdown).classes('self-center')
 
-# JavaScript to capture webcam frames and send via WebSocket
+
 @ui.page('/stream')
 def stream():
     """
