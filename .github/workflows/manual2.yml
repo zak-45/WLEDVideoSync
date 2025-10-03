@@ -84,11 +84,13 @@ jobs:
           xattr -c xtra/info_window
 
       - name: MacOS specific Intel
-        if: matrix.os == 'macos-13'
+        if: matrix.os == 'macos-15-intel'
+          # brew unlink python@3.12 && brew link --overwrite python@3.12
+          # brew unlink python@3.13 && brew link --overwrite python@3.13
+          # brew cleanup
         run: |
-          brew unlink python@3.12 && brew link --overwrite python@3.12
-          brew unlink python@3.13 && brew link --overwrite python@3.13
-          brew cleanup          
+          brew update
+          brew upgrade          
           brew install portaudio
           brew reinstall libsndfile
           brew install ffmpeg
@@ -201,7 +203,7 @@ jobs:
 
       #  Use tar to preserve attribute
       - name: MacOS prepare app from Nuitka
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-latest'
         run: |
           chmod +x build/WLEDVideoSync.app/Contents/MacOS/WLEDVideoSync-${{ runner.os }}_${{ env.ARCHITECTURE }}**
           mkdir WLEDVideoSync
@@ -220,7 +222,7 @@ jobs:
           artifacts: 'build/WLEDVideoSync-${{runner.os}}_${{ env.ARCHITECTURE }}**'
 
       - name: Create Release ${{github.event.inputs.mytag}} with Builds from Nuitka for MacOS
-        if: matrix.os == 'macos-13' || matrix.os == 'macos-latest'
+        if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-latest'
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
