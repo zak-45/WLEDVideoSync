@@ -26,8 +26,8 @@ jobs:
       contents: write
     strategy:
       matrix:
-        # os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
-        os: [macos-13, macos-latest, ubuntu-latest, windows-latest]
+        # os: [macos-15-intel, macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-15-intel, macos-latest, ubuntu-latest, windows-latest]
 
     env:
       YOUTUBE_DISABLE: no
