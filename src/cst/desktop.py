@@ -117,7 +117,9 @@ import cv2
 import numpy as np
 
 from multiprocessing.shared_memory import ShareableList
+from typing import Optional
 from asyncio import run as as_run
+
 from src.utl.multicast import IPSwapper
 from src.utl.multicast import MultiUtils as Multi
 from src.net.ddp_queue import DDPDevice
@@ -126,6 +128,7 @@ from src.net.artnet_queue import ArtNetDevice
 from src.utl.winutil import get_window_rect
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
+from src.txt.textanimator import TextAnimator
 
 from src.utl.actionutils import *
 
@@ -150,6 +153,29 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     """
     if cfg_mgr.app_config is not None:
         cfg_text = str2bool(cfg_mgr.app_config['text']) is True
+
+
+def overlay_bgra_on_bgr(background_bgr, overlay_bgra):
+    """
+    Overlays a BGRA image with transparency onto a BGR image using vectorized operations.
+    """
+    h, w = background_bgr.shape[:2]
+
+    # Resize overlay to match background if needed
+    if overlay_bgra.shape[:2] != (h, w):
+        overlay_bgra = cv2.resize(overlay_bgra, (w, h))
+
+    # Extract the alpha mask of the BGRA overlay and create a 3-channel version
+    alpha = overlay_bgra[:, :, 3] / 255.0
+    alpha_3 = np.stack([alpha, alpha, alpha], axis=-1)
+
+    # Extract the BGR channels of the overlay
+    overlay_bgr = overlay_bgra[:, :, :3]
+
+    # Blend the background and overlay
+    composite = (overlay_bgr * alpha_3 + background_bgr * (1 - alpha_3)).astype(np.uint8)
+
+    return composite
 
 
 """
@@ -221,6 +247,7 @@ class CASTDesktop:
         self.preview_h: int = 360
         self.text = str2bool(cfg_mgr.app_config['text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
+        self.text_animator: Optional[TextAnimator] = None
         self.voformat: str = 'mpeg'
         self.vo_codec: str = 'h264'
         self.vooutput: str = 'udp://127.0.0.1:12345?pkt_size=1316'
@@ -299,6 +326,15 @@ class CASTDesktop:
             if attr not in exclusion_list and hasattr(self, attr):
                 value_to_copy = getattr(media_obj, attr)
                 setattr(self, attr, value_to_copy)
+
+    def update_text_animator(self, **kwargs):
+        """
+        Updates the parameters of the running TextAnimator instance in real-time.
+        """
+        if self.text_animator is not None:
+            self.text_animator.update_params(**kwargs)
+        else:
+            desktop_logger.warning("TextAnimator is not running, cannot update parameters.")
 
     def t_desktop_cast(self, shared_buffer=None, port=0):
         """
@@ -489,6 +525,18 @@ class CASTDesktop:
             # flip vertical/horizontal: 0,1
             if self.flip:
                 iframe = cv2.flip(iframe, self.flip_vh)
+
+            # Superimpose animated text if enabled
+            if self.text_animator:
+                text_overlay_bgra = self.text_animator.generate()
+                if text_overlay_bgra is not None:
+                    # Ensure iframe is BGR before overlaying
+                    if len(iframe.shape) == 2:
+                        iframe = cv2.cvtColor(iframe, cv2.COLOR_GRAY2BGR)
+                    elif iframe.shape[2] == 4:
+                        iframe = cv2.cvtColor(iframe, cv2.COLOR_BGRA2BGR)
+                    
+                    iframe = overlay_bgra_on_bgr(iframe, text_overlay_bgra)
 
             if t_multicast and (t_cast_y != 1 or t_cast_x != 1):
                 """
@@ -870,6 +918,25 @@ class CASTDesktop:
         self.scale_height = t_scale_height
 
         t_fps = self.rate
+
+        self.text_animator = None
+        if self.text:
+            text_to_display = self.custom_text if self.custom_text else "WLEDVideoSync"
+            try:
+                self.text_animator = TextAnimator(
+                    text=text_to_display,
+                    width=t_scale_width,
+                    height=t_scale_height,
+                    speed=50,
+                    direction="left",
+                    color=(255, 255, 255),  # BGR White
+                    fps=t_fps,
+                    effect="rainbow_cycle"
+                )
+                desktop_logger.info("TextAnimator initialized.")
+            except Exception as e:
+                desktop_logger.error(f"Failed to initialize TextAnimator: {e}")
+                self.text_animator = None
 
         if self.viinput == 'queue':
 
@@ -1441,6 +1508,10 @@ if __name__ == "__main__":
     test.cast()
     while True:
         time.sleep(10)
+        test.update_text_animator(text="New Text", speed=150)
+        time.sleep(5)
+        test.update_text_animator(effect="blink", speed=100)
+        time.sleep(20)
         break
     test.stopcast=True
     print('desktop cast end')

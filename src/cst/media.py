@@ -103,12 +103,14 @@ import time
 
 from asyncio import run as as_run
 from multiprocessing.shared_memory import ShareableList
+from typing import Optional
 
 from src.utl.multicast import IPSwapper
 from src.utl.multicast import MultiUtils as Multi
 from src.net.ddp_queue import DDPDevice
 from src.net.e131_queue import E131Device
 from src.net.artnet_queue import ArtNetDevice
+from src.txt.textanimator import TextAnimator
 
 from src.utl.actionutils import *
 
@@ -119,6 +121,28 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.media')
 media_logger = logger_manager.logger
 
 Process, Queue = Utils.mp_setup()
+
+def overlay_bgra_on_bgr(background_bgr, overlay_bgra):
+    """
+    Overlays a BGRA image with transparency onto a BGR image using vectorized operations.
+    """
+    h, w = background_bgr.shape[:2]
+
+    # Resize overlay to match background if needed
+    if overlay_bgra.shape[:2] != (h, w):
+        overlay_bgra = cv2.resize(overlay_bgra, (w, h))
+
+    # Extract the alpha mask of the BGRA overlay and create a 3-channel version
+    alpha = overlay_bgra[:, :, 3] / 255.0
+    alpha_3 = np.stack([alpha, alpha, alpha], axis=-1)
+
+    # Extract the BGR channels of the overlay
+    overlay_bgr = overlay_bgra[:, :, :3]
+
+    # Blend the background and overlay
+    composite = (overlay_bgr * alpha_3 + background_bgr * (1 - alpha_3)).astype(np.uint8)
+
+    return composite
 
 """
 Class definition
@@ -182,6 +206,7 @@ class CASTMedia:
         self.frame_max: int = 8
         self.text: bool = str2bool(cfg_mgr.app_config['text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
+        self.text_animator: Optional[TextAnimator] = None
         self.multicast: bool = False
         self.cast_x: int = 1
         self.cast_y: int = 1
@@ -208,6 +233,14 @@ class CASTMedia:
         self.channel_offset = 0  # The channel offset within the universe. e131/artnet
         self.channels_per_pixel = 3  # Channels to use for e131/artnet
 
+    def update_text_animator(self, **kwargs):
+        """
+        Updates the parameters of the running TextAnimator instance in real-time.
+        """
+        if self.text_animator is not None:
+            self.text_animator.update_params(**kwargs)
+        else:
+            media_logger.warning("TextAnimator is not running, cannot update parameters.")
 
     """
     Cast Thread
@@ -485,6 +518,25 @@ class CASTMedia:
             media_logger.error(f'{t_name} Rate could not be zero')
             return False
 
+        self.text_animator = None
+        if self.text:
+            text_to_display = self.custom_text if self.custom_text else "WLEDVideoSync"
+            try:
+                self.text_animator = TextAnimator(
+                    text=text_to_display,
+                    width=t_scale_width,
+                    height=t_scale_height,
+                    speed=50,
+                    direction="left",
+                    color=(255, 255, 255),  # BGR White
+                    fps=frame_interval,
+                    effect="rainbow_cycle"
+                )
+                media_logger.info("TextAnimator initialized.")
+            except Exception as e:
+                media_logger.error(f"Failed to initialize TextAnimator: {e}")
+                self.text_animator = None
+
         media_logger.info(f"{t_name} Playing media {t_viinput} of length {media_length} at {fps} FPS")
         media_logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
 
@@ -698,6 +750,18 @@ class CASTMedia:
             # flip vertical/horizontal: 0,1
             if self.flip:
                 frame = cv2.flip(frame, self.flip_vh)
+
+            # Superimpose animated text if enabled
+            if self.text_animator:
+                text_overlay_bgra = self.text_animator.generate()
+                if text_overlay_bgra is not None:
+                    # Ensure frame is BGR before overlaying
+                    if len(frame.shape) == 2:
+                        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+                    elif frame.shape[2] == 4:
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+                    
+                    frame = overlay_bgra_on_bgr(frame, text_overlay_bgra)
 
             # put frame to np buffer (so can be used after by the main)
             if self.put_to_buffer and frame_count <= self.frame_max:
@@ -1090,7 +1154,9 @@ if __name__ == "__main__":
     test.preview=True
     test.cast()
     while True:
-        time.sleep(10)
+        time.sleep(15)
+        test.update_text_animator(effect="blink")
+        time.sleep(15)
         break
     test.stopcast=True
     print('end')
