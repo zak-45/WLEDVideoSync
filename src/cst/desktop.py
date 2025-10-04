@@ -152,7 +152,7 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ:
     Retrieve  config keys
     """
     if cfg_mgr.app_config is not None:
-        cfg_text = str2bool(cfg_mgr.app_config['text']) is True
+        cfg_text = str2bool(cfg_mgr.app_config['preview_text']) is True
 
 
 def overlay_bgra_on_bgr(background_bgr, overlay_bgra):
@@ -245,7 +245,8 @@ class CASTDesktop:
         self.preview_top: bool = False
         self.preview_w: int = 640
         self.preview_h: int = 360
-        self.text = str2bool(cfg_mgr.app_config['text']) if cfg_mgr.app_config is not None else False
+        self.preview_text = str2bool(cfg_mgr.app_config['preview_text']) if cfg_mgr.app_config is not None else False
+        self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
         self.text_animator: Optional[TextAnimator] = None
         self.voformat: str = 'mpeg'
@@ -678,7 +679,7 @@ class CASTDesktop:
                     i_preview = False
                 else:
                     # Update Data on shared List
-                    self.text = sl[15] is not False
+                    self.preview_text = sl[15] is not False
                     sl[0] = CASTDesktop.total_frame
                     #
                     # append not zero value to bytes to solve ShareableList bug
@@ -691,7 +692,7 @@ class CASTDesktop:
                     sl[9] = self.pixel_w
                     sl[10] = self.pixel_h
                     sl[12] = frame_count
-                    sl[15] = self.text
+                    sl[15] = self.preview_text
 
             else:
 
@@ -699,7 +700,7 @@ class CASTDesktop:
                 if not CV2Utils.window_exists(win_name):
                     cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
 
-                i_preview, i_todo_stop, self.text = CV2Utils.cv2_display_frame(
+                i_preview, i_todo_stop, self.preview_text = CV2Utils.cv2_display_frame(
                     CASTDesktop.total_frame,
                     iframe,
                     port,
@@ -715,7 +716,7 @@ class CASTDesktop:
                     frame_count,
                     t_fps,
                     ip_addresses,
-                    self.text,
+                    self.preview_text,
                     self.custom_text,
                     self.cast_x,
                     self.cast_y,
@@ -757,7 +758,7 @@ class CASTDesktop:
                         frame_count,
                         t_fps,
                         str(ip_addresses),
-                        self.text,
+                        self.preview_text,
                         self.custom_text,
                         self.cast_x,
                         self.cast_y,
@@ -920,7 +921,7 @@ class CASTDesktop:
         t_fps = self.rate
 
         self.text_animator = None
-        if self.text:
+        if self.overlay_text:
             text_to_display = self.custom_text if self.custom_text else "WLEDVideoSync"
             try:
                 self.text_animator = TextAnimator(
@@ -1505,13 +1506,14 @@ if __name__ == "__main__":
     test.capture_methode='mss'
     test.viinput='desktop'
     test.preview=True
+    test.overlay_text = True
     test.cast()
     while True:
-        time.sleep(10)
-        test.update_text_animator(text="New Text", vertical_align="top",y_offset=-20, speed=150)
-        time.sleep(5)
-        test.update_text_animator(effect="blink",vertical_align="bottom",y_offset=-20,blink_interval=.1, speed=200)
         time.sleep(20)
+        test.update_text_animator(text="New\nText", vertical_align="top",y_offset=-20, speed=150)
+        time.sleep(10)
+        test.update_text_animator(text="Another Text",effect="blink",vertical_align="bottom",y_offset=-20,blink_interval=.1, speed=200)
+        time.sleep(10)
         break
     test.stopcast=True
     print('desktop cast end')

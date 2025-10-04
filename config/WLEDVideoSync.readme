@@ -46,7 +46,7 @@
 # keep_yt       : default to False, if True, downloaded youtube file(s) will remain on the media folder (yt-tmp-*)
 # keep_image    : default to False, if True, downloaded image file(s) will remain on the media folder (image_*_*.jpg)
 # charts_exe    : path to runcharts app file (relative to running app folder), only if you want to display nicecharts.
-# text          : display information on preview window : fps, frames, device ...
+# preview_text  : display information on preview window : fps, frames, device ...
 # preview_proc  : True or False
 #                 run preview window in sub process, need to be True on macOS/linux
 #                 False : cv2.imshow() run from the cast thread, ok for win platform
@@ -162,6 +162,7 @@
 #                   e.g. C:\Windows\Fonts\Isabelle.ttf
 # font_size     : size for font
 #
+# overlay_text  : overlay text animation on cast(s) ...
 
 [text]
 

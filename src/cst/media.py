@@ -204,7 +204,8 @@ class CASTMedia:
         self.frame_index: int = 0
         self.put_to_buffer: bool = False
         self.frame_max: int = 8
-        self.text: bool = str2bool(cfg_mgr.app_config['text']) if cfg_mgr.app_config is not None else False
+        self.preview_text: bool = str2bool(cfg_mgr.app_config['preview_text']) if cfg_mgr.app_config is not None else False
+        self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
         self.text_animator: Optional[TextAnimator] = None
         self.multicast: bool = False
@@ -519,7 +520,7 @@ class CASTMedia:
             return False
 
         self.text_animator = None
-        if self.text:
+        if self.overlay_text:
             text_to_display = self.custom_text if self.custom_text else "WLEDVideoSync"
             try:
                 self.text_animator = TextAnimator(
@@ -956,7 +957,7 @@ class CASTMedia:
                                     frame_count,
                                     frame_interval,
                                     str(ip_addresses),
-                                    self.text,
+                                    self.preview_text,
                                     self.custom_text,
                                     self.cast_x,
                                     self.cast_y,
@@ -996,7 +997,7 @@ class CASTMedia:
                                 t_todo_stop = True
                             if sl[6] is False:
                                 t_preview = False
-                            self.text = sl[15] is not False
+                            self.preview_text = sl[15] is not False
                             # Update Data on shared List
                             sl[0] = CASTMedia.total_frame
                             #
@@ -1010,7 +1011,7 @@ class CASTMedia:
                             sl[9] = self.pixel_w
                             sl[10] = self.pixel_h
                             sl[12] = frame_count
-                            sl[15] = self.text
+                            sl[15] = self.preview_text
 
                         except Exception as e:
                             media_logger.error(traceback.format_exc())
@@ -1023,7 +1024,7 @@ class CASTMedia:
                     if not CV2Utils.window_exists(window_name):
                         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
-                    t_preview, t_todo_stop, self.text = CV2Utils.cv2_display_frame(
+                    t_preview, t_todo_stop, self.preview_text = CV2Utils.cv2_display_frame(
                         CASTMedia.total_frame,
                         frame,
                         port,
@@ -1039,7 +1040,7 @@ class CASTMedia:
                         frame_count,
                         frame_interval,
                         ip_addresses,
-                        self.text,
+                        self.preview_text,
                         self.custom_text,
                         self.cast_x,
                         self.cast_y,
@@ -1152,6 +1153,7 @@ if __name__ == "__main__":
     test.stopcast = False
     test.viinput=0
     test.preview=True
+    test.overlay_text = True
     test.cast()
     while True:
         time.sleep(15)
