@@ -246,8 +246,9 @@ class CASTDesktop:
         self.preview_w: int = 640
         self.preview_h: int = 360
         self.preview_text = str2bool(cfg_mgr.app_config['preview_text']) if cfg_mgr.app_config is not None else False
-        self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
+        self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
+        self.anim_text: str = cfg_mgr.text_config['custom_text'] if cfg_mgr.text_config is not None else ""
         self.text_animator: Optional[TextAnimator] = None
         self.voformat: str = 'mpeg'
         self.vo_codec: str = 'h264'
@@ -922,7 +923,7 @@ class CASTDesktop:
 
         self.text_animator = None
         if self.overlay_text:
-            text_to_display = self.custom_text if self.custom_text else "WLEDVideoSync"
+            text_to_display = self.anim_text if self.anim_text else "WLEDVideoSync"
             try:
                 self.text_animator = TextAnimator(
                     text=text_to_display,

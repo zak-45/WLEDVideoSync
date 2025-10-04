@@ -205,8 +205,9 @@ class CASTMedia:
         self.put_to_buffer: bool = False
         self.frame_max: int = 8
         self.preview_text: bool = str2bool(cfg_mgr.app_config['preview_text']) if cfg_mgr.app_config is not None else False
-        self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
+        self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
+        self.anim_text: str = cfg_mgr.text_config['custom_text'] if cfg_mgr.text_config is not None else ""
         self.text_animator: Optional[TextAnimator] = None
         self.multicast: bool = False
         self.cast_x: int = 1
@@ -521,7 +522,7 @@ class CASTMedia:
 
         self.text_animator = None
         if self.overlay_text:
-            text_to_display = self.custom_text if self.custom_text else "WLEDVideoSync"
+            text_to_display = self.anim_text if self.anim_text else "WLEDVideoSync"
             try:
                 self.text_animator = TextAnimator(
                     text=text_to_display,

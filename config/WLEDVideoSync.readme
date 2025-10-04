@@ -161,7 +161,7 @@
 # font_path     : full path name of the font to load. will be take if nothing specified at class init
 #                   e.g. C:\Windows\Fonts\Isabelle.ttf
 # font_size     : size for font
-#
+# custom_text   : custom text to display on each cast(s)
 # overlay_text  : overlay text animation on cast(s) ...
 
 [text]
