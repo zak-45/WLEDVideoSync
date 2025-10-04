@@ -3,7 +3,7 @@ from src.txt.textanimator import TextAnimator
 from src.utl.cv2utils import CV2Utils as ImgUtils
 from src.utl.utils import CASTUtils as Utils
 
-sl, w, h = Utils.attach_to_manager_queue('Thread-12 (t_desktop_cast)_q')
+sl, w, h = Utils.attach_to_manager_queue('Thread-7 (t_desktop_cast)_q')
 
 # Example 16: Exploding text with pre-delay
 animator = TextAnimator(
@@ -11,7 +11,7 @@ animator = TextAnimator(
     width=800,
     height=320,
     speed=0,  # No scrolling for this example
-    alignment='center',
+    vertical_align='center',
     direction='up', # up or down to stay fit
     color=(38,201,38),  #
     fps=15,

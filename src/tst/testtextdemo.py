@@ -45,7 +45,7 @@ def show_animation(my_animator, num_frames=250, window_name="Animation"):
 # Common parameters for all animations
 common_params = {
     "text": "WLEDVideoSync ROCK !",
-    "width": 320,
+    "width": 640,
     "height": 320,
     "font_path": "../../assets/Font/DejaVuSansCondensed.ttf",
     "font_size": 180,
@@ -54,6 +54,20 @@ common_params = {
     "speed": 250,
     "direction": "left"
 }
+
+# 14. Explode Effect
+animator = TextAnimator(
+    **common_params,
+    effect="explode",
+    explode_speed=1,
+    explode_pre_delay=1,
+)
+animator.text = "Wled"
+animator.direction="none"
+animator.color = (0, 0, 255)
+animator.apply()
+show_animation(animator, window_name="Explode Effect", num_frames=80)
+
 
 # 1. Basic Scrolling (Left)
 animator = TextAnimator(
@@ -65,7 +79,7 @@ show_animation(animator, window_name="Scrolling Left")
 animator = TextAnimator(
     **common_params,
 )
-animator.text = "Wled"
+animator.text = "Wled\nVideo\nSync"
 animator.speed = 100
 animator.font_size=140
 animator.direction = "up"
@@ -139,17 +153,17 @@ animator = TextAnimator(
     **common_params,
     effect="explode",
     explode_speed=10,
-    explode_pre_delay=1,
+    explode_pre_delay=5,
 )
 animator.color = (0, 0, 255)
 animator.apply()
-show_animation(animator, window_name="Explode Effect", num_frames=150)
+show_animation(animator, window_name="Explode Effect", num_frames=250)
 
 
 # 17. Centered Text
 animator = TextAnimator(
     **common_params,
-    alignment="center",
+    vertical_align="center",
 )
 animator.speed = 50
 animator.color = (255, 255, 0)
@@ -159,7 +173,7 @@ show_animation(animator, window_name="Centered Text")
 # 18. Right-Aligned Text
 animator = TextAnimator(
     **common_params,
-    alignment="right",
+    vertical_align="right",
 )
 animator.speed = 40
 animator.direction = "up"

@@ -209,7 +209,7 @@ animator = TextAnimator(
     direction="left",
     color=(255, 255, 0), # Yellow text
     fps=30,
-    alignment="center" # or "right"
+    vertical_align="center" # or "right"
 )
 
 for _ in range(200):
@@ -322,7 +322,7 @@ animator = TextAnimator(
     direction="up",  # Vertical scrolling
     color=(0, 255, 255),  # Cyan
     fps=30,
-    alignment="right",
+    vertical_align="right",
 )
 
 for _ in range(300):
@@ -421,7 +421,7 @@ animator = TextAnimator(
     direction="right",
     color=(0, 0, 255),  # Blue text
     fps=30,
-    alignment='center',
+    vertical_align='center',
     font_path="../../assets/Font/DejaVuSansCondensed.ttf",  # Replace with your font path
     font_size=40,
     effect="explode",

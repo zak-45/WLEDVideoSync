@@ -90,7 +90,7 @@ def configure_animator(request: AnimatorConfigRequest):
         bg_color=request.bg_color,
         opacity=request.opacity,
         effect=request.effect,
-        alignment=request.alignment,
+        vertical_align=request.alignment,
         shadow=request.shadow,
         shadow_color=request.shadow_color,
         shadow_offset=request.shadow_offset

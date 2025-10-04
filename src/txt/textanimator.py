@@ -96,7 +96,9 @@ class TextAnimator:
         bg_color: Optional[Tuple[int, int, int]] = None,
         opacity: float = 1.0,
         effect: Optional[str] = None,
-        alignment: str = "left",
+        align: str = "center",
+        vertical_align: str = "center",
+        y_offset: int = 0,
         shadow: bool = False,
         shadow_color: Tuple[int, int, int] = (0, 0, 0),
         shadow_offset: Tuple[int, int] = (2, 2),
@@ -112,6 +114,7 @@ class TextAnimator:
         self.text_index = None
         self.text_interval = None
         self.current_frame = None # This will now store the BGRA text overlay frame
+        self.fragment_image = None # For the explode effect
         self.delta_y = None
         self.delta_x = None
         self.y_pos = None
@@ -128,7 +131,9 @@ class TextAnimator:
         self.bg_color = bg_color
         self.opacity = opacity
         self.effect = effect
-        self.alignment = alignment.lower()
+        self.align = align.lower()
+        self.vertical_align = vertical_align.lower()
+        self.y_offset = y_offset
         self.shadow = shadow
         self.shadow_color = shadow_color
         self.shadow_offset = shadow_offset
@@ -136,10 +141,10 @@ class TextAnimator:
         self.blink_interval = blink_interval
         self.color_change_interval = color_change_interval
         self.text_sequence = None  # For dynamic text
-        self.explode_pre_delay = explode_pre_delay * fps  # Delay before explosion in frames
+        self.explode_pre_delay = explode_pre_delay # Store in seconds
         self.particles = [{"position": [np.random.randint(0, self.width), np.random.randint(0, self.height)],
                         "velocity": [np.random.uniform(-1, 1), np.random.uniform(-1, 1)]} for _ in range(50)]
-        self.frame_counter = 0  # Added line
+        self.frame_counter = 0
 
         self.apply()
         
@@ -148,11 +153,6 @@ class TextAnimator:
 
 
     def apply(self):
-        """Initializes the font, effect parameters, text image, and scrolling positions.
-
-        This method prepares the TextAnimator for animation by setting up all necessary resources and state.
-        It should be called whenever parameters are updated to ensure the animation reflects the latest settings.
-        """
         # Initialize font using PIL
         self.init_font()
 
@@ -240,10 +240,13 @@ class TextAnimator:
         # Determine canvas size based on direction and text size
         if self.direction in ["left", "right"]:
             canvas_width = text_width + self.width # Ensure enough space for scrolling
-            canvas_height = max(self.height, int(text_height))  # ensure canvas height accommodates text
+            canvas_height = max(self.height, int(text_height))
         elif self.direction in ["up", "down"]:
-            canvas_width = max(self.width, int(text_width))  # ensure canvas width accommodates text
+            canvas_width = max(self.width, int(text_width))
             canvas_height = text_height + self.height # Ensure enough space for scrolling
+        elif self.direction == "none":
+            canvas_width = self.width
+            canvas_height = self.height
         else:
             text_logger.warning(f"Unknown direction '{self.direction}'. Defaulting to 'left'.")
             self.direction = "left"
@@ -274,31 +277,37 @@ class TextAnimator:
         return text_image
 
     def calculate_text_position(self, text_width, text_height, canvas_width, canvas_height):
-        """Calculates the (x, y) position of the text based on alignment and direction."""
-        if self.direction in ["left", "right"]:
-            y = (canvas_height - text_height) // 2
-            if self.alignment == "center":
-                x = (canvas_width - text_width) // 2  # Correct centering calculation
-            elif self.alignment == "right":
-                x = canvas_width - text_width  # Right-align text
-            else:  # left alignment
-                x = 0
-        elif self.direction in ["up", "down"]:
+        """Calculates the (x, y) position of the text based on alignment and offset."""
+        # Horizontal alignment
+        if self.align == "center":
             x = (canvas_width - text_width) // 2
-            if self.alignment == "center":
-                y = (canvas_height - text_height) // 2  # Correct centering calculation
-            elif self.alignment == "right":  # bottom alignment for vertical scrolling
-                y = canvas_height - text_height
-            else:  # top alignment
-                y = 0
-        else:
-            x, y = 0, 0  # default position
+        elif self.align == "right":
+            x = canvas_width - text_width
+        else:  # "left"
+            x = 0
+
+        # Vertical alignment
+        if self.vertical_align == "top":
+            y = 0
+        elif self.vertical_align == "bottom":
+            y = canvas_height - text_height
+        else:  # "center"
+            y = (canvas_height - text_height) // 2
+
+        # Apply vertical offset
+        y += self.y_offset
+
         return x, y
 
 
     def initialize_scrolling(self):
         """Initializes scrolling position and speed."""
-        if self.direction == "down":
+        if self.direction == "none":
+            self.x_pos = 0
+            self.y_pos = 0
+            self.delta_x = 0
+            self.delta_y = 0
+        elif self.direction == "down":
             self.x_pos = 0
             self.y_pos = -self.text_image.height # Start above the screen
             self.delta_x = 0
@@ -354,7 +363,7 @@ class TextAnimator:
             params["explode_counter"] = 0
             params["explode_speed"] = self.explode_speed  # Adjust explosion speed
             params["fragments"] = []  # Store exploded fragments
-            params["explode_pre_delay_frames"] = int(self.explode_pre_delay)  # pre_delay in frames
+            params["explode_pre_delay_frames"] = int(self.explode_pre_delay * self.fps)
         # Add wave effect
         elif self.effect == "wave":
             params["wave_counter"] = 0  # Start the wave effect counter
@@ -385,7 +394,8 @@ class TextAnimator:
             self.apply_color_cycle_effect()
         elif self.effect == "rainbow_cycle":
             self.apply_rainbow_cycle_effect()
-        # Explode effect is handled directly in generate() for rendering
+        elif self.effect == "explode":
+            self.apply_explode_effect()
         elif self.effect == "shake":
             self.apply_shake_effect()
         elif self.effect == "wave":
@@ -516,85 +526,63 @@ class TextAnimator:
         pass # The logic will be moved to generate() or a new rendering step
 
     def apply_explode_effect(self):
-        """Applies explode effect after a delay."""
+        """Updates fragment positions and renders them to an internal image."""
+        self.effect_params["explode_counter"] += 1
 
         if self.effect_params["explode_counter"] == self.effect_params["explode_pre_delay_frames"]:
-            self.explode_text()  # Explode after the pre-delay
-            # After explosion, the original text_image should be transparent
+            self.explode_text()
             self.text_image = Image.new("RGBA", self.text_image.size, (0, 0, 0, 0))
 
         if self.effect_params["explode_counter"] >= self.effect_params["explode_pre_delay_frames"]:
-            self.update_exploding_fragments()  # Update fragment positions only after pre-delay
+            self.fragment_image = Image.new("RGBA", (self.width, self.height))
+            
+            for fragment in self.effect_params["fragments"]:
+                fragment["position"][0] += fragment["velocity"][0]
+                fragment["position"][1] += fragment["velocity"][1]
+                fragment["velocity"][1] += 0.5  # Gravity
 
-        self.effect_params["explode_counter"] += 1
+                self.fragment_image.paste(
+                    fragment["image"],
+                    (int(fragment["position"][0]), int(fragment["position"][1])),
+                    fragment["image"]
+                )
 
     def explode_text(self):
-        """Splits text into fragments for explosion effect, adjusting for alignment."""
+        """Splits text into fragments for explosion effect using a grid-based approach."""
         self.effect_params["fragments"] = []
-        # Create a temporary image of the text for fragmentation
-        image = self.create_text_image(text=self.text, color=self.color, opacity=self.opacity, shadow=self.shadow)
-        image_width, image_height = image.size
         
-        # Calculate average character width for fragmentation
-        # This is a simplification; for precise fragmentation, each char's bbox would be needed.
-        if len(self.text) > 0:
-            char_width = image_width // len(self.text)
-        else:
-            char_width = image_width # If no text, treat whole image as one fragment
+        # Create a temporary, tightly-cropped image of the text
+        temp_image = self.create_text_image(text=self.text, color=self.color, opacity=self.opacity, shadow=self.shadow)
+        
+        # Find the bounding box of the actual text pixels to avoid empty space
+        bbox = temp_image.getbbox()
+        if not bbox:
+            return # No text to explode
+        
+        cropped_text_image = temp_image.crop(bbox)
+        cropped_np = np.array(cropped_text_image)
 
-        # Determine the starting X position for the text within its own image
-        # This is important for correctly cropping fragments if the text image has padding
-        dummy_img = Image.new("RGB", (1, 1))
-        draw = ImageDraw.Draw(dummy_img)
-        bbox = draw.textbbox((0, 0), self.text, font=self.font)
-        actual_text_start_x_in_image = bbox[0]
-        actual_text_width = bbox[2] - bbox[0]
+        # Determine the initial position of the text on the main canvas
+        text_x, text_y = self.calculate_text_position(cropped_text_image.width, cropped_text_image.height, self.width, self.height)
 
-        # Adjust char_width based on actual text width
-        if len(self.text) > 0:
-            char_width = actual_text_width // len(self.text)
-        else:
-            char_width = actual_text_width
-
-        for i, char in enumerate(self.text):
-            # Calculate fragment boundaries within the text_image
-            # We need to crop from the text_image, not the full canvas
-            fragment_left_in_image = actual_text_start_x_in_image + (i * char_width)
-            fragment_right_in_image = actual_text_start_x_in_image + ((i + 1) * char_width)
-            
-            # Ensure boundaries are within the image
-            fragment_left_in_image = max(0, fragment_left_in_image)
-            fragment_right_in_image = min(image_width, fragment_right_in_image)
-
-            if fragment_left_in_image >= fragment_right_in_image:
-                continue # Skip if fragment is empty
-
-            char_image = image.crop((fragment_left_in_image, 0, fragment_right_in_image, image_height))
-            
-            # Initial position of the fragment on the main canvas (self.width, self.height)
-            # This is where the character would have been before explosion
-            initial_x_on_canvas = self.x_pos + fragment_left_in_image
-            initial_y_on_canvas = self.y_pos # Assuming text is vertically centered or at y_pos
-
-            self.effect_params["fragments"].append(
-                {
-                    "image": char_image, # PIL Image (RGBA)
-                    "position": [float(initial_x_on_canvas), float(initial_y_on_canvas)], # Use float for sub-pixel movement
-                    "velocity": [
-                        np.random.uniform(-self.effect_params["explode_speed"], self.effect_params["explode_speed"]),
-                        np.random.uniform(-self.effect_params["explode_speed"] * 2,
-                                          self.effect_params["explode_speed"]),
-                    ],
-                }
-            )
-
-    def update_exploding_fragments(self):
-        """Updates the position of exploding fragments."""
-
-        for fragment in self.effect_params["fragments"]:
-            fragment["position"][0] += fragment["velocity"][0]
-            fragment["position"][1] += fragment["velocity"][1]
-            fragment["velocity"][1] += 0.5  # Gravity
+        # Define the size of each fragment
+        frag_size = 5 
+        
+        for y in range(0, cropped_text_image.height, frag_size):
+            for x in range(0, cropped_text_image.width, frag_size):
+                box = (x, y, x + frag_size, y + frag_size)
+                fragment_pil = cropped_text_image.crop(box)
+                
+                # Check if the fragment is not completely transparent
+                if fragment_pil.getbbox():
+                    self.effect_params["fragments"].append({
+                        "image": fragment_pil,
+                        "position": [float(text_x + x), float(text_y + y)],
+                        "velocity": [
+                            np.random.uniform(-self.explode_speed, self.explode_speed),
+                            np.random.uniform(-self.explode_speed * 2, 0) # Bias upwards
+                        ]
+                    })
 
     def generate(self) -> Optional[np.ndarray]:
         """Generates the next frame of the animation as a BGRA NumPy array.
@@ -643,120 +631,47 @@ class TextAnimator:
             # Apply effects that modify position or text_image
             self.apply_effects()
 
-        # --- Rendering the current frame state ---
-        output_frame_bgra = np.zeros((self.height, self.width, 4), dtype=np.uint8) # Transparent BGRA canvas
+        # --- Rendering Stage ---
+        
+        # Determine which PIL image to render for this frame
+        if self.effect == "explode" and self.effect_params["explode_counter"] > self.effect_params["explode_pre_delay_frames"]:
+            image_to_render_pil = self.fragment_image
+            x_offset, y_offset = 0, 0  # Fragments are pre-positioned
+        else:
+            image_to_render_pil = self.text_image
+            x_offset, y_offset = int(self.x_pos), int(self.y_pos)
 
-        if self.effect == "explode":
-            # Handle explosion rendering
-            if self.effect_params["explode_counter"] <= self.effect_params["explode_pre_delay_frames"]:
-                # Before explosion, render the original text_image
-                text_to_render_pil = self.text_image
-                x_offset = int(self.x_pos)
-                y_offset = int(self.y_pos)
-            else:
-                # After explosion, render fragments
-                for fragment in self.effect_params["fragments"]:
-                    frag_img_pil = fragment["image"] # This is RGBA PIL Image
-                    frag_np_bgra = cv2.cvtColor(np.array(frag_img_pil), cv2.COLOR_RGBA2BGRA)
-                    
-                    fx = int(fragment["position"][0])
-                    fy = int(fragment["position"][1])
-                    fw, fh = frag_np_bgra.shape[1], frag_np_bgra.shape[0]
+        # Create the final transparent canvas
+        output_frame_bgra = np.zeros((self.height, self.width, 4), dtype=np.uint8)
 
-                    # Calculate region to paste fragment onto output_frame_bgra
-                    x1 = max(0, fx)
-                    y1 = max(0, fy)
-                    x2 = min(self.width, fx + fw)
-                    y2 = min(self.height, fy + fh)
-
-                    if x1 < x2 and y1 < y2:
-                        # Calculate corresponding region in fragment image
-                        frag_x1 = x1 - fx
-                        frag_y1 = y1 - fy
-                        frag_x2 = x2 - fx
-                        frag_y2 = y2 - fy
-
-                        # Extract alpha channel from fragment
-                        alpha_frag = frag_np_bgra[frag_y1:frag_y2, frag_x1:frag_x2, 3] / 255.0
-                        alpha_frag_3_channel = cv2.merge([alpha_frag, alpha_frag, alpha_frag])
-
-                        # Extract BGR from fragment
-                        bgr_frag = frag_np_bgra[frag_y1:frag_y2, frag_x1:frag_x2, :3]
-
-                        # Extract background BGR from output_frame_bgra
-                        bgr_bg = output_frame_bgra[y1:y2, x1:x2, :3]
-
-                        # Blend BGR channels
-                        output_frame_bgra[y1:y2, x1:x2, :3] = (bgr_bg * (1 - alpha_frag_3_channel) + bgr_frag * alpha_frag_3_channel).astype(np.uint8)
-                        # Set alpha channel of output_frame_bgra to max of current alpha and fragment alpha
-                        output_frame_bgra[y1:y2, x1:x2, 3] = np.maximum(output_frame_bgra[y1:y2, x1:x2, 3], frag_np_bgra[frag_y1:frag_y2, frag_x1:frag_x2, 3])
-                
-                # No need to render text_to_render_pil if fragments are being rendered
-                text_to_render_pil = None # Ensure it's not rendered again below
-                x_offset = 0
-                y_offset = 0
-
-            if text_to_render_pil:
-                text_np_bgra = cv2.cvtColor(np.array(text_to_render_pil), cv2.COLOR_RGBA2BGRA)
-                
-                # Calculate region to paste text onto output_frame_bgra
-                x1 = max(0, x_offset)
-                y1 = max(0, y_offset)
-                x2 = min(self.width, x_offset + text_np_bgra.shape[1])
-                y2 = min(self.height, y_offset + text_np_bgra.shape[0])
-
-                if x1 < x2 and y1 < y2:
-                    # Calculate corresponding region in text image
-                    text_x1 = x1 - x_offset
-                    text_y1 = y1 - y_offset
-                    text_x2 = x2 - x_offset
-                    text_y2 = y2 - y_offset
-
-                    # Extract alpha channel from text
-                    alpha_text = text_np_bgra[text_y1:text_y2, text_x1:text_x2, 3] / 255.0
-                    alpha_text_3_channel = cv2.merge([alpha_text, alpha_text, alpha_text])
-
-                    # Extract BGR from text
-                    bgr_text = text_np_bgra[text_y1:text_y2, text_x1:text_x2, :3]
-
-                    # Extract background BGR from output_frame_bgra
-                    bgr_bg = output_frame_bgra[y1:y2, x1:x2, :3]
-
-                    # Blend BGR channels
-                    output_frame_bgra[y1:y2, x1:x2, :3] = (bgr_bg * (1 - alpha_text_3_channel) + bgr_text * alpha_text_3_channel).astype(np.uint8)
-                    # Set alpha channel of output_frame_bgra to max of current alpha and text alpha
-                    output_frame_bgra[y1:y2, x1:x2, 3] = np.maximum(output_frame_bgra[y1:y2, x1:x2, 3], text_np_bgra[text_y1:text_y2, text_x1:text_x2, 3])
-        else: # No explode effect
-            text_np_bgra = cv2.cvtColor(np.array(self.text_image), cv2.COLOR_RGBA2BGRA)
-            x_offset = int(self.x_pos)
-            y_offset = int(self.y_pos)
-
-            # Calculate region to paste text onto output_frame_bgra
+        # If there's an image to render, blend it onto the canvas
+        if image_to_render_pil:
+            text_np_bgra = cv2.cvtColor(np.array(image_to_render_pil), cv2.COLOR_RGBA2BGRA)
+            
+            # Calculate the region to paste the text onto the output frame
             x1 = max(0, x_offset)
             y1 = max(0, y_offset)
             x2 = min(self.width, x_offset + text_np_bgra.shape[1])
             y2 = min(self.height, y_offset + text_np_bgra.shape[0])
 
             if x1 < x2 and y1 < y2:
-                # Calculate corresponding region in text image
+                # Calculate the corresponding region in the text image to crop from
                 text_x1 = x1 - x_offset
                 text_y1 = y1 - y_offset
                 text_x2 = x2 - x_offset
                 text_y2 = y2 - y_offset
 
-                # Extract alpha channel from text
+                # Extract the alpha channels for blending
                 alpha_text = text_np_bgra[text_y1:text_y2, text_x1:text_x2, 3] / 255.0
                 alpha_text_3_channel = cv2.merge([alpha_text, alpha_text, alpha_text])
 
-                # Extract BGR from text
+                # Extract the BGR channels of the text and the background
                 bgr_text = text_np_bgra[text_y1:text_y2, text_x1:text_x2, :3]
-
-                # Extract background BGR from output_frame_bgra
                 bgr_bg = output_frame_bgra[y1:y2, x1:x2, :3]
 
-                # Blend BGR channels
+                # Perform the alpha blending
                 output_frame_bgra[y1:y2, x1:x2, :3] = (bgr_bg * (1 - alpha_text_3_channel) + bgr_text * alpha_text_3_channel).astype(np.uint8)
-                # Set alpha channel of output_frame_bgra to max of current alpha and text alpha
+                # Update the alpha channel of the output frame
                 output_frame_bgra[y1:y2, x1:x2, 3] = np.maximum(output_frame_bgra[y1:y2, x1:x2, 3], text_np_bgra[text_y1:text_y2, text_x1:text_x2, 3])
 
         # Apply particle effect if enabled (modifies the output_frame_bgra directly)
@@ -808,3 +723,30 @@ class TextAnimator:
         """Stops the animator."""
 
         text_logger.debug("Stopping TextAnimator")
+
+if __name__ == "__main__":
+    # Example of generating the explode effect and saving it to a video file.
+    # To run this, execute `python -m src.txt.textanimator` from the project root.
+    text_logger.info("Generating explode effect example video...")
+
+    # Create an animator instance with the explode effect
+    animator = TextAnimator(
+        text="Explosion!",
+        width=640,
+        height=360,
+        fps=30,
+        speed=0,  # Speed is not relevant for a static explosion
+        direction="none",
+        color=(255, 255, 0),  # Cyan in BGR
+        effect="explode",
+        explode_pre_delay=2.0,  # Show text for 2 seconds before exploding
+        explode_speed=10,
+        align="center",
+        vertical_align="center",
+        shadow=True
+    )
+
+    # Export the animation to a video file
+    animator.export_as_video("explode_effect_example.mp4", duration=5)
+
+    text_logger.info("Explode effect video has been saved to explode_effect_example.mp4")

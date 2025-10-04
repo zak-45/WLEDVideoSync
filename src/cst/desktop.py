@@ -1508,9 +1508,9 @@ if __name__ == "__main__":
     test.cast()
     while True:
         time.sleep(10)
-        test.update_text_animator(text="New Text", speed=150)
+        test.update_text_animator(text="New Text", vertical_align="top",y_offset=-20, speed=150)
         time.sleep(5)
-        test.update_text_animator(effect="blink", speed=100)
+        test.update_text_animator(effect="blink",vertical_align="bottom",y_offset=-20,blink_interval=.1, speed=200)
         time.sleep(20)
         break
     test.stopcast=True
