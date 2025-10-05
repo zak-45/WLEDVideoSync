@@ -103,14 +103,12 @@ import time
 
 from asyncio import run as as_run
 from multiprocessing.shared_memory import ShareableList
-from typing import Optional
 
 from src.utl.multicast import IPSwapper
 from src.utl.multicast import MultiUtils as Multi
 from src.net.ddp_queue import DDPDevice
 from src.net.e131_queue import E131Device
 from src.net.artnet_queue import ArtNetDevice
-from src.txt.textanimator import TextAnimator
 from src.utl.text_utils import TextAnimatorMixin
 
 from src.utl.actionutils import *
@@ -207,9 +205,9 @@ class CASTMedia(TextAnimatorMixin):
         self.frame_max: int = 8
         self.preview_text = str2bool(cfg_mgr.app_config['preview_text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
+        self.text_animator = None
         self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
         self.anim_text: str = cfg_mgr.text_config['custom_text'] if cfg_mgr.text_config is not None else ""
-        self.text_animator: Optional[TextAnimator] = None
         self.multicast: bool = False
         self.cast_x: int = 1
         self.cast_y: int = 1

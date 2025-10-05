@@ -117,7 +117,6 @@ import cv2
 import numpy as np
 
 from multiprocessing.shared_memory import ShareableList
-from typing import Optional
 from asyncio import run as as_run
 
 from src.utl.multicast import IPSwapper
@@ -128,7 +127,6 @@ from src.net.artnet_queue import ArtNetDevice
 from src.utl.winutil import get_window_rect
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
-from src.txt.textanimator import TextAnimator
 from src.utl.text_utils import TextAnimatorMixin
 
 from src.utl.actionutils import *
@@ -250,7 +248,7 @@ class CASTDesktop(TextAnimatorMixin):
         self.custom_text: str = ""
         self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
         self.anim_text: str = cfg_mgr.text_config['custom_text'] if cfg_mgr.text_config is not None else ""
-        self.text_animator: Optional[TextAnimator] = None
+        self.text_animator = None
         self.voformat: str = 'mpeg'
         self.vo_codec: str = 'h264'
         self.vooutput: str = 'udp://127.0.0.1:12345?pkt_size=1316'
