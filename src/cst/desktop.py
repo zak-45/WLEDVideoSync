@@ -140,20 +140,6 @@ desktop_logger = logger_manager.logger
 Process, Queue = Utils.mp_setup()
 
 """
-When this env var exist, this mean run from the one-file executable.
-Load of the config is not possible, folder config should not exist.
-This avoid FileNotFoundError.
-This env not exist when run the extracted program.
-Expected way to work.
-"""
-if "NUITKA_ONEFILE_PARENT" not in os.environ:
-    """
-    Retrieve  config keys
-    """
-    if cfg_mgr.app_config is not None:
-        cfg_text = str2bool(cfg_mgr.app_config['preview_text']) is True
-
-"""
 Class definition
 """
 class ExitFromLoop(Exception):
