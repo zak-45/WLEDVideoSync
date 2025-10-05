@@ -121,28 +121,6 @@ media_logger = logger_manager.logger
 
 Process, Queue = Utils.mp_setup()
 
-def overlay_bgra_on_bgr(background_bgr, overlay_bgra):
-    """
-    Overlays a BGRA image with transparency onto a BGR image using vectorized operations.
-    """
-    h, w = background_bgr.shape[:2]
-
-    # Resize overlay to match background if needed
-    if overlay_bgra.shape[:2] != (h, w):
-        overlay_bgra = cv2.resize(overlay_bgra, (w, h))
-
-    # Extract the alpha mask of the BGRA overlay and create a 3-channel version
-    alpha = overlay_bgra[:, :, 3] / 255.0
-    alpha_3 = np.stack([alpha, alpha, alpha], axis=-1)
-
-    # Extract the BGR channels of the overlay
-    overlay_bgr = overlay_bgra[:, :, :3]
-
-    # Blend the background and overlay
-    composite = (overlay_bgr * alpha_3 + background_bgr * (1 - alpha_3)).astype(np.uint8)
-
-    return composite
-
 """
 Class definition
 """
@@ -737,7 +715,7 @@ class CASTMedia(TextAnimatorMixin):
                     elif frame.shape[2] == 4:
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
                     
-                    frame = overlay_bgra_on_bgr(frame, text_overlay_bgra)
+                    frame = CV2Utils.overlay_bgra_on_bgr(frame, text_overlay_bgra)
 
             # put frame to np buffer (so can be used after by the main)
             if self.put_to_buffer and frame_count <= self.frame_max:
