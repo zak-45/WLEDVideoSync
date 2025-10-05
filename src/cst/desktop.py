@@ -129,6 +129,7 @@ from src.utl.winutil import get_window_rect
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
 from src.txt.textanimator import TextAnimator
+from src.utl.text_utils import TextAnimatorMixin
 
 from src.utl.actionutils import *
 
@@ -188,7 +189,7 @@ class ExitFromLoop(Exception):
 """
 Main class
 """
-class CASTDesktop:
+class CASTDesktop(TextAnimatorMixin):
     """Casts desktop screen or window content to DDP devices.
 
     Captures screen or window content using PyAV, processes the frames, and sends
@@ -328,15 +329,6 @@ class CASTDesktop:
             if attr not in exclusion_list and hasattr(self, attr):
                 value_to_copy = getattr(media_obj, attr)
                 setattr(self, attr, value_to_copy)
-
-    def update_text_animator(self, **kwargs):
-        """
-        Updates the parameters of the running TextAnimator instance in real-time.
-        """
-        if self.text_animator is not None:
-            self.text_animator.update_params(**kwargs)
-        else:
-            desktop_logger.warning("TextAnimator is not running, cannot update parameters.")
 
     def t_desktop_cast(self, shared_buffer=None, port=0):
         """
@@ -921,24 +913,7 @@ class CASTDesktop:
 
         t_fps = self.rate
 
-        self.text_animator = None
-        if self.overlay_text:
-            text_to_display = self.anim_text if self.anim_text else "WLEDVideoSync"
-            try:
-                self.text_animator = TextAnimator(
-                    text=text_to_display,
-                    width=t_scale_width,
-                    height=t_scale_height,
-                    speed=50,
-                    direction="left",
-                    color=(255, 255, 255),  # BGR White
-                    fps=t_fps,
-                    effect="rainbow_cycle"
-                )
-                desktop_logger.info("TextAnimator initialized.")
-            except Exception as e:
-                desktop_logger.error(f"Failed to initialize TextAnimator: {e}")
-                self.text_animator = None
+        self.start_text_animator()
 
         if self.viinput == 'queue':
 
@@ -1074,7 +1049,7 @@ class CASTDesktop:
                 return
 
             # Decoding with auto threading...if True Decode using both FRAME and SLICE methods
-            if str2bool(cfg_mgr.desktop_config['multi_thread']) is True:
+            if str2bool(cfg_mgr.desktop_config['multi_thread']):
                 input_container.streams.video[0].thread_type = "AUTO"  # Go faster!
 
         # Define Output via av only if protocol is other
@@ -1089,7 +1064,7 @@ class CASTDesktop:
                 output_stream.height = t_scale_height
                 output_stream.pix_fmt = 'yuv420p'
 
-                if str2bool(cfg_mgr.desktop_config['multi_thread']) is True:
+                if str2bool(cfg_mgr.desktop_config['multi_thread']):
                     output_stream.thread_type = "AUTO"
 
             except Exception as error:

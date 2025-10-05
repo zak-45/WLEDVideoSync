@@ -111,6 +111,7 @@ from src.net.ddp_queue import DDPDevice
 from src.net.e131_queue import E131Device
 from src.net.artnet_queue import ArtNetDevice
 from src.txt.textanimator import TextAnimator
+from src.utl.text_utils import TextAnimatorMixin
 
 from src.utl.actionutils import *
 
@@ -148,7 +149,7 @@ def overlay_bgra_on_bgr(background_bgr, overlay_bgra):
 Class definition
 """
 
-class CASTMedia:
+class CASTMedia(TextAnimatorMixin):
     """Casts media (video, image, or capture device) to DDP devices.
 
     Sends image data via DDP (e131 or ArtNet) protocol, using a queue for network
@@ -204,7 +205,7 @@ class CASTMedia:
         self.frame_index: int = 0
         self.put_to_buffer: bool = False
         self.frame_max: int = 8
-        self.preview_text: bool = str2bool(cfg_mgr.app_config['preview_text']) if cfg_mgr.app_config is not None else False
+        self.preview_text = str2bool(cfg_mgr.app_config['preview_text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
         self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
         self.anim_text: str = cfg_mgr.text_config['custom_text'] if cfg_mgr.text_config is not None else ""
@@ -235,14 +236,6 @@ class CASTMedia:
         self.channel_offset = 0  # The channel offset within the universe. e131/artnet
         self.channels_per_pixel = 3  # Channels to use for e131/artnet
 
-    def update_text_animator(self, **kwargs):
-        """
-        Updates the parameters of the running TextAnimator instance in real-time.
-        """
-        if self.text_animator is not None:
-            self.text_animator.update_params(**kwargs)
-        else:
-            media_logger.warning("TextAnimator is not running, cannot update parameters.")
 
     """
     Cast Thread
@@ -520,24 +513,7 @@ class CASTMedia:
             media_logger.error(f'{t_name} Rate could not be zero')
             return False
 
-        self.text_animator = None
-        if self.overlay_text:
-            text_to_display = self.anim_text if self.anim_text else "WLEDVideoSync"
-            try:
-                self.text_animator = TextAnimator(
-                    text=text_to_display,
-                    width=t_scale_width,
-                    height=t_scale_height,
-                    speed=50,
-                    direction="left",
-                    color=(255, 255, 255),  # BGR White
-                    fps=frame_interval,
-                    effect="rainbow_cycle"
-                )
-                media_logger.info("TextAnimator initialized.")
-            except Exception as e:
-                media_logger.error(f"Failed to initialize TextAnimator: {e}")
-                self.text_animator = None
+        self.start_text_animator()
 
         media_logger.info(f"{t_name} Playing media {t_viinput} of length {media_length} at {fps} FPS")
         media_logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
@@ -662,7 +638,7 @@ class CASTMedia:
                                len(CASTMedia.cast_name_to_sync) > 0):
                             # sleep until all remaining casts sync
                             time.sleep(.001)
-                        media_logger.debug(f"{t_name} exit sleep")
+                        media_logger.debug(f'{t_name} exit sleep')
 
                     else:
 
@@ -1154,12 +1130,9 @@ if __name__ == "__main__":
     test.stopcast = False
     test.viinput=0
     test.preview=True
-    test.overlay_text = True
     test.cast()
     while True:
-        time.sleep(15)
-        test.update_text_animator(effect="blink")
-        time.sleep(15)
+        time.sleep(40)
         break
     test.stopcast=True
     print('end')
