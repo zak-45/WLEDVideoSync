@@ -945,7 +945,7 @@ class CASTUtils:
             p_pid = os.getpid()
             tmp_file = cfg_mgr.app_root_path(f"tmp/{p_pid}_file")
             # read file
-            with shelve.open(tmp_file) as db:
+            with shelve.open(tmp_file, writeback=True) as db:
                 server_port = db['server_port']
         except Exception as er:
             utils_logger.debug(f'Error to retrieve Server Port  from {tmp_file}: {er}')

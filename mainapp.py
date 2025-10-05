@@ -81,6 +81,9 @@ Actions to do at application initialization
 async def init_actions():
     """ Done at start of app and before GUI available """
 
+    if '--run-mobile-server' in sys.argv:
+        return
+
     main_logger.info(f'Main running {current_thread().name}')
     main_logger.info(f'Root page : {root_page}')
     main_logger.info(f"Scheduler enabled : {cfg_mgr.scheduler_config['enable']}")
@@ -1725,6 +1728,7 @@ if __name__ == "__main__":
     with shelve.open(WLED_PID_TMP_FILE) as proc_file:
         proc_file["server_port"] = port
         proc_file["sc_area"] = []
+        proc_file["media"] = None
 
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     app.add_media_files('/media', cfg_mgr.app_root_path('media'))

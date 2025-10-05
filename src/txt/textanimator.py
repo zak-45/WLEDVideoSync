@@ -209,10 +209,14 @@ class TextAnimator:
             if self.font_path:
                 self.font = ImageFont.truetype(self.font_path, self.font_size)
             else:
-                self.font = ImageFont.load_default(size=self.font_size)
+                # self.font = ImageFont.load_default(size=self.font_size)
+                self.font = ImageFont.truetype(cfg_mgr.app_root_path('assets/Font/DejaVuSansCondensed.ttf'),
+                                               size=self.font_size)
         except Exception as e:
             text_logger.error(f"Failed to load font: {e}")
-            self.font = ImageFont.load_default(size=self.font_size)
+            # self.font = ImageFont.load_default(size=self.font_size)
+            self.font = ImageFont.truetype(cfg_mgr.app_root_path('assets/Font/DejaVuSansCondensed.ttf'),
+                                           size=self.font_size)
 
     def create_text_image(self, text=None, color=None, opacity=None, shadow=None) -> Image.Image:
         """Creates an image of the text with optional effects.

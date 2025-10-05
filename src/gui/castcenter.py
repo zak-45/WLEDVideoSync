@@ -79,7 +79,7 @@ class CastCenter:
 
         await CastCenter.validate_data(self.Media)
         # store media obj for other process
-        with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
+        with shelve.open(WLED_PID_TMP_FILE, writeback=True) as wled_proc_file:
             wled_proc_file["media"] = self.Media
         # run mobile cast
         await Utils.run_mobile_cast(WLED_PID_TMP_FILE)
@@ -93,10 +93,6 @@ class CastCenter:
         """
         await CastCenter.validate_data(self.Media)
         await CastCenter.validate_data(self.Desktop)
-
-        # store server port info for others processes, add sc_area for macOS
-        with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
-            wled_proc_file["media"] = self.Media
 
         ui.navigate.reload()
 

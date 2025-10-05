@@ -99,7 +99,7 @@ if __name__ == '__main__':
     webview_manager.open_webview('https://example.com', 'Example Window', 800, 600)
     webview_manager.open_webview('https://google.com', 'Another Window', 800, 600)
 
-    print("Running webview windows:", webview_manager.get_running_webviews())
+    print("Running webview process windows:", webview_manager.get_running_webviews())
 
     while True:
         time.sleep(10)
@@ -107,4 +107,4 @@ if __name__ == '__main__':
 
     # Close all windows after some time
     webview_manager.close_all_webviews()
-    print("Running webview windows after close:", webview_manager.get_running_webviews())
+    print("Running webview process windows after close:", webview_manager.get_running_webviews())

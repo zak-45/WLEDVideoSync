@@ -357,10 +357,11 @@ def run_gui():
             sys.exit(4)
 
     # store server port info for others processes, add sc_area for macOS
-    with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
-        wled_proc_file["server_port"] = server_port
-        wled_proc_file["sc_area"] = []
-        wled_proc_file["media"] = None
+    if '--run-mobile-server' not in sys.argv:
+        with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
+            wled_proc_file["server_port"] = server_port
+            wled_proc_file["sc_area"] = []
+            wled_proc_file["media"] = None
 
     """
     Pystray
