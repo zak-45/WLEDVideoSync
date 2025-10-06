@@ -200,21 +200,23 @@ class TextAnimator:
         """
         # if not font provided, try to see in ini
         if self.font_path is None and cfg_mgr.text_config is not None:
-            if cfg_mgr.text_config['font_path'] is not None:
-                self.font_path = cfg_mgr.text_config['font_path']
+            if cfg_mgr.text_config['font_name'] is not None:
+                self.font_path = cfg_mgr.text_config['font_name']
             if cfg_mgr.text_config['font_size'] is not None:
-                self.font_path = cfg_mgr.text_config['font_size']
+                try:
+                    self.font_size = int(cfg_mgr.text_config['font_size'])
+                except Exception as e:
+                    text_logger.warning(f"Not valid font size : {e}, set to default: 25")
+                    self.font_size = 25
 
         try:
             if self.font_path:
                 self.font = ImageFont.truetype(self.font_path, self.font_size)
             else:
-                # self.font = ImageFont.load_default(size=self.font_size)
                 self.font = ImageFont.truetype(cfg_mgr.app_root_path('assets/Font/DejaVuSansCondensed.ttf'),
                                                size=self.font_size)
         except Exception as e:
             text_logger.error(f"Failed to load font: {e}")
-            # self.font = ImageFont.load_default(size=self.font_size)
             self.font = ImageFont.truetype(cfg_mgr.app_root_path('assets/Font/DejaVuSansCondensed.ttf'),
                                            size=self.font_size)
 

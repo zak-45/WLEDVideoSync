@@ -70,12 +70,162 @@ from coldtype import StSt
 from coldtype.raster import *
 from nicegui import ui, app
 import fontTools.ttLib
+from PIL import Image, ImageDraw, ImageFont
+from src.utl.utils import CASTUtils as Utils
 
 from configmanager import cfg_mgr
 from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.text')
 text_logger = logger_manager.logger
+
+async def font_page():
+    """
+    Displays an interactive font selection and preview page for the application.
+
+    This function sets up a NiceGUI page that allows users to browse, filter, and preview system fonts.
+    Users can view a live preview of each font, adjust the preview size, and copy font details to the clipboard.
+    """
+    async def selected_font(i_font_name):
+        """
+        Copies the selected font's details (path, size) to the clipboard.
+        """
+        i_font_path = fonts.get(i_font_name, "N/A")
+        i_font_size = font_manager.font_size
+        text_to_copy = (
+            f"font_name = {i_font_path}\n"
+            f"font_size = {i_font_size}"
+        )
+
+        # Use NiceGUI's built-in clipboard module to copy the text.
+        ui.clipboard.write(text_to_copy)
+        ui.notify(f'Copied font details to clipboard: {i_font_name}', type='positive')
+
+    def generate_ok_image(i_font_path, i_font_size=24, color=(0, 200, 0, 255)):
+        """
+        Generates a PNG image of the text "OK" using the specified font, sized to fit the text.
+
+        Args:
+            i_font_path (str): The path to the .ttf or .otf font file.
+            i_font_size (int): The font size to use.
+            color (tuple): The (R, G, B, A) color for the text.
+
+        Returns:
+            str | None: A base64 encoded data URL for the image, or None on failure.
+        """
+        try:
+            # Load font
+            try:
+                font = ImageFont.truetype(i_font_path, i_font_size)
+            except IOError:
+                font = ImageFont.load_default() # Fallback
+
+            # Calculate text size
+            dummy_img = Image.new('RGBA', (1, 1), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(dummy_img)
+            bbox = draw.textbbox((0, 0), "OK", font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+
+            # Add some padding
+            pad_x, pad_y = 8, 8
+            canvas_width = int(text_width + pad_x * 2)
+            canvas_height = int(text_height + pad_y * 2)
+
+            img = Image.new('RGBA', (canvas_width, canvas_height), (0, 0, 0, 0))  # Transparent background
+            draw = ImageDraw.Draw(img)
+            # Center text
+            text_x = pad_x
+            text_y = pad_y
+
+            draw.text((text_x, text_y), "OK", font=font, fill=color)
+
+            buffered = io.BytesIO()
+            img.save(buffered, format="PNG")
+            return f"data:image/png;base64,{base64.b64encode(buffered.getvalue()).decode('utf-8')}"
+        except Exception as e:
+            text_logger.error(f"Could not generate 'OK' image for font {i_font_path}: {e}")
+            return None
+    # Search for all system fonts
+    Utils.get_system_fonts()
+    # update dict
+    fonts = Utils.font_dict
+    # init font class
+    font_manager = FontPreviewManager(fonts)
+
+    with ui.column().classes('p-4 h-full w-full'):
+
+        async def filter_fonts(e):
+            query = e.value.lower()
+            font_list.clear()
+            matching_fonts = font_manager.filter_fonts(query) # Use the class method
+            for list_font_name in matching_fonts:
+                with font_list, ui.row().classes('items-center w-full justify-between'):
+                    with ui.row(wrap=False).classes('items-center'):
+                        font_label = ui.label(list_font_name).classes("cursor-pointer hover:underline")
+                        font_label.on(
+                            "mouseover",
+                            lambda z=list_font_name, x=font_label: set_preview(fonts[z], x, z)
+                        )
+                        font_label.on(
+                            "mouseout",
+                            lambda x=font_label: x.classes(remove='bg-slate-300')
+                        )
+                        font_label.on(
+                            "click",
+                            lambda x=font_label: selected_font(x.text)
+                        )
+
+        async def set_preview(i_font_path, font_label, list_font_name):
+            # Generate and add the "OK" image
+            if ok_image_src := generate_ok_image(fonts.get(list_font_name)):
+                preview_image_text.set_source(ok_image_src)  # Set preview image source
+            font_label.classes(add='bg-slate-300')
+            if preview_data := font_manager.get_preview(i_font_path, font_label): # Use class method, get preview data
+                preview_image.set_source(preview_data) # Set preview image source
+
+        ui.label("Hover over a font to see a preview").classes("text-sm font-bold mb-4")
+
+        # Search bar
+        search_input = ui.input(
+            label="Search Fonts",
+            placeholder="Type to search...",
+            on_change=filter_fonts,
+        ).classes("mb-4 w-full")
+
+        # Searchable font list
+        font_list = ui.column().classes(
+            'w-full flex-grow overflow-y-auto border rounded shadow p-2 max-h-[40vh]')
+
+        font_name = ui.label('Font name :')
+        font_name.classes('self-center')
+        font_name.bind_text_from(font_manager,'selected_font_label',
+                                 backward=lambda v: font_manager.selected_font_label.text)
+        font_path = ui.label('Font PATH :')
+        font_path.classes('self-center')
+        font_path.bind_text_from(font_manager,'selected_font_path')
+
+        # image preview of font
+        preview_image = ui.image().classes("border rounded shadow mb-4").style(
+            "width: 100%; height: 100px; background-color: white;")
+
+        # slider for font size preview
+        font_size = ui.slider(min=1, max=200, value=25,
+                                on_change=lambda var: set_preview(font_manager.selected_font_path,
+                                                                  font_manager.selected_font_label,
+                                                                  font_manager.selected_font_label.text))
+        font_size.props('label-always')
+        font_size.bind_value_to(font_manager,'font_size')
+
+        # image preview of font using PIL (e.g. TextAnimator)
+        preview_image_text = ui.image().classes("border rounded shadow mb-4").style(
+            "width: 100%; height: 100%; background-color: white; display: flex; align-items: center; "
+            "justify-content: center; object-fit: contain;")
+
+    # Populate font list initially
+    search_input.set_value("")
+    await filter_fonts(search_input) # Call filter_fonts to populate the list initially
+
 
 class FontSetApplication:
     """

@@ -40,7 +40,6 @@ from src.gui.niceutils import apply_custom, media_dev_view_page, discovery_net_n
 from src.gui.niceutils import AnimatedElement as Animate, LogElementHandler
 from src.gui.castcenter import CastCenter
 from src.gui.schedulergui import SchedulerGUI
-from src.txt.fontsmanager import FontPreviewManager
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
 from src.gui.videoplayer import VideoPlayer
@@ -118,6 +117,12 @@ async def init_actions():
         sys.exit()
 
     try:
+        # Set Fonts path for app
+        if cfg_mgr.app_config['font_file'] != '':
+            font_dir = os.path.dirname(cfg_mgr.app_config['font_file'])
+            font_url = "/FontsPath"
+            app.add_static_files(font_url, font_dir)
+
         # Apply presets
         if str2bool(cfg_mgr.preset_config['load_at_start']):
             if cfg_mgr.preset_config['filter_media'] != '':
@@ -1021,75 +1026,9 @@ async def manage_font_page():
 
     await apply_custom()
 
-    def selected_font(i_font_name):
-        ui.notify(f'Selected font : {i_font_name}')
+    from src.txt.fontsmanager import font_page
 
-    # Search for all system fonts
-    Utils.get_system_fonts()
-    # update dict
-    fonts = Utils.font_dict
-    # init font class
-    font_manager = FontPreviewManager(fonts)
-
-    with ui.column().classes('p-4 h-full w-full'):
-
-        async def filter_fonts(e):
-            query = e.value.lower()
-            font_list.clear()
-            matching_fonts = font_manager.filter_fonts(query) # Use the class method
-            for list_font_name in matching_fonts:
-                with font_list:
-                    font_label = ui.label(list_font_name).classes("cursor-pointer hover:underline")
-                    font_label.on(
-                        "mouseover",
-                        lambda z=list_font_name, x=font_label: set_preview(fonts[z], x)
-                    )
-                    font_label.on(
-                        "mouseout",
-                        lambda x=font_label: x.classes(remove='bg-slate-300')
-                    )
-                    font_label.on(
-                        "click",
-                        lambda x=font_label: selected_font(x.text)
-                    )
-
-        async def set_preview(font_path, font_label):
-            font_label.classes(add='bg-slate-300')
-            if preview_data := font_manager.get_preview(font_path, font_label): # Use class method, get preview data
-                preview_image.set_source(preview_data) # Set preview image source
-
-        ui.label("Hover over a font to see a preview").classes("text-sm font-bold mb-4")
-
-        # Search bar
-        search_input = ui.input(
-            label="Search Fonts",
-            placeholder="Type to search...",
-            on_change=filter_fonts,
-        ).classes("mb-4 w-full")
-
-        # Searchable font list
-        font_list = ui.column().classes(
-            'w-full flex-grow overflow-y-auto border rounded shadow p-2 max-h-[40vh]')
-
-        font_name = ui.label('Font name :')
-        font_name.classes('self-center')
-        font_name.bind_text_from(font_manager,'selected_font_label',
-                                 backward=lambda v: font_manager.selected_font_label.text)
-
-        # image preview of font
-        preview_image = ui.image().classes("border rounded shadow mb-4").style(
-            "width: 100%; height: 100px; background-color: white;")
-
-        # slider for font size preview
-        s_font_size = ui.slider(min=1, max=100, value=25,
-                                on_change=lambda var: set_preview(font_manager.selected_font_path, font_manager.selected_font_label))
-
-        s_font_size.bind_value_to(font_manager,'font_size')
-
-
-    # Populate font list initially
-    search_input.set_value("")
-    await filter_fonts(search_input) # Call filter_fonts to populate the list initially
+    await font_page()
 
 @ui.page('/Coldtype')
 async def coldtype_test_page():

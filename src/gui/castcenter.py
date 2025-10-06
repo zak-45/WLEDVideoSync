@@ -52,6 +52,7 @@ from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_butto
 from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Animate
 from src.utl.presets import load_filter_preset
 from src.utl.utils import CASTUtils as Utils
+from src.txt.fontsmanager import font_page
 
 from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE
 from src.utl.winutil import all_titles
@@ -74,6 +75,20 @@ class CastCenter:
         self.yt_input = None
         self.desktop_status = None
         self.media_status = None
+
+    @staticmethod
+    async def font_select():
+        """
+        Font Page
+        :return:
+        """
+
+        with ui.dialog() as font_dialog:
+            font_dialog.open()
+            with ui.card().classes('w-full'):
+                await font_page()
+                ui.button('close', on_click=font_dialog.close).classes('self-center')
+
 
     async def run_mobile(self):
 
@@ -399,7 +414,7 @@ class CastCenter:
                 card_text.set_visibility(True)
                 with card_text:
                     txt_input = ui.input('Enter some text', placeholder='text enter').classes('w-full')
-                ui.button('Fonts')
+                ui.button('Fonts',on_click=self.font_select)
                 ui.button('Effect')
 
         with ui.card().classes('self-center w-full'):
