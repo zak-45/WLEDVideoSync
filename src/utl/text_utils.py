@@ -32,6 +32,8 @@ class TextAnimatorMixin:
                     height=self.scale_height,
                     speed=50,
                     direction="left",
+                    font_path=self.font_path,
+                    font_size=self.font_size,
                     color=(255, 255, 255),  # BGR White
                     fps=self.rate,
                     effect="rainbow_cycle"

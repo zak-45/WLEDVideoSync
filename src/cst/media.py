@@ -186,6 +186,8 @@ class CASTMedia(TextAnimatorMixin):
         self.preview_text = str2bool(cfg_mgr.app_config['preview_text']) if cfg_mgr.app_config is not None else False
         self.custom_text: str = ""
         self.text_animator = None
+        self.font_path = None
+        self.font_size = 25
         self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
         self.anim_text: str = cfg_mgr.text_config['custom_text'] if cfg_mgr.text_config is not None else ""
         self.multicast: bool = False

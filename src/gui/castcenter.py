@@ -52,8 +52,7 @@ from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_butto
 from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Animate
 from src.utl.presets import load_filter_preset
 from src.utl.utils import CASTUtils as Utils
-from src.txt.fontsmanager import font_page
-from src.api.api import action_to_thread
+from src.txt.fontsmanager import font_page, FontPreviewManager
 
 from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE
 from src.utl.winutil import all_titles
@@ -76,6 +75,12 @@ class CastCenter:
         self.yt_input = None
         self.desktop_status = None
         self.media_status = None
+        self.font_path = None
+        self.font_size = 25
+        # Search for all system fonts and initialize the manager
+        Utils.get_system_fonts()
+        fonts = Utils.font_dict
+        self.font_manager = FontPreviewManager(fonts)
 
     async def toggle_text_media(self, media_button):
         """ allow or not allow text overlay for Media """
@@ -93,18 +98,38 @@ class CastCenter:
         ui.notify(f'Toggle text overlay for Desktop to : {self.Desktop.allow_text_animator}',
                   position='center', type='info')
 
-    @staticmethod
-    async def font_select():
+
+    async def font_select(self):
         """
         Font Page
         :return:
         """
+        def apply_font(dialog):
+            self.font_path = self.font_manager.selected_font_path
+            self.font_size = self.font_manager.font_size
+            # Update both desktop and Media instances with the selected font
+            self.Desktop.font_path = self.font_path
+            self.Desktop.font_size = self.font_size
+            # dynamic update for running cast
+            self.Desktop.update_text_animator(font_path=self.font_path, font_size=self.font_size)
+
+            self.Media.font_path = self.font_path
+            self.Media.font_size = self.font_size
+            # dynamic update for running cast
+            self.Media.update_text_animator(font_path=self.font_path, font_size=self.font_size)
+
+            ui.notify(f'Applied font: {os.path.basename(self.font_path or "None")} at size {self.font_size}',
+                      type='positive')
+            dialog.close()
 
         with ui.dialog() as font_dialog:
             font_dialog.open()
             with ui.card().classes('w-full'):
-                await font_page()
-                ui.button('close', on_click=font_dialog.close).classes('self-center')
+                # Pass the existing font_manager instance to the page
+                await font_page(self.font_manager)
+                with ui.row().classes('self-center'):
+                    ui.button('close', on_click=font_dialog.close)
+                    ui.button('apply', on_click=lambda: apply_font(font_dialog))
 
 
     async def run_mobile(self):

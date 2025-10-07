@@ -213,6 +213,8 @@ class CASTDesktop(TextAnimatorMixin):
         self.overlay_text = str2bool(cfg_mgr.text_config['overlay_text']) if cfg_mgr.app_config is not None else False
         self.anim_text: str = cfg_mgr.text_config['custom_text'] if cfg_mgr.text_config is not None else ""
         self.text_animator = None
+        self.font_path = None
+        self.font_size = 25
         self.voformat: str = 'mpeg'
         self.vo_codec: str = 'h264'
         self.vooutput: str = 'udp://127.0.0.1:12345?pkt_size=1316'

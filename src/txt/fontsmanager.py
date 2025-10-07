@@ -79,7 +79,7 @@ from configmanager import LoggerManager
 logger_manager = LoggerManager(logger_name='WLEDLogger.text')
 text_logger = logger_manager.logger
 
-async def font_page():
+async def font_page(font_manager: 'FontPreviewManager' = None):
     """
     Displays an interactive font selection and preview page for the application.
 
@@ -90,7 +90,7 @@ async def font_page():
         """
         Copies the selected font's details (path, size) to the clipboard.
         """
-        i_font_path = fonts.get(i_font_name, "N/A")
+        i_font_path = font_manager.fonts.get(i_font_name, "N/A")
         i_font_size = font_manager.font_size
         text_to_copy = (
             f"font_name = {i_font_path}\n"
@@ -117,8 +117,9 @@ async def font_page():
             # Load font
             try:
                 font = ImageFont.truetype(i_font_path, i_font_size)
-            except IOError:
-                font = ImageFont.load_default() # Fallback
+            except IOError as e:
+                text_logger.error(f"Could not generate 'OK' image for font {i_font_path}: {e}")
+                #font = ImageFont.load_default() # Fallback
 
             # Calculate text size
             dummy_img = Image.new('RGBA', (1, 1), (0, 0, 0, 0))
@@ -146,12 +147,16 @@ async def font_page():
         except Exception as e:
             text_logger.error(f"Could not generate 'OK' image for font {i_font_path}: {e}")
             return None
-    # Search for all system fonts
-    Utils.get_system_fonts()
-    # update dict
-    fonts = Utils.font_dict
-    # init font class
-    font_manager = FontPreviewManager(fonts)
+    if font_manager is None:
+        # Search for all system fonts if no manager is provided
+        Utils.get_system_fonts()
+        # update dict
+        fonts = Utils.font_dict
+        # init font class
+        font_manager = FontPreviewManager(fonts)
+
+    # Ensure 'fonts' is always available from the manager instance.
+    fonts = font_manager.fonts
 
     with ui.column().classes('p-4 h-full w-full'):
 
@@ -184,7 +189,7 @@ async def font_page():
             if preview_data := font_manager.get_preview(i_font_path, font_label): # Use class method, get preview data
                 preview_image.set_source(preview_data) # Set preview image source
 
-        ui.label("Hover over a font to see a preview").classes("text-sm font-bold mb-4")
+        ui.label("Hover over a font to see a preview / Click to put in clipboard").classes("text-sm font-bold mb-4")
 
         # Search bar
         search_input = ui.input(
