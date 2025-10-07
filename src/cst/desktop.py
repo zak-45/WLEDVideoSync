@@ -158,17 +158,19 @@ class CASTDesktop(TextAnimatorMixin):
     """
 
     count = 0  # initialise running casts count to zero
+
     total_frame = 0  # total number of processed frames
+    total_packet = 0  # net packets number
 
     cast_names = []  # list of running threads
-    cast_name_todo = []  # list of cast names that need to execute to do
+    cast_name_todo = []  # list of cast names that need to execute 'to do'
 
     t_exit_event = threading.Event()  # thread listen event
+    t_todo_event = threading.Event()  # thread listen event for task 'to do'
 
-    t_todo_event = threading.Event()  # thread listen event for task to do
-    t_desktop_lock = threading.Lock()  # define lock for to do
+    t_desktop_lock = threading.Lock()  # define lock for 'to do', to ensure only one task at time
 
-    total_packet = 0  # net packets number
+    allow_text_animator = True # allow or not, text overlay globally
 
     def __init__(self):
         self.capture_methode: str = 'av'
@@ -873,7 +875,10 @@ class CASTDesktop(TextAnimatorMixin):
 
         t_fps = self.rate
 
-        self.start_text_animator()
+        if self.allow_text_animator:
+            self.start_text_animator()
+        else:
+            self.stop_text_animator()
 
         if self.viinput == 'queue':
 
@@ -1445,11 +1450,12 @@ if __name__ == "__main__":
     test.overlay_text = True
     test.cast()
     while True:
-        time.sleep(20)
-        test.update_text_animator(text="New\nText", vertical_align="top",y_offset=-20, speed=150)
         time.sleep(10)
-        test.update_text_animator(text="Another Text",effect="blink",vertical_align="bottom",y_offset=-20,blink_interval=.1, speed=200)
-        time.sleep(10)
+        test.update_text_animator(text="New\nText", vertical_align="top", speed=150)
+        time.sleep(5)
+        test.update_text_animator(text="Another Text", effect="blink", vertical_align="bottom", y_offset=-20,
+                                  blink_interval=.1, speed=200)
+        time.sleep(5)
         break
     test.stopcast=True
     print('desktop cast end')

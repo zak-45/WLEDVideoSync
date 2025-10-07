@@ -134,7 +134,9 @@ class CASTMedia(TextAnimatorMixin):
     """
 
     count = 0  # initialise running casts count to zero
+
     total_frame = 0  # total number of processed frames
+    total_packet = 0  # net packets number
 
     cast_names = []  # should contain running Cast instances
     cast_name_todo = []  # list of cast names with action that need to execute from 'to do'
@@ -145,7 +147,7 @@ class CASTMedia(TextAnimatorMixin):
 
     t_media_lock = threading.Lock()  # define lock for to do
 
-    total_packet = 0  # net packets number
+    allow_text_animator = True # allow or not, text overlay globally
 
     def __init__(self):
         self.rate: int = 25
@@ -489,7 +491,10 @@ class CASTMedia(TextAnimatorMixin):
             media_logger.error(f'{t_name} Rate could not be zero')
             return False
 
-        self.start_text_animator()
+        if self.allow_text_animator:
+            self.start_text_animator()
+        else:
+            self.stop_text_animator()
 
         media_logger.info(f"{t_name} Playing media {t_viinput} of length {media_length} at {fps} FPS")
         media_logger.debug(f"{t_name} Stopcast value : {self.stopcast}")
@@ -1108,7 +1113,7 @@ if __name__ == "__main__":
     test.preview=True
     test.cast()
     while True:
-        time.sleep(40)
+        time.sleep(20)
         break
     test.stopcast=True
     print('end')

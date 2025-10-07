@@ -53,6 +53,7 @@ from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Anim
 from src.utl.presets import load_filter_preset
 from src.utl.utils import CASTUtils as Utils
 from src.txt.fontsmanager import font_page
+from src.api.api import action_to_thread
 
 from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE
 from src.utl.winutil import all_titles
@@ -75,6 +76,22 @@ class CastCenter:
         self.yt_input = None
         self.desktop_status = None
         self.media_status = None
+
+    async def toggle_text_media(self, media_button):
+        """ allow or not allow text overlay for Media """
+
+        self.Media.allow_text_animator = not self.Media.allow_text_animator
+        media_button.props(add="color='green'") if self.Media.allow_text_animator else media_button.props(add="color='red'")
+        ui.notify(f'Toggle text overlay for Media to : {self.Media.allow_text_animator}',
+                  position='center',type='info')
+
+    async def toggle_text_desktop(self, desktop_button):
+        """ allow or not allow text overlay for Desktop """
+
+        self.Desktop.allow_text_animator = not self.Desktop.allow_text_animator
+        desktop_button.props(add="color='green'") if self.Desktop.allow_text_animator else desktop_button.props(add="color='red'")
+        ui.notify(f'Toggle text overlay for Desktop to : {self.Desktop.allow_text_animator}',
+                  position='center', type='info')
 
     @staticmethod
     async def font_select():
@@ -416,6 +433,8 @@ class CastCenter:
                     txt_input = ui.input('Enter some text', placeholder='text enter').classes('w-full')
                 ui.button('Fonts',on_click=self.font_select)
                 ui.button('Effect')
+                text_media = ui.button('Allow Media', on_click= lambda: self.toggle_text_media(text_media))
+                text_desktop = ui.button('Allow Desktop', on_click= lambda: self.toggle_text_desktop(text_desktop))
 
         with ui.card().classes('self-center w-full'):
             ui.label('TOOLS').classes('self-center')

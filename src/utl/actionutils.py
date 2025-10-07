@@ -17,7 +17,7 @@ from src.utl.cv2utils import CV2Utils, ImageUtils
 from src.utl.utils import CASTUtils as Utils
 
 # Consider moving this list inside the class or making it more dynamic if needed
-action_to_test = ['stop', 'shot', 'info', 'close-preview', 'host', 'open-preview', 'reset', 'multicast']
+action_to_test = ['stop', 'stop-text', 'shot', 'info', 'close-preview', 'host', 'open-preview', 'reset', 'multicast']
 
 class ActionExecutor:
     """
@@ -83,9 +83,10 @@ class ActionExecutor:
             'host': self._handle_host_action,
             'multicast': self._handle_multicast_action,
             'close-preview': lambda params: self._handle_preview_control('close-preview'),
-            # Use lambda if no params needed
+            # Use lambda if params needed
             'open-preview': lambda params: self._handle_preview_control('open-preview'),
-            # Use lambda if no params needed
+            # Use lambda if params needed
+            'stop-text': self._handle_stop_text_action
         }
 
     # --- Private Handler Methods ---
@@ -242,6 +243,16 @@ class ActionExecutor:
             self.logger.info(f'{self.t_name}: Frame and packet counters reset.')
         except AttributeError as e:
             self.logger.error(f'{self.t_name}: Failed to reset counters on class_obj: {e}')
+
+    def _handle_stop_text_action(self, params):
+        """Handles the 'stop-text' action: allow or not text overlay on the class_obj."""
+        # params are currently unused for 'stop-text'
+        try:
+            # Assuming class_obj has these attributes
+            self.class_obj.allow_text_animator = False
+            self.logger.info(f'{self.t_name}: put allow text animator to False.')
+        except AttributeError as e:
+            self.logger.error(f'{self.t_name}: Failed to put allow text animator to False on class_obj: {e}')
 
     def _handle_preview_control(self, t_action):
         """Handles 'open-preview' and 'close-preview' actions."""

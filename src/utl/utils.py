@@ -96,7 +96,7 @@ from wled.exceptions import WLEDConnectionError, WLEDError # Specific WLED error
 
 from src.gui.tkarea import ScreenAreaSelection as SCArea
 
-from configmanager import cfg_mgr, PLATFORM, LoggerManager
+from configmanager import cfg_mgr, PLATFORM, WLED_PID_TMP_FILE, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.utils')
 utils_logger = logger_manager.logger
@@ -938,21 +938,17 @@ class CASTUtils:
         """ Retrieve server port number """
 
         server_port = 0
-        tmp_file = 'unknown'
 
         try:
-            # get pid
-            p_pid = os.getpid()
-            tmp_file = cfg_mgr.app_root_path(f"tmp/{p_pid}_file")
             # read file
-            with shelve.open(tmp_file, writeback=True) as db:
+            with shelve.open(WLED_PID_TMP_FILE, 'r') as db:
                 server_port = db['server_port']
         except Exception as er:
-            utils_logger.debug(f'Error to retrieve Server Port  from {tmp_file}: {er}')
+            utils_logger.warning(f'Using 8080 as Not able to retrieve Server Port  from {WLED_PID_TMP_FILE}: {er}')
             server_port = 8080
         finally:
             if server_port == 0:
-                utils_logger.error(f'Server Port should not be 0 from {tmp_file}')
+                utils_logger.error(f'Server Port should not be 0 from {WLED_PID_TMP_FILE}')
 
         return server_port
 

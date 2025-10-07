@@ -51,6 +51,11 @@ class TextAnimatorMixin:
             else:
                 self.init_text_animator()
 
+    def stop_text_animator(self):
+        """Stop the TextAnimator instance."""
+        self.text_animator = None
+        text_utils_logger.info("TextAnimator stopped.")
+
     def update_text_animator(self, **kwargs):
         """Updates the parameters of the running TextAnimator instance in real-time."""
         if self.text_animator is not None:

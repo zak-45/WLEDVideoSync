@@ -61,28 +61,28 @@
 # fullscreen    : False or True, put app in Full Screen mode
 # fastapi_docs  : True or False, activate /docs FastApi endpoint
 #
-# font_file     : Full font path to apply to the application e.g: C:\Windows\Fonts\Absalom_.ttf
-# font_family   : Roboto, or ... font family to use for code editor or log output
+# font_file     : absolute path name of the font to load. Apply to the application e.g: C:\Windows\Fonts\Marqbb__.ttf
+# font_family   : Roboto, or ... CSS font family to use for code editor or log output (bypass application font)
 # font-weight   : normal, The font-weight CSS property sets the weight (or boldness) of the font.(normal,bold..)
 # font-style    : normal, The font-style CSS property sets whether a font should be styled with a normal, italic,
 #                   or oblique face from its font-family
 # size-adjust   : 90%, The size-adjust CSS descriptor for the @font-face at-rule defines a multiplier for glyph outlines
 #                   and metrics associated with this font
-# keyboard      : fr, for azerty keyboard (see coldtype)
+# keyboard      : fr, for azerty keyboard (use by default for coldtype)
 # py_editor     : notepad, editor to open from coldtype preview window
 # ssl_port      : 4443, port number for https access (mobile server)
 # ssl_cert_file : xtra/cert/cert.pem, path to certificate file 'relative to installed folder'
 # ssl_key_file  : xtra/cert/key.pem, path to key file 'relative to installed folder'
 # interpolation : 0...4, method to use for Image resizing and rescaling
-# Method	    Description	                                                Best Used For
-#0INTER_NEAREST	Nearest-neighbor interpolation (fastest, but low quality)	Simple, fast resizing
-#                                                                           (e.g., pixel art, binary images)
-#1 INTER_LINEAR	Bilinear interpolation (default method)	                    General-purpose resizing (good balance of
-#                                                                           speed & quality)
-#2 INTER_CUBIC	Bicubic interpolation (uses 4×4 pixel neighborhood)	        High-quality upscaling, smoother results
-#3 INTER_AREA	Resampling using pixel area relation	                    Best for shrinking images (avoids aliasing)
-#INTER_LANCZOS4	Lanczos interpolation using 8×8 pixel neighborhood	        High-quality upscaling & downscaling
-#                                                                           (preserves fine details)
+# Method	        Description	                                                 Best Used For
+# 0 INTER_NEAREST 	Nearest-neighbor interpolation (fastest, but low quality)	Simple, fast resizing
+#                                                                               (e.g., pixel art, binary images)
+# 1 INTER_LINEAR  	Bilinear interpolation (default method)	                  General-purpose resizing (good balance of
+#                                                                             speed & quality)
+# 2 INTER_CUBIC  	Bicubic interpolation (uses 4×4 pixel neighborhood)	      High-quality upscaling, smoother results
+# 3 INTER_AREA   	Resampling using pixel area relation	                  Best for shrinking images (avoid aliasing)
+# 4 INTER_LANCZOS4	Lanczos interpolation using 8×8 pixel neighborhood	      High-quality upscaling & downscaling
+#                                                                             (preserves fine details)
 
 [app]
 
@@ -158,8 +158,8 @@
 ########################################################################################################################
 # TextAnimator
 #
-# font_name     : full path name of the font to load. will be take if nothing specified at class init
-#                   e.g. C:\Windows\Fonts\Isabelle.ttf
+# font_name     : absolute path name of the font to load. will be take if nothing specified at class init
+#                   e.g. C:\Windows\Fonts\Marqbb__.ttf
 # font_size     : size of the font
 # custom_text   : custom text to display on each cast(s)
 # overlay_text  : True or False, display overlay text animation on cast(s) ...
