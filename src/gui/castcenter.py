@@ -135,7 +135,7 @@ class CastCenter:
 
             ui.notify(f'Applied font: {os.path.basename(self.font_path or "None")} at size {self.font_size}',
                       type='positive')
-            dialog.close()
+            # dialog.close()
 
         with ui.dialog() as font_dialog:
             font_dialog.open()
@@ -469,13 +469,7 @@ class CastCenter:
             with ui.row(wrap=False).classes('w-full'):
                 card_text = ui.card().tight().classes('w-1/3 self-center')
                 card_text.set_visibility(True)
-                with card_text:
-                    txt_input = ui.input('Enter some text', placeholder='text enter').classes('w-full')
-                    txt_input.bind_value(self.Desktop, 'anim_text')
-                    txt_input.bind_value(self.Media, 'anim_text')
-
                 ui.button('Fonts',on_click=self.font_select)
-
                 with ui.row():
                     text_desktop = ui.button('Allow Desktop', on_click= lambda: self.toggle_text_desktop(text_desktop))
                     ui.button(icon='edit', on_click=lambda: self.animator_update(self.Desktop)).tooltip("Edit Desktop Text Animation")

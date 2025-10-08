@@ -133,35 +133,23 @@ async def text_page(class_obj=None):
         ui.notify('TextAnimator parameters updated!', type='positive')
 
     with ui.card().classes('w-full'):
+        text_input = ui.textarea('Text', value=animator.text).props('autogrow').classes('w-full')
         with ui.grid(columns=3).classes('gap-4'):
             # --- Core Parameters ---
-            text_input = ui.textarea('Text', value=animator.text).props('autogrow')
-            speed_input = ui.number('Speed (px/s)', value=animator.speed, min=0, step=10)
-            direction_select = ui.select(['left', 'right', 'up', 'down', 'none'], label='Direction', value=animator.direction)
             font_size_input = ui.number('Font Size', value=animator.font_size, min=1, step=1)
-            
+            color_input = ui.color_input('Text Color', value=bgr_to_hex(animator.color))
+            bg_color_input = ui.color_input('Background Color', value=bgr_to_hex(animator.bg_color))
+
             # Create the slider and bind its value to the animator's opacity
             opacity_slider = ui.slider(min=0.0, max=1.0, step=0.05, value=animator.opacity).props('label-always')
             # Bind the label's text to the slider's value, formatting it on the fly
             ui.label().bind_text_from(opacity_slider, 'value', lambda v: f'Opacity: {v:.2f}')
-
-            # --- Color Parameters ---
-            color_input = ui.color_input('Text Color', value=bgr_to_hex(animator.color))
-            bg_color_input = ui.color_input('Background Color', value=bgr_to_hex(animator.bg_color))
-            bg_toggle = ui.switch('Background', value=False)
+            bg_toggle = ui.switch('Background', value=False).tooltip('Show background color')
 
             # --- Alignment ---
             align_select = ui.select(['left', 'center', 'right'], label='Horizontal Align', value=animator.align)
             vertical_align_select = ui.select(['top', 'center', 'bottom'], label='Vertical Align', value=animator.vertical_align)
             y_offset_input = ui.number('Vertical Offset', value=animator.y_offset, step=1)
-
-            # --- Shadow ---
-            with ui.column():
-                shadow_toggle = ui.switch('Shadow', value=animator.shadow)
-                shadow_color_input = ui.color_input('Shadow Color', value=bgr_to_hex(animator.shadow_color))
-                with ui.row():
-                    shadow_offset_x = ui.number('Shadow X', value=animator.shadow_offset[0])
-                    shadow_offset_y = ui.number('Shadow Y', value=animator.shadow_offset[1])
 
             # --- Effects ---
             effect_select = ui.select(
@@ -179,5 +167,17 @@ async def text_page(class_obj=None):
             with ui.card().bind_visibility_from(effect_select, 'value', value='explode'):
                 explode_speed_input = ui.number('Explode Speed', value=animator.explode_speed, min=1, step=1)
                 explode_pre_delay_input = ui.number('Explode Pre-Delay (s)', value=animator.explode_pre_delay, min=0.0, step=0.1)
+
+            direction_select = ui.select(['left', 'right', 'up', 'down', 'none'], label='Direction', value=animator.direction)
+            speed_input = ui.number('Speed (px/s)', value=animator.speed, min=0, step=10)
+
+            # --- Shadow ---
+            with ui.column():
+                shadow_toggle = ui.switch('Shadow', value=animator.shadow)
+                shadow_color_input = ui.color_input('Shadow Color', value=bgr_to_hex(animator.shadow_color))
+                with ui.row():
+                    shadow_offset_x = ui.number('Shadow X', value=animator.shadow_offset[0])
+                    shadow_offset_y = ui.number('Shadow Y', value=animator.shadow_offset[1])
+
 
     ui.button('Apply Changes', on_click=apply_changes).classes('mt-4 self-center')
