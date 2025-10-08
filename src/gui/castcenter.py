@@ -51,6 +51,7 @@ from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet
 from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_button, run_gif_player
 from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Animate
 from src.utl.presets import load_filter_preset
+from src.utl.text_utils import text_page
 from src.utl.utils import CASTUtils as Utils
 from src.txt.fontsmanager import font_page, FontPreviewManager
 
@@ -97,6 +98,20 @@ class CastCenter:
         desktop_button.props(add="color='green'") if self.Desktop.allow_text_animator else desktop_button.props(add="color='red'")
         ui.notify(f'Toggle text overlay for Desktop to : {self.Desktop.allow_text_animator}',
                   position='center', type='info')
+
+    @staticmethod
+    async def animator_update(class_obj):
+        """
+        Text animator param Page
+        :return:
+        """
+        with ui.dialog() as update_dialog:
+            update_dialog.open()
+            with ui.card().classes('w-full'):
+                # Pass the existing font_manager instance to the page
+                await text_page(class_obj)
+                with ui.row().classes('self-center'):
+                    ui.button('close', on_click=update_dialog.close)
 
 
     async def font_select(self):
@@ -456,10 +471,17 @@ class CastCenter:
                 card_text.set_visibility(True)
                 with card_text:
                     txt_input = ui.input('Enter some text', placeholder='text enter').classes('w-full')
+                    txt_input.bind_value(self.Desktop, 'anim_text')
+                    txt_input.bind_value(self.Media, 'anim_text')
+
                 ui.button('Fonts',on_click=self.font_select)
-                ui.button('Effect')
-                text_media = ui.button('Allow Media', on_click= lambda: self.toggle_text_media(text_media))
-                text_desktop = ui.button('Allow Desktop', on_click= lambda: self.toggle_text_desktop(text_desktop))
+
+                with ui.row():
+                    text_desktop = ui.button('Allow Desktop', on_click= lambda: self.toggle_text_desktop(text_desktop))
+                    ui.button(icon='edit', on_click=lambda: self.animator_update(self.Desktop)).tooltip("Edit Desktop Text Animation")
+                with ui.row():
+                    text_media = ui.button('Allow Media', on_click= lambda: self.toggle_text_media(text_media))
+                    ui.button(icon='edit', on_click=lambda: self.animator_update(self.Media)).tooltip("Edit Media Text Animation")
 
         with ui.card().classes('self-center w-full'):
             ui.label('TOOLS').classes('self-center')
