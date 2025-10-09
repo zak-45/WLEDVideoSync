@@ -420,6 +420,7 @@ async def main_page():
             go_to_url = '/Cast-Center'
         ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url))
         ui.button('Fonts', on_click=font_select, color='bg-red-800')
+        ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor'), color='bg-red-800')
         ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
@@ -1029,6 +1030,13 @@ async def manage_font_page():
     from src.txt.fontsmanager import font_page
 
     await font_page()
+
+
+@ui.page('/config_editor')
+async def config_editor_page():
+    from src.gui.config_page import create_config_page
+    await create_config_page()
+
 
 @ui.page('/Coldtype')
 async def coldtype_test_page():
