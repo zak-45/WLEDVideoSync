@@ -8,6 +8,7 @@
 # new section need to be added at end ......
 #-------------------------------------------
 
+[server]
 ########################################################################################################################
 # uvicorn server
 #
@@ -22,9 +23,7 @@
 #                       on 03/09/2024: niceGUI do not manage it, let to 1
 # reconnect_timeout : maximum time the server waits for the browser to reconnect (default: 3.0 seconds)
 
-[server]
-
-
+[app]
 ########################################################################################################################
 # app default
 #
@@ -84,17 +83,13 @@
 # 4 INTER_LANCZOS4	Lanczos interpolation using 8×8 pixel neighborhood	      High-quality upscaling & downscaling
 #                                                                             (preserves fine details)
 
-[app]
-
-
+[colors]
 ########################################################################################################################
 # ui.colors() color theme
 # change default colors on UI look
 # see: https://quasar.dev/style/theme-builder
 
-[colors]
-
-
+[custom]
 ########################################################################################################################
 # More customization
 #
@@ -112,9 +107,7 @@
 # libgl         : True / False,  ==> LIBGL_ALWAYS_SOFTWARE=1 (True)
 #                   https://superuser.com/questions/106056/force-software-based-opengl-rendering-on-ubuntu
 
-[custom]
-
-
+[presets]
 ########################################################################################################################
 # presets to load at app startup
 # file name must exist on related folder
@@ -126,9 +119,7 @@
 # cast_media     : cast preset name for Media to apply
 # cast_desktop   : cast preset name for Desktop to apply
 
-[presets]
-
-
+[desktop]
 ########################################################################################################################
 # specific to Desktop Cast
 #
@@ -143,18 +134,14 @@
                     """
 # capture           : av or mss  module to use for desktop capture (mainly for macOS)
 
-[desktop]
-
-
+[ws]
 ########################################################################################################################
 # Websocket
 #
 # allowed-actions   : list of actions executed from websocket connection, e.g.: cast_image,read_api_root...
 #                       /ws is the websocket endpoint
 
-[ws]
-
-
+[text]
 ########################################################################################################################
 # TextAnimator
 #
@@ -164,9 +151,7 @@
 # custom_text   : custom text to display on each cast(s)
 # overlay_text  : True or False, display overlay text animation on cast(s) ...
 
-[text]
-
-
+[shared-list]
 ########################################################################################################################
 # ShareAbleList Manager
 # here to manage objects between processes
@@ -174,9 +159,7 @@
 # manager_ip    : 127.0.0.1, IP address for the manager server, localhost is good option
 # manager_port  : 50000 , port number, need to be changed only if you know what you do
 
-[shared-list]
-
-
+[scheduler]
 ########################################################################################################################
 # Scheduler
 # manage schedule jobs
@@ -187,5 +170,3 @@
 # num_workers   : 2 ,  number of workers to run in parallel, 1 minimum, max depend of your system; should be necessary
 #                   to adapt only if you have a very intensive usage of the scheduler
 # queue_size    : 20 , number of jobs that can be put in the queue at same time
-
-[scheduler]
