@@ -132,7 +132,7 @@ async def text_page(class_obj=None):
         class_obj.update_text_animator(**params)
         ui.notify('TextAnimator parameters updated!', type='positive')
 
-    with ui.card().classes('w-full'):
+    with (ui.card().classes('w-full')):
         text_input = ui.textarea('Text', value=animator.text).props('autogrow').classes('w-full')
         with ui.grid(columns=3).classes('gap-4'):
             # --- Core Parameters ---
@@ -158,15 +158,21 @@ async def text_page(class_obj=None):
             )
 
             # --- Effect-Specific Parameters ---
-            with ui.card().bind_visibility_from(effect_select, 'value', value='blink'):
-                blink_interval_input = ui.number('Blink Interval (s)', value=animator.blink_interval, min=0.1, step=0.1)
+            with ui.card().bind_visibility_from(effect_select, 'value', value='blink'
+                                                ).classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+                blink_interval_input = ui.number('Blink Interval (s)',
+                                                 value=animator.blink_interval, min=0.1, step=0.1)
 
-            with ui.card().bind_visibility_from(effect_select, 'value', value='color_cycle'):
-                color_change_interval_input = ui.number('Color Change Interval (s)', value=animator.color_change_interval, min=0.1, step=0.1)
+            with ui.card().bind_visibility_from(effect_select, 'value', value='color_cycle'
+                                                ).classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+                color_change_interval_input = ui.number('Color Change Interval (s)',
+                                                        value=animator.color_change_interval, min=0.1, step=0.1)
 
-            with ui.card().bind_visibility_from(effect_select, 'value', value='explode'):
+            with ui.card().bind_visibility_from(effect_select, 'value', value='explode'
+                                                ).classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
                 explode_speed_input = ui.number('Explode Speed', value=animator.explode_speed, min=1, step=1)
-                explode_pre_delay_input = ui.number('Explode Pre-Delay (s)', value=animator.explode_pre_delay, min=0.0, step=0.1)
+                explode_pre_delay_input = ui.number('Explode Pre-Delay (s)',
+                                                    value=animator.explode_pre_delay, min=0.0, step=0.1)
 
             direction_select = ui.select(['left', 'right', 'up', 'down', 'none'], label='Direction', value=animator.direction)
             speed_input = ui.number('Speed (px/s)', value=animator.speed, min=0, step=10)

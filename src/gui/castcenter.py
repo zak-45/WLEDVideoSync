@@ -464,15 +464,15 @@ class CastCenter:
         self.yt_area = ui.scroll_area()
         self.yt_area.set_visibility(False)
 
-        with ui.card().tight().classes('self-center w-full'):
+        with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
             ui.label('TEXT').classes('self-center')
             with ui.row(wrap=False).classes('w-full'):
                 card_text = ui.card().tight().classes('w-1/3 self-center')
                 card_text.set_visibility(True)
-                ui.button('Fonts',on_click=self.font_select)
                 with ui.row():
                     text_desktop = ui.button('Allow Desktop', on_click= lambda: self.toggle_text_desktop(text_desktop))
                     ui.button(icon='edit', on_click=lambda: self.animator_update(self.Desktop)).tooltip("Edit Desktop Text Animation")
+                ui.button('Fonts',on_click=self.font_select)
                 with ui.row():
                     text_media = ui.button('Allow Media', on_click= lambda: self.toggle_text_media(text_media))
                     ui.button(icon='edit', on_click=lambda: self.animator_update(self.Media)).tooltip("Edit Media Text Animation")
