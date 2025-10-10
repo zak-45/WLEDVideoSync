@@ -79,11 +79,10 @@ async def create_config_page():
         with open(config_path, 'w') as configfile:
             config.write(configfile)
 
-        ui.notify('Configuration saved. Restarting application...', type='positive')
-        app.restart()
+        ui.notify('Configuration saved. You need to restart the application to apply changes...', type='positive')
 
     ui.label('WLEDVideoSync Configuration').classes('text-2xl self-center')
-    ui.label('Modify settings and click "Save and Restart" to apply changes.').classes('self-center text-sm text-gray-500')
+    ui.label('Modify settings and click "Save Configuration" to apply changes.').classes('self-center text-sm text-gray-500')
 
     # Create UI for each section in the config
     for section in config.sections():
@@ -114,4 +113,4 @@ async def create_config_page():
                     element.tooltip(tooltip_text).classes('w-full')
                     ui_elements[section][key] = element
 
-    ui.button('Save and Restart', on_click=save_config).classes('mt-4 self-center bg-blue-500 text-white')
+    ui.button('Save Configuration', on_click=save_config).classes('mt-4 self-center bg-blue-500 text-white')

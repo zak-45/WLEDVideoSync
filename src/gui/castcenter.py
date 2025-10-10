@@ -89,7 +89,7 @@ class CastCenter:
         self.Media.allow_text_animator = not self.Media.allow_text_animator
         media_button.props(add="color='green'") if self.Media.allow_text_animator else media_button.props(add="color='red'")
         ui.notify(f'Toggle text overlay for Media to : {self.Media.allow_text_animator}',
-                  position='center',type='info')
+                  position='top-right',type='info')
 
     async def toggle_text_desktop(self, desktop_button):
         """ allow or not allow text overlay for Desktop """
@@ -97,7 +97,7 @@ class CastCenter:
         self.Desktop.allow_text_animator = not self.Desktop.allow_text_animator
         desktop_button.props(add="color='green'") if self.Desktop.allow_text_animator else desktop_button.props(add="color='red'")
         ui.notify(f'Toggle text overlay for Desktop to : {self.Desktop.allow_text_animator}',
-                  position='center', type='info')
+                  position='top-right', type='info')
 
     @staticmethod
     async def animator_update(class_obj):
@@ -134,7 +134,7 @@ class CastCenter:
             self.Media.update_text_animator(font_path=self.font_path, font_size=self.font_size)
 
             ui.notify(f'Applied font: {os.path.basename(self.font_path or "None")} at size {self.font_size}',
-                      type='positive')
+                      type='positive', position='top-right')
             # dialog.close()
 
         with ui.dialog() as font_dialog:
@@ -182,7 +182,7 @@ class CastCenter:
         """
         self.win.options = await all_titles()
         self.win.update()
-        ui.notify('Windows refresh finished', position='top')
+        ui.notify('Windows refresh finished', position='top-right')
 
     async def upd_devices(self):
         """Refreshes the list of available video devices and updates the user interface.
@@ -191,7 +191,7 @@ class CastCenter:
         """
         self.device.options = await Utils.video_device_list()
         self.device.update()
-        ui.notify('Device refresh finished', position='top')
+        ui.notify('Device refresh finished', position='top-right')
 
     async def pick_file(self):
         """ Select file to read as video """
@@ -465,7 +465,7 @@ class CastCenter:
         self.yt_area.set_visibility(False)
 
         with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
-            ui.label('TEXT').classes('self-center')
+            ui.label('TEXT Overlay').classes('self-center')
             with ui.row(wrap=False).classes('w-full'):
                 card_text = ui.card().tight().classes('w-1/3 self-center')
                 card_text.set_visibility(True)
