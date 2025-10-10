@@ -12,6 +12,7 @@
 #
 """
 
+import asyncio
 import ast
 import time
 
@@ -343,7 +344,7 @@ class CV2Utils:
         cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, top)
 
         key_pressed = cv2.waitKey(1)
-        if key_pressed == ord("q"):
+        if key_pressed == ord("q"):  # request to stop cast
             with contextlib.suppress(Exception):
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                 if win != 0:
@@ -352,15 +353,24 @@ class CV2Utils:
             t_todo_stop = True
             cv2utils_logger.debug(f'Request to stop {t_name}')
 
-        elif key_pressed == ord("p"):
+        elif key_pressed == ord("p"):  # toggle preview
             with contextlib.suppress(Exception):
                 win = cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE)
                 if win != 0:
                     cv2.destroyWindow(window_name)
             t_preview = False
 
-        elif key_pressed == ord("t"):
+        elif key_pressed == ord("t"):  # toggle text view
             text = not text
+
+        elif key_pressed == ord("m"):  # Modify settings in a new native window
+            from mainapp import CastAPI, open_webview_page
+            if CastAPI.loop:
+                # Safely schedule the coroutine on the main event loop
+                asyncio.run_coroutine_threadsafe(open_webview_page(t_name), CastAPI.loop)
+                cv2utils_logger.info(f"Sent request to open settings window for {t_name}")
+            else:
+                cv2utils_logger.error("Main event loop not available to open settings window.")
 
         return t_preview, t_todo_stop, text
 

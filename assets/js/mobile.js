@@ -83,7 +83,9 @@ function setupWebSocket() {
  * at regular intervals while the WebSocket connection is open and the video is available.
  */
 function startStreaming() {
-    if (intervalId) clearInterval(intervalId); // Clear any existing interval
+    if (intervalId) {
+      clearInterval(intervalId);
+    } // Clear any existing interval
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -107,7 +109,9 @@ function startStreaming() {
  * Cancels the active interval responsible for sending video frames and resets the streaming state.
  */
 function stopStreaming() {
-    if (intervalId) clearInterval(intervalId);
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
     intervalId = null;
 }
 

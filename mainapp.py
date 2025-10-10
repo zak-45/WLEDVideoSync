@@ -23,6 +23,7 @@ Web GUI based on NiceGUI
 # 27/05/2024: cv2.imshow with import av  freeze
 
 """
+import asyncio
 import shelve
 import sys
 import queue
@@ -82,6 +83,8 @@ async def init_actions():
 
     if '--run-mobile-server' in sys.argv:
         return
+    
+    CastAPI.loop = asyncio.get_running_loop()
 
     main_logger.info(f'Main running {current_thread().name}')
     main_logger.info(f'Root page : {root_page}')
@@ -196,6 +199,7 @@ class CastAPI:
     root_timer = None
     player_timer = None
     info_timer = None
+    loop = None
 
     def __init__(self):
         pass
@@ -1034,7 +1038,16 @@ async def manage_font_page():
 
 @ui.page('/config_editor')
 async def config_editor_page():
+    """
+    The NiceGUI page that hosts the configuration editor.
+    """
+    from src.gui.niceutils import head_menu
     from src.gui.config_page import create_config_page
+
+    ui.dark_mode(CastAPI.dark_mode)
+    await apply_custom()
+    await head_menu(name='Config Editor', target='/config_editor', icon='settings')
+
     await create_config_page()
 
 
@@ -1092,6 +1105,27 @@ async def scheduler_page():
 
     print('end of Scheduler page load')
 
+
+@ui.page('/manage_cast/{thread_name}')
+async def manage_single_cast_page(thread_name: str):
+    """
+    Creates a dedicated page to manage a single, specific cast thread.
+    This page is accessed via a parameterized URL and displays the
+    action panel for the given thread.
+    """
+    ui.dark_mode(CastAPI.dark_mode)
+    await apply_custom()
+
+    # Determine the class_name from the thread_name
+    class_name = 'Desktop' if 'desktop' in thread_name.lower() else 'Media'
+
+    # Fetch the latest information for all running casts
+    info_data = (await util_casts_info(img=True))['t_info']
+
+    # Generate the action panel for only the specified thread
+    await nice.generate_actions_to_cast(class_name, [thread_name], action_to_casts, info_data)
+
+
 """
 helpers /Commons
 """
@@ -1116,6 +1150,23 @@ async def animate_toggle(img):
 
     main_logger.debug(f'Animate :{cfg_mgr.custom_config["animate_ui"]}')
 
+
+async def open_webview_page(thread_name: str) -> None:
+    """
+    Opens a new native webview or browser window (depend on native_ui) for a specific cast's management page.
+    This function is safely called from a background thread.
+    """
+    from src.gui.wledtray import WLEDVideoSync_gui, server_port
+    import webbrowser
+
+    url = f"http://localhost:{server_port}/manage_cast/{thread_name}"
+    title = f"WLEDVideoSync - Manage: {thread_name}"
+
+    main_logger.info(f"Requesting new webview or browser window for: {url}")
+    if str2bool(cfg_mgr.app_config['native_ui']):
+        WLEDVideoSync_gui.open_webview(url=url, title=title, width=440, height=680)
+    else:
+        webbrowser.open_new(url=url)
 
 async def grab_windows():
     """Retrieves and displays window titles.

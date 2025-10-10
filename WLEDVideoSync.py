@@ -468,7 +468,7 @@ if __name__ == "__main__":
             # update Desktop attributes from media
             Desktop.set_from_media(media)
 
-            shared_list_instance = Desktop.cast()  # This creates the shared list and returns the handle
+            shared_list_instance_thread = Desktop.cast()  # This creates the shared list and returns the handle
 
             # 2. Get necessary info for the mobile server.
             local_ip = Utils.get_local_ip_address()
@@ -477,7 +477,7 @@ if __name__ == "__main__":
             import mobile
 
             # 4. Start the mobile server. This is a blocking call.
-            mobile.start_server(shared_list_instance, local_ip)
+            mobile.start_server(shared_list_instance_thread, local_ip)
 
         except Exception as e:
             main_logger.error(f'Error in mobile server : {e}')

@@ -44,7 +44,7 @@ def parse_readme(readme_path):
                             current_key = key
                     elif current_key and current_section and line_content:
                         # Append multi-line descriptions
-                        tooltips[current_section][current_key] += ' ' + line_content
+                        tooltips[current_section][current_key] += f' {line_content}'
                 else:
                     current_key = None
     except FileNotFoundError:
@@ -72,9 +72,9 @@ async def create_config_page():
         """
         Gathers values from the UI and saves them to the INI file.
         """
-        for section, items in ui_elements.items():
-            for key, element in items.items():
-                config.set(section, key, str(element.value))
+        for c_section, items in ui_elements.items():
+            for c_key, c_element in items.items():
+                config.set(c_section, c_key, str(c_element.value))
 
         with open(config_path, 'w') as configfile:
             config.write(configfile)
@@ -115,18 +115,3 @@ async def create_config_page():
                     ui_elements[section][key] = element
 
     ui.button('Save and Restart', on_click=save_config).classes('mt-4 self-center bg-blue-500 text-white')
-
-
-@ui.page('/config_editor')
-async def config_editor_page():
-    """
-    The NiceGUI page that hosts the configuration editor.
-    """
-    from src.gui.niceutils import apply_custom, head_menu
-    from mainapp import CastAPI
-
-    ui.dark_mode(CastAPI.dark_mode)
-    await apply_custom()
-    await head_menu(name='Config Editor', target='/config_editor', icon='settings')
-
-    await create_config_page()

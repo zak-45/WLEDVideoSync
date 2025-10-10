@@ -223,8 +223,8 @@ async def font_page(font_manager: 'FontPreviewManager' = None):
         font_size.bind_value_to(font_manager,'font_size')
 
         # image preview of font using PIL (e.g. TextAnimator)
-        preview_image_text = ui.image().classes("border rounded shadow mb-4").style(
-            "width: 100%; height: 100%; background-color: white; display: flex; align-items: center; "
+        preview_image_text = ui.image().classes("self-center border rounded shadow mb-4").style(
+            "width: 50px; height: 50px; background-color: white; display: flex; align-items: center; "
             "justify-content: center; object-fit: contain;")
 
     # Populate font list initially
