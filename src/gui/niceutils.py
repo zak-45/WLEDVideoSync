@@ -640,13 +640,13 @@ async def player_pick_file(CastAPI) -> None:
             ui.notify(f'Error :  {e}')
 
 
-async def generate_actions_to_cast(class_name, class_threads, action_to_casts, info_data):
+async def generate_actions_to_cast(class_name, class_threads, action_to_casts, info_data, open_preview=False):
     """ Generate expansion for each cast with icon/action """
 
     casts_row = ui.row()
     with casts_row:
         for item_th in class_threads:
-            item_exp = ui.expansion(item_th, icon='cast') \
+            item_exp = ui.expansion(item_th, icon='cast', value=open_preview) \
                 .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] w-96')
             with item_exp:
                 with ui.row().classes('m-auto'):
@@ -704,13 +704,15 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                               ).classes('shadow-lg').tooltip('Multicast Effects')
 
                 base64 = 'data:image/png;base64,' + info_data[item_th]["data"]['img']
-                ui.image(base64).classes('w-84 m-auto animate__animated animate__fadeInDown').tailwind.border_width('8')
+                ui.image(base64).classes('w-64 m-auto animate__animated animate__fadeInDown').tailwind.border_width('8')
                 def show_details(item_v):
                     with ui.dialog() as dialog:
                         dialog.open()
                         editor = ui.json_editor({'content': {'json': info_data[item_v]["data"]}}) \
                          .run_editor_method('updateProps', {'readOnly': True})
+                        ui.button('Close', color='red', on_click=dialog.close)
                 ui.button('Details', on_click=lambda item_v=item_th: show_details(item_v))
+
 
 
 async def edit_ip(class_obj):

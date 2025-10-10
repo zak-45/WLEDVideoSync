@@ -1123,7 +1123,7 @@ async def manage_single_cast_page(thread_name: str):
     info_data = (await util_casts_info(img=True))['t_info']
 
     # Generate the action panel for only the specified thread
-    await nice.generate_actions_to_cast(class_name, [thread_name], action_to_casts, info_data)
+    await nice.generate_actions_to_cast(class_name, [thread_name], action_to_casts, info_data, True)
 
 
 """
@@ -1164,7 +1164,7 @@ async def open_webview_page(thread_name: str) -> None:
 
     main_logger.info(f"Requesting new webview or browser window for: {url}")
     if str2bool(cfg_mgr.app_config['native_ui']):
-        WLEDVideoSync_gui.open_webview(url=url, title=title, width=440, height=680)
+        WLEDVideoSync_gui.open_webview(url=url, title=title, width=440, height=580)
     else:
         webbrowser.open_new(url=url)
 
@@ -1504,7 +1504,9 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
                 new_ip = ui.input('IP',placeholder='Enter new IP address', value='127.0.0.1')
                 multi = ui.checkbox('allow multiple', value=False)
                 multi.tooltip('Check to let Cast(s) with same Device/IP to continue stream')
-            ui.button('OK', on_click=valid_ip)
+            with ui.row():
+                ui.button('OK', on_click=valid_ip)
+                ui.button('Close', color='red', on_click=dialog.close)
 
         ui.notification(f'Change IP address for  {cast_name}...', type='info', position='top', timeout=2)
 
@@ -1529,7 +1531,9 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
                 pause = ui.checkbox('Pause random', value=False, on_change=valid_check)
                 pause.tooltip('Pause Cast/IP randomly (pause)')
 
-            ui.button('OK', on_click=valid_swap).tooltip('Validate, if nothing checked stop and set IP to initial')
+            with ui.row():
+                ui.button('OK', on_click=valid_swap).tooltip('Validate, if nothing checked stop and set IP to initial')
+                ui.button('Close', color='red', on_click=dialog.close)
 
     else:
 
@@ -1573,6 +1577,10 @@ async def root_timer_action():
     if str2bool(cfg_mgr.custom_config['system_stats']):
         await nice.system_stats(CastAPI, Desktop, Media)
 
+    """
+    if CastAPI.loop is None:
+        CastAPI.loop=asyncio.get_running_loop()
+    """
 
 async def info_timer_action():
     """
