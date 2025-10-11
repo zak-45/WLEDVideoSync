@@ -413,6 +413,10 @@ class VideoPlayer:
             self.CastAPI.player.on('ended', lambda _: ui.notify('Video playback completed.'))
             self.CastAPI.player.on('timeupdate', lambda: self.get_player_time())
             self.CastAPI.player.on('durationchange', lambda: self.player_duration())
+            # Add blinking effect to the show_player icon when the video is playing.
+            self.CastAPI.player.on('play', lambda: show_player.classes('animate-pulse'))
+            self.CastAPI.player.on('pause', lambda: show_player.classes(remove='animate-pulse'))
+            self.CastAPI.player.on('ended', lambda: show_player.classes(remove='animate-pulse'))
             self.CastAPI.player.set_visibility(True)
     
             await self.update_video_information()
@@ -519,7 +523,8 @@ class VideoPlayer:
                 show_player.on('click', lambda: manage_visibility(True))
                 show_player.tooltip("Show Video player")
                 show_player.bind_visibility_from(self.CastAPI.player, backward=lambda v: not v)
-    
+                show_player.classes(remove='animate-pulse')
+
                 hide_player = ui.icon('disabled_visible', color='red', size='sm').classes('m-1')
                 hide_player.style("cursor: pointer")
                 hide_player.on('click', lambda: manage_visibility(False))
@@ -605,3 +610,16 @@ class VideoPlayer:
                                       color='indigo-2',
                                       on_click=close_gif)
                     gif_icon_2.bind_visibility_from(self.CastAPI.player)
+
+                def toggle_control_panel():
+                    """Toggles the visibility of the main control panel."""
+                    if self.CastAPI.control_panel:
+                        self.CastAPI.control_panel.visible = not self.CastAPI.control_panel.visible
+
+                # Control Panel
+                ctrl_icon = ui.chip('Control Panel',
+                                  icon='settings',
+                                  color='indigo-3',
+                                  on_click=toggle_control_panel)
+                ctrl_icon.classes('fade')
+                ctrl_icon.bind_visibility_from(self.CastAPI.player)

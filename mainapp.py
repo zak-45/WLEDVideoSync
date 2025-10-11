@@ -199,6 +199,7 @@ class CastAPI:
     root_timer = None
     player_timer = None
     info_timer = None
+    control_panel = None
     loop = None
 
     def __init__(self):
@@ -281,86 +282,8 @@ async def main_page():
     """
     Row for Cast /Filters / info / Run / Close 
     """
-    # filters for Desktop / Media
-    with ui.row().classes('self-center'):
 
-        await nice.filters_data(Desktop)
-
-        with ui.card().tight().classes('w-42'):
-            with ui.column():
-
-                # refreshable
-                await cast_manage_page()
-                # end refreshable
-
-                ui.icon('info') \
-                    .tooltip('Show details') \
-                    .on('click', lambda: show_threads_info()) \
-                    .classes('self-center') \
-                    .style('cursor: pointer')
-                with ui.row().classes('self-center'):
-                    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-                        with ui.row():
-                            ui.checkbox('') \
-                                .bind_value(Desktop, 'preview_top', forward=lambda value: value) \
-                                .tooltip('Preview always on TOP').classes('w-10')
-                            ui.knob(640, min=8, max=1920, step=1, show_value=True) \
-                                .bind_value(Desktop, 'preview_w') \
-                                .tooltip('Preview size W').classes('w-10')
-                            ui.knob(360, min=8, max=1080, step=1, show_value=True) \
-                                .bind_value(Desktop, 'preview_h') \
-                                .tooltip('Preview size H').classes('w-10')
-                    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
-                        with ui.row():
-                            ui.knob(640, min=8, max=1920, step=1, show_value=True) \
-                                .bind_value(Media, 'preview_w') \
-                                .tooltip('Preview size W').classes('w-10')
-                            ui.knob(360, min=8, max=1080, step=1, show_value=True) \
-                                .bind_value(Media, 'preview_h') \
-                                .tooltip('Preview size H').classes('w-10')
-                            ui.checkbox('') \
-                                .bind_value(Media, 'preview_top', forward=lambda value: value) \
-                                .tooltip('Preview always on TOP').classes('w-10')
-
-                # presets
-                with ui.row().classes('self-center'):
-
-                    manage_filter_presets('Desktop', Desktop)
-                    manage_filter_presets('Media', Media)
-
-                # refreshable
-                with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
-                    if str2bool(cfg_mgr.custom_config['system_stats']):
-                        with ui.row().classes('self-center'):
-                            frame_count = ui.number(prefix='F:').bind_value_from(CastAPI, 'total_frames')
-                            frame_count.tooltip('TOTAL Frames')
-                            frame_count.classes("w-20")
-                            frame_count.props(remove='type=number', add='borderless')
-
-                            total_reset_icon = ui.icon('restore')
-                            total_reset_icon.style("cursor: pointer")
-                            total_reset_icon.on('click', lambda: reset_total())
-
-                            packet_count = ui.number(prefix='P:').bind_value_from(CastAPI, 'total_packets')
-                            packet_count.tooltip('TOTAL DDP Packets')
-                            packet_count.classes("w-25")
-                            packet_count.props(remove='type=number', add='borderless')
-
-                        ui.separator()
-
-                        with ui.row().classes('self-center'):
-                            cpu_count = ui.number(prefix='CPU%: ').bind_value_from(CastAPI, 'cpu')
-                            cpu_count.classes("w-20")
-                            cpu_count.props(remove='type=number', add='borderless')
-
-                            ram_count = ui.number(prefix='RAM%: ').bind_value_from(CastAPI, 'ram')
-                            ram_count.classes("w-20")
-                            ram_count.props(remove='type=number', add='borderless')
-
-                    if str2bool(cfg_mgr.custom_config['cpu_chart']):
-                        await nice.create_cpu_chart(CastAPI)
-
-        await nice.filters_data(Media)
+    await control_panel_page()
 
     ui.separator().classes('mt-6')
 
@@ -1126,9 +1049,108 @@ async def manage_single_cast_page(thread_name: str):
     await nice.generate_actions_to_cast(class_name, [thread_name], action_to_casts, info_data, True)
 
 
+@ui.page('/control_panel')
+async def create_control_panel_page():
+    ui.dark_mode(CastAPI.dark_mode)
+    await apply_custom()
+
+    # Generate the control panel
+    await control_panel_page()
+
+
 """
 helpers /Commons
 """
+
+async def control_panel_page():
+    """
+    Row for Cast /Filters / info / Run / Close
+    """
+    # filters for Desktop / Media
+    with ui.row().classes('self-center') as CastAPI.control_panel:
+        # By default, hide the control panel if the video player is visible.
+        # This can be overridden by the toggle button.
+        if CastAPI.player:
+            CastAPI.control_panel.bind_visibility_from(CastAPI.player, 'visible', backward=lambda v: not v)
+
+        await nice.filters_data(Desktop)
+
+        with ui.card().tight().classes('w-42'):
+            with ui.column():
+
+                # refreshable
+                await cast_manage_page()
+                # end refreshable
+
+                ui.icon('info') \
+                    .tooltip('Show details') \
+                    .on('click', lambda: show_threads_info()) \
+                    .classes('self-center') \
+                    .style('cursor: pointer')
+                with ui.row().classes('self-center'):
+                    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
+                        with ui.row():
+                            ui.checkbox('') \
+                                .bind_value(Desktop, 'preview_top', forward=lambda value: value) \
+                                .tooltip('Preview always on TOP').classes('w-10')
+                            ui.knob(640, min=8, max=1920, step=1, show_value=True) \
+                                .bind_value(Desktop, 'preview_w') \
+                                .tooltip('Preview size W').classes('w-10')
+                            ui.knob(360, min=8, max=1080, step=1, show_value=True) \
+                                .bind_value(Desktop, 'preview_h') \
+                                .tooltip('Preview size H').classes('w-10')
+                    with ui.card().classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset] bg-cyan-700'):
+                        with ui.row():
+                            ui.knob(640, min=8, max=1920, step=1, show_value=True) \
+                                .bind_value(Media, 'preview_w') \
+                                .tooltip('Preview size W').classes('w-10')
+                            ui.knob(360, min=8, max=1080, step=1, show_value=True) \
+                                .bind_value(Media, 'preview_h') \
+                                .tooltip('Preview size H').classes('w-10')
+                            ui.checkbox('') \
+                                .bind_value(Media, 'preview_top', forward=lambda value: value) \
+                                .tooltip('Preview always on TOP').classes('w-10')
+
+                # presets
+                with ui.row().classes('self-center'):
+
+                    manage_filter_presets('Desktop', Desktop)
+                    manage_filter_presets('Media', Media)
+
+                # refreshable
+                with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):
+                    if str2bool(cfg_mgr.custom_config['system_stats']):
+                        with ui.row().classes('self-center'):
+                            frame_count = ui.number(prefix='F:').bind_value_from(CastAPI, 'total_frames')
+                            frame_count.tooltip('TOTAL Frames')
+                            frame_count.classes("w-20")
+                            frame_count.props(remove='type=number', add='borderless')
+
+                            total_reset_icon = ui.icon('restore')
+                            total_reset_icon.style("cursor: pointer")
+                            total_reset_icon.on('click', lambda: reset_total())
+
+                            packet_count = ui.number(prefix='P:').bind_value_from(CastAPI, 'total_packets')
+                            packet_count.tooltip('TOTAL DDP Packets')
+                            packet_count.classes("w-25")
+                            packet_count.props(remove='type=number', add='borderless')
+
+                        ui.separator()
+
+                        with ui.row().classes('self-center'):
+                            cpu_count = ui.number(prefix='CPU%: ').bind_value_from(CastAPI, 'cpu')
+                            cpu_count.classes("w-20")
+                            cpu_count.props(remove='type=number', add='borderless')
+
+                            ram_count = ui.number(prefix='RAM%: ').bind_value_from(CastAPI, 'ram')
+                            ram_count.classes("w-20")
+                            ram_count.props(remove='type=number', add='borderless')
+
+                    if str2bool(cfg_mgr.custom_config['cpu_chart']):
+                        await nice.create_cpu_chart(CastAPI)
+
+        await nice.filters_data(Media)
+
 
 async def animate_toggle(img):
     """ toggle animation """
