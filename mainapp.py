@@ -48,7 +48,7 @@ from src.gui.videoplayer import VideoPlayer
 from src.utl.presets import *
 from src.api.api import *
 
-from configmanager import cfg_mgr, PLATFORM, WLED_PID_TMP_FILE, LoggerManager
+from configmanager import cfg_mgr, PLATFORM, WLED_PID_TMP_FILE, LoggerManager, NATIVE_UI
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
@@ -1070,6 +1070,7 @@ async def control_panel_page():
     with ui.row().classes('self-center') as CastAPI.control_panel:
         # By default, hide the control panel if the video player is visible.
         # This can be overridden by the toggle button.
+        CastAPI.control_panel.set_visibility(True)
         if CastAPI.player:
             CastAPI.control_panel.bind_visibility_from(CastAPI.player, 'visible', backward=lambda v: not v)
 
@@ -1173,7 +1174,7 @@ async def animate_toggle(img):
     main_logger.debug(f'Animate :{cfg_mgr.custom_config["animate_ui"]}')
 
 
-async def open_webview_page(thread_name: str) -> None:
+async def open_webview_cast_page(thread_name: str) -> None:
     """
     Opens a new native webview or browser window (depend on native_ui) for a specific cast's management page.
     This function is safely called from a background thread.
@@ -1185,7 +1186,7 @@ async def open_webview_page(thread_name: str) -> None:
     title = f"WLEDVideoSync - Manage: {thread_name}"
 
     main_logger.info(f"Requesting new webview or browser window for: {url}")
-    if str2bool(cfg_mgr.app_config['native_ui']):
+    if NATIVE_UI:
         WLEDVideoSync_gui.open_webview(url=url, title=title, width=440, height=580)
     else:
         webbrowser.open_new(url=url)

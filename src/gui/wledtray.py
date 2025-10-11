@@ -49,7 +49,7 @@ from str2bool import str2bool
 from src.utl.utils import CASTUtils as Utils
 from src.gui.webviewmanager import WebviewManager
 
-from configmanager import cfg_mgr, LoggerManager
+from configmanager import cfg_mgr, LoggerManager, NATIVE_UI
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.systray')
 systray_logger = logger_manager.logger
@@ -58,7 +58,6 @@ server_port = Utils.get_server_port()
 server_ip = 'localhost'
 
 WLEDVideoSync_gui = WebviewManager()
-native_ui = str2bool(cfg_mgr.app_config['systray_native']) if cfg_mgr.app_config is not None else False
 
 def select_win(url, title, width=800, height=600):
     """Open a URL in either a native webview or the default browser.
@@ -67,7 +66,7 @@ def select_win(url, title, width=800, height=600):
     is True, otherwise opens it in the default web browser.
     """
 
-    if native_ui:
+    if NATIVE_UI:
         WLEDVideoSync_gui.open_webview(url=url, title=title, width=width, height=height)
     else:
         webbrowser.open(url=url, new=0, autoraise=True)
@@ -82,7 +81,8 @@ def on_open_main():
     Opens the main application URL in a native webview window if
     native_ui is True, otherwise opens it in the default browser.
     """
-    select_win(f"http://{server_ip}:{server_port}", f'WLEDVideoSync Main Window : {server_port}', 1200, 720)
+    select_win(f"http://{server_ip}:{server_port}", f'WLEDVideoSync Main Window : {server_port}',
+               1200, 720)
 
 def on_open_main_browser():
     """Force open the main application in the default browser.
@@ -98,7 +98,8 @@ def on_blackout():
     Stop all casts
 
     """
-    select_win(f"http://{server_ip}:{server_port}/api/util/blackout",f'WLEDVideoSync BLACKOUT : {server_port}', 400, 150)
+    select_win(f"http://{server_ip}:{server_port}/api/util/blackout",f'WLEDVideoSync BLACKOUT : {server_port}',
+               400, 150)
 
 
 def on_player():
@@ -108,7 +109,8 @@ def on_player():
     browser, depending on the native_ui setting.
     """
 
-    select_win(f"http://{server_ip}:{server_port}/Player", f'WLEDVideoSync Player: {server_port}', 1200, 720)
+    select_win(f"http://{server_ip}:{server_port}/Player", f'WLEDVideoSync Player: {server_port}',
+               1200, 720)
 
 def on_api():
     """
@@ -136,7 +138,8 @@ def on_info():
     Menu Info option : show cast information
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/info", f'WLEDVideoSync Infos: {server_port}', 480, 220)
+    select_win(f"http://{server_ip}:{server_port}/info", f'WLEDVideoSync Infos: {server_port}',
+               480, 220)
 
 
 def on_net():
@@ -155,12 +158,22 @@ def on_details():
     select_win(f"http://{server_ip}:{server_port}/DetailsInfo",f'WLEDVideoSync Cast(s) Details: {server_port}')
 
 
+def on_control_panel():
+    """
+    Menu control panel option : show control panel
+    :return:
+    """
+    select_win(f"http://{server_ip}:{server_port}/control_panel",f'WLEDVideoSync Control Panel: {server_port}',
+               width=1200, height=520)
+
+
 def on_exit():
     """
     Menu Exit option : stop main Loop and continue
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/ShutDown",f'WLEDVideoSync SHUTDOWN: {server_port}', 300, 50)
+    select_win(f"http://{server_ip}:{server_port}/ShutDown",f'WLEDVideoSync SHUTDOWN: {server_port}',
+               width=300, height=50)
 
 
 """
@@ -176,6 +189,7 @@ pystray_menu = Menu(
     MenuItem('BLACKOUT', on_blackout),
     Menu.SEPARATOR,
     MenuItem('Player', on_player),
+    MenuItem('Control Panel', on_control_panel),
     Menu.SEPARATOR,
     MenuItem('API', on_api),
     Menu.SEPARATOR,

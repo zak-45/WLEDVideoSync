@@ -482,4 +482,5 @@ class LoggerManager:
 # This code runs only ONCE when the module is first imported.
 cfg_mgr = ConfigManager()
 WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
+NATIVE_UI = str2bool(cfg_mgr.app_config['systray_native']) if cfg_mgr.app_config is not None else False
 # --- End of addition ---

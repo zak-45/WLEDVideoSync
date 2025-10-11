@@ -55,11 +55,29 @@ from src.utl.text_utils import text_page
 from src.utl.utils import CASTUtils as Utils
 from src.txt.fontsmanager import font_page, FontPreviewManager
 
-from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE
+from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE, NATIVE_UI
 from src.utl.winutil import all_titles
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.center')
 center_logger = logger_manager.logger
+
+
+
+async def open_webview_control_panel_page() -> None:
+    """
+    Opens a new native webview or browser window (depend on native_ui) for control panel page.
+    """
+    from src.gui.wledtray import WLEDVideoSync_gui, server_port
+    import webbrowser
+
+    url = f"http://localhost:{server_port}/control_panel"
+    title = f"WLEDVideoSync - Control Panel ({server_port})"
+
+    center_logger.info(f"Requesting new webview or browser window for: {url}")
+    if NATIVE_UI:
+        WLEDVideoSync_gui.open_webview(url=url, title=title, width=1200, height=520)
+    else:
+        webbrowser.open_new(url=url)
 
 
 class CastCenter:
@@ -505,6 +523,7 @@ class CastCenter:
                         mobile_cast = ui.button(icon='mobile_screen_share')
                         mobile_cast.tooltip('SmartPhone Camera Media Cast')
                         mobile_cast.on('click', lambda : self.run_mobile())
+                        ui.button('Control Panel', on_click=open_webview_control_panel_page)
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
 

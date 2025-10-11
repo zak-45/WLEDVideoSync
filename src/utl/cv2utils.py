@@ -364,10 +364,10 @@ class CV2Utils:
             text = not text
 
         elif key_pressed == ord("m"):  # Modify settings in a new native window
-            from mainapp import CastAPI, open_webview_page
+            from mainapp import CastAPI, open_webview_cast_page
             if CastAPI.loop:
                 # Safely schedule the coroutine on the main event loop
-                asyncio.run_coroutine_threadsafe(open_webview_page(t_name), CastAPI.loop)
+                asyncio.run_coroutine_threadsafe(open_webview_cast_page(t_name), CastAPI.loop)
                 cv2utils_logger.info(f"Sent request to open settings window for {t_name}")
             else:
                 cv2utils_logger.error("Main event loop not available to open settings window.")
