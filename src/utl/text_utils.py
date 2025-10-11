@@ -124,6 +124,12 @@ async def text_page(class_obj=None):
         params['explode_speed'] = explode_speed_input.value
         params['blink_interval'] = blink_interval_input.value
         params['color_change_interval'] = color_change_interval_input.value
+        params['shake_amplitude'] = shake_amplitude_input.value
+        params['shake_frequency'] = shake_frequency_input.value
+        params['wave_amplitude'] = wave_amplitude_input.value
+        params['wave_frequency'] = wave_frequency_input.value
+        params['scale_amplitude'] = scale_amplitude_input.value
+        params['scale_frequency'] = scale_frequency_input.value
         params['explode_pre_delay'] = explode_pre_delay_input.value
 
     def apply_changes():
@@ -173,6 +179,22 @@ async def text_page(class_obj=None):
                 explode_speed_input = ui.number('Explode Speed', value=animator.explode_speed, min=1, step=1)
                 explode_pre_delay_input = ui.number('Explode Pre-Delay (s)',
                                                     value=animator.explode_pre_delay, min=0.0, step=0.1)
+            
+            with ui.card().bind_visibility_from(effect_select, 'value', value='shake'
+                                                ).classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+                shake_amplitude_input = ui.number('Shake Amplitude', value=animator.shake_amplitude, min=0, step=1)
+                shake_frequency_input = ui.number('Shake Frequency', value=animator.shake_frequency, min=0.1, step=0.1)
+
+            with ui.card().bind_visibility_from(effect_select, 'value', value='wave'
+                                                ).classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+                wave_amplitude_input = ui.number('Wave Amplitude', value=animator.wave_amplitude, min=0, step=1)
+                wave_frequency_input = ui.number('Wave Frequency', value=animator.wave_frequency, min=0.1, step=0.1)
+
+            with ui.card().bind_visibility_from(effect_select, 'value', value='scale'
+                                                ).classes('text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+                scale_amplitude_input = ui.number('Scale Amplitude', value=animator.scale_amplitude, min=0.0, step=0.1)
+                scale_frequency_input = ui.number('Scale Frequency', value=animator.scale_frequency, min=0.1, step=0.1)
+
 
             direction_select = ui.select(['left', 'right', 'up', 'down', 'none'], label='Direction', value=animator.direction)
             speed_input = ui.number('Speed (px/s)', value=animator.speed, min=0, step=10)

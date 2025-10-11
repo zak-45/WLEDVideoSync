@@ -104,7 +104,13 @@ class TextAnimator:
         shadow_offset: Tuple[int, int] = (2, 2),
         explode_speed: int = 5,  # Speed of the explosion effect
         blink_interval: float = .5,  # Blink interval in seconds
-        color_change_interval: int = 1,  # Color change interval in seconds
+        color_change_interval: int = 1,  # Color change interval in seconds,
+        shake_amplitude: int = 5, # Amplitude of the shake effect
+        shake_frequency: float = 0.2, # Frequency of the shake effect
+        wave_amplitude: int = 10, # Amplitude of the wave effect
+        wave_frequency: float = 0.1, # Frequency of the wave effect
+        scale_amplitude: float = 0.1, # Amplitude of the scale effect
+        scale_frequency: float = 0.1, # Frequency of the scale effect
         explode_pre_delay: float = 0.0  # Delay before explosion in seconds
     ):
         self.text_image = None
@@ -120,6 +126,9 @@ class TextAnimator:
         self.y_pos = None
         self.x_pos = None
         self.text = text
+        self.shake_offset_x = 0
+        self.shake_offset_y = 0
+        self.wave_offset_y = 0
         self.width = width
         self.height = height
         self.speed = speed  # Pixels per second
@@ -140,6 +149,12 @@ class TextAnimator:
         self.explode_speed = explode_speed
         self.blink_interval = blink_interval
         self.color_change_interval = color_change_interval
+        self.shake_amplitude = shake_amplitude
+        self.wave_amplitude = wave_amplitude
+        self.wave_frequency = wave_frequency
+        self.scale_amplitude = scale_amplitude
+        self.scale_frequency = scale_frequency
+        self.shake_frequency = shake_frequency
         self.text_sequence = None  # For dynamic text
         self.explode_pre_delay = explode_pre_delay # Store in seconds
         self.particles = [{"position": [np.random.randint(0, self.width), np.random.randint(0, self.height)],
@@ -180,6 +195,20 @@ class TextAnimator:
         """
         updated = False
         for key, value in kwargs.items():
+            # If the effect is changing, clean up state from previous position-based effects
+            if key == 'effect' and self.effect != value:
+                if hasattr(self, '_original_x_pos'):
+                    del self._original_x_pos
+                # When the effect changes, re-initialize the effect parameters
+                # to ensure the new effect's state (e.g., counters) is set up correctly.
+                self.effect_params = self.init_effect_params()
+                if hasattr(self, '_original_y_pos'):
+                    del self._original_y_pos
+                self.shake_offset_x = 0
+                self.shake_offset_y = 0
+                self.wave_offset_y = 0
+                text_logger.debug("Cleared positional effect state due to effect change.")
+
             if hasattr(self, key):
                 setattr(self, key, value)
                 text_logger.info(f"Updated TextAnimator parameter '{key}' to '{value}'.")
@@ -375,18 +404,18 @@ class TextAnimator:
         # Add wave effect
         elif self.effect == "wave":
             params["wave_counter"] = 0  # Start the wave effect counter
-            params["wave_amplitude"] = 10
-            params["wave_frequency"] = 0.1
+            params["wave_amplitude"] = self.wave_amplitude
+            params["wave_frequency"] = self.wave_frequency
         # Add shake effect
         elif self.effect == "shake":
             params["shake_counter"] = 0  # Start the shake effect counter
-            params["shake_amplitude"] = 5
-            params["shake_frequency"] = 0.2
+            params["shake_amplitude"] = self.shake_amplitude
+            params["shake_frequency"] = self.shake_frequency
         # Add scale effect
         elif self.effect == "scale":
             params["scale_counter"] = 0  # Start the scale effect counter
-            params["scale_amplitude"] = 0.1
-            params["scale_frequency"] = 0.1
+            params["scale_amplitude"] = self.scale_amplitude
+            params["scale_frequency"] = self.scale_frequency
 
         return params
 
@@ -478,24 +507,16 @@ class TextAnimator:
 
     def apply_wave_effect(self):
         """Applies wave effect to text position."""
-        # Note: This directly modifies x_pos/y_pos, which will be used in rendering
         wave_amplitude = self.effect_params.get("wave_amplitude", 10)
         wave_frequency = self.effect_params.get("wave_frequency", 0.1)
-        # Store original y_pos to apply wave on top of scrolling
-        if not hasattr(self, '_original_y_pos'):
-            self._original_y_pos = self.y_pos
-        self.y_pos = self._original_y_pos + wave_amplitude * math.sin(self.effect_params["wave_counter"] * wave_frequency)
+        self.wave_offset_y = wave_amplitude * math.sin(self.effect_params["wave_counter"] * wave_frequency)
         self.effect_params["wave_counter"] += 0.1
 
     def apply_shake_effect(self):
         """Shakes the text left and right."""
-        # Note: This directly modifies x_pos/y_pos, which will be used in rendering
         shake_amplitude = self.effect_params.get("shake_amplitude", 5)
         shake_frequency = self.effect_params.get("shake_frequency", 0.2)
-        # Store original x_pos to apply shake on top of scrolling
-        if not hasattr(self, '_original_x_pos'):
-            self._original_x_pos = self.x_pos
-        self.x_pos = self._original_x_pos + shake_amplitude * math.sin(self.effect_params["shake_counter"] * shake_frequency)
+        self.shake_offset_x = shake_amplitude * math.sin(self.effect_params["shake_counter"] * shake_frequency)
         self.effect_params["shake_counter"] += 0.1
 
 
@@ -646,8 +667,8 @@ class TextAnimator:
             image_to_render_pil = self.fragment_image
             x_offset, y_offset = 0, 0  # Fragments are pre-positioned
         else:
-            image_to_render_pil = self.text_image
-            x_offset, y_offset = int(self.x_pos), int(self.y_pos)
+            image_to_render_pil = self.text_image # Add the shake offset to the final scrolled position
+            x_offset, y_offset = int(self.x_pos + self.shake_offset_x), int(self.y_pos + self.shake_offset_y + self.wave_offset_y)
 
         # Create the final transparent canvas
         output_frame_bgra = np.zeros((self.height, self.width, 4), dtype=np.uint8)
