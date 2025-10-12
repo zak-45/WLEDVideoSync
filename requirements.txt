@@ -47,4 +47,4 @@ unidecode
 cv2_enumerate_cameras
 qrcode
 cryptography
-
+skia-python

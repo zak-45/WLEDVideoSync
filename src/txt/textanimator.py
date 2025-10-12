@@ -767,7 +767,7 @@ if __name__ == "__main__":
         width=640,
         height=360,
         fps=30,
-        speed=0,  # Speed is not relevant for a static explosion
+        speed=50,  # Speed is not relevant for a static explosion
         direction="none",
         color=(255, 255, 0),  # Cyan in BGR
         effect="explode",
