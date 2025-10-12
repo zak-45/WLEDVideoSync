@@ -197,11 +197,14 @@ class TextAnimator:
         for key, value in kwargs.items():
             # If the effect is changing, clean up state from previous position-based effects
             if key == 'effect' and self.effect != value:
-                if hasattr(self, '_original_x_pos'):
-                    del self._original_x_pos
+                # Set the new effect value FIRST.
+                setattr(self, key, value)
+                # Now, re-initialize the effect parameters for the NEW effect.
+                self.effect_params = self.init_effect_params()
                 # When the effect changes, re-initialize the effect parameters
                 # to ensure the new effect's state (e.g., counters) is set up correctly.
-                self.effect_params = self.init_effect_params()
+                if hasattr(self, '_original_x_pos'):
+                    del self._original_x_pos
                 if hasattr(self, '_original_y_pos'):
                     del self._original_y_pos
                 self.shake_offset_x = 0
@@ -211,7 +214,7 @@ class TextAnimator:
 
             if hasattr(self, key):
                 setattr(self, key, value)
-                text_logger.info(f"Updated TextAnimator parameter '{key}' to '{value}'.")
+                text_logger.debug(f"Updated TextAnimator parameter '{key}' to '{value}'.")
                 updated = True
             else:
                 text_logger.warning(f"Attempted to update unknown TextAnimator parameter: '{key}'.")
