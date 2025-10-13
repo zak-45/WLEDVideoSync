@@ -96,10 +96,8 @@ class CastCenter:
         self.media_status = None
         self.font_path = None
         self.font_size = 25
-        # Search for all system fonts and initialize the manager
-        Utils.get_system_fonts()
-        fonts = Utils.font_dict
-        self.font_manager = FontPreviewManager(fonts)
+        self.font_manager = None
+
 
     async def toggle_text_media(self, media_button):
         """ allow or not allow text overlay for Media """
@@ -336,6 +334,11 @@ class CastCenter:
 
         await apply_custom()
 
+        # Search for all system fonts and initialize the manager
+        Utils.get_system_fonts()
+        fonts = Utils.font_dict
+        self.font_manager = FontPreviewManager(fonts)
+
         if str2bool(cfg_mgr.custom_config['animate_ui']):
             # Add Animate.css to the HTML head
             ui.add_head_html("""
@@ -364,7 +367,7 @@ class CastCenter:
                 card_desktop.props('flat')
                 card_desktop.set_visibility(True)
                 with card_desktop:
-                    ui.image('assets/desktop.png').classes('self-center').tailwind.border_width('4').width('1/5')
+                    ui.image('assets/desktop.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row().classes('self-center'):
                         monitor = ui.number('Monitor', value=0, min=-1, max=1)
                         monitor.bind_value(self.Desktop, 'monitor_number')
@@ -402,7 +405,7 @@ class CastCenter:
                 card_window.props('flat')
                 card_window.set_visibility(True)
                 with card_window:
-                    ui.image('assets/windows.png').classes('self-center').tailwind.border_width('4').width('1/5')
+                    ui.image('assets/windows.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row().classes('self-center'):
                         self.win = ui.select(['** click WINDOWS to refresh **'], label='Select Window')
                         self.win.classes('w-40')
@@ -425,7 +428,7 @@ class CastCenter:
                 card_capture.props('flat')
                 card_capture.set_visibility(True)
                 with card_capture:
-                    ui.image('assets/camera.png').classes('self-center').tailwind.border_width('4').width('1/5')
+                    ui.image('assets/camera.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row().classes('self-center'):
                         self.device = ui.select(['** click DEVICES to refresh **'], label='Select Device')
                         self.device.classes('w-40')
@@ -467,7 +470,7 @@ class CastCenter:
                 card_yt.props('flat')
                 card_yt.set_visibility(True)
                 with card_yt:
-                    ui.image('assets/youtube.png').classes('self-center').tailwind.border_width('4').width('1/5')
+                    ui.image('assets/youtube.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row(wrap=False).classes('self-center'):
                         yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4')
                         yt_icon.style('cursor:pointer')

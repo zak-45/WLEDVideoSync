@@ -62,8 +62,7 @@ class Calculator:
         with ui.card().classes('flex mx-auto mt-40'):
             ui.icon('sim_card', color='primary').bind_visibility_from(
                 self, 'memory')
-            ui.input().bind_value(self, 'data').props(
-                'outlined input-style="text-align:right"').tailwind('min-w-full')
+            ui.input().bind_value(self, 'data').props('outlined input-style="text-align:right"').classes('w-full')
             with ui.grid(columns=5):
                 ui.button('\u221A', on_click=self.calculate_sqrt)
                 ui.button('MC', on_click=self.memory_clear)

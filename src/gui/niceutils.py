@@ -458,7 +458,7 @@ async def player_media_info(player_media):
 
 
 async def player_url_info(player_url):
-    """ Grab YouTube information from an Url """
+    """ Grab YouTube information from a Url """
 
     async def yt_search():
         data = await Utils.list_yt_formats(player_url)
@@ -703,8 +703,8 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                                                               execute=True)
                               ).classes('shadow-lg').tooltip('Multicast Effects')
 
-                base64 = 'data:image/png;base64,' + info_data[item_th]["data"]['img']
-                ui.image(base64).classes('w-64 m-auto animate__animated animate__fadeInDown').tailwind.border_width('8')
+                base64_img = 'data:image/png;base64,' + info_data[item_th]["data"]['img']
+                ui.image(base64_img).classes('w-64 m-auto animate__animated animate__fadeInDown border-8')
                 def show_details(item_v):
                     with ui.dialog() as dialog:
                         dialog.open()
@@ -1273,7 +1273,7 @@ class YtSearch:
                         'frameborder="0" '
                         'allow="autoplay;clipboard-write;encrypted-media;picture-in-picture" '
                         'referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>'
-                        '</iframe>')
+                        '</iframe>', sanitize=False)
 
     async def search_youtube(self):
         """ Run Search YT from input """

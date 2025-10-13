@@ -260,7 +260,7 @@ async def main_page():
             img = ui.image("assets/favicon.ico").classes('self-center')
             img.on('click', lambda: animate_toggle(img))
             img.style('cursor: pointer')
-            img.tailwind.border_width('4').width('8')
+            img.classes('border-2 w-8 border-white')
         ui.label('MEDIA: Cast Image / Video / Capture Device (e.g. USB Camera ...)').classes('bg-slate-400 w-1/3')
 
     """
@@ -270,7 +270,7 @@ async def main_page():
     ui.separator().classes('mt-6')
     CastAPI.w_image = ui.image("assets/Source-intro.png").classes('self-center')
     CastAPI.w_image.classes(add='animate__animated')
-    CastAPI.w_image.tailwind.border_width('8').width('1/6')
+    CastAPI.w_image.classes('border-2 w-1/6 border-white')
 
     """
     Video player
@@ -341,10 +341,7 @@ async def main_page():
                 ui.button('System', on_click=sys_stats_info_page)
         CastAPI.charts_row.set_visibility(False)
         root_page_url = Utils.root_page()
-        if root_page_url == '/Cast-Center':
-            go_to_url = '/'
-        else:
-            go_to_url = '/Cast-Center'
+        go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
         ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url))
         ui.button('Fonts', on_click=font_select, color='bg-red-800')
         ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
@@ -1076,8 +1073,8 @@ async def control_panel_page():
 
         await nice.filters_data(Desktop)
 
-        with ui.card().tight().classes('w-42'):
-            with ui.column():
+        with ui.card().tight().classes('w-106'):
+            with ui.column().classes('self-center'):
 
                 # refreshable
                 await cast_manage_page()
@@ -1313,7 +1310,7 @@ async def cast_manage_page():
     """
 
     with ui.card().tight().classes('self-center'):
-        with ui.row():
+        with ui.row(wrap=True):
             with ui.column(align_items='start', wrap=False):
                 if Desktop.count > 0:
                     my_col = 'red'
@@ -1327,7 +1324,7 @@ async def cast_manage_page():
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
                     .tooltip('Initiate Desktop Cast')
-                if Desktop.stopcast is True:
+                if Desktop.stopcast:
                     CastAPI.desktop_cast_run.set_visibility(False)
 
             ui.icon('stop_screen_share', size='xs', color='red') \
@@ -1368,7 +1365,7 @@ async def cast_manage_page():
                     .classes('shadow-lg') \
                     .props(add='push size="md"') \
                     .tooltip('Initiate Media Cast')
-                if Media.stopcast is True:
+                if Media.stopcast:
                     CastAPI.media_cast_run.set_visibility(False)
 
 
@@ -1477,6 +1474,7 @@ async def action_to_casts(class_name, cast_name, action, params, clear, execute,
             reverse.value = False
             random.value = False
             return 'pause'
+        return None
 
     def valid_swap():
         type_effect = valid_check()
@@ -1719,8 +1717,7 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
 
             dialog = ui.dialog().style('width: 800px')
             with dialog:
-                ui.label(str(index)) \
-                    .tailwind.font_weight('extrabold').text_color('red-600').background_color('orange-200')
+                ui.label(str(index)).classes('font-extrabold text-red-600 bg-orange-200')
                 with ui.interactive_image(image):
                     with ui.row().classes('absolute top-0 left-0 m-2'):
                         ui.button(on_click=lambda: cast_to_wled(class_obj, index), icon='cast') \

@@ -67,6 +67,7 @@ try:
 except Exception:
     scheduler = Scheduler()
 
+"""
 schedule_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/scheduler/WLEDScheduler.py'),
                                coldtype=False,
                                use_capture=False,
@@ -76,6 +77,7 @@ job_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/jobs/WLEDJobs
                           coldtype=False,
                           use_capture=False,
                           go_back=False)
+"""
 
 WLEDScheduler = scheduler.scheduler
 
@@ -271,6 +273,16 @@ class SchedulerGUI:
         activation, recurring/one-time schedules, job selection, and display of
         scheduled jobs.
         """
+
+        schedule_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/scheduler/WLEDScheduler.py'),
+                                       coldtype=False,
+                                       use_capture=False,
+                                       go_back=False)
+
+        job_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'),
+                                  coldtype=False,
+                                  use_capture=False,
+                                  go_back=False)
 
         def refresh_tag_dropdown():
             tag_dropdown.options = get_all_unique_tags(WLEDScheduler.get_jobs())
@@ -489,7 +501,7 @@ class SchedulerGUI:
                          </div>
                      </div>
                  </div>
-             """)
+             """, sanitize=False)
         #
         """
          add analog clock
@@ -513,7 +525,7 @@ class SchedulerGUI:
                     <div class="marker marker-9"></div>
                   </div>
                 </div>
-             """)
+             """, sanitize=False)
         #
         with ui.card().classes('self-center w-full'):
             with ui.row().classes('self-center w-full'):
