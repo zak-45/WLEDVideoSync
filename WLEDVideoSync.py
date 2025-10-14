@@ -334,6 +334,52 @@ def select_gui():
 
     return show, native_ui, native_ui_size
 
+def show_splash_screen():
+    """
+    Displays a splash screen in a separate thread using tkinter.
+    This is cross-platform and doesn't block the main app startup.
+    """
+    import tkinter as tk
+    from PIL import Image, ImageTk
+
+    try:
+        root = tk.Tk()
+        # Use a specific color that will be made transparent
+        transparent_color = '#abcdef'
+        root.config(bg=transparent_color)
+        root.overrideredirect(True)  # Create a borderless window
+
+        # Load the splash screen image
+        image_path = cfg_mgr.app_root_path("splash-screen.png")
+        pil_image = Image.open(image_path)
+        splash_image = ImageTk.PhotoImage(pil_image)
+
+        # Get image dimensions
+        img_width = splash_image.width()
+        img_height = splash_image.height()
+
+        # Center the window on the screen
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        x = (screen_width // 2) - (img_width // 2)
+        y = (screen_height // 2) - (img_height // 2)
+        root.geometry(f'{img_width}x{img_height}+{x}+{y}')
+
+        # Display the image
+        splash_label = tk.Label(root, image=splash_image, bg=transparent_color, borderwidth=0)
+        splash_label.pack()
+
+        # Make the window transparent. This is the key step.
+        # It works on Windows and some Linux window managers.
+        root.wm_attributes('-transparentcolor', transparent_color)
+
+        # Close the splash screen after 3 seconds
+        root.after(3000, root.destroy)
+
+        root.mainloop()
+    except Exception as er:
+        main_logger.error(f"Failed to show splash screen: {er}")
+
 
 def run_gui():
     """Run the main graphical user interface (GUI).
@@ -362,6 +408,12 @@ def run_gui():
             wled_proc_file["server_port"] = server_port
             wled_proc_file["sc_area"] = []
             wled_proc_file["media"] = None
+
+        # Show splash screen in a separate thread to not block the main app
+        import threading
+        splash_thread = threading.Thread(target=show_splash_screen, daemon=True)
+        splash_thread.start()
+
 
     """
     Pystray
