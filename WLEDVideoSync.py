@@ -416,10 +416,11 @@ def run_gui():
             wled_proc_file["sc_area"] = []
             wled_proc_file["media"] = None
 
-        # Show splash screen in a separate thread to not block the main app
-        import threading
-        splash_thread = threading.Thread(target=show_splash_screen, daemon=True)
-        splash_thread.start()
+        if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']):
+            # Show splash screen in a separate thread to not block the main app
+            import threading
+            splash_thread = threading.Thread(target=show_splash_screen, daemon=True)
+            splash_thread.start()
 
 
     """
