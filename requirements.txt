@@ -13,11 +13,11 @@ numpy
 opencv-python
 zeroconf
 nicegui==3.0.4
-pillow==11.3.0
-fastapi==0.118.0
-starlette==0.48.0
-requests==2.32.5
-av==15.1.0
+pillow
+fastapi
+starlette
+requests
+av==15.1.0  # problem nuitka/ 16.1.0
 mss
 moviepy==1.0.3
 coldtype[viewer]
