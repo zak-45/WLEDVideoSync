@@ -377,7 +377,8 @@ def show_splash_screen():
 
         # Make the window transparent. This is the key step.
         # It works on Windows and some Linux window managers.
-        root.wm_attributes('-transparentcolor', transparent_color)
+        if PLATFORM == "win32":
+            root.wm_attributes('-transparentcolor', transparent_color)
 
         # Close the splash screen after 3 seconds
         root.after(3000, root.destroy)
