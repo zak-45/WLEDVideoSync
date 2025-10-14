@@ -6,25 +6,26 @@
 # urllib3==1.26.20 ; sys_platform == "darwin"
 winloop ; sys_platform == "win32"
 
-
 # Specific version & Common to all OS
+nicegui==3.0.4
+av==15.1.0  # problem nuitka/ 16.1.0
+fonttools==4.58.5 # problem nuitka/ pkg_resource with 4.59.0
+moviepy==1.0.3
+
+# any version & Common to all OS
 pywebview[pyside6]
 numpy
 opencv-python
+cv2_enumerate_cameras
 zeroconf
-nicegui==3.0.4
 pillow
 fastapi
 starlette
 requests
-av==15.1.0  # problem nuitka/ 16.1.0
 mss
-moviepy==1.0.3
 coldtype[viewer]
+skia-python
 aiohttp
-fonttools==4.58.5 # problem nuitka/ pkg_resource with 4.59.0
-
-# any version & Common to all OS
 urllib3
 str2bool
 PyWinCtl
@@ -44,7 +45,5 @@ simpleeval
 pytubefix
 schedule
 unidecode
-cv2_enumerate_cameras
 qrcode
 cryptography
-skia-python
