@@ -613,7 +613,7 @@ class CASTUtils:
             # some cleaning
             utils_logger.info('Cleaning ...')
             utils_logger.debug('Remove tmp files')
-            for tmp_filename in PathLib("tmp/").glob("*_file.*"):
+            for tmp_filename in PathLib("tmp/").glob("*_file*"):
                 tmp_filename.unlink()
 
             # remove yt files

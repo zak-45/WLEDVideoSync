@@ -482,6 +482,7 @@ MAIN Logic
 """
 
 
+
 # app settings set here to avoid problem with native if used, see: https://github.com/zauberzeug/nicegui/pull/4627
 app.openapi = custom_openapi
 app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
@@ -497,16 +498,37 @@ Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu
 """
 if __name__ == "__main__":
     # Check for special command-line flags to run in a different mode.
+    if '--help' in sys.argv:
+        help_text = """
+        WLEDVideoSync - Main Application
+
+        Usage:
+            WLEDVideoSync.py [FLAGS]
+
+        Flags:
+            --help                  Show this help message and exit.
+
+            --wled                  Set the Desktop cast to WLED mode. This automatically
+                                    retrieves matrix dimensions from the device.
+
+            --ip=<ip_address>       Set the target IP address for the Desktop cast.
+                                    Example: --ip=192.168.1.50
+
+            --run-mobile-server     Run the mobile camera streaming server. This is typically
+                                    launched by the main application and not intended for
+                                    direct user execution.
+
+        If no flags are provided, the main GUI application will start with settings from the .ini file.
+        """
+        print(help_text)
+        sys.exit(0)
+
     if '--run-mobile-server' in sys.argv:
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server.
 
         # args
         file = sys.argv[2] if len(sys.argv) > 2 else 'None'
-
-        # retrieve Media objects from other process
-        with shelve.open(file,"r") as proc_file:
-            media = proc_file["media"]
 
         try:
             # 1. Initialize the desktop cast to create and listen on a shared memory queue.
@@ -517,8 +539,28 @@ if __name__ == "__main__":
             Desktop.viinput = 'queue'
             Desktop.stopcast = False
 
-            # update Desktop attributes from media
-            Desktop.set_from_media(media)
+            # --- Handle --wled and --ip flags for the main application ---
+            bypass_shelve = False
+
+            if any(arg.startswith('--ip=') for arg in sys.argv):
+                if ip_arg := next(
+                    (arg for arg in sys.argv if arg.startswith('--ip=')), None
+                ):
+                    Desktop.host = ip_arg.split('=', 1)[1]
+                    main_logger.info(f"Command-line override: Desktop host set to {Desktop.host}")
+                    bypass_shelve = True
+
+            if '--wled' in sys.argv:
+                Desktop.wled = True
+                main_logger.info("Command-line override: Desktop WLED mode enabled.")
+                bypass_shelve = True
+
+            # retrieve Media objects from other process
+            if not bypass_shelve:
+                with shelve.open(file, "r") as proc_file:
+                    media = proc_file["media"]
+                # update Desktop attributes from media attributes (copied into proc_file)
+                Desktop.set_from_media(media)
 
             shared_list_instance_thread = Desktop.cast()  # This creates the shared list and returns the handle
 
