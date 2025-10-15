@@ -513,54 +513,55 @@ def handle_command_line_args(argv):
 
         Flags:
             --help                  Show this help message and exit.
-
-            --wled                  Set the Desktop cast to WLED mode. This automatically
-                                    retrieves matrix dimensions from the device.
-                                    
-            --no-text               Set the Desktop allow text-animator to false (no text overlay)
-                                    
-            --ip=<ip_address>       Set the target IP address for the Desktop cast.
-                                    Example: --ip=192.168.1.50
-
-            --width=<number>        Set the width for the Desktop cast matrix.
-                                    Example: --width=32
-
-            --height=<number>       Set the height for the Desktop cast matrix.
-                                    Example: --height=32
-
+            
             --run-mobile-server     Run the mobile camera streaming server. This is typically
                                     launched by the main application and not intended for
                                     direct user execution.
+                                    This will use Desktop cast Queue feature.          
+
+                --wled                  Set the Desktop cast to WLED mode. This automatically
+                                        retrieves matrix dimensions from the device.
+                                        
+                --no-text               Set the Desktop allow text-animator to false (no text overlay)
+                                        
+                --ip=<ip_address>       Set the target IP address for the Desktop cast.
+                                        Example: --ip=192.168.1.50
+    
+                --width=<number>        Set the width for the Desktop cast matrix.
+                                        Example: --width=32
+    
+                --height=<number>       Set the height for the Desktop cast matrix.
+                                        Example: --height=32
+
 
         If no flags are provided, the main GUI application will start with settings from the .ini file.
         """
         print(help_text)
         return 'exit', False
 
-    bypass_shelve = False
+    bypass_shelve = True
+
     if any(arg.startswith('--ip=') for arg in argv):
         if ip_arg := next((arg for arg in argv if arg.startswith('--ip=')), None):
             Desktop.host = ip_arg.split('=', 1)[1]
             main_logger.info(f"Command-line override: Desktop host set to {Desktop.host}")
-            bypass_shelve = True
+
 
     if '--wled' in argv:
         Desktop.wled = True
         main_logger.info("Command-line override: Desktop WLED mode enabled.")
-        bypass_shelve = True
 
     if '--no-text' in argv:
         Desktop.allow_text_animator = False
         main_logger.info("Command-line override: Desktop Text overlay mode disabled.")
-        bypass_shelve = True
 
     if any(arg.startswith('--width=') for arg in argv):
         if width_arg := next((arg for arg in argv if arg.startswith('--width=')), None):
             try:
                 Desktop.scale_width = int(width_arg.split('=', 1)[1])
                 main_logger.info(f"Command-line override: Desktop scale_width set to {Desktop.scale_width}")
-                bypass_shelve = True
             except ValueError:
+                bypass_shelve = False
                 main_logger.error("Invalid value for --width. Please provide an integer.")
 
     if any(arg.startswith('--height=') for arg in argv):
@@ -568,8 +569,8 @@ def handle_command_line_args(argv):
             try:
                 Desktop.scale_height = int(height_arg.split('=', 1)[1])
                 main_logger.info(f"Command-line override: Desktop scale_height set to {Desktop.scale_height}")
-                bypass_shelve = True
             except ValueError:
+                bypass_shelve = False
                 main_logger.error("Invalid value for --height. Please provide an integer.")
 
     return 'run_gui', bypass_shelve
@@ -594,7 +595,7 @@ Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu
 """
 if __name__ == "__main__":
     # Check for special command-line flags to run in a different mode.
-    if '--run-mobile-server' in sys.argv:
+    if '--run-mobile-server' in sys.argv or '--help' in sys.argv:
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server.
 
