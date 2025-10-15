@@ -132,9 +132,6 @@ def init_linux_win():
     # common all OS
     init_common(config_file)
 
-    # run tk and close
-    from src.gui.tkwininit import init
-    init()
 
 def linux_settings(config_file):
     """Apply Linux-specific settings and configurations.
@@ -218,10 +215,6 @@ def init_darwin():
 
     # common all OS
     init_common(config_file)
-
-    # run webview and close
-    from src.gui.tkmacinit import init
-    init()
 
 
 def init_common(config_file):
@@ -655,17 +648,30 @@ if __name__ == "__main__":
             Expected way to work.
             """
             init_linux_win()
+            # run tk and close
+            from src.gui.tkwininit import init
+            init()
 
         elif PLATFORM == 'win32' and str2bool(cfg_mgr.app_config['win_first_run']):
             init_linux_win()
+            # run tk and close
+            from src.gui.tkwininit import init
+            init()
+
 
         elif PLATFORM == 'linux' and str2bool(cfg_mgr.app_config['linux_first_run']):
             init_linux_win()
+            # run tk and close
+            from src.gui.tkwininit import init
+            init()
 
         # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run only
         # Update necessary params and exit
         if PLATFORM == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
             init_darwin()
+            # run tk and close
+            from src.gui.tkmacinit import init
+            init()
 
         """
         Start infinite loop
