@@ -89,7 +89,5 @@ def init():
     # Start the Tkinter event loop
     root.mainloop()
 
-    sys.exit()
-
 if __name__ == "__main__":
     init()

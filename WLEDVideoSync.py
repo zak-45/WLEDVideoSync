@@ -233,6 +233,7 @@ def init_common(config_file):
     Utils.update_ini_key(config_file, 'app', 'put_on_systray', 'False')
     Utils.update_ini_key(config_file, 'app', 'font_file', '')
     Utils.update_ini_key(config_file, 'custom', 'bg_image', '')
+    Utils.update_ini_key(config_file, 'app', 'splash', 'True')
 
     # generate self signed cert
     from src.utl.self_signed_cert import generate_self_signed_cert
@@ -407,8 +408,13 @@ def run_gui():
 
     print(f'Start WLEDVideoSync - NiceGui for : {PLATFORM}')
 
-    if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
+    if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']):
+        # Show splash screen in a separate thread to not block the main app
+        import threading
+        splash_thread = threading.Thread(target=show_splash_screen, daemon=True)
+        splash_thread.start()
 
+    if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
         server_ip, server_port = check_server()
         if server_ip is None or server_port is None:
             print('Exiting due to invalid server configuration.')
@@ -417,18 +423,10 @@ def run_gui():
             sys.exit(4)
 
     # store server port info for others processes, add sc_area for macOS
-    if '--run-mobile-server' not in sys.argv:
-        with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
-            wled_proc_file["server_port"] = server_port
-            wled_proc_file["sc_area"] = []
-            wled_proc_file["media"] = None
-
-        if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']):
-            # Show splash screen in a separate thread to not block the main app
-            import threading
-            splash_thread = threading.Thread(target=show_splash_screen, daemon=True)
-            splash_thread.start()
-
+    with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
+        wled_proc_file["server_port"] = server_port
+        wled_proc_file["sc_area"] = []
+        wled_proc_file["media"] = None
 
     """
     Pystray
@@ -518,7 +516,9 @@ def handle_command_line_args(argv):
 
             --wled                  Set the Desktop cast to WLED mode. This automatically
                                     retrieves matrix dimensions from the device.
-
+                                    
+            --no-text               Set the Desktop allow text-animator to false (no text overlay)
+                                    
             --ip=<ip_address>       Set the target IP address for the Desktop cast.
                                     Example: --ip=192.168.1.50
 
@@ -547,6 +547,11 @@ def handle_command_line_args(argv):
     if '--wled' in argv:
         Desktop.wled = True
         main_logger.info("Command-line override: Desktop WLED mode enabled.")
+        bypass_shelve = True
+
+    if '--no-text' in argv:
+        Desktop.allow_text_animator = False
+        main_logger.info("Command-line override: Desktop Text overlay mode disabled.")
         bypass_shelve = True
 
     if any(arg.startswith('--width=') for arg in argv):
@@ -651,19 +656,21 @@ if __name__ == "__main__":
             # run tk and close
             from src.gui.tkwininit import init
             init()
+            sys.exit(0)
 
         elif PLATFORM == 'win32' and str2bool(cfg_mgr.app_config['win_first_run']):
             init_linux_win()
             # run tk and close
             from src.gui.tkwininit import init
             init()
-
+            sys.exit(0)
 
         elif PLATFORM == 'linux' and str2bool(cfg_mgr.app_config['linux_first_run']):
             init_linux_win()
             # run tk and close
             from src.gui.tkwininit import init
             init()
+            sys.exit(0)
 
         # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run only
         # Update necessary params and exit
@@ -672,6 +679,7 @@ if __name__ == "__main__":
             # run tk and close
             from src.gui.tkmacinit import init
             init()
+            sys.exit(0)
 
         """
         Start infinite loop
