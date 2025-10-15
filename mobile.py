@@ -125,7 +125,7 @@ def stream():
         }
     </style>
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;">
-        <h2>WLEDVideoSync - Mobile Webcam Stream (iOS/Android)</h2>
+        <h3>WLEDVideoSync - Mobile Webcam Stream (iOS/Android)</h3>
         <video id="video" autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
         <div id="controls" style="display: flex; align-items: center; margin-top: 10px; gap: 15px;">
             <div id="status-indicator" style="display: none; align-items: center; cursor: pointer;">
@@ -218,7 +218,7 @@ if __name__ == "__main__":
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     # args
     host = sys.argv[1] if len(sys.argv) > 1 else '127.0.0.1'
-    wled = True if len(sys.argv) > 2 and sys.argv[2] == 'wled' else False
+    wled = len(sys.argv) > 2 and sys.argv[2] == 'wled'
     # cast
     Desktop = desktop.CASTDesktop()
     Desktop.viinput = 'queue'
