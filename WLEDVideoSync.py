@@ -505,6 +505,8 @@ MAIN Logic
 
 
 
+
+
 # app settings set here to avoid problem with native if used, see: https://github.com/zauberzeug/nicegui/pull/4627
 app.openapi = custom_openapi
 app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
@@ -535,6 +537,12 @@ if __name__ == "__main__":
 
             --ip=<ip_address>       Set the target IP address for the Desktop cast.
                                     Example: --ip=192.168.1.50
+                                    
+            --width=<number>        Set the width for the Desktop cast matrix.
+                                    Example: --width=32
+ 
+            --height=<number>       Set the height for the Desktop cast matrix.
+                                    Example: --height=32                                    
 
             --run-mobile-server     Run the mobile camera streaming server. This is typically
                                     launched by the main application and not intended for
@@ -576,6 +584,33 @@ if __name__ == "__main__":
                 Desktop.wled = True
                 main_logger.info("Command-line override: Desktop WLED mode enabled.")
                 bypass_shelve = True
+
+            else:
+
+                if any(arg.startswith('--width=') for arg in sys.argv):
+                    if width_arg := next(
+                        (arg for arg in sys.argv if arg.startswith('--width=')),
+                        None,
+                    ):
+                        try:
+                            Desktop.scale_width = int(width_arg.split('=', 1)[1])
+                            main_logger.info(f"Command-line override: Desktop scale_width set to {Desktop.scale_width}")
+                            bypass_shelve = True
+                        except ValueError:
+                            main_logger.error("Invalid value for --width. Please provide an integer.")
+
+                if any(arg.startswith('--height=') for arg in sys.argv):
+                    if height_arg := next(
+                        (arg for arg in sys.argv if arg.startswith('--height=')),
+                        None,
+                    ):
+                        try:
+                            Desktop.scale_height = int(height_arg.split('=', 1)[1])
+                            main_logger.info(f"Command-line override: Desktop scale_height set to {Desktop.scale_height}")
+                            bypass_shelve = True
+                        except ValueError:
+                            main_logger.error("Invalid value for --height. Please provide an integer.")
+
 
             # retrieve Media objects from other process
             if not bypass_shelve:
