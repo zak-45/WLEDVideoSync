@@ -64,6 +64,7 @@ Temporary File Handling:
 
 """
 import os
+import socket
 
 # Suppress the specific UserWarning from the 'fs' library about pkg_resources.
 # This is a known issue with some dependencies and newer versions of setuptools.
@@ -293,10 +294,23 @@ def check_server():
     if srv_port == 'auto':
         srv_port = native.find_open_port()
     else:
-        srv_port = int(cfg_mgr.server_config['server_port'])
+        # If a specific port is configured, check if it's available.
+        try:
+            srv_port = int(cfg_mgr.server_config['server_port'])
+            # Attempt to bind to the configured IP and port to check availability.
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind((srv_ip, srv_port))
+            # If bind is successful, the port is free. The 'with' statement closes it immediately.
+        except OSError as er:
+            # This error (e.g., "Address already in use") means the port is taken.
+            main_logger.error(f"Server Port {srv_port} on IP {srv_ip} is already in use. Please choose another port. Error: {er}")
+            return srv_ip, None
+        except Exception as er:
+            main_logger.error(f"Invalid Server Port configuration for port {srv_port}. Error: {er}")
+            return srv_ip, None
 
     if srv_port not in range(1, 65536):
-        main_logger.error(f'Bad server Port: {srv_port}')
+        main_logger.error(f'Server Port {srv_port} is outside the valid range (1-65535).')
         return srv_ip, None
 
     return srv_ip, srv_port
