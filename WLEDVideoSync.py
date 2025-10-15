@@ -499,13 +499,87 @@ def run_gui():
 
     print('End WLEDVideoSync - NiceGUI')
 
+def handle_command_line_args(argv):
+    """
+    Parses command-line arguments and configures the application state.
+
+    This function handles flags like --help, --wled, --ip, --width, and --height.
+    It returns a status indicating the next action for the main script.
+
+    Args:
+        argv (list): The list of command-line arguments (e.g., sys.argv).
+
+    Returns:
+        tuple: A tuple containing the action status ('run_gui' or 'exit')
+               and a boolean indicating if the shelve file logic should be bypassed.
+    """
+    if '--help' in argv:
+        help_text = """
+        WLEDVideoSync - Main Application
+
+        Usage:
+            WLEDVideoSync.py [FLAGS]
+
+        Flags:
+            --help                  Show this help message and exit.
+
+            --wled                  Set the Desktop cast to WLED mode. This automatically
+                                    retrieves matrix dimensions from the device.
+
+            --ip=<ip_address>       Set the target IP address for the Desktop cast.
+                                    Example: --ip=192.168.1.50
+
+            --width=<number>        Set the width for the Desktop cast matrix.
+                                    Example: --width=32
+
+            --height=<number>       Set the height for the Desktop cast matrix.
+                                    Example: --height=32
+
+            --run-mobile-server     Run the mobile camera streaming server. This is typically
+                                    launched by the main application and not intended for
+                                    direct user execution.
+
+        If no flags are provided, the main GUI application will start with settings from the .ini file.
+        """
+        print(help_text)
+        return 'exit', False
+
+    bypass_shelve = False
+    if any(arg.startswith('--ip=') for arg in argv):
+        if ip_arg := next((arg for arg in argv if arg.startswith('--ip=')), None):
+            Desktop.host = ip_arg.split('=', 1)[1]
+            main_logger.info(f"Command-line override: Desktop host set to {Desktop.host}")
+            bypass_shelve = True
+
+    if '--wled' in argv:
+        Desktop.wled = True
+        main_logger.info("Command-line override: Desktop WLED mode enabled.")
+        bypass_shelve = True
+
+    if any(arg.startswith('--width=') for arg in argv):
+        if width_arg := next((arg for arg in argv if arg.startswith('--width=')), None):
+            try:
+                Desktop.scale_width = int(width_arg.split('=', 1)[1])
+                main_logger.info(f"Command-line override: Desktop scale_width set to {Desktop.scale_width}")
+                bypass_shelve = True
+            except ValueError:
+                main_logger.error("Invalid value for --width. Please provide an integer.")
+
+    if any(arg.startswith('--height=') for arg in argv):
+        if height_arg := next((arg for arg in argv if arg.startswith('--height=')), None):
+            try:
+                Desktop.scale_height = int(height_arg.split('=', 1)[1])
+                main_logger.info(f"Command-line override: Desktop scale_height set to {Desktop.scale_height}")
+                bypass_shelve = True
+            except ValueError:
+                main_logger.error("Invalid value for --height. Please provide an integer.")
+
+    return 'run_gui', bypass_shelve
+
+
 """
 MAIN Logic 
 """
-
-
-
-
 
 # app settings set here to avoid problem with native if used, see: https://github.com/zauberzeug/nicegui/pull/4627
 app.openapi = custom_openapi
@@ -522,37 +596,6 @@ Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu
 """
 if __name__ == "__main__":
     # Check for special command-line flags to run in a different mode.
-    if '--help' in sys.argv:
-        help_text = """
-        WLEDVideoSync - Main Application
-
-        Usage:
-            WLEDVideoSync.py [FLAGS]
-
-        Flags:
-            --help                  Show this help message and exit.
-
-            --wled                  Set the Desktop cast to WLED mode. This automatically
-                                    retrieves matrix dimensions from the device.
-
-            --ip=<ip_address>       Set the target IP address for the Desktop cast.
-                                    Example: --ip=192.168.1.50
-                                    
-            --width=<number>        Set the width for the Desktop cast matrix.
-                                    Example: --width=32
- 
-            --height=<number>       Set the height for the Desktop cast matrix.
-                                    Example: --height=32                                    
-
-            --run-mobile-server     Run the mobile camera streaming server. This is typically
-                                    launched by the main application and not intended for
-                                    direct user execution.
-
-        If no flags are provided, the main GUI application will start with settings from the .ini file.
-        """
-        print(help_text)
-        sys.exit(0)
-
     if '--run-mobile-server' in sys.argv:
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server.
@@ -569,51 +612,13 @@ if __name__ == "__main__":
             Desktop.viinput = 'queue'
             Desktop.stopcast = False
 
-            # --- Handle --wled and --ip flags for the main application ---
-            bypass_shelve = False
-
-            if any(arg.startswith('--ip=') for arg in sys.argv):
-                if ip_arg := next(
-                    (arg for arg in sys.argv if arg.startswith('--ip=')), None
-                ):
-                    Desktop.host = ip_arg.split('=', 1)[1]
-                    main_logger.info(f"Command-line override: Desktop host set to {Desktop.host}")
-                    bypass_shelve = True
-
-            if '--wled' in sys.argv:
-                Desktop.wled = True
-                main_logger.info("Command-line override: Desktop WLED mode enabled.")
-                bypass_shelve = True
-
-            else:
-
-                if any(arg.startswith('--width=') for arg in sys.argv):
-                    if width_arg := next(
-                        (arg for arg in sys.argv if arg.startswith('--width=')),
-                        None,
-                    ):
-                        try:
-                            Desktop.scale_width = int(width_arg.split('=', 1)[1])
-                            main_logger.info(f"Command-line override: Desktop scale_width set to {Desktop.scale_width}")
-                            bypass_shelve = True
-                        except ValueError:
-                            main_logger.error("Invalid value for --width. Please provide an integer.")
-
-                if any(arg.startswith('--height=') for arg in sys.argv):
-                    if height_arg := next(
-                        (arg for arg in sys.argv if arg.startswith('--height=')),
-                        None,
-                    ):
-                        try:
-                            Desktop.scale_height = int(height_arg.split('=', 1)[1])
-                            main_logger.info(f"Command-line override: Desktop scale_height set to {Desktop.scale_height}")
-                            bypass_shelve = True
-                        except ValueError:
-                            main_logger.error("Invalid value for --height. Please provide an integer.")
-
+            # Check for special command-line flags to run in a different mode.
+            action, do_bypass_shelve = handle_command_line_args(sys.argv)
+            if action == 'exit':
+                sys.exit(0)
 
             # retrieve Media objects from other process
-            if not bypass_shelve:
+            if not do_bypass_shelve:
                 with shelve.open(file, "r") as proc_file:
                     media = proc_file["media"]
                 # update Desktop attributes from media attributes (copied into proc_file)
@@ -638,7 +643,7 @@ if __name__ == "__main__":
             sys.exit(0) # Exit cleanly when the server stops.
 
     else:
-
+        # This is the main GUI application flow
         # --- Main Application Flow (if no special flags were found) ---
 
         # instruct user to go to WLEDVideoSync folder to execute program and exit
