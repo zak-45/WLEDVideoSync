@@ -97,6 +97,8 @@ class CastCenter:
         self.font_path = None
         self.font_size = 25
         self.font_manager = None
+        self.font_name_label = None
+        self.font_size_label = None
 
 
     async def toggle_text_media(self, media_button):
@@ -148,6 +150,11 @@ class CastCenter:
             self.Media.font_size = self.font_size
             # dynamic update for running cast
             self.Media.update_text_animator(font_path=self.font_path, font_size=self.font_size)
+
+            # Update the UI labels with the new font info
+            if self.font_path:
+                self.font_name_label.set_text(os.path.basename(self.font_path))
+            self.font_size_label.set_text(str(self.font_size))
 
             ui.notify(f'Applied font: {os.path.basename(self.font_path or "None")} at size {self.font_size}',
                       type='positive', position='top-right')
@@ -487,6 +494,11 @@ class CastCenter:
 
         with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
             ui.label('TEXT Overlay').classes('self-center')
+            with ui.row(wrap=False).classes('self-center'):
+                ui.label('Font:').classes('self-center')
+                self.font_name_label = ui.label('').classes('self-center')
+                ui.label('Size:').classes('self-center')
+                self.font_size_label = ui.label('').classes('self-center')
             with ui.row(wrap=False).classes('w-full'):
                 card_text = ui.card().tight().classes('w-1/3 self-center')
                 card_text.set_visibility(True)
