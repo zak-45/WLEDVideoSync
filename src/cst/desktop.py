@@ -559,7 +559,7 @@ class CASTDesktop(TextAnimatorMixin):
                 # here we feed the queue that is read by Net thread
                 if t_protocol == "ddp":
                     # take only the first IP from list
-                    if t_multicast is False:
+                    if not t_multicast:
                         try:
                             if ip_addresses[0] != '127.0.0.1':
                                 # send data to queue

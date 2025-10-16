@@ -516,7 +516,7 @@ def handle_command_line_args(argv):
             
             --run-mobile-server     Run the mobile camera streaming server. This is typically
                                     launched by the main application and not intended for
-                                    direct user execution.
+                                    direct user execution (but possible).
                                     This will use Desktop cast Queue feature.          
 
                 --wled                  Set the Desktop cast to WLED mode. This automatically

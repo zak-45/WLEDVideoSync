@@ -1048,12 +1048,59 @@ async def manage_single_cast_page(thread_name: str):
 
 @ui.page('/control_panel')
 async def create_control_panel_page():
+    """
+    Displays the main control panel page for managing cast operations.
+
+    This page sets up the UI theme, applies custom settings, starts a timer to update cast information,
+    and generates the control panel interface for user interaction.
+    """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
 
+    # Timer to update cast info
+    CastAPI.info_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=info_timer_action)
     # Generate the control panel
     await control_panel_page()
 
+@ui.page('/preview_help')
+async def create_preview_help_page():
+    ui.dark_mode(CastAPI.dark_mode)
+    await apply_custom()
+
+    with ui.card().classes('mx-auto my-8 p-6 w-full max-w-2xl shadow-lg'):
+        ui.label('Preview Window Shortcuts').classes('text-2xl font-bold self-center mb-4')
+        ui.separator()
+
+        with ui.grid(columns=2).classes('w-full gap-y-6 items-center mt-6'):
+            # --- Q Key ---
+            ui.label('[ Q ]').classes('text-2xl font-mono font-bold text-red-500 justify-self-center')
+            with ui.column().classes('gap-0'):
+                ui.label('Quit Cast').classes('font-semibold text-lg')
+                ui.label('Stops the current cast entirely and closes the preview window.').classes('text-sm text-gray-600 dark:text-gray-400')
+
+            # --- P Key ---
+            ui.label('[ P ]').classes('text-2xl font-mono font-bold text-orange-500 justify-self-center')
+            with ui.column().classes('gap-0'):
+                ui.label('Pause/Close Preview').classes('font-semibold text-lg')
+                ui.label('Closes the preview window, but the cast continues to run in the background.').classes('text-sm text-gray-600 dark:text-gray-400')
+
+            # --- T Key ---
+            ui.label('[ T ]').classes('text-2xl font-mono font-bold text-yellow-500 justify-self-center')
+            with ui.column().classes('gap-0'):
+                ui.label('Toggle Text').classes('font-semibold text-lg')
+                ui.label('Shows or hides the informational text overlay (FPS, frame count, etc.).').classes('text-sm text-gray-600 dark:text-gray-400')
+
+            # --- M Key ---
+            ui.label('[ M ]').classes('text-2xl font-mono font-bold text-blue-500 justify-self-center')
+            with ui.column().classes('gap-0'):
+                ui.label('Modify Cast').classes('font-semibold text-lg')
+                ui.label('Opens a new window to manage the settings for this specific cast.').classes('text-sm text-gray-600 dark:text-gray-400')
+
+            # --- H Key ---
+            ui.label('[ H ]').classes('text-2xl font-mono font-bold text-green-500 justify-self-center')
+            with ui.column().classes('gap-0'):
+                ui.label('Help').classes('font-semibold text-lg')
+                ui.label('Displays this help page.').classes('text-sm text-gray-600 dark:text-gray-400')
 
 """
 helpers /Commons
@@ -1180,13 +1227,31 @@ async def open_webview_cast_page(thread_name: str) -> None:
     import webbrowser
 
     url = f"http://localhost:{server_port}/manage_cast/{thread_name}"
-    title = f"WLEDVideoSync - Manage: {thread_name}"
-
     main_logger.info(f"Requesting new webview or browser window for: {url}")
+
     if NATIVE_UI:
+        title = f"WLEDVideoSync - Manage: {thread_name}"
         WLEDVideoSync_gui.open_webview(url=url, title=title, width=440, height=580)
     else:
         webbrowser.open_new(url=url)
+
+async def open_webview_help_page():
+    """
+    Opens a new native webview or browser window (depend on native_ui) to provide help on keys.
+    This function is safely called from a background thread.
+    """
+    from src.gui.wledtray import WLEDVideoSync_gui, server_port
+    import webbrowser
+
+    url = f"http://localhost:{server_port}/preview_help"
+    main_logger.info(f"Requesting new webview or browser window for: {url}")
+
+    if NATIVE_UI:
+        title = "WLEDVideoSync - HELP Preview"
+        WLEDVideoSync_gui.open_webview(url=url, title=title, width=440, height=580)
+    else:
+        webbrowser.open_new(url=url)
+
 
 async def grab_windows():
     """Retrieves and displays window titles.

@@ -172,7 +172,7 @@ def on_exit():
     :return:
     """
     select_win(f"http://{server_ip}:{server_port}/ShutDown",f'WLEDVideoSync SHUTDOWN: {server_port}',
-               width=300, height=50)
+               width=380, height=50)
 
 
 """

@@ -372,6 +372,15 @@ class CV2Utils:
             else:
                 cv2utils_logger.error("Main event loop not available to open settings window.")
 
+        elif key_pressed == ord("h"):  # provide help page for keys
+            from mainapp import CastAPI, open_webview_help_page
+            if CastAPI.loop:
+                # Safely schedule the coroutine on the main event loop
+                asyncio.run_coroutine_threadsafe(open_webview_help_page(), CastAPI.loop)
+                cv2utils_logger.info("Sent request to open help window")
+            else:
+                cv2utils_logger.error("Main event loop not available to open settings window.")
+
         return t_preview, t_todo_stop, text
 
     @staticmethod
