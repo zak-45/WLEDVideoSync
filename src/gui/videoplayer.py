@@ -544,7 +544,7 @@ class VideoPlayer:
     
                 ui.icon('info', size='sd') \
                     .style("cursor: pointer") \
-                    .on('click', lambda: nice.player_media_info(self.CastAPI.player.source)) \
+                    .on('click',lambda: nice.player_media_info(self.CastAPI.player.source)) \
                     .tooltip('self.Media Info') \
                     .bind_visibility_from(self.CastAPI.player)
     

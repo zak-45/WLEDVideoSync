@@ -29,6 +29,7 @@ import sys
 import queue
 import tkinter as tk
 
+from nicegui import run
 from threading import current_thread
 from subprocess import Popen
 from datetime import datetime
@@ -1082,7 +1083,7 @@ async def control_panel_page():
 
                 ui.icon('info') \
                     .tooltip('Show details') \
-                    .on('click', lambda: show_threads_info()) \
+                    .on('click', show_threads_info) \
                     .classes('self-center') \
                     .style('cursor: pointer')
                 with ui.row().classes('self-center'):

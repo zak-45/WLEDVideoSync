@@ -147,6 +147,8 @@ async def font_page(font_manager: 'FontPreviewManager' = None):
         except Exception as e:
             text_logger.error(f"Could not generate 'OK' image for font {i_font_path}: {e}")
             return None
+
+
     if font_manager is None:
         # Search for all system fonts if no manager is provided
         Utils.get_system_fonts()

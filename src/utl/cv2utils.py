@@ -960,7 +960,7 @@ class VideoThumbnailExtractor:
         self.thumbnail_width = thumbnail_width
         self.thumbnail_frames = []
 
-    def is_image_file(self):
+    async def is_image_file(self):
         """Check if the media path is an image file.
 
         Checks if the file extension of the media path matches common image formats.
@@ -970,7 +970,7 @@ class VideoThumbnailExtractor:
         _, ext = os.path.splitext(self.media_path)
         return ext.lower() in image_extensions
 
-    def is_video_file(self):
+    async def is_video_file(self):
         """Check if the media path is a video file.
 
         Attempts to open the media path using cv2.VideoCapture and reads a frame to verify if it's a valid video.
@@ -992,16 +992,16 @@ class VideoThumbnailExtractor:
         """
         if times_in_seconds is None:
             times_in_seconds = [5]
-        if self.is_image_file():
-            self.extract_thumbnails_from_image()
-        elif self.is_video_file():
+        if await self.is_image_file():
+            await self.extract_thumbnails_from_image()
+        elif await self.is_video_file():
             await self.extract_thumbnails_from_video(times_in_seconds)
         else:
             # Provide blank frames if the file is not a valid media file
-            self.thumbnail_frames = [self.create_blank_frame() for _ in times_in_seconds]
+            self.thumbnail_frames = [await self.create_blank_frame() for _ in times_in_seconds]
             cv2utils_logger.warning(f"{self.media_path} is not a valid media file. Generated blank frames.")
 
-    def extract_thumbnails_from_image(self):
+    async def extract_thumbnails_from_image(self):
         """Extract a thumbnail from an image.
 
         Reads an image file, resizes it to the specified thumbnail width while maintaining aspect ratio,
@@ -1009,12 +1009,12 @@ class VideoThumbnailExtractor:
         """
         image = cv2.imread(self.media_path)
         if image is not None:
-            self.resize_thumbnails_from_image(image)
+            await self.resize_thumbnails_from_image(image)
         else:
-            self.thumbnail_frames = [self.create_blank_frame()]
+            self.thumbnail_frames = [await self.create_blank_frame()]
             cv2utils_logger.error("Failed to read image. Generated a blank frame.")
 
-    def resize_thumbnails_from_image(self, image):
+    async def resize_thumbnails_from_image(self, image):
         # Resize the image to the specified thumbnail width while maintaining aspect ratio
         height, width, _ = image.shape
         aspect_ratio = height / width
@@ -1032,7 +1032,7 @@ class VideoThumbnailExtractor:
         cap = cv2.VideoCapture(self.media_path)
         if not cap.isOpened():
             cv2utils_logger.error(f"Failed to open video file: {self.media_path}")
-            self.thumbnail_frames = [self.create_blank_frame() for _ in times_in_seconds]
+            self.thumbnail_frames = [await self.create_blank_frame() for _ in times_in_seconds]
             return
 
         fps = cap.get(cv2.CAP_PROP_FPS)
@@ -1059,11 +1059,11 @@ class VideoThumbnailExtractor:
                 cv2utils_logger.debug(f"Thumbnail extracted at {time_in_seconds}s.")
             else:
                 cv2utils_logger.error("Failed to extract frame.")
-                self.thumbnail_frames.append(self.create_blank_frame())
+                self.thumbnail_frames.append(await self.create_blank_frame())
 
         cap.release()
 
-    def create_blank_frame(self):
+    async def create_blank_frame(self):
         """Create a blank frame for thumbnail.
 
         Generates a blank placeholder frame with dimensions based on the thumbnail width and a 16:9 aspect ratio.
@@ -1075,7 +1075,7 @@ class VideoThumbnailExtractor:
             0, 256, (height, self.thumbnail_width, 3), dtype=np.uint8
         )
 
-    def get_thumbnails(self):
+    async def get_thumbnails(self):
         """Get the extracted thumbnails.
 
         Returns a list of thumbnail frames as RGB NumPy arrays.  Converts BGR images to RGB before returning.

@@ -452,7 +452,7 @@ async def player_media_info(player_media):
             ui.label(player_media)
             extractor = VideoThumbnailExtractor(player_media)
             await extractor.extract_thumbnails(times_in_seconds=[5])  # Extract thumbnail at 5 seconds
-            thumbnails_frame = extractor.get_thumbnails()
+            thumbnails_frame = await extractor.get_thumbnails()
             img = Image.fromarray(thumbnails_frame[0])
             ui.image(img).classes('w-32')
 
@@ -1129,7 +1129,7 @@ class LocalFilePicker(ui.dialog):
                     if row is not None:
                         extractor = VideoThumbnailExtractor(row['path'])
                         await extractor.extract_thumbnails(times_in_seconds=[5])  # Extract thumbnail at 5 seconds
-                        thumbnails_frame = extractor.get_thumbnails()
+                        thumbnails_frame = await extractor.get_thumbnails()
                         img = Image.fromarray(thumbnails_frame[0])
                         ui.image(img)
                         ui.label(row['path'])
@@ -1235,12 +1235,21 @@ class YtSearch:
     """
 
     def __init__(self, input_url, anime: bool = False):
+        self.yt_player = None
+        self.search_result = None
+        self.number_found = None
+        self.next_button = None
+        self.search_button = None
+        self.my_search = None
         self.yt_search = None
         self.yt_anime = anime
         self.videos_search = None
         self.yt_url_copied = None
         self.input_url = input_url
 
+        self.setup_ui()
+
+    def setup_ui(self):
         ui.separator()
         with ui.row():
             self.my_search = ui.input('YT search')
@@ -1257,7 +1266,7 @@ class YtSearch:
 
         self.yt_player = ui.page_sticky()
 
-    def youtube_player(self, yt_id):
+    async def youtube_player(self, yt_id):
         """ YT Player in iframe """
 
         self.yt_player.clear()
