@@ -50,8 +50,8 @@ from nicegui import ui, run, app
 from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet
 from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_button, run_gif_player
 from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Animate
-from src.utl.presets import load_filter_preset
-from src.utl.text_utils import text_page
+from src.gui.presets import load_filter_preset
+from src.gui.text_page import text_page
 from src.utl.utils import CASTUtils as Utils
 from src.txt.fontsmanager import font_page, FontPreviewManager
 

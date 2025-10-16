@@ -97,7 +97,7 @@ from queue import Empty
 
 from src.net.ddp_queue import DDPDevice
 from src.utl.multicast import MultiUtils as Multi
-from src.utl.presets import load_filter_preset, load_cast_preset
+from src.gui.presets import load_filter_preset, load_cast_preset
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils

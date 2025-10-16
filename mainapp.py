@@ -29,7 +29,6 @@ import sys
 import queue
 import tkinter as tk
 
-from nicegui import run
 from threading import current_thread
 from subprocess import Popen
 from datetime import datetime
@@ -46,7 +45,7 @@ from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
 from src.gui.videoplayer import VideoPlayer
 
-from src.utl.presets import *
+from src.gui.presets import *
 from src.api.api import *
 
 from configmanager import cfg_mgr, PLATFORM, WLED_PID_TMP_FILE, LoggerManager, NATIVE_UI

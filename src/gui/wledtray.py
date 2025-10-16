@@ -45,9 +45,8 @@ import webbrowser
 
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
-from str2bool import str2bool
 from src.utl.utils import CASTUtils as Utils
-from src.gui.webviewmanager import WebviewManager
+from src.utl.webviewmanager import WebviewManager
 
 from configmanager import cfg_mgr, LoggerManager, NATIVE_UI
 
