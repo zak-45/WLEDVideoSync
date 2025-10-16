@@ -1,8 +1,6 @@
 """
 This utility provides a mixin class for integrating the TextAnimator into different
 casting modules (like desktop.py and media.py) without code duplication.
-It also includes a NiceGUI page (`text_page`) that serves as a dynamic control
-panel for editing the `TextAnimator`'s parameters in real-time.
 
 A mixin is a class that provides method implementations for other classes to inherit,
 but it is not intended to be instantiated on its own. By having both CASTDesktop and
@@ -12,14 +10,10 @@ stop, and update text animations using a single, shared set of methods.
 Key Components:
 - TextAnimatorMixin: A class that contains the core logic for initializing,
   starting, and updating a TextAnimator instance.
-- text_page: A NiceGUI page that allows users to graphically edit all parameters
-  of a running TextAnimator instance and apply them.
 """
-import shelve
-import ast
-from nicegui import ui, app
+
 from src.txt.textanimator import TextAnimator
-from configmanager import LoggerManager, WLED_PID_TMP_FILE
+from configmanager import LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.text_utils')
 text_utils_logger = logger_manager.logger
