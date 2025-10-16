@@ -398,6 +398,7 @@ class VideoPlayer:
     
         async def manage_visibility(visible):
             self.CastAPI.player.set_visibility(visible)
+            self.CastAPI.control_panel.set_visibility(not visible)
             await nice.animate_wled_image(self.CastAPI, visible)
     
         if str2bool(cfg_mgr.custom_config['animate_ui']):

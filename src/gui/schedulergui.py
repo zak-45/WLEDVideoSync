@@ -471,7 +471,7 @@ class SchedulerGUI:
         """
         ui.label('WLEDVideoSync Scheduler').classes(
             'self-center mb-4 text-red-900 text-2xl font-extrabold  dark:text-white md:text-4xl lg:text-5xl')
-        with ui.row(wrap=False).classes('w-1/3 self-center'):
+        with (ui.row(wrap=False).classes('w-1/3 self-center')):
             with ui.card().tight().classes('w-full self-center').props('flat'):
                 with ui.row().classes('self-center'):
                     scheduler_switch = ui.switch('activate', value=scheduler.is_running,
@@ -479,6 +479,23 @@ class SchedulerGUI:
                     scheduler_status = ui.icon('history', size='lg', color='yellow').on('click',
                                                                                         lambda: self.show_running()).style(
                         'cursor:pointer')
+                    # editor
+                    editor = ui.icon('edit', size='lg')
+                    editor.on('click',lambda: editor_row.set_visibility(not editor_row.visible))
+                    editor.tooltip('click to edit Scheduler')
+                    editor.style('cursor:pointer')
+                    with ui.row().classes('w-full') as editor_row:
+                        editor_row.set_visibility(False)
+                        ui.separator()
+                        with ui.expansion('Custom Schedule', icon='feed', value=False).classes(
+                                'bg-gray-200 mt-2 dark:bg-gray-600'):
+                            await schedule_editor.setup_ui()
+                        with ui.expansion('Jobs', icon='feed', value=False).classes(
+                                'bg-gray-200 mt-2 dark:bg-gray-600'):
+                            await job_editor.setup_ui()
+                            ui.separator()
+                            ui.button(icon='refresh', on_click=refresh_all_jobs)
+
         """
          add clock
         """
@@ -598,13 +615,14 @@ class SchedulerGUI:
                             ui.button("Clear", icon="delete", color="red",
                                       on_click=lambda: clear_jobs_by_tag(tag_dropdown.value))
                 ui.button('Cancel Job(s)',icon='clear', on_click=clear_tag.open)
-                with ui.slide_item('Cancel All') as slide_item:
-                    slide_item.classes('bg-sky-800')
-                    with slide_item.right():
-                        ui.button(icon='cancel',color='red', on_click=cancel_all_jobs)
-                    with slide_item.left():
-                        ui.button(icon='cancel',color='red', on_click=cancel_all_jobs)
+            with ui.slide_item('Cancel All') as slide_item:
+                slide_item.classes('bg-sky-800')
+                with slide_item.right():
+                    ui.button(icon='cancel',color='red', on_click=cancel_all_jobs)
+                with slide_item.left():
+                    ui.button(icon='cancel',color='red', on_click=cancel_all_jobs)
 
+        """
         with ui.card().tight().classes('w-full').props('flat'):
             with ui.row().classes('w-full'):
                 ui.space()
@@ -619,6 +637,7 @@ class SchedulerGUI:
                         await job_editor.setup_ui()
                         ui.separator()
                         ui.button(icon='refresh', on_click=refresh_all_jobs)
+        """
 
         ui.separator()
 
