@@ -871,45 +871,63 @@ async def ws_page():
     websocket docs page
     :return:
     """
-    ui.label('WEBSOCKETS Doc').classes('self-center')
-    doc_txt = ui.textarea('WE endpoints').style('width: 50%')
-    doc_txt.value = ( '/ws: e.g: ws://localhost:8000/ws \n'
-                      '/ws/docs: e.g: http://localhost:8000/ws/docs \n'
-                      'communication type : Json for in/out \n'
-                      'format : {"action":{"type":"xxx","param":{"yyy":"zzz"...}}} \n'
-                      'example: \n'
-                     '{"action":'
-                     '{"type":"cast_image", '
-                     '"param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}'
-                     )
+    ui.dark_mode(CastAPI.dark_mode)
+    await apply_custom()
+    await nice.head_menu(name='WebSocket API', target='/ws/docs', icon='hub')
 
-    ws_modules=['Utils','Net','ImageUtils','CV2Utils']
-    func_rows = ui.row()
+    with ui.card().classes('mx-auto my-8 p-6 w-full max-w-4xl shadow-lg'):
+        ui.label('WebSocket API Documentation').classes('text-2xl font-bold self-center mb-4')
+        ui.markdown(
+            "The WebSocket API provides a low-latency channel for real-time communication. "
+            "It's primarily designed for fast, simple actions like casting a pre-captured image from the buffer."
+        )
+        ui.separator()
 
-    def fetch_main_module():
-        with ui.dialog() as dialog_m, ui.card():
-            dialog_m.open()
-            ui.json_editor({'content': {'json': Utils.func_info(sys.modules[__name__])}}) \
-                .run_editor_method('updateProps', {'readOnly': True})
-            ui.button('Close', on_click=dialog_m.close, color='red')
+        with ui.expansion("Endpoint and Format", icon='link', value=True).classes('w-full'):
+            ui.label('Endpoint:').classes('text-lg font-semibold mt-2')
+            ui.code(f'ws://{cfg_mgr.server_config["server_ip"]}:{Utils.get_server_port()}/ws', language='text').classes('w-full')
 
-    def fetch_all_modules(i_item_th):
-        with ui.dialog() as dialog_a, ui.card():
-            dialog_a.open()
-            ui.json_editor({'content': {'json': Utils.func_info(globals()[i_item_th])}}) \
+            ui.label('Data Format:').classes('text-lg font-semibold mt-4')
+            ui.markdown("All messages must be a JSON object with a specific structure:")
+            ui.code('{"action": {"type": "action_name", "param": {...}}}', language='json').classes('w-full')
+
+        with ui.expansion("Example: Cast Image", icon='image', value=True).classes('w-full'):
+            ui.markdown(
+                "To cast the first image (`image_number: 0`) from the `Media` class's buffer, "
+                "send the following JSON message:"
+            )
+            example_json = '''
+{
+  "action": {
+    "type": "cast_image",
+    "param": {
+      "image_number": 0,
+      "device_number": -1,
+      "class_name": "Media"
+    }
+  }
+}
+            '''
+            ui.code(example_json, language='json').classes('w-full')
+
+        with ui.expansion("Available Utility Functions", icon='code').classes('w-full'):
+            ui.markdown(
+                "You can inspect the functions available in various utility modules to understand what can be scripted."
+            )
+            ws_modules = ['Utils', 'Net', 'ImageUtils', 'CV2Utils']
+            for item_th in ws_modules:
+                item_exp = ui.expansion(item_th, icon='folder_open')
+                with item_exp:
+                    with ui.card().classes('w-full'):
+                        json_data = Utils.func_info(globals()[item_th])
+                        await ui.json_editor({'content': {'json': json_data}}) \
+                            .run_editor_method('updateProps', {'readOnly': True})
+
+        with ui.expansion("MainApp Functions", icon='apps').classes('w-full') as main_app_exp:
+            with main_app_exp, ui.card().classes('w-full'):
+                json_data = Utils.func_info(sys.modules[__name__])
+                await ui.json_editor({'content': {'json': json_data}}) \
                     .run_editor_method('updateProps', {'readOnly': True})
-            ui.button('Close', on_click=dialog_a.close, color='red')
-
-    with func_rows:
-        item_exp = ui.expansion('local', icon='info') \
-            .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
-        with item_exp:
-            ui.button('Functions', on_click=fetch_main_module, color='bg-red-800').tooltip('View func info')
-        for item_th in ws_modules:
-            item_exp = ui.expansion(item_th, icon='info') \
-                .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
-            with item_exp:
-                ui.button('Functions', on_click=lambda x = item_th: fetch_all_modules(x), color='bg-red-800').tooltip('View func info')
 
 
 @ui.page('/info')
