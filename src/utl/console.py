@@ -178,6 +178,9 @@ class ConsoleCapture:
                         self.log_ui = None  # Stop trying to use the potentially broken UI element
             except Empty:
                 continue
+            except ValueError:
+                # This can happen if the queue is closed while we are waiting on get().
+                break # Exit the loop gracefully.
             except (EOFError, OSError) as e:
                 # Errors indicating queue issues, likely during shutdown
                 self.log_ui = None  # Stop trying to use the potentially broken UI element
