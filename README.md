@@ -1,93 +1,69 @@
+<div align="center">
+ 
+ # WLEDVideoSync
+ 
+ ### Cast video, images, or your screen to e131/artNet/DDP devices like WLED.
+ **A Cross-Platform (Windows / Linux / macOS) Portable Application.**
+ 
+ [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<div align=center>Cast video / image / desktop / window to e131/artNet/DDP device e.g. WLED.<br>
-Cross-Platform (Win / Linux / macOS) Portable Application
 </div>
 
-`
-19/09/2024
-This is a BETA release. Tested on Win (11) & Linux (ubuntu 24.04). All main features there. 
-No python installation required. Can run with GUI (made with NiceGUI) or without so act as service.
-Portable version give you flexibility and nothing installed into your OS.
-`
-## WLEDVideoSync
-
-WLEDVideoSync is a tool designed to send video content to Net LED Matrix devices like WLED. This project enables users to create immersive lighting experiences that complement their video playback.
-
-**Key Features:**
-- Stream to e131 / artNet / DDP devices e.g: WLED-controlled LED matrix
-- Multicast feature: aggregate multiple DDP devices to a big, BIG one
-- Support for various video sources: image, video or WebUrl (even Youtube)
-- Support for desktop / desktop area, window content, multiple monitors(2)
-- Stream from Mobile Camera: no third party app required, QR code for a seamless user experience, allowing a phone to act as a wireless webcam source, should work on iOS & Android
-- Customizable LED effects
-- API to integrate with third party application
-- Python Scripting
-- Websocket for image cast if necessary
-- GUI: native, browser: can be accessed remotely, or even "headless": can be used as service
-- GIF creation with upload to WLED device
-- Full-featured Scheduler: jobs management, recurring, one shot date/time or custom schedules, based on 'schedule' module
-- Custom text: multiple effects, fonts: based on PIL, ColdType or moviepy and custom effects creation(for advanced users)
-
-
-**Portable Installation:**  <[Get software](https://github.com/zak-45/WLEDVideoSync/releases)>
-1. Unix / Win : Take the app from releases      
-   1. --> On Linux: chmod +x WLEDVideoSync-Linux_x86_64
-   2. Execute it to extract the standalone version
-   3. Go to ./WLEDVideoSync folder and run WLEDVideoSync-{OS} app.
-   
-
-2. MacOS : Take the zip 'tar/gz' from releases (arm or x86)
-   1. double click to extract the app bundle
-      1. --> open terminal, go to Downloads/WLEDVideoSync
-      2. --> enter this command to remove the extra attribute (replace by arm if this your PC architecture)
-      ````
-      xattr -d com.apple.quarantine WLEDVideoSync-macOS_x86_64.app 
-   2. double-click on WLEDVideoSync-macOS(arm or x86).app
-
-**Manual Installation:**
-1. Clone the repository from GitHub
-2. Install required dependencies : pip install -r requirements.txt
-3. --> on Mac/linux : pip3 install -r requirements.txt
-4. Run it with : python -m WLEDVideoSync
-5. --> on Mac/linux : python3 -m WLEDVideoSync
-
-**Usage:**
-1. Connect your WLED-controlled LED matrix
-2. Launch the WLEDVideoSync application
-3. Select your video source
-4. Configure LED mapping and effects
-5. Start the synchronization
-
-**Configuration Options:**
-- 2D Matrix size
-- Color mapping
-- Effect intensity
-- Synchronization delay
-- ...
-
-**Troubleshooting:**
-- Ensure your WLED device is properly connected and configured
-- Check network connectivity between the application and WLED
-- For optimal performance, be sure to be on the same VLAN as your DDP devices
-- Verify video source compatibility
-- On linux, wayland do not work for DESKTOP preview, use X11
-- On Mac/Linux be sure to set +x on WLEDVideoSync app
-
-**Contributing:**
-Contributions to the project are welcome. Please follow the standard GitHub fork and pull request workflow.
-
-**License:**
-MIT
-
-![img.png](docs/img/castcenter.png)
-
-![image](https://github.com/zak-45/WLEDVideoSync/assets/121941293/519584f8-af39-442a-9faf-55bf5e0b0a7c)
-
-
-![image](https://github.com/zak-45/WLEDVideoSync/assets/121941293/b383d1ab-bfd8-43a7-98ac-6fd72206bc16)
-
-
-## USER Guide
+---
+ 
+ ## Key Features
+ - **Versatile Streaming**: Stream to e131, Art-Net, and DDP devices, including WLED.
+ - **Multicast Support**: Aggregate multiple devices into one large virtual matrix.
+ - **Multiple Sources**: Cast your desktop, a specific window, a screen area, images, videos, web URLs, and even YouTube content.
+ - **Mobile Camera Streaming**: Use your phone as a wireless webcam source via a simple QR code scan (no third-party app needed).
+ - **Text Overlays**: Add custom text with multiple effects, fonts, and animations.
+ - **Powerful UI**: A modern web interface built with NiceGUI that can run as a native window, in a browser, or headlessly as a service.
+ - **GIF Creation**: Create GIFs from video segments and upload them directly to a WLED device, complete with a new preset.
+ - **Full-Featured Scheduler**: Automate your casts with recurring, one-shot, or custom-timed jobs.
+ - **Advanced Scripting**: Extend functionality with a built-in Python editor and an external API for third-party integration.
+ 
+ ---
+ 
+ ## Installation
+ 
+ ### Portable (Recommended)
+ 1.  **Download**: Grab the latest release for your OS from the **Releases Page**.
+ 2.  **Extract**:
+     -   **Windows/Linux**: Run the downloaded executable. It will extract a `WLEDVideoSync` folder.
+     -   **macOS**: Double-click the downloaded `.zip` or `.tar.gz` file to extract the `.app` bundle.
+ 3.  **Run**:
+     -   **Windows/Linux**: Open the extracted `WLEDVideoSync` folder and run the `WLEDVideoSync-{OS}` executable.
+     -   **macOS**: Before running, you must remove the quarantine attribute. Open a terminal and run:
+         ```bash
+         # Navigate to the folder where the app was extracted, e.g., Downloads
+         cd ~/Downloads
+         # Remove the attribute (replace x86_64 with arm64 if you have an Apple Silicon Mac)
+         xattr -d com.apple.quarantine WLEDVideoSync-macOS_x86_64.app
+         ```
+         Afterward, you can double-click the `WLEDVideoSync-macOS...app` to run it.
+ 
+ ### From Source (Manual)
+ 1.  **Clone Repository**: `git clone https://github.com/zak-45/WLEDVideoSync.git`
+ 2.  **Install Dependencies**: `pip install -r requirements.txt` (or `pip3` on macOS/Linux).
+ 3.  **Run Application**: `python WLEDVideoSync.py` (or `python3` on macOS/Linux).
+ 
+ ---
+ 
+  
+ ## Quick Start
+ 
+ 1.  **Launch the Application**: Start WLEDVideoSync.
+ 2.  **Open Settings**: In the left-side menu, click on **Desktop Params** or **Media Params**.
+ 3.  **Configure Your Device**:
+     -   Enter your WLED device's IP address in the **IP** field.
+     -   Check the **WLED** box to automatically detect the matrix size, or enter the **Width** and **Height** manually.
+ 4.  **Start Casting**:
+     -   Go to the **Cast Center** (main page).
+     -   Click the large **Cast Icon** for either Desktop or Media to start streaming!
+ 
+ ---
+ 
+ ## User Guide
 
 ### Installation
 
@@ -97,7 +73,8 @@ MIT
     - Once extraction finished, you should see this screen:
   ![extracted](docs/img/extracted.png)
 
-        ``WLEDVideoSync folder can be copied, moved where you want, so keep organized``
+   > `WLEDVideoSync` folder can be copied and moved where you want, so keep organized.
+   
   
 
 - Go into and click on `WLEDVideoSync-{OS}`(exe/bin) to execute the main program.
@@ -136,7 +113,7 @@ All of this could be configured later, for the moment focus on default.
 
 ![desktop](docs/img/desktop.png)
 
-    - Params info:
+     - **Params Info**:
     
         FPS: enter frame per second desired for the cast stream
         Scale width: cast x size in pixels  
@@ -308,12 +285,56 @@ All of this could be configured later, for the moment focus on default.
   - Red Icon: stop all running casts
 
 ``On preview window, you will see effects in real time``
-``All of these values can be saved into Preset to be reloaded``
+ ``All of these values can be saved into a Preset to be reloaded``
+ 
+ ### Preview Window Shortcuts
+ When a cast preview window is open and focused, you can use these keyboard shortcuts:
+ 
+ | Key | Action                | Description                                                              |
+ |:---:|-----------------------|--------------------------------------------------------------------------|
+ | `Q` | **Quit Cast**           | Stops the current cast entirely and closes the preview window.           |
+ | `P` | **Pause/Close Preview** | Closes the preview window, but the cast continues in the background.     |
+ | `T` | **Toggle Text**         | Shows or hides the informational text overlay (FPS, frame count, etc.).  |
+ | `M` | **Modify Cast**         | Opens a new window to manage the settings for this specific cast.        |
+ | `H` | **Help**                | Opens a help page explaining these shortcuts.                            |
+ 
+ ### Command-Line Usage
+ You can launch the application with flags to quickly configure a cast.
+ 
+ ```bash
+ WLEDVideoSync.py [FLAGS]
+ ```
+ 
+ **Flags:**
+ 
+ | Flag                  | Description                                                              | Example                               |
+ |-----------------------|--------------------------------------------------------------------------|---------------------------------------|
+ | `--help`                | Show the help message and exit.                                          | `WLEDVideoSync.py --help`             |
+ | `--wled`                | Set the Desktop cast to WLED mode to auto-detect matrix size.            | `WLEDVideoSync.py --wled`              |
+ | `--ip=<ip_address>`     | Set the target IP address for the Desktop cast.                          | `WLEDVideoSync.py --ip=192.168.1.50`  |
+ | `--width=<number>`      | Set the width for the Desktop cast matrix.                               | `WLEDVideoSync.py --width=32`         |
+ | `--height=<number>`     | Set the height for the Desktop cast matrix.                              | `WLEDVideoSync.py --height=16`        |
+ | `--run-mobile-server` | Runs the mobile camera streaming server (usually launched by the app). |                                       |
+ 
+ ---
 
 ### Configuration
 The main App configuration file is: ``WLEDVideoSync/config/WLEDVideoSync.ini``
 See ``WLEDVideoSync/config/WLEDVideoSync.readme`` for in-deep information.
 
+> **Tip:** You can also edit the configuration directly in the UI by navigating to the **Config** page from the footer menu.
+ 
+ ### Troubleshooting
+ - Ensure your WLED device is properly connected and configured.
+ - Check network connectivity between the application and WLED. For optimal performance, be on the same VLAN.
+ - On Linux, Wayland does not support screen capture for the preview window. Please use an **X11** session.
+ - On macOS/Linux, ensure the main application file has execute permissions (`chmod +x WLEDVideoSync-app`).
+ 
+ ### Contributing
+ Contributions to the project are welcome. Please follow the standard GitHub fork and pull request workflow.
+ 
+ ### License
+ This project is licensed under the MIT License.
 
 The logging configuration file is : ``WLEDVideoSync/config/logging.ini``. Logs can be found under ``log/`` folder.
 
