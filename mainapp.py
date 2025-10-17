@@ -893,10 +893,10 @@ async def ws_page():
                 .run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog_m.close, color='red')
 
-    def fetch_all_modules():
+    def fetch_all_modules(i_item_th):
         with ui.dialog() as dialog_a, ui.card():
             dialog_a.open()
-            ui.json_editor({'content': {'json': Utils.func_info(globals()[item_th])}}) \
+            ui.json_editor({'content': {'json': Utils.func_info(globals()[i_item_th])}}) \
                     .run_editor_method('updateProps', {'readOnly': True})
             ui.button('Close', on_click=dialog_a.close, color='red')
 
@@ -909,7 +909,7 @@ async def ws_page():
             item_exp = ui.expansion(item_th, icon='info') \
                 .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
             with item_exp:
-                ui.button('Functions', on_click=fetch_all_modules, color='bg-red-800').tooltip('View func info')
+                ui.button('Functions', on_click=lambda x = item_th: fetch_all_modules(x), color='bg-red-800').tooltip('View func info')
 
 
 @ui.page('/info')
