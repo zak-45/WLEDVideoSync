@@ -29,7 +29,7 @@ WLEDVideoSync is a tool designed to send video content to Net LED Matrix devices
 - Custom text: multiple effects, fonts: based on PIL, ColdType or moviepy and custom effects creation(for advanced users)
 
 
-**Portable Installation:**
+**Portable Installation:**[Get software](https://github.com/zak-45/WLEDVideoSync/releases)
 1. Unix / Win : Take the app from releases      
    1. --> On Linux: chmod +x WLEDVideoSync-Linux_x86_64
    2. Execute it to extract the standalone version
