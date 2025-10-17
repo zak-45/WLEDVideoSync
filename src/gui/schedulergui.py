@@ -67,17 +67,6 @@ try:
 except Exception:
     scheduler = Scheduler()
 
-"""
-schedule_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/scheduler/WLEDScheduler.py'),
-                               coldtype=False,
-                               use_capture=False,
-                               go_back=False)
-
-job_editor = PythonEditor(file_to_load=cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'),
-                          coldtype=False,
-                          use_capture=False,
-                          go_back=False)
-"""
 
 WLEDScheduler = scheduler.scheduler
 

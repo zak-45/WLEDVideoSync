@@ -292,6 +292,19 @@ class CASTMedia(TextAnimatorMixin):
 
         window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"[:64]
 
+        def need_to_sleep():
+            """
+            do we need to sleep to be compliant with selected rate (fps)
+            """
+            # Calculate the current time
+            s_current_time = time.time()
+
+            # Calculate the time to sleep to maintain the desired FPS
+            sleep_time = expected_time - s_current_time
+
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
         """
         MultiCast inner function protected from what happens outside.
         """
@@ -432,7 +445,7 @@ class CASTMedia(TextAnimatorMixin):
                                     media_logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
                                     ddp_exist = True
                                     break
-                            if ddp_exist is not True:
+                            if ddp_exist:
                                 new_ddp = DDPDevice(cast_ip)
                                 t_ddp_multi_names.append(new_ddp)
                                 # add to global DDP list
@@ -607,7 +620,7 @@ class CASTMedia(TextAnimatorMixin):
 
                             # if no more, reset all_sync
                             if len(CASTMedia.cast_name_to_sync) == 0:
-                                if self.auto_sync is False:
+                                if not self.auto_sync:
                                     self.all_sync = False
                                 self.cast_sync = False
                                 self.cast_sleep = False
@@ -827,7 +840,7 @@ class CASTMedia(TextAnimatorMixin):
                 # here we feed the queue that is read by Net thread
                 if t_protocol == "ddp":
                     # take only the first entry
-                    if t_multicast is False:
+                    if not t_multicast:
                         try:
                             if ip_addresses[0] != '127.0.0.1':
                                 # send data to queue
@@ -1009,15 +1022,7 @@ class CASTMedia(TextAnimatorMixin):
             """
             do we need to sleep to be compliant with selected rate (fps)
             """
-            if not CASTMedia.t_todo_event.is_set():
-                # Calculate the current time
-                current_time = time.time()
-
-                # Calculate the time to sleep to maintain the desired FPS
-                sleep_time = expected_time - current_time
-
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
+            need_to_sleep()
 
             """
             do we need to repeat image
@@ -1086,6 +1091,8 @@ class CASTMedia(TextAnimatorMixin):
         media_logger.debug("_" * 50)
 
         media_logger.info(f"{t_name} Cast closed")
+
+        return True
 
     def cast(self, shared_buffer=None, log_ui=None):
         """

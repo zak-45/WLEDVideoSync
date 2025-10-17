@@ -208,7 +208,8 @@ class CastAPI:
 # Instantiate Cast Center with Desktop and Media
 cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
 # Instantiate SchedulerGUI with Desktop and Media
-scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer, True)
+if str2bool(cfg_mgr.scheduler_config['enable']):
+    scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer, True)
 # Instantiate API to pass Desktop and Media
 api_data = ApiData(Desktop, Media, Netdevice, t_data_buffer)
 # Instantiate VideoPlayer with Media
@@ -1020,8 +1021,11 @@ async def scheduler_page():
     ui.dark_mode(CastAPI.dark_mode)
 
     await apply_custom()
-    await nice.head_menu(name='Scheduler', target='/Scheduler', icon='more_time')
-    await scheduler_app.setup_ui()
+    if str2bool(cfg_mgr.scheduler_config['enable']):
+        await nice.head_menu(name='Scheduler', target='/Scheduler', icon='more_time')
+        await scheduler_app.setup_ui()
+    else:
+        ui.label('DISABLED')
 
     print('end of Scheduler page load')
 

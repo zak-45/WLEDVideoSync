@@ -1102,6 +1102,9 @@ class CASTDesktop(TextAnimatorMixin):
                     try:
                         for frame in input_container.decode(input_stream):
 
+                            # Calculate the expected time for the current frame
+                            expected_time = start_time + frame_count * interval
+
 
                             if self.record and out_file is None:
                                 out_file = iio.imopen(self.output_file, "w", plugin="pyav")
@@ -1169,6 +1172,8 @@ class CASTDesktop(TextAnimatorMixin):
                                 if add_cast_frame_buffer is not None:
                                     self.cast_frame_buffer.append(add_cast_frame_buffer)
 
+                            # Sleep to maintain the desired FPS
+                            need_to_sleep()
 
                     except av.BlockingIOError as av_err:
                         if PLATFORM != 'darwin':
