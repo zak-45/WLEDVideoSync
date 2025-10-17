@@ -10,6 +10,8 @@
 </div>
 
 ---
+
+![Main menu](docs/img/castcenter.png)
  
  ## Key Features
  - **Versatile Streaming**: Stream to e131, Art-Net, and DDP devices, including WLED.
