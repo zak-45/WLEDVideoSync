@@ -299,7 +299,7 @@ All of this could be configured later, for the moment focus on default.
  | `H` | **Help**                | Opens a help page explaining these shortcuts.                            |
  
  ### Command-Line Usage
- You can launch the application with flags to quickly configure a cast.
+ You can launch the application with flags to quickly configure a cast (for mobile server).
  
  ```bash
  WLEDVideoSync.py [FLAGS]
