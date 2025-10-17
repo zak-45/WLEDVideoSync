@@ -513,8 +513,11 @@ async def cast_device_manage(class_name, Netdevice):
             {'field': 'ip', 'editable': True},
             {'field': 'id', 'hide': True},
         ]
-        rows = [
-        ]
+
+        # Pre-populate the rows with existing devices from the class object.
+        rows = []
+        for i, (number, ip) in enumerate(class_name.cast_devices):
+            rows.append({'number': number, 'ip': ip, 'id': i})
 
         def handle_cell_value_change(e):
             new_row = e.args['data']
@@ -529,17 +532,22 @@ async def cast_device_manage(class_name, Netdevice):
         }).on('cellValueChanged', handle_cell_value_change)
 
         def add_row():
+            """Adds a new row to the grid's data and triggers a UI update."""
             row_new_id = max((dx['id'] for dx in rows), default=-1) + 1
-            rows.append({'number': 0, 'ip': '127.0.0.1', 'id': row_new_id})
+            new_row_data = {'number': 0, 'ip': '127.0.0.1', 'id': row_new_id}
+            # Re-assign the rowData with a new list to trigger the update
+            aggrid.options['rowData'] = aggrid.options['rowData'] + [new_row_data]
             aggrid.update()
 
         def add_net():
-            i = len(class_name.cast_devices)
+            """Adds all discovered network devices to the grid."""
+            new_rows = aggrid.options['rowData'].copy()
             for net in Netdevice.http_devices:
-                i += 1
                 row_new_id = max((dx['id'] for dx in rows), default=-1) + 1
-                rows.append({'number': i, 'ip': Netdevice.http_devices[net]['address'], 'id': row_new_id})
-                aggrid.update()
+                new_row_data = {'number': row_new_id, 'ip': Netdevice.http_devices[net]['address'], 'id': row_new_id}
+                new_rows.append(new_row_data)
+            aggrid.options['rowData'] = new_rows
+            aggrid.update()
 
         async def update_cast_devices():
             new_cast_devices = []
@@ -552,16 +560,12 @@ async def cast_device_manage(class_name, Netdevice):
             dialog.close()
             ui.notify('New data entered into cast_devices, click on validate/refresh to see them ')
 
-        for item in class_name.cast_devices:
-            new_id = max((dx['id'] for dx in rows), default=-1) + 1
-            rows.append({'number': item[0], 'ip': item[1], 'id': new_id})
-
         with ui.row():
             ui.button('Add row', on_click=add_row)
             ui.button('Add Net', on_click=add_net)
             ui.button('Select all', on_click=lambda: aggrid.run_grid_method('selectAll'))
-            ui.button('Validate', on_click=lambda: update_cast_devices())
-            ui.button('Close', color='red', on_click=lambda: dialog.close())
+            ui.button('Validate', on_click=update_cast_devices)
+            ui.button('Close', color='red', on_click=dialog.close)
 
 
 async def generate_carousel(class_obj):
