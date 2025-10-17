@@ -363,11 +363,11 @@ class CastCenter:
         ui.label('WLEDVideoSync CAST Center').classes('self-center mb-4 text-red-900 text-2xl font-extrabold  dark:text-white md:text-4xl lg:text-5xl')
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
-                self.desktop_status = ui.icon('cast_connected', size='sm', color='green')
+                self.desktop_status = ui.icon('cast_connected', size='sm', color='green').tooltip('Desktop Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
                 ui.label(f'DESKTOP : {self.Desktop.host}').classes('self-center')
             with ui.row().classes('self-center'):
-                ui.label(f'width: {str(self.Desktop.scale_width)}')
-                ui.label(f'height: {str(self.Desktop.scale_height)}')
+                ui.label().bind_text_from(self.Desktop, 'scale_width', lambda v: f'width: {v}')
+                ui.label().bind_text_from(self.Desktop, 'scale_height', lambda v: f'height: {v}')
 
             with ui.row(wrap=False).classes('w-full'):
                 card_desktop = ui.card().classes('w-1/3')
@@ -376,17 +376,17 @@ class CastCenter:
                 with card_desktop:
                     ui.image('assets/desktop.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row().classes('self-center'):
-                        monitor = ui.number('Monitor', value=0, min=-1, max=1)
+                        monitor = ui.number('Monitor', value=0, min=-1, max=1).tooltip('Select monitor for screen capture (-1 for all, 0 for primary, etc.)')
                         monitor.bind_value(self.Desktop, 'monitor_number')
-                        desktop_cast = ui.button(icon='cast').classes('m-4')
-                        desktop_cast.on('click', lambda : self.cast_class(self.Desktop, 'Desktop'))
+                        desktop_cast = ui.button(icon='cast').classes('m-4').tooltip('Start Full Desktop Cast')
+                        desktop_cast.on('click', lambda: self.cast_class(self.Desktop, 'Desktop'))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
 
                 with ui.column().classes('w-1/3'):
                     with ui.row().classes('w-full'):
                         ui.space()
-                        ui.icon('cancel_presentation', size='lg', color='red') \
+                        ui.icon('cancel_presentation', size='lg', color='red').tooltip('Stop all running Desktop casts') \
                                 .on('click', lambda: setattr(self.Desktop, 'stopcast', True)) \
                                 .style('cursor: pointer')
 
@@ -403,7 +403,7 @@ class CastCenter:
                         with row_area.classes('self-center'):
                             ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(self.Desktop)) \
                                     .tooltip('Select area from monitor')
-                            area_cast = ui.button(icon='cast')
+                            area_cast = ui.button(icon='cast').tooltip('Start Screen Area Cast')
                             area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
@@ -414,21 +414,21 @@ class CastCenter:
                 with card_window:
                     ui.image('assets/windows.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row().classes('self-center'):
-                        self.win = ui.select(['** click WINDOWS to refresh **'], label='Select Window')
+                        self.win = ui.select(['** click WINDOWS to refresh **'], label='Select Window').tooltip('Select a window to cast')
                         self.win.classes('w-40')
                         #
                         await self.upd_windows()
                         #
-                        win_cast = ui.button(icon='cast').classes('m-4')
+                        win_cast = ui.button(icon='cast').classes('m-4').tooltip('Start Window Cast')
                         win_cast.on('click', lambda : self.cast_class(self.Desktop, 'Window'))
 
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
-                self.media_status = ui.icon('cast_connected', size='sm', color='green')
+                self.media_status = ui.icon('cast_connected', size='sm', color='green').tooltip('Media Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
                 ui.label(f'MEDIA : {self.Media.host}').classes('self-center')
             with ui.row().classes('self-center'):
-                ui.label(f'width: {str(self.Media.scale_width)}')
-                ui.label(f'height: {str(self.Media.scale_height)}')
+                ui.label().bind_text_from(self.Media, 'scale_width', lambda v: f'width: {v}')
+                ui.label().bind_text_from(self.Media, 'scale_height', lambda v: f'height: {v}')
 
             with ui.row(wrap=False).classes('w-full'):
                 card_capture = ui.card().classes('w-1/3')
@@ -437,12 +437,12 @@ class CastCenter:
                 with card_capture:
                     ui.image('assets/camera.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row().classes('self-center'):
-                        self.device = ui.select(['** click DEVICES to refresh **'], label='Select Device')
+                        self.device = ui.select(['** click DEVICES to refresh **'], label='Select Device').tooltip('Select a capture device (e.g., webcam)')
                         self.device.classes('w-40')
                         #
                         await self.upd_devices()
                         #
-                        capture_cast = ui.button(icon='cast').classes('m-4')
+                        capture_cast = ui.button(icon='cast').classes('m-4').tooltip('Start Capture Device Cast')
                         capture_cast.on('click', lambda : self.cast_class(self.Media, 'Capture'))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
@@ -450,7 +450,7 @@ class CastCenter:
                 with ui.column().classes('w-1/3'):
                     with ui.row().classes('w-full'):
                         ui.space()
-                        ui.icon('cancel_presentation', size='lg', color='red') \
+                        ui.icon('cancel_presentation', size='lg', color='red').tooltip('Stop all running Media casts') \
                                 .on('click', lambda: setattr(self.Media, 'stopcast', True)) \
                                 .style('cursor: pointer')
 
@@ -465,10 +465,10 @@ class CastCenter:
                             row_video = ui.row()
 
                         with row_video.classes('self-center'):
-                            ui.icon('folder',size='xl',color='yellow').on('click',lambda: self.pick_file()).style('cursor: pointer').classes('m-4')
-                            self.video = ui.input('enter url / file name ')
-                            ui.number('repeat',min=-1,max=99, value=self.Media.repeat).bind_value(self.Media,'repeat')
-                            video_cast = ui.button(icon='cast').classes('m-4')
+                            ui.icon('folder',size='xl',color='yellow').on('click',lambda: self.pick_file()).style('cursor: pointer').classes('m-4').tooltip('Open file picker to select a video or image')
+                            self.video = ui.input('enter url / file name ').tooltip('Enter the path to a local video/image file or a web URL')
+                            ui.number('repeat',min=-1,max=99, value=self.Media.repeat).bind_value(self.Media,'repeat').tooltip('Number of times to repeat the video cast (-1 for infinite loop)')
+                            video_cast = ui.button(icon='cast').classes('m-4').tooltip('Start Video/Image File Cast')
                             video_cast.on('click', lambda : self.cast_class(self.Media, 'Video'))
 
                 ui.separator().style('width: 2px; height: 200px; background-color: #2E4C69;')
@@ -479,14 +479,14 @@ class CastCenter:
                 with card_yt:
                     ui.image('assets/youtube.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row(wrap=False).classes('self-center'):
-                        yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4')
+                        yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4').tooltip('Open YouTube search panel')
                         yt_icon.style('cursor:pointer')
                         yt_icon.on('click', lambda: self.search_yt())
-                        self.yt_input = ui.input('enter YT url')
-                        yt_cancel = ui.icon('disabled_visible',size='sm', color='red').classes('m-4')
+                        self.yt_input = ui.input('enter YT url').tooltip('Enter a YouTube video URL')
+                        yt_cancel = ui.icon('disabled_visible',size='sm', color='red').classes('m-4').tooltip('Close YouTube search results')
                         yt_cancel.style('cursor:pointer')
                         yt_cancel.on('click', lambda: self.yt_area.set_visibility(False))
-                        yt_cast = ui.button(icon='cast').classes('m-4')
+                        yt_cast = ui.button(icon='cast').classes('m-4').tooltip('Start YouTube Cast')
                         yt_cast.on('click', lambda : self.cast_class(self.Media, 'Youtube'))
 
         self.yt_area = ui.scroll_area()
@@ -503,11 +503,11 @@ class CastCenter:
                 card_text = ui.card().tight().classes('w-1/3 self-center')
                 card_text.set_visibility(True)
                 with ui.row():
-                    text_desktop = ui.button('Allow Desktop', on_click= lambda: self.toggle_text_desktop(text_desktop))
+                    text_desktop = ui.button('Allow Desktop', on_click= lambda: self.toggle_text_desktop(text_desktop)).tooltip('Enable or disable text overlay for Desktop casts')
                     ui.button(icon='edit', on_click=lambda: self.animator_update(self.Desktop)).tooltip("Edit Desktop Text Animation")
-                ui.button('Fonts',on_click=self.font_select)
+                ui.button('Fonts',on_click=self.font_select).tooltip('Open font selection and configuration dialog')
                 with ui.row():
-                    text_media = ui.button('Allow Media', on_click= lambda: self.toggle_text_media(text_media))
+                    text_media = ui.button('Allow Media', on_click= lambda: self.toggle_text_media(text_media)).tooltip('Enable or disable text overlay for Media casts')
                     ui.button(icon='edit', on_click=lambda: self.animator_update(self.Media)).tooltip("Edit Media Text Animation")
 
         with ui.card().classes('self-center w-full'):
@@ -518,8 +518,8 @@ class CastCenter:
                 tool_capture.props('flat')
                 with tool_capture:
                     with ui.row():
-                        ui.button('Devices', on_click=self.upd_devices)
-                        ui.button('Net Scan', on_click=discovery_net_notify)
+                        ui.button('Devices', on_click=self.upd_devices).tooltip('Refresh the list of available capture devices')
+                        ui.button('Net Scan', on_click=discovery_net_notify).tooltip('Scan the network for WLED devices')
                         await net_view_button(show_only=False)
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
@@ -529,7 +529,7 @@ class CastCenter:
                 tool_text.props('flat')
                 with tool_text:
                     with ui.row():
-                        ui.button('Fonts', on_click=CastCenter.view_fonts)
+                        ui.button('Fonts', on_click=CastCenter.view_fonts).tooltip('Open a window to browse all system fonts')
 
                         play_gif = ui.button('PLAYER', icon='video_library',
                                              on_click=lambda: run_gif_player(self.Media.host))
@@ -538,7 +538,7 @@ class CastCenter:
                         mobile_cast = ui.button(icon='mobile_screen_share')
                         mobile_cast.tooltip('SmartPhone Camera Media Cast')
                         mobile_cast.on('click', lambda : self.run_mobile())
-                        ui.button('Control Panel', on_click=open_webview_control_panel_page)
+                        ui.button('Control Panel', on_click=open_webview_control_panel_page).tooltip('Open the main control panel in a new window')
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
 
@@ -546,7 +546,7 @@ class CastCenter:
                 tool_win.set_visibility(True)
                 tool_win.props('flat')
                 with tool_win:
-                    ui.button('Windows', on_click=self.upd_windows)
+                    ui.button('Windows', on_click=self.upd_windows).tooltip('Refresh the list of available windows to cast')
 
         # button for right menu show/hide
         with ui.page_sticky(position='top-left', y_offset=10, x_offset=-20):
@@ -573,8 +573,8 @@ class CastCenter:
             with ui.row(wrap=False):
                 ui.icon('computer', size='lg')
                 ui.label('DESKTOP')
-                ui.checkbox('Preview').bind_value(self.Desktop,'preview')
-            capture_methode = ui.select(options=['av','mss'], label='Capture Method').style(add='width:120px')
+                ui.checkbox('Preview').bind_value(self.Desktop,'preview').tooltip('Show a real-time preview window for the cast')
+            capture_methode = ui.select(options=['av','mss'], label='Capture Method').style(add='width:120px').tooltip('Select screen capture library (av is recommended)')
             capture_methode.bind_value(self.Desktop,'capture_methode')
 
             ui.separator()
@@ -585,14 +585,14 @@ class CastCenter:
                     await edit_artnet(self.Desktop)
                 with ui.row():
                     await edit_rate_x_y(self.Desktop)
-                    ui.label('')
-            ui.button('PRESET', on_click=lambda: load_filter_preset('Desktop', self.Desktop))
+                    ui.label('').tooltip('Desktop Cast Settings')
+            ui.button('PRESET', on_click=lambda: load_filter_preset('Desktop', self.Desktop)).tooltip('Load a saved preset for Desktop filters')
 
             ui.separator().props(add='size=8px')
             with ui.row(wrap=False):
                 ui.icon('image', size='lg')
                 ui.label('MEDIA')
-                ui.checkbox('Preview').bind_value(self.Media,'preview')
+                ui.checkbox('Preview').bind_value(self.Media,'preview').tooltip('Show a real-time preview window for the cast')
 
             ui.separator()
             with ui.row():
@@ -602,13 +602,13 @@ class CastCenter:
                     await edit_artnet(self.Media)
                 with ui.row():
                     await edit_rate_x_y(self.Media)
-                    ui.label('')
-            ui.button('PRESET', on_click=lambda: load_filter_preset('Media', self.Media))
+                    ui.label('').tooltip('Media Cast Settings')
+            ui.button('PRESET', on_click=lambda: load_filter_preset('Media', self.Media)).tooltip('Load a saved preset for Media filters')
 
             ui.separator().props(add='size=8px')
             with ui.row():
                 ui.switch('Dark').bind_value(dark)
-                ui.button('Validate',icon='verified', on_click=self.validate).classes('self-center')
+                ui.button('Validate',icon='verified', on_click=self.validate).classes('self-center').tooltip('Apply WLED settings and refresh UI')
 
             ui.separator().props(add='size=8px')
             with ui.row(wrap=False):
@@ -617,7 +617,7 @@ class CastCenter:
                         with slide_item.right():
                             root_page_url = Utils.root_page()
                             go_to_url = '/main' if root_page_url == '/Cast-Center' else '/'
-                            ui.button('RUN', on_click=lambda: ui.navigate.to(go_to_url))
+                            ui.button('RUN', on_click=lambda: ui.navigate.to(go_to_url)).tooltip('Switch to the other main UI view')
 
                 with ui.list().props('bordered'):
                     with ui.slide_item('ShutDown') as slide_item:
