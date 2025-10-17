@@ -153,12 +153,12 @@ class ConsoleCapture:
         try:
             while not self.log_queue.empty():
                 self.log_queue.get_nowait()
-            # Consider close/join_thread if using specific multiprocessing queue types requires it
             self.log_queue.close()
             self.log_queue.join_thread()
-        except Exception as e:
+        except (OSError, ValueError) as e:
+            # This can happen if the queue is already closed during shutdown, which is expected.
             with contextlib.suppress(Exception):
-                self.original_stderr.write(f"ConsoleCapture: Error cleaning up queue: {e}\n")
+                self.original_stderr.write(f"ConsoleCapture: Info during queue cleanup (expected on shutdown): {e}\n")
         # Use print AFTER restoring stdout
         print("Console streams restored.")
 
