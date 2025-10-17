@@ -210,15 +210,41 @@ All of this could be configured later, for the moment focus on default.
 ``Main of these values can be saved into Preset to be reloaded``
 
 - SCHEDULER: Manage & Schedule Jobs.
-    > a job is a Python function, this mean that you have a full Python scripting possibilities
+    > The Scheduler allows you to automate almost any task within WLEDVideoSync. A "job" is simply a Python function that you can schedule to run at specific times or intervals. This is incredibly powerful for creating automated light shows, starting/stopping casts, or interacting with other parts of the application programmatically.
 
-![scheduler.png](docs/img/scheduler.png)
+![Scheduler](docs/img/scheduler.png)
 
-- This is a GUI implementation of the 'schedule' module. Not all possibilities have been set.
-  > see : https://schedule.readthedocs.io/en/stable/
-  - You can define recurring jobs, one-time jobs or custom time jobs (need advanced knowledge)
-  - You can create your own jobs and/or modify existing ones
-  - A job can be scheduled to run at app initialization (see config/WLEDVideoSync.ini)
+  **How It Works:**
+  - **Jobs are Python Functions**: Any Python function you write in the `xtra/jobs/` directory becomes a job you can schedule.
+  - **Full Scripting Power**: Because jobs are Python code, you can import and use other parts of the application, like the `Desktop` and `Media` objects, to control casts directly.
+  - **Flexible Scheduling**:
+    - **Recurring Jobs**: Use the "Every" dropdowns to set up jobs that run repeatedly (e.g., every 10 minutes, every Monday at 9:00 AM).
+    - **One-Time Jobs**: Use the "At a specific date/time" section to schedule a job to run only once.
+    - **Custom Schedules**: For advanced users, you can enter a custom `schedule` module string.
+  - **Manage Scheduled Tasks**: The table at the bottom shows all currently scheduled tasks. You can view their next run time and delete them.
+
+  **Creating a Custom Job:**
+  1.  Navigate to the **PYEditor** from the footer menu.
+  2.  Create a new file or open an existing one in the `xtra/jobs/` folder.
+  3.  Write your Python function. You can pass arguments to your function from the "Args" field in the Scheduler UI.
+  4.  Save the file.
+  5.  Go back to the Scheduler page and click the "Refresh" button to see your new job in the dropdown list.
+
+  **Example Job:**
+  Here is a simple job that stops all running casts. You could save this as `xtra/jobs/my_custom_jobs.py`.
+
+  ```python
+  # In a file like xtra/jobs/my_custom_jobs.py
+from mainapp import Desktop, Media
+  
+def stop_all_casts():
+      """A simple job to stop all running casts."""
+      print("Executing job: stop_all_casts")
+      Desktop.stopcast = True
+      Media.stopcast = True
+  ```
+  
+  > For more advanced scheduling options, refer to the official schedule library documentation.
   
 
 ### API for Integration
