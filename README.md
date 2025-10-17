@@ -221,9 +221,49 @@ All of this could be configured later, for the moment focus on default.
   - A job can be scheduled to run at app initialization (see config/WLEDVideoSync.ini)
   
 
-- API: Redirect to API docs/endpoint.
+### API for Integration
+ WLEDVideoSync exposes both a REST API and a WebSocket endpoint, allowing for powerful integration with third-party applications and scripts.
+ 
+ #### REST API (FastAPI)
+ The application includes a full REST API built with FastAPI. You can access interactive documentation (powered by Swagger UI) to see all available endpoints, their parameters, and test them live.
+ 
+ **Accessing the API Docs:**
+ Navigate to `/docs` on your running WLEDVideoSync instance (e.g., `http://localhost:8080/docs`).
 
 ![API](docs/img/api.png)
+ 
+ **Example Usage:**
+ You can control almost any parameter of the `Desktop` or `Media` casts. For example, to change the target IP address of the `Desktop` cast, you can send a `PUT` request:
+ 
+ ```
+ PUT http://localhost:8080/api/Desktop/update_attribute?param=host&value=192.168.1.100
+ ```
+ 
+ This allows for dynamic control from external software.
+ 
+ #### WebSocket API
+ For lower-latency communication, a WebSocket endpoint is available. It's primarily designed for simple, fast actions like casting a pre-captured image from the buffer.
+ 
+ *   **Endpoint**: `/ws` (e.g., `ws://localhost:8080/ws`)
+ *   **Format**: JSON
+ 
+ All messages must be a JSON object with an `action` key, which contains `type` and `param` keys.
+ 
+ **Example: Casting an Image**
+ To cast the first image (`image_number: 0`) from the `Media` class's buffer, send the following JSON message:
+ 
+ ```json
+ {
+   "action": {
+     "type": "cast_image",
+     "param": {
+       "image_number": 0,
+       "device_number": -1,
+       "class_name": "Media"
+     }
+   }
+ }
+ ```
 
 #### Video Player
 ![Video](docs/img/player.png)
