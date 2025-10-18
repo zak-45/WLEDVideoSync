@@ -286,6 +286,28 @@ async def main_page():
 
     await control_panel_page()
 
+    """
+    Text Overlay Controls
+    """
+    with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+        ui.label('TEXT Overlay').classes('self-center')
+        with ui.row(wrap=False).classes('self-center'):
+            ui.label('Font:').classes('self-center')
+            cast_app.font_name_label = ui.label('').classes('self-center')
+            ui.label('Size:').classes('self-center')
+            cast_app.font_size_label = ui.label('').classes('self-center')
+
+        with ui.row(wrap=False).classes('w-full justify-center items-center gap-4'):
+            with ui.row():
+                text_desktop = ui.button('Allow Desktop', on_click=lambda: cast_app.toggle_text_desktop(text_desktop)).tooltip('Enable or disable text overlay for Desktop casts')
+                ui.button(icon='edit', on_click=lambda: cast_app.animator_update(Desktop)).tooltip("Edit Desktop Text Animation")
+
+            ui.button('Fonts', on_click=cast_app.font_select).tooltip('Open font selection and configuration dialog')
+
+            with ui.row():
+                text_media = ui.button('Allow Media', on_click=lambda: cast_app.toggle_text_media(text_media)).tooltip('Enable or disable text overlay for Media casts')
+                ui.button(icon='edit', on_click=lambda: cast_app.animator_update(Media)).tooltip("Edit Media Text Animation")
+
     ui.separator().classes('mt-6')
 
     """
@@ -1014,7 +1036,7 @@ async def pyeditor_test_page():
     await apply_custom()
 
     # Instantiate and run the editor
-    editor_app = PythonEditor()
+    editor_app = PythonEditor(coldtype=False)
     await editor_app.setup_ui()
 
     print('end of pyeditor page load')
