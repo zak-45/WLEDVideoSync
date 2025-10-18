@@ -369,7 +369,7 @@ WLEDVideoSync allows you to overlay dynamic, animated text on top of your casts.
 **Text Animator Editor:**
 The editor dialog allows you to fine-tune every aspect of the text animation in real-time.
 
-<img src="docs/img/text_animator_control.png" alt="Text Animator Editor" width="600">
+<img src="docs/img/text_animator_control.png" alt="Text Animator Editor"  height="400">
 
 - **Core Parameters**: Change the text content, font size, color, and opacity.
 - **Movement**: Control the scrolling `direction` (left, right, up, down, or none) and `speed`.
