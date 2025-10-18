@@ -235,13 +235,15 @@ def desktop_text_anim_demo(monitor:int = 0):
     # run cast with text animator
     Desktop.allow_text_animator = True
     Desktop.cast()
+    # let some time for cast init
+    sleep(5)
     # TextAnimator instance update
     Desktop.update_text_animator(text="WLEDVideoSync",
                                  direction="left",
                                  speed=200,
                                  effect="color_cycle",
                                  bg_color=None)
-    sleep(20)
+    sleep(5)
     #
     Desktop.update_text_animator(text="Amazing\nText\nAnimation", direction="right", vertical_align="top", speed=280)
     sleep(6)
