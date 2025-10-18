@@ -217,8 +217,7 @@ def my_complex_job():
 
 def desktop_text_anim_demo(monitor:int = 0):
     """
-    Cast entire desktop screen, this is for Win
-    This one take mainapp context
+    Cast entire desktop screen
     TextAnimator Demo
 
         : param: monitor: int 0,1, by default use 0
@@ -231,7 +230,8 @@ def desktop_text_anim_demo(monitor:int = 0):
     # params
     Desktop.stopcast = False
     Desktop.viinput = 'desktop'
-    Desktop.monitor_number = 0
+    Desktop.capture_methode = 'mss'
+    Desktop.monitor_number = monitor
     # run cast with text animator
     Desktop.allow_text_animator = True
     Desktop.cast()
