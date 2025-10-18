@@ -62,7 +62,6 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.center')
 center_logger = logger_manager.logger
 
 
-
 async def open_webview_control_panel_page() -> None:
     """
     Opens a new native webview or browser window (depend on native_ui) for control panel page.
@@ -478,7 +477,7 @@ class CastCenter:
                 card_yt.set_visibility(True)
                 with card_yt:
                     ui.image('assets/youtube.png').classes('self-center border-4 border-red-800 w-1/5')
-                    with ui.row(wrap=False).classes('self-center'):
+                    with ui.row(wrap=True).classes('self-center'):
                         yt_icon = ui.icon('youtube_searched_for',size='xl', color='indigo-3').classes('m-4').tooltip('Open YouTube search panel')
                         yt_icon.style('cursor:pointer')
                         yt_icon.on('click', lambda: self.search_yt())
