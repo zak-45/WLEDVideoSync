@@ -338,7 +338,7 @@ def stop_all_casts():
   - GIF Close: close the GIF Menu and restore player one.
 
   
-#### Filters/Effects
+#### Filters/Effects Control Panel
 ![filters](docs/img/filters.png)
 
 - DESKTOP or MEDIA, this work on the same way, got different parameters to set and apply to the casts for custom effects
@@ -356,6 +356,32 @@ def stop_all_casts():
 ``On preview window, you will see effects in real time``
  ``All of these values can be saved into a Preset to be reloaded``
  
+#### Text Overlay Control Panel
+WLEDVideoSync allows you to overlay dynamic, animated text on top of your casts. This control panel is your starting point for managing all text-related settings.
+
+![text overlay](docs/img/text_overlay.png)
+
+**Main Controls:**
+- **Allow Desktop / Allow Media**: These buttons act as master switches to enable or disable the text overlay for all `Desktop` or `Media` casts, respectively. The button will be green when enabled and red when disabled.
+- **Fonts**: Opens a powerful font management dialog where you can browse and preview all the fonts available on your system. You can select a font and size and click "Apply" to use it for your text overlays.
+- **Edit (✎)**: Opens the detailed **Text Animator Editor** for either `Desktop` or `Media` casts. This is where you can customize the content, appearance, and animation of your text.
+
+**Text Animator Editor:**
+The editor dialog allows you to fine-tune every aspect of the text animation in real-time.
+
+<img src="docs/img/text_animator_control.png" alt="Text Animator Editor" width="600">
+
+- **Core Parameters**: Change the text content, font size, color, and opacity.
+- **Movement**: Control the scrolling `direction` (left, right, up, down, or none) and `speed`.
+- **Alignment**: Adjust the horizontal and vertical alignment of the text, and apply a vertical offset.
+- **Effects**: Choose from a variety of dynamic effects to bring your text to life:
+  - `blink`: Makes the text flash on and off.
+  - `color_cycle` / `rainbow_cycle`: Cycles through a predefined list of colors or a full rainbow spectrum.
+  - `wave` / `shake` / `scale`: Applies a sine-wave motion, a random shake, or a pulsing scale effect. You can customize the `amplitude` and `frequency` of these effects.
+  - `explode`: Makes the text "explode" into fragments.
+  - `particle`: Surrounds the text with a particle animation.
+- **Shadow**: Add a drop shadow to your text and customize its color and offset.
+
  ### Preview Window Shortcuts
  When a cast preview window is open and focused, you can use these keyboard shortcuts:
  
