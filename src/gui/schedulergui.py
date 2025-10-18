@@ -432,7 +432,7 @@ class SchedulerGUI:
             else:
                 scheduler_status.props('color=yellow')
 
-        dark = ui.dark_mode(self.CastAPI.dark_mode).bind_value_to(self.CastAPI, 'dark_mode')
+        ui.dark_mode(self.CastAPI.dark_mode).bind_value_to(self.CastAPI, 'dark_mode')
 
         await apply_custom()
 
@@ -453,7 +453,7 @@ class SchedulerGUI:
         """
         scheduler timer 
         """
-        scheduler_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=scheduler_timer_action)
+        ui.timer(int(cfg_mgr.app_config['timer']), callback=scheduler_timer_action)
 
         """
         Scheduler page creation
