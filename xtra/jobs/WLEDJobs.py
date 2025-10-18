@@ -231,7 +231,7 @@ def desktop_text_anim_demo(monitor:int = 0):
     # params
     Desktop.stopcast = False
     Desktop.viinput = 'desktop'
-    Desktop.monitor_number = monitor
+    Desktop.monitor_number = 0
     # run cast with text animator
     Desktop.allow_text_animator = True
     Desktop.cast()
