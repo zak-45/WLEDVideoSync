@@ -382,6 +382,8 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
   - `particle`: Surrounds the text with a particle animation.
 - **Shadow**: Add a drop shadow to your text and customize its color and offset.
 
+---
+
  ### Preview Window Shortcuts
  When a cast preview window is open and focused, you can use these keyboard shortcuts:
  
