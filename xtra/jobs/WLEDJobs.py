@@ -215,4 +215,73 @@ def my_complex_job():
         main_logger.info("my_complex_job cleanup complete.")
 
 
+def desktop_text_anim_demo(monitor:int = 0):
+    """
+    Cast entire desktop screen, this is for Win
+    This one take mainapp context
+    TextAnimator Demo
+
+        : param: monitor: int 0,1, by default use 0
+    """
+    # import
+    from src.cst import desktop
+    from time import sleep
+    # instantiate
+    Desktop=desktop.CASTDesktop()
+    # params
+    Desktop.stopcast = False
+    Desktop.viinput = 'desktop'
+    Desktop.monitor_number = monitor
+    # run cast with text animator
+    Desktop.allow_text_animator = True
+    Desktop.cast()
+    # TextAnimator instance update
+    Desktop.update_text_animator(text="WLEDVideoSync",
+                                 direction="left",
+                                 speed=200,
+                                 effect="color_cycle",
+                                 bg_color=None)
+    sleep(20)
+    #
+    Desktop.update_text_animator(text="Amazing\nText\nAnimation", direction="right", vertical_align="top", speed=280)
+    sleep(6)
+    #
+    Desktop.update_text_animator(text="WLED ready",
+                                 vertical_align="center",
+                                 direction="none",
+                                 effect="explode",
+                                 explode_pre_delay=2,
+                                 bg_color=(0, 0, 0))
+    sleep(10)
+    #
+    Desktop.update_text_animator(text="Customizable",
+                                 direction="left",
+                                 speed=50,
+                                 effect="rainbow_cycle",
+                                 bg_color=None)
+    sleep(12)
+    #
+    Desktop.update_text_animator(text="END",
+                                 color=(255, 255, 255),
+                                 direction="up",
+                                 speed=80,
+                                 effect="blink",
+                                 blink_interval=.1)
+    sleep(5)
+    #
+    #
+    Desktop.update_text_animator(text="END",
+                                 direction="none",
+                                 speed=0,
+                                 effect="scale",
+                                 scale_amplitude=.1,
+                                 scale_frequency=1,
+                                 bg_color=(0, 0, 0))
+    sleep(5)
+    #
+    Desktop.stopcast=True
+    #
+    print('End of anim demo')
+
+
 print('End of jobs file')
