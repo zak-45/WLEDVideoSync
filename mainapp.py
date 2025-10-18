@@ -584,9 +584,10 @@ async def main_page_desktop():
                 ui.button('Manage', on_click=lambda: nice.cast_device_manage(Desktop, Netdevice))
 
             with ui.card():
-                await nice.edit_protocol(Desktop)
+                protocol_select = await nice.edit_protocol(Desktop)
 
-            with ui.card():
+            with ui.card() as artnet_card:
+                artnet_card.bind_visibility_from(protocol_select, 'value', backward=lambda v: v in ['artnet', 'e131'])
                 await nice.edit_artnet(Desktop)
 
             with ui.card():
@@ -775,11 +776,10 @@ async def main_page_media():
                 await nice.edit_multicast(Media)
 
             with ui.card():
+                protocol_select = await nice.edit_protocol(Media)
 
-                await nice.edit_protocol(Media)
-
-            with ui.card():
-
+            with ui.card() as artnet_card:
+                artnet_card.bind_visibility_from(protocol_select, 'value', backward=lambda v: v in ['artnet', 'e131'])
                 await nice.edit_artnet(Media)
 
             with ui.card():

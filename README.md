@@ -225,7 +225,8 @@ All of this could be configured later, for the moment focus on default.
 
   **Creating a Custom Job:**
   1.  Navigate to the **PYEditor** from the footer menu.
-  2.  Create a new file or open an existing one in the `xtra/jobs/` folder.
+  2.  Create a new file or open an existing one in the `xtra/jobs/` folder 
+> WLEDVideoSync use xtra/jobs/WLEDJobs.py --> you got direct access from Scheduler page
   3.  Write your Python function. You can pass arguments to your function from the "Args" field in the Scheduler UI.
   4.  Save the file.
   5.  Go back to the Scheduler page and click the "Refresh" button to see your new job in the dropdown list.

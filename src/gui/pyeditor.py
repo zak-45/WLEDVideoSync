@@ -32,7 +32,7 @@ Key Architectural Components
    - This class encapsulates all the logic and UI elements for the editor.
 
 •Initialization (__init__):
-•It's highly configurable, allowing the user to specify a default folder, a file to pre-load, and to toggle features
+•It's highly configurable, allowing the user to specify a default folder, a file to preload, and to toggle features
 like console capture, a "back" button, and the Coldtype execution mode.
 •It cleverly uses a hidden ui.textarea as an intermediary buffer (self.preview) to load file content.
 The code comment indicates this is a workaround for a NiceGUI bug, which is a good example of practical,

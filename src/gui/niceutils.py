@@ -831,6 +831,8 @@ async def edit_protocol(class_obj):
     new_protocol.classes('w-40')
     new_protocol.tooltip('Select other to test experimental feature ....')
 
+    return new_protocol
+
 
 async def edit_artnet(class_obj):
     """Creates and displays Art-Net / e131 settings controls.
