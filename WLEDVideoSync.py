@@ -620,7 +620,7 @@ if __name__ == "__main__":
             if not do_bypass_shelve:
                 with shelve.open(file, "r") as proc_file:
                     media = proc_file["media"]
-                # update Desktop attributes from media attributes (copied into proc_file)
+                # update Desktop attributes from media attributes (have been copied into proc_file)
                 Desktop.set_from_media(media)
 
             shared_list_instance_thread = Desktop.cast()  # This creates the shared list and returns the handle
@@ -645,8 +645,8 @@ if __name__ == "__main__":
         # This is the main GUI application flow
         # --- Main Application Flow (if no special flags were found) ---
 
-        # instruct user to go to WLEDVideoSync folder to execute program and exit
         # We check if executed from compressed version (linux & win)
+        # instruct user to go to WLEDVideoSync folder to execute program and exit
         if "NUITKA_ONEFILE_PARENT" in os.environ:
             """
             When this env var exist, this mean run from the one-file compressed executable.
@@ -681,6 +681,8 @@ if __name__ == "__main__":
             from src.gui.tkmacinit import init
             init()
             sys.exit(0)
+
+        # ------------------------------------------------------------------------------------------------------- #
 
         """
         Start infinite loop

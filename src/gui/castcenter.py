@@ -491,7 +491,15 @@ class CastCenter:
         self.yt_area = ui.scroll_area()
         self.yt_area.set_visibility(False)
 
-        with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]'):
+        # Add toggle icons for the Text and Tools sections
+        with ui.row().classes('self-center gap-4'):
+            ui.icon('text_fields', size='sm').classes('cursor-pointer').tooltip('Show/Hide Text Overlay Controls') \
+                .on('click', lambda: text_card.set_visibility(not text_card.visible))
+            ui.icon('build', size='sm').classes('cursor-pointer').tooltip('Show/Hide Tools') \
+                .on('click', lambda: tools_card.set_visibility(not tools_card.visible))
+
+        with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') as text_card:
+            text_card.set_visibility(False)
             ui.label('TEXT Overlay').classes('self-center')
             with ui.row(wrap=False).classes('self-center'):
                 ui.label('Font:').classes('self-center')
@@ -509,7 +517,8 @@ class CastCenter:
                     text_media = ui.button('Allow Media', on_click= lambda: self.toggle_text_media(text_media)).tooltip('Enable or disable text overlay for Media casts')
                     ui.button(icon='edit', on_click=lambda: self.animator_update(self.Media)).tooltip("Edit Media Text Animation")
 
-        with ui.card().classes('self-center w-full'):
+        with ui.card().classes('self-center w-full') as tools_card:
+            tools_card.set_visibility(False)
             ui.label('TOOLS').classes('self-center')
             with ui.row(wrap=False).classes('w-full self-center'):
                 tool_capture = ui.card().tight().classes('w-1/3')
