@@ -388,7 +388,9 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
 ![Mobile Icon](docs/img/mobile_icon.png)
 
  Turn your smartphone into a wireless webcam for WLEDVideoSync without any third-party apps. This feature starts a secure, local web server that your phone can connect to.
- 
+
+ > **Note:** Your phone must need to be connected on the same network
+
  **How to Use:**
  1.  **Start the Server**: In the **Cast Center**, find the **TOOLS** section and click the **Mobile Camera** icon.
  2.  **Open the QR Code Page**: A new window or browser tab will open, displaying a QR code. This page is served locally on your computer.
