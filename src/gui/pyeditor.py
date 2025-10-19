@@ -102,6 +102,7 @@ class PythonEditor:
     """
     def __init__(self,
                  upload_folder=cfg_mgr.app_root_path('xtra/text'),
+                 show_upload: bool = False,
                  file_to_load: str = None,
                  use_capture:bool = True,
                  go_back: bool = True,
@@ -118,6 +119,7 @@ class PythonEditor:
         self.preview = ui.textarea()
         self.preview.set_visibility(False)
 
+        self.show_upload = show_upload  # show upload button
         self.coldtype = coldtype
         self.current_file = ""  # Global variable to keep track of the loaded file name
         if file_to_load is not None:
@@ -302,7 +304,7 @@ class PythonEditor:
 
             # Toolbar
             with ui.row().classes('w-full justify-between'):
-                if run_type == 'Coldtype':
+                if run_type == 'Coldtype' or self.show_upload:
                     ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit)
                 ui.button('Check Syntax',icon='check', on_click=self.check_code_syntax).classes('bg-blue-500 text-white')
                 ui.button('Fullscreen', icon='fullscreen', on_click=self.toggle_fullscreen).classes('bg-gray-700 text-white')
