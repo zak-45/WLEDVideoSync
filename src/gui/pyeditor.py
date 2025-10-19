@@ -317,7 +317,7 @@ class PythonEditor:
             # Code editor with syntax highlighting - remove any default margins-top/padding-top
             with ui.column().classes(f'editor-container-{self.container} w-full h-96 border border-gray-300 mt-0 pt-0 gap-1'):
                 with ui.row():
-                    if run_type == 'Coldtype' or self.current_file != '':
+                    if run_type == 'Coldtype' or self.show_upload or self.current_file != '':
                         save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
                         save_file.classes('bg-green-500 text-white')
                     self.py_run = ui.button(icon='settings', on_click=self.run_py)

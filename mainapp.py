@@ -1037,7 +1037,7 @@ async def pyeditor_test_page():
     await apply_custom()
 
     # Instantiate and run the editor
-    editor_app = PythonEditor(coldtype=False, show_upload=True)
+    editor_app = PythonEditor(coldtype=False, show_upload=True, upload_folder='xtra/scripts')
     await editor_app.setup_ui()
 
     print('end of pyeditor page load')
