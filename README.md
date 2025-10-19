@@ -384,6 +384,22 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
 
 ---
 
+### Mobile Camera Streaming
+ Turn your smartphone into a wireless webcam for WLEDVideoSync without any third-party apps. This feature starts a secure, local web server that your phone can connect to.
+ 
+ **How to Use:**
+ 1.  **Start the Server**: In the **Cast Center**, find the **TOOLS** section and click the **Mobile Camera** icon (![Mobile Icon](docs/img/mobile_icon.png)).
+ 2.  **Open the QR Code Page**: A new window or browser tab will open, displaying a QR code. This page is served locally on your computer.
+ 3.  **Scan with Your Phone**: Use your phone's camera to scan the QR code. This will open a special streaming page in your phone's browser.
+ 4.  **Grant Permissions**: Your browser will ask for permission to access your camera. You must grant this for the stream to work.
+ 5.  **Start Streaming**: The page will show your camera's feed and a blinking "Streaming..." indicator. Your phone is now sending video to WLEDVideoSync, which can be cast just like any other `Desktop` source.
+ 
+ > **Note:** This feature requires a secure connection (HTTPS), so the application uses a self-signed certificate. You may see a security warning in your browser the first time you connect, which you can safely accept.
+
+![Mobile QR](docs/img/mobile.png)
+
+---
+
  ### Preview Window Shortcuts
  When a cast preview window is open and focused, you can use these keyboard shortcuts:
  
