@@ -27,6 +27,22 @@ def get_window_rect(title):
 
     return None
 
+def get_window_handle(title):
+    """Find window handle (hWnd) using pywinctl (cross-platform).
+
+    Args:
+        title (str): The title of the window to find.
+
+    Returns:
+        int | None: The window handle if found, otherwise None.
+    """
+    try:
+        if win := pwc.getWindowsWithTitle(title):
+            win = win[0]  # Get the first matching window
+            return win.getHandle()
+    except Exception as er:
+        winutil_logger.error(f"Not able to retrieve handle for window name {title}. Error: {er}")
+    return None
 
 async def active_window():
     """ Provide active window title """

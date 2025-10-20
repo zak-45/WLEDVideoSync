@@ -124,7 +124,7 @@ from src.utl.multicast import MultiUtils as Multi
 from src.net.ddp_queue import DDPDevice
 from src.net.e131_queue import E131Device
 from src.net.artnet_queue import ArtNetDevice
-from src.utl.winutil import get_window_rect, windows_titles
+from src.utl.winutil import get_window_rect, windows_titles, get_window_handle
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
 from src.utl.text_utils import TextAnimatorMixin
@@ -934,37 +934,12 @@ class CASTDesktop(TextAnimatorMixin):
                     self.viinput = f'title={self.viinput[4:]}'
                 elif PLATFORM == 'linux':
                     try:
-                        # list all id for a title name (should be only one ...)
-                        window_ids = []
-                        self.windows_titles = as_run(windows_titles())
-                        # Iterate through each process
-                        for process_name, process_details in self.windows_titles.items():
-                            # Get the windows dictionary
-                            windows = process_details.get("windows", {})
-                            # Iterate through each window in the windows dictionary
-                            for window_name, window_details in windows.items():
-                                # Check if the window name matches the title
-                                if window_name == self.viinput[4:]:
-                                    window_ids.append(window_details["id"])
-                        # if no title found, we consider user pass ID by himself
-                        if len(window_ids) == 0:
-                            desktop_logger.warning('No Id')
-                            win_id = hex(int(self.viinput.lower()[4:]))
-                            window_options = {'window_id': str(win_id)}
-                        # if found only one, that's cool
-                        elif len(window_ids) == 1:
-                            win_id = hex(int(window_ids[0]))
-                            window_options = {'window_id': str(win_id)}
-                        # more than one, do not know what to do
-                        else:
-                            desktop_logger.warning(f'More than one hWnd (ID) returned, you need to put it by yourself: {window_ids}')
-                            return
-
+                        win_id = get_window_handle(self.viinput[4:])
+                        window_options = {'window_id': str(win_id)}
                         input_options |= window_options
-
                     except Exception as e:
                         desktop_logger.error(f'Not able to retrieve Window ID (hWnd) : {e}')
-                        return
+                        return False
 
 
             desktop_logger.debug(f'Options passed to av: {input_options}')
@@ -979,7 +954,7 @@ class CASTDesktop(TextAnimatorMixin):
 
         else:
             desktop_logger.error(f'Do not know what to do from {self.viinput} with this capture : {capture_methode}')
-            return
+            return False
 
 
         """
