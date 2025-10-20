@@ -594,6 +594,8 @@ app.on_startup(init_actions)
 Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 """
 if __name__ == "__main__":
+
+    """
     # Check for special command-line flags to run in a different mode.
     if '--run-mobile-server' in sys.argv or '--help' in sys.argv:
         # This block is executed ONLY when the app is launched as a child process
@@ -642,58 +644,59 @@ if __name__ == "__main__":
             sys.exit(0) # Exit cleanly when the server stops.
 
     else:
-        # This is the main GUI application flow
-        # --- Main Application Flow (if no special flags were found) ---
+    """
+    # This is the main GUI application flow
+    # --- Main Application Flow (if no special flags were found) ---
 
-        # We check if executed from compressed version (linux & win)
-        # instruct user to go to WLEDVideoSync folder to execute program and exit
-        if "NUITKA_ONEFILE_PARENT" in os.environ:
-            """
-            When this env var exist, this mean run from the one-file compressed executable.
-            This env not exist when run from the extracted program.
-            Expected way to work.
-            """
-            init_linux_win()
-            # run tk and close
-            from src.gui.tkwininit import init
-            init()
-            sys.exit(0)
-
-        elif PLATFORM == 'win32' and str2bool(cfg_mgr.app_config['win_first_run']):
-            init_linux_win()
-            # run tk and close
-            from src.gui.tkwininit import init
-            init()
-            sys.exit(0)
-
-        elif PLATFORM == 'linux' and str2bool(cfg_mgr.app_config['linux_first_run']):
-            init_linux_win()
-            # run tk and close
-            from src.gui.tkwininit import init
-            init()
-            sys.exit(0)
-
-        # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run only
-        # Update necessary params and exit
-        if PLATFORM == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
-            init_darwin()
-            # run tk and close
-            from src.gui.tkmacinit import init
-            init()
-            sys.exit(0)
-
-        # ------------------------------------------------------------------------------------------------------- #
-
+    # We check if executed from compressed version (linux & win)
+    # instruct user to go to WLEDVideoSync folder to execute program and exit
+    if "NUITKA_ONEFILE_PARENT" in os.environ:
         """
-        Start infinite loop
+        When this env var exist, this mean run from the one-file compressed executable.
+        This env not exist when run from the extracted program.
+        Expected way to work.
         """
+        init_linux_win()
+        # run tk and close
+        from src.gui.tkwininit import init
+        init()
+        sys.exit(0)
 
-        run_gui()
+    elif PLATFORM == 'win32' and str2bool(cfg_mgr.app_config['win_first_run']):
+        init_linux_win()
+        # run tk and close
+        from src.gui.tkwininit import init
+        init()
+        sys.exit(0)
 
-        """
-        STOP
-        """
+    elif PLATFORM == 'linux' and str2bool(cfg_mgr.app_config['linux_first_run']):
+        init_linux_win()
+        # run tk and close
+        from src.gui.tkwininit import init
+        init()
+        sys.exit(0)
 
-        Utils.clean_tmp()
+    # On macOS (app), there is no "NUITKA_ONEFILE_PARENT" so we test on mac_first_run only
+    # Update necessary params and exit
+    if PLATFORM == 'darwin' and str2bool(cfg_mgr.app_config['mac_first_run']):
+        init_darwin()
+        # run tk and close
+        from src.gui.tkmacinit import init
+        init()
+        sys.exit(0)
 
-        main_logger.info('Application Terminated')
+    # ------------------------------------------------------------------------------------------------------- #
+
+    """
+    Start infinite loop
+    """
+
+    run_gui()
+
+    """
+    STOP
+    """
+
+    Utils.clean_tmp()
+
+    main_logger.info('Application Terminated')
