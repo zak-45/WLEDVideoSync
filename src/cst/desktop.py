@@ -930,9 +930,9 @@ class CASTDesktop(TextAnimatorMixin):
             elif self.viinput.lower().startswith('win='):
                 # specific window content
                 # append title (win) if needed
-                if PLATFORM == 'win322':
+                if PLATFORM == 'win32':
                     self.viinput = f'title={self.viinput[4:]}'
-                elif PLATFORM == 'win32':
+                elif PLATFORM == 'linux':
                     try:
                         # list all id for a title name (should be only one ...)
                         window_ids = []
