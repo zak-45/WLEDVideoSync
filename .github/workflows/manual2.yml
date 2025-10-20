@@ -122,6 +122,7 @@ jobs:
       - name: Ubuntu specific bis
         if: matrix.os == 'ubuntu-latest'
         #
+        # pip3 install av==15.1.0 --no-binary av
         run: |
           sudo apt update
           sudo apt upgrade
@@ -132,7 +133,7 @@ jobs:
           sudo apt-get install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.1         
           sudo apt-get install gstreamer1.0-plugins-bad
           sudo apt install gir1.2-appindicator3-0.1 gir1.2-girepository-2.0
-          pip3 install av==15.1.0 --no-binary av
+          
           
       - name: Install Dependencies for All
         run: |
