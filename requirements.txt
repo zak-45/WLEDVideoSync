@@ -7,7 +7,7 @@
 winloop ; sys_platform == "win32"
 
 # Specific version & Common to all OS
-nicegui==3.0.4
+nicegui==2.24.2
 av==15.1.0  # problem nuitka/ 16.1.0
 fonttools==4.58.5 # problem nuitka/ pkg_resource with 4.59.0
 moviepy==1.0.3
