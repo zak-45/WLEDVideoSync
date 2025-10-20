@@ -126,13 +126,13 @@ jobs:
           sudo apt update
           sudo apt upgrade
           sudo apt-get -y install libavdevice-dev
-          sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg8
+          sudo add-apt-repository ppa:ubuntuhandbook1/ffmpeg7
           sudo apt install ffmpeg
           ffmpeg -version
           sudo apt-get install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 gir1.2-webkit2-4.1         
           sudo apt-get install gstreamer1.0-plugins-bad
           sudo apt install gir1.2-appindicator3-0.1 gir1.2-girepository-2.0
-          pip3 install av --no-binary av
+          pip3 install av==15.1.0 --no-binary av
           
       - name: Install Dependencies for All
         run: |
