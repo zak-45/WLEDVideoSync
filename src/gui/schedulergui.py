@@ -469,7 +469,7 @@ class SchedulerGUI:
                                                                                         lambda: self.show_running()) \
                         .style('cursor:pointer').tooltip('View a detailed list of all currently scheduled jobs.')
                     # editor
-                    editor = ui.icon('edit', size='lg')
+                    editor = ui.icon('edit', size='md')
                     editor.on('click',lambda: editor_row.set_visibility(not editor_row.visible))
                     editor.tooltip('Show/Hide the Python script editors for jobs and schedules.')
                     editor.style('cursor:pointer')

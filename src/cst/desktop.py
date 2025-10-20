@@ -124,7 +124,7 @@ from src.utl.multicast import MultiUtils as Multi
 from src.net.ddp_queue import DDPDevice
 from src.net.e131_queue import E131Device
 from src.net.artnet_queue import ArtNetDevice
-from src.utl.winutil import get_window_rect
+from src.utl.winutil import get_window_rect, windows_titles
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
 from src.utl.text_utils import TextAnimatorMixin
@@ -930,12 +930,13 @@ class CASTDesktop(TextAnimatorMixin):
             elif self.viinput.lower().startswith('win='):
                 # specific window content
                 # append title (win) if needed
-                if PLATFORM == 'win32':
+                if PLATFORM == 'win322':
                     self.viinput = f'title={self.viinput[4:]}'
-                elif PLATFORM == 'linux':
+                elif PLATFORM == 'win32':
                     try:
                         # list all id for a title name (should be only one ...)
                         window_ids = []
+                        self.windows_titles = as_run(windows_titles())
                         # Iterate through each process
                         for process_name, process_details in self.windows_titles.items():
                             # Get the windows dictionary
@@ -947,6 +948,7 @@ class CASTDesktop(TextAnimatorMixin):
                                     window_ids.append(window_details["id"])
                         # if no title found, we consider user pass ID by himself
                         if len(window_ids) == 0:
+                            desktop_logger.warning('No Id')
                             win_id = hex(int(self.viinput.lower()[4:]))
                             window_options = {'window_id': str(win_id)}
                         # if found only one, that's cool

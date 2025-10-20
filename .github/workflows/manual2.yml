@@ -158,7 +158,7 @@ jobs:
           macos-app-version: ${{github.event.inputs.mytag}}
           enable-plugins: tk-inter
           windows-icon-from-ico: assets/favicon.ico
-          macos-app-icon: assets/favicon.ico
+          macos-app-icon: assets/favicon.icns
           linux-icon: assets/favicon.ico
 
           include-package: certifi
@@ -197,6 +197,7 @@ jobs:
           include-data-files: |
             favicon.ico=favicon.ico
             favicon.png=favicon.png
+            favicon.icns=favicon.icns
             splash-screen.png=splash-screen.png
 
           user-package-configuration-file: |
