@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         # os: [macos-15-intel, macos-latest, ubuntu-latest, windows-latest]
-        os: [ubuntu-latest]
+        os: [macos-15-intel]
 
     env:
       YOUTUBE_DISABLE: no
@@ -143,7 +143,7 @@ jobs:
         uses: Nuitka/Nuitka-Action@main
         with:
           # nuitka-version: 2.6.2 or main
-          nuitka-version: 2.7.15
+          nuitka-version: factory
           script-name: WLEDVideoSync.py
           windows-console-mode: disable
           mode: app

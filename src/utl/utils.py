@@ -769,14 +769,19 @@ class CASTUtils:
     @staticmethod
     def mp_setup():
         """
-        Set process action/type : fork, spawn ...
+        Set multiprocess action/type : fork, spawn ...
         Main test for platform
-            macOS / linux need specific case
+            linux need fork
+        Warning The 'spawn' and 'forkserver' start methods generally cannot be used with “frozen” executables
+        (i.e., binaries produced by packages like PyInstaller and cx_Freeze) on POSIX systems.
+        The 'fork' start method may work if code does not use threads.
+
+        TODO : py 3.13 support for 'spawn' start method (could make process reload on linux binary)
         """
         if PLATFORM != 'linux':
             return multiprocessing.Process, multiprocessing.Queue # Direct return
         ctx = multiprocessing.get_context('spawn')
-        return ctx.Process, ctx.Queue # Direct return
+        return ctx.Process, ctx.Queue # return modified context
 
     @staticmethod
     def sl_clean(sl, sl_process, t_name):
