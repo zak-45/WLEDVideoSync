@@ -6,7 +6,7 @@
 #
 This Python script creates a self-contained web application using `nicegui` to stream video from a mobile phone's camera
  to the main WLEDVideoSync application. It cleverly uses WebSockets for real-time, low-latency communication and a
- QR code for a seamless user experience, allowing a phone to act as a wireless webcam source.
+ QR code for a seamless user experience, allowing a phone to act as a wireless webcam/Media Server source.
 
 ### How It Works: A Step-by-Step Guide
 
@@ -58,7 +58,7 @@ This Python script creates a self-contained web application using `nicegui` to s
 
 ### Summary
 
-In essence, this file creates a bridge between a mobile phone's camera and the main application's casting engine.
+In essence, this file creates a bridge between a mobile phone's camera/media and the main application's casting engine.
 The mobile browser does the work of capturing and sending frames, while this Python script acts as the receiver,
 decoding the frames and feeding them into the WLEDVideoSync pipeline. This allows the mobile camera to be treated just
 like any other video source, such as a desktop capture or a video file.
@@ -123,18 +123,41 @@ def stream():
         .blinking-dot {
             animation: blink 1.5s infinite;
         }
+        .control-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
+        }
+        .control-btn:hover {
+            background-color: #0056b3;
+        }
+        .control-btn:active {
+            transform: scale(0.98);
+            box-shadow: none;
+        }
     </style>
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;">
-        <h3>WLEDVideoSync - Mobile Webcam Stream (iOS/Android)</h3>
+        <h3>WLEDVideoSync - Mobile Webcam / Media Stream (iOS/Android)</h3>
         <video id="video" autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
+        <img id="image-preview" style="display: none; width: 320px; height: 240px; border: 4px solid #ccc; object-fit: contain;">
         <div id="controls" style="display: flex; align-items: center; margin-top: 10px; gap: 15px;">
             <div id="status-indicator" style="display: none; align-items: center; cursor: pointer;">
                 <div id="status-dot" class="blinking-dot" style="width: 15px; height: 15px; background-color: #28a745; 
                 border-radius: 50%;"></div>
                 <span id="status-text" style="margin-left: 8px; color: #28a745; font-weight: bold;">Streaming...</span>
             </div>
-            <button id="switch-camera-btn" style="display: none; padding: 5px 10px; border-radius: 5px; 
-            border: 1px solid #ccc; background-color: #f0f0f0; cursor: pointer;">Switch Camera</button>
+            <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
+            <button id="select-file-btn" class="control-btn">Select File</button>
+            <button id="camera-mode-btn" class="control-btn">Live Camera</button>
+            <button id="switch-camera-btn" class="control-btn" style="display: none;">Switch Camera</button>
         </div>
     </div>
     <script src="/assets/js/mobile.js"></script>

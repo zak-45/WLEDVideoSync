@@ -33,6 +33,7 @@
  */
 
 const video = document.getElementById('video');
+const imagePreview = document.getElementById('image-preview');
 const statusIndicator = document.getElementById('status-indicator');
 const statusDot = document.getElementById('status-dot');
 const statusText = document.getElementById('status-text');
@@ -40,6 +41,9 @@ const switchCameraButton = document.getElementById('switch-camera-btn');
 let socket;
 let intervalId;
 let currentStream;
+const fileInput = document.getElementById('file-input');
+const selectFileButton = document.getElementById('select-file-btn');
+const cameraModeButton = document.getElementById('camera-mode-btn');
 let currentFacingMode = 'environment'; // Start with 'environment' (rear camera)
 
 /**
@@ -83,16 +87,24 @@ function setupWebSocket() {
  * at regular intervals while the WebSocket connection is open and the video is available.
  */
 function startStreaming() {
-    if (intervalId) {
-      clearInterval(intervalId);
-    } // Clear any existing interval
+    if (intervalId) clearInterval(intervalId); // Clear any existing interval
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
     intervalId = setInterval(() => {
-        // Ensure video is ready and socket is open before sending
-        if (video.videoWidth > 0 && socket && socket.readyState === WebSocket.OPEN) {
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+        // If an image is being displayed, stream it
+        if (imagePreview.style.display !== 'none' && imagePreview.src) {
+            canvas.width = imagePreview.naturalWidth;
+            canvas.height = imagePreview.naturalHeight;
+            ctx.drawImage(imagePreview, 0, 0);
+            const dataURL = canvas.toDataURL('image/jpeg', 0.5);
+            socket.send(dataURL);
+        }
+        // If a video is ready, stream it
+        else if (video.style.display !== 'none' && video.videoWidth > 0) {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             ctx.drawImage(video, 0, 0);
@@ -109,9 +121,7 @@ function startStreaming() {
  * Cancels the active interval responsible for sending video frames and resets the streaming state.
  */
 function stopStreaming() {
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
+    if (intervalId) clearInterval(intervalId);
     intervalId = null;
 }
 
@@ -206,6 +216,40 @@ switchCameraButton.addEventListener('click', () => {
     // Toggle between 'user' (front) and 'environment' (rear)
     const newFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
     startVideoStream(newFacingMode);
+});
+
+selectFileButton.addEventListener('click', () => {
+    fileInput.click();
+});
+
+cameraModeButton.addEventListener('click', () => {
+    // Switch back to live camera mode
+    imagePreview.style.display = 'none';
+    video.style.display = 'block';
+    URL.revokeObjectURL(video.src); // Clean up previous object URL if any
+    startVideoStream(currentFacingMode);
+});
+
+fileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    stopCurrentStream(); // Stop camera stream
+    const fileURL = URL.createObjectURL(file);
+
+    if (file.type.startsWith('image/')) {
+        video.style.display = 'none';
+        imagePreview.style.display = 'block';
+        imagePreview.src = fileURL;
+        switchCameraButton.style.display = 'none';
+    } else if (file.type.startsWith('video/')) {
+        imagePreview.style.display = 'none';
+        video.style.display = 'block';
+        video.src = fileURL;
+        video.loop = true; // Loop the selected video
+        video.play();
+        switchCameraButton.style.display = 'none';
+    }
 });
 
 // Initial call to start video with the default camera (rear)

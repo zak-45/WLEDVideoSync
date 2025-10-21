@@ -84,9 +84,11 @@ async def init_actions():
 
     if '--run-mobile-server' in sys.argv:
         return
-    
+
+    # Main Event Loop
     CastAPI.loop = asyncio.get_running_loop()
 
+    #
     main_logger.info(f'Main running {current_thread().name}')
     main_logger.info(f'Root page : {root_page}')
     main_logger.info(f"Scheduler enabled : {cfg_mgr.scheduler_config['enable']}")
@@ -118,7 +120,7 @@ async def init_actions():
         # Start the Tkinter event loop
         root.mainloop()
 
-        sys.exit()
+        sys.exit(0)
 
     try:
         # Set Fonts path for app
