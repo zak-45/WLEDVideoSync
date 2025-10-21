@@ -17,7 +17,7 @@
  - **Versatile Streaming**: Stream to e131, Art-Net, and DDP devices, including WLED.
  - **Multicast Support**: Aggregate multiple devices into one large virtual matrix.
  - **Multiple Sources**: Cast your desktop, a specific window, a screen area, images, videos, web URLs, and even YouTube content.
- - **Mobile Camera Streaming**: Use your phone as a wireless webcam source via a simple QR code scan (no third-party app needed).
+ - **Mobile Camera / Media Streaming**: Use your phone as a wireless webcam / media source via a simple QR code scan (no third-party app needed).
  - **Text Overlays**: Add custom text with multiple effects, fonts, and animations.
  - **Powerful UI**: A modern web interface built with NiceGUI that can run as a native window, in a browser, or headlessly as a service.
  - **GIF Creation**: Create GIFs from video segments and upload them directly to a WLED device, complete with a new preset.
@@ -384,10 +384,10 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
 
 ---
 
-### Mobile Camera Streaming
+### Mobile Camera / Media Streaming
 ![Mobile Icon](docs/img/mobile_icon.png)
 
- Turn your smartphone into a wireless webcam for WLEDVideoSync without any third-party apps. This feature starts a secure, local web server that your phone can connect to.
+ Turn your smartphone into a wireless webcam / media for WLEDVideoSync without any third-party apps. This feature starts a secure, local web server that your phone can connect to.
 
  > **Note:** Your phone must need to be connected on the same network
 
