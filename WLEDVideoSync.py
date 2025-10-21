@@ -63,6 +63,7 @@ Temporary File Handling:
     It also cleans up these temporary files on exit.
 
 """
+import multiprocessing
 import os
 import socket
 
@@ -594,6 +595,7 @@ app.on_startup(init_actions)
 Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 """
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
 
     # Check for special command-line flags to run in a different mode.
     if '--run-mobile-server' in sys.argv or '--help' in sys.argv:
