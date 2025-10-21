@@ -379,7 +379,7 @@ class CV2Utils:
                 asyncio.run_coroutine_threadsafe(open_webview_help_page(), CastAPI.loop)
                 cv2utils_logger.info("Sent request to open help window")
             else:
-                cv2utils_logger.error("Main event loop not available to open settings window.")
+                cv2utils_logger.error("Main event loop not available to open help window.")
 
         return t_preview, t_todo_stop, text
 

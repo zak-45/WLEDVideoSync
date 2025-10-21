@@ -8,7 +8,7 @@ It reads the INI file, parses the associated README for tooltips, and generates 
 interface for editing and saving settings.
 """
 import configparser
-from nicegui import ui, app
+from nicegui import ui
 from configmanager import cfg_mgr
 
 

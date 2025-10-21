@@ -49,7 +49,7 @@ from src.gui.videoplayer import VideoPlayer
 from src.gui.presets import *
 from src.api.api import *
 
-from configmanager import cfg_mgr, PLATFORM, WLED_PID_TMP_FILE, LoggerManager, NATIVE_UI
+from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE, NATIVE_UI
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
@@ -1710,11 +1710,6 @@ async def root_timer_action():
 
     if str2bool(cfg_mgr.custom_config['system_stats']):
         await nice.system_stats(CastAPI, Desktop, Media)
-
-    """
-    if CastAPI.loop is None:
-        CastAPI.loop=asyncio.get_running_loop()
-    """
 
 
 async def info_timer_action():
