@@ -776,7 +776,7 @@ class CASTUtils:
         (i.e., binaries produced by packages like PyInstaller and cx_Freeze) on POSIX systems.
         The 'fork' start method may work if code does not use threads.
 
-        TODO : py 3.13 support for 'spawn' start method (could make process reload on linux binary)
+        To check : py 3.13 support for 'spawn' start method (could make process reload on linux binary)
         """
         if PLATFORM != 'linux':
             return multiprocessing.Process, multiprocessing.Queue # Direct return
