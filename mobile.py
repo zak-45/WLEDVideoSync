@@ -146,7 +146,7 @@ def stream():
     </style>
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;">
         <h3>WLEDVideoSync - Mobile Webcam / Media Stream (iOS/Android)</h3>
-        <video id="video" autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
+        <video id="video" muted autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
         <img id="image-preview" style="display: none; width: 320px; height: 240px; border: 4px solid #ccc; object-fit: contain;">
         <div id="controls" style="display: flex; align-items: center; margin-top: 10px; gap: 15px;">
             <div id="status-indicator" style="display: none; align-items: center; cursor: pointer;">
@@ -157,6 +157,7 @@ def stream():
             <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
             <button id="select-file-btn" class="control-btn">Select File</button>
             <button id="camera-mode-btn" class="control-btn">Live Camera</button>
+            <button id="play-file-btn" class="control-btn" style="display: none;">Play File</button>
             <button id="switch-camera-btn" class="control-btn" style="display: none;">Switch Camera</button>
         </div>
     </div>

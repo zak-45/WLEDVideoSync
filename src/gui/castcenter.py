@@ -564,17 +564,22 @@ class CastCenter:
             left_drawer.hide()
 
             with ui.row().classes('self-center'):
-                with ui.icon('video_settings', size='xl') as screen:
-                    screen.style('cursor: pointer')
-                    screen.tooltip('click to toggle FullScreen')
+                with ui.icon('fullscreen', size='xl') as full_screen:
+                    full_screen.style('cursor: pointer')
+                    full_screen.tooltip('click to toggle FullScreen')
                     fullscreen = ui.fullscreen()
                     #
                     if app.native.main_window is not None:
                         # native mode
-                        screen.on('click', app.native.main_window.toggle_fullscreen)
+                        full_screen.on('click', app.native.main_window.toggle_fullscreen)
                     else:
                         # browser mode
-                        screen.on('click', fullscreen.toggle)
+                        full_screen.on('click', fullscreen.toggle)
+
+                with ui.icon('video_settings', size='xl') as screen:
+                    screen.style('cursor: pointer')
+                    screen.tooltip('click to App Config Screen Settings')
+                    screen.on('click', lambda: ui.navigate.to('/config_editor'))
                 ui.label('SETTINGS')
             ui.separator().props(add='size=8px')
 

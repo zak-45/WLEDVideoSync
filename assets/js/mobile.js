@@ -44,6 +44,8 @@ let currentStream;
 const fileInput = document.getElementById('file-input');
 const selectFileButton = document.getElementById('select-file-btn');
 const cameraModeButton = document.getElementById('camera-mode-btn');
+const playFileButton = document.getElementById('play-file-btn');
+let selectedFile = null; // Variable to store the selected file
 let currentFacingMode = 'environment'; // Start with 'environment' (rear camera)
 
 /**
@@ -228,6 +230,8 @@ cameraModeButton.addEventListener('click', () => {
     video.style.display = 'block';
     URL.revokeObjectURL(video.src); // Clean up previous object URL if any
     startVideoStream(currentFacingMode);
+    selectedFile = null; // Clear selected file
+    playFileButton.style.display = 'none';
 });
 
 fileInput.addEventListener('change', (event) => {
@@ -235,21 +239,78 @@ fileInput.addEventListener('change', (event) => {
     if (!file) return;
 
     stopCurrentStream(); // Stop camera stream
-    const fileURL = URL.createObjectURL(file);
+
+    // Remove any previous error message
+    const prevError = document.getElementById('file-error-message');
+    if (prevError) prevError.remove();
 
     if (file.type.startsWith('image/')) {
+        console.log('File is an image .');
+        selectedFile = null; // Not needed for images
+        const fileURL = URL.createObjectURL(file);
         video.style.display = 'none';
         imagePreview.style.display = 'block';
         imagePreview.src = fileURL;
+        playFileButton.style.display = 'none';
         switchCameraButton.style.display = 'none';
     } else if (file.type.startsWith('video/')) {
+        // Check if the video format is supported
+        const canPlay = video.canPlayType(file.type);
+        if (!canPlay || canPlay === '') {
+            // Show error message
+            const errorDiv = document.createElement('p');
+            errorDiv.id = 'file-error-message';
+            errorDiv.textContent = `Error: The selected video format (${file.type}) is not supported by your browser.`;
+            errorDiv.style.color = 'red';
+            video.parentElement.appendChild(errorDiv);
+            selectedFile = null;
+            imagePreview.style.display = 'none';
+            video.style.display = 'none';
+            playFileButton.style.display = 'none';
+            switchCameraButton.style.display = 'none';
+            return;
+        }
+        console.log('File is a video.');
+        selectedFile = file; // Store the file object
         imagePreview.style.display = 'none';
         video.style.display = 'block';
-        video.src = fileURL;
-        video.loop = true; // Loop the selected video
-        video.play();
+        // Don't set src or load yet. Just show the play button.
+        playFileButton.style.display = 'inline-block'; // Show the play button
         switchCameraButton.style.display = 'none';
     }
+});
+
+playFileButton.addEventListener('click', () => {
+    if (!selectedFile) {
+        console.error('No file selected to play.');
+        return;
+    }
+    // Stop any previous streaming interval
+    stopStreaming();
+
+    // Reset video element for file playback
+    video.pause();
+    video.srcObject = null;
+    video.removeAttribute('src');
+    video.load();
+
+    console.log('Play button clicked. Loading and playing file:', selectedFile.name);
+    const fileURL = URL.createObjectURL(selectedFile);
+    video.src = fileURL;
+    video.loop = true;
+
+    // Wait for metadata to be loaded before playing and streaming
+    video.onloadedmetadata = () => {
+        video.play().then(() => {
+            startStreaming();
+            statusText.textContent = 'Streaming...';
+            statusDot.classList.add('blinking-dot');
+        }).catch(error => {
+            console.error("Playback was prevented:", error);
+            alert("Could not play video. Please ensure your browser has permissions and try again.");
+        });
+    };
+    video.load();
 });
 
 // Initial call to start video with the default camera (rear)
