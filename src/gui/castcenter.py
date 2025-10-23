@@ -171,6 +171,7 @@ class CastCenter:
 
     async def run_mobile(self):
 
+        ui.notify('Starting mobile cast...', position='center',type='positive')
         await CastCenter.validate_data(self.Media)
         # store media obj for other process
         with shelve.open(WLED_PID_TMP_FILE, writeback=True) as wled_proc_file:
