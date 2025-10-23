@@ -188,10 +188,9 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
         # receive image from browser
         try:
-            data_url = await websocket.receive_text()
-            header, encoded = data_url.split(',', 1)
-            img_bytes = base64.b64decode(encoded)
-            img = Image.open(BytesIO(img_bytes))
+            # Receive raw binary data (JPEG bytes) instead of base64 text
+            jpeg_bytes = await websocket.receive_bytes()
+            img = Image.open(BytesIO(jpeg_bytes))
 
             # transform to numpy
             # send to shared memory

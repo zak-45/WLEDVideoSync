@@ -46,6 +46,7 @@ const selectFileButton = document.getElementById('select-file-btn');
 const cameraModeButton = document.getElementById('camera-mode-btn');
 const playFileButton = document.getElementById('play-file-btn');
 let selectedFile = null; // Variable to store the selected file
+let isStreaming = false;
 let currentFacingMode = 'environment'; // Start with 'environment' (rear camera)
 
 /**
@@ -62,6 +63,7 @@ function setupWebSocket() {
     }
     // Use wss:// for secure connections, required for getUserMedia on most browsers
     socket = new WebSocket(`wss://${location.host}/mobile`);
+    socket.binaryType = 'blob'; // Set the socket to handle binary data as Blobs
 
     socket.onopen = () => {
         console.log('WebSocket connection established.');
@@ -93,31 +95,48 @@ function setupWebSocket() {
  * at regular intervals while the WebSocket connection is open and the video is available.
  */
 function startStreaming() {
-    if (intervalId) clearInterval(intervalId); // Clear any existing interval
+    if (isStreaming) return;
+    isStreaming = true;
+    streamFrame(); // Start the streaming loop
+}
 
+function streamFrame() {
+    if (!isStreaming || !socket || socket.readyState !== WebSocket.OPEN) {
+        isStreaming = false;
+        return; // Stop the loop if streaming is stopped or socket is not ready
+    }
+    
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
-    intervalId = setInterval(() => {
-        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    const processAndSend = () => {
+        // Use requestAnimationFrame for a smoother loop that respects browser rendering cycles
+        requestAnimationFrame(streamFrame);
+    };
 
-        // If an image is being displayed, stream it
-        if (imagePreview.style.display !== 'none' && imagePreview.src) {
-            canvas.width = imagePreview.naturalWidth;
-            canvas.height = imagePreview.naturalHeight;
-            ctx.drawImage(imagePreview, 0, 0);
-            const dataURL = canvas.toDataURL('image/jpeg', 0.5);
-            socket.send(dataURL);
+    // If an image is being displayed, stream it
+    if (imagePreview.style.display !== 'none' && imagePreview.src) {
+        canvas.width = imagePreview.naturalWidth;
+        canvas.height = imagePreview.naturalHeight;
+        ctx.drawImage(imagePreview, 0, 0);
+    }
+    // If a video is ready, stream it
+    else if (video.style.display !== 'none' && video.videoWidth > 0) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+    } else {
+        processAndSend(); // Nothing to send, just continue the loop
+        return;
+    }
+
+    // Asynchronously get the canvas content as a binary Blob and send it
+    canvas.toBlob(blob => {
+        if (blob) {
+            socket.send(blob);
         }
-        // If a video is ready, stream it
-        else if (video.style.display !== 'none' && video.videoWidth > 0) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0);
-            const dataURL = canvas.toDataURL('image/jpeg', 0.5); // Use a reasonable quality
-            socket.send(dataURL);
-        }
-    }, 100); // ~10 fps
+        processAndSend();
+    }, 'image/jpeg', 0.5); // Use a reasonable quality
 }
 
 /**
@@ -127,12 +146,11 @@ function startStreaming() {
  * Cancels the active interval responsible for sending video frames and resets the streaming state.
  */
 function stopStreaming() {
-    if (intervalId) clearInterval(intervalId);
-    intervalId = null;
+    isStreaming = false;
 }
 
 statusIndicator.addEventListener('click', () => {
-    if (intervalId) { // If streaming, then pause
+    if (isStreaming) { // If streaming, then pause
         stopStreaming();
         statusText.textContent = 'Paused';
         statusDot.classList.remove('blinking-dot');
