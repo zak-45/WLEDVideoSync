@@ -491,12 +491,25 @@ class CastCenter:
         self.yt_area = ui.scroll_area()
         self.yt_area.set_visibility(False)
 
+        def toggle_animated(element, animation_in='slideInDown', animation_out='slideOutUp'):
+            """Toggles the visibility of an element with animations."""
+            if element.visible:
+                if str2bool(cfg_mgr.custom_config['animate_ui']):
+                    element.classes(add=f'animate__animated animate__{animation_out}',
+                                    remove=f'animate__animated animate__{animation_in}')
+                ui.timer(0.5, lambda: element.set_visibility(False), once=True)
+            else:
+                element.set_visibility(True)
+                if str2bool(cfg_mgr.custom_config['animate_ui']):
+                    element.classes(add=f'animate__animated animate__{animation_in}',
+                                    remove=f'animate__animated animate__{animation_out}')
+
         # Add toggle icons for the Text and Tools sections
         with ui.row().classes('self-center gap-4'):
             ui.icon('text_fields', size='sm').classes('cursor-pointer').tooltip('Show/Hide Text Overlay Controls') \
-                .on('click', lambda: text_card.set_visibility(not text_card.visible))
+                .on('click', lambda: toggle_animated(text_card))
             ui.icon('build', size='sm').classes('cursor-pointer').tooltip('Show/Hide Tools') \
-                .on('click', lambda: tools_card.set_visibility(not tools_card.visible))
+                .on('click', lambda: toggle_animated(tools_card))
 
         with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') as text_card:
             text_card.set_visibility(False)

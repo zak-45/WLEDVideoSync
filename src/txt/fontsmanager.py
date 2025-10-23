@@ -99,7 +99,7 @@ async def font_page(font_manager: 'FontPreviewManager' = None):
 
         # Use NiceGUI's built-in clipboard module to copy the text.
         ui.clipboard.write(text_to_copy)
-        ui.notify(f'Copied font details to clipboard: {i_font_name}', type='positive')
+        ui.notify(f'Copied font details to clipboard: {i_font_name}', type='positive', position='top-right')
 
     def generate_ok_image(i_font_path, i_font_size=24, color=(0, 200, 0, 255)):
         """
