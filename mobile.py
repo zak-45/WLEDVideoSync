@@ -145,7 +145,7 @@ def stream():
         }
     </style>
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;">
-        <h3>WLEDVideoSync - Mobile Webcam / Media Stream (iOS/Android)</h3>
+        <h4>WLEDVideoSync - Mobile Webcam / Media Stream (iOS/Android)</h4>
         <video id="video" muted autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
         <img id="image-preview" style="display: none; width: 320px; height: 240px; border: 4px solid #ccc; object-fit: contain;">
         <div id="controls" style="display: flex; align-items: center; margin-top: 10px; gap: 15px;">

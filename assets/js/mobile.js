@@ -56,6 +56,10 @@ let currentFacingMode = 'environment'; // Start with 'environment' (rear camera)
  * and error events to manage streaming and UI feedback, and attempts reconnection if the connection drops.
  */
 function setupWebSocket() {
+    // prevent multiple open sockets
+    if (socket && socket.readyState !== WebSocket.CLOSED && socket.readyState !== WebSocket.CLOSING) {
+        socket.close();
+    }
     // Use wss:// for secure connections, required for getUserMedia on most browsers
     socket = new WebSocket(`wss://${location.host}/mobile`);
 
@@ -310,8 +314,12 @@ playFileButton.addEventListener('click', () => {
             alert("Could not play video. Please ensure your browser has permissions and try again.");
         });
     };
-    video.load();
 });
 
 // Initial call to start video with the default camera (rear)
 startVideoStream(currentFacingMode);
+
+// Clean up on page unload
+window.addEventListener('beforeunload', () => {
+    if (socket) socket.close();
+});
