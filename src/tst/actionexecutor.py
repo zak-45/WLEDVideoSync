@@ -195,8 +195,8 @@ class ActionExecutor:
             DDPDevice(params)
 
     def handle_reset_action(self, *args):
-        self.class_obj.total_frame = 0
-        self.class_obj.total_packet = 0
+        self.class_obj.total_frames = 0
+        self.class_obj.total_packets = 0
         self.class_obj.reset_total = False
 
     def handle_preview_control(self, t_action, *args):

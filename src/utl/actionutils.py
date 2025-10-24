@@ -26,7 +26,7 @@ class ActionExecutor:
 
     def __init__(self,
                  class_obj,  # Media or Desktop class instance containing state like cast_name_todo
-                 port, # server port
+                 port,  # server port
                  t_name,  # Thread name
                  t_viinput,  # Video input source identifier
                  t_scale_width,  # Target width for scaling/processing
@@ -38,7 +38,7 @@ class ActionExecutor:
                  t_cast_y,  # Cast Y coordinate (for multicast grid?)
                  start_time,  # Initial start time of the process
                  initial_preview_state,  # Initial state of the preview window flag
-                 interval,  # Target FPS/interval
+                 fps,  # Target FPS/interval
                  media_length,  # Total length of the media (if applicable)
                  swapper,  # Swapper instance for multicast effects
                  shared_buffer,  # Queue for inter-thread communication
@@ -59,7 +59,7 @@ class ActionExecutor:
         self.t_cast_x = t_cast_x
         self.t_cast_y = t_cast_y
         self.start_time = start_time
-        self.interval = interval
+        self.fps = fps
         self.media_length = media_length
         self.swapper = swapper
         self.shared_buffer = shared_buffer
@@ -134,7 +134,7 @@ class ActionExecutor:
                     "W": self.t_scale_width,
                     "H": self.t_scale_height
                 },
-                "fps": self.interval,
+                "fps": self.fps,
                 "frames": frame_count,  # Use passed frame_count
                 "length": self.media_length,
                 "img": img_b64
@@ -237,8 +237,8 @@ class ActionExecutor:
         # params are currently unused for 'reset'
         try:
             # Assuming class_obj has these attributes
-            self.class_obj.total_frame = 0
-            self.class_obj.total_packet = 0
+            self.class_obj.total_frames = 0
+            self.class_obj.total_packets = 0
             # self.class_obj.reset_total = False # Is this flag still needed? Resetting implies it's done.
             self.logger.info(f'{self.t_name}: Frame and packet counters reset.')
         except AttributeError as e:

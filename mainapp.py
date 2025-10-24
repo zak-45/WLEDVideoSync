@@ -241,7 +241,6 @@ async def main_page():
     """
     timer created on main page run to refresh datas
     """
-    #if CastAPI.root_timer is None:
     CastAPI.root_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=root_timer_action)
 
     """

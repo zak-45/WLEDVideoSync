@@ -124,7 +124,7 @@ from src.utl.multicast import MultiUtils as Multi
 from src.net.ddp_queue import DDPDevice
 from src.net.e131_queue import E131Device
 from src.net.artnet_queue import ArtNetDevice
-from src.utl.winutil import get_window_rect, windows_titles, get_window_handle
+from src.utl.winutil import get_window_rect, get_window_handle
 from src.utl.sharedlistclient import SharedListClient
 from src.utl.sharedlistmanager import SharedListManager
 from src.utl.text_utils import TextAnimatorMixin
@@ -159,8 +159,8 @@ class CASTDesktop(TextAnimatorMixin):
 
     count = 0  # initialise running casts count to zero
 
-    total_frame = 0  # total number of processed frames
-    total_packet = 0  # net packets number
+    total_frames = 0  # total number of processed frames
+    total_packets = 0  # net packets number
 
     cast_names = []  # list of running threads
     cast_name_todo = []  # list of cast names that need to execute 'to do'
@@ -301,8 +301,9 @@ class CASTDesktop(TextAnimatorMixin):
 
         t_name = threading.current_thread().name
         if CASTDesktop.count == 0 or self.reset_total is True:
-            CASTDesktop.total_frame = 0
-            CASTDesktop.total_packet = 0
+            CASTDesktop.total_frames = 0
+            CASTDesktop.total_packets = 0
+            self.reset_total = False
 
         desktop_logger.debug(f'Child thread: {t_name}')
 
@@ -382,7 +383,7 @@ class CASTDesktop(TextAnimatorMixin):
                     for dev in t_ddp_multi_names:
                         if ip == dev._destination:
                             dev.send_to_queue(image, self.retry_number)
-                            CASTDesktop.total_packet += dev.frame_count
+                            CASTDesktop.total_packets += dev.frame_count
                             break
                 else:
                     desktop_logger.warning(f'{t_name} Multicast frame dropped')
@@ -564,7 +565,7 @@ class CASTDesktop(TextAnimatorMixin):
                             if ip_addresses[0] != '127.0.0.1':
                                 # send data to queue
                                 ddp_host.send_to_queue(frame_to_send, self.retry_number)
-                                CASTDesktop.total_packet += ddp_host.frame_count
+                                CASTDesktop.total_packets += ddp_host.frame_count
                         except Exception as tr_error:
                             desktop_logger.error(traceback.format_exc())
                             desktop_logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
@@ -637,7 +638,7 @@ class CASTDesktop(TextAnimatorMixin):
                 else:
                     # Update Data on shared List
                     self.preview_text = sl[15] is not False
-                    sl[0] = CASTDesktop.total_frame
+                    sl[0] = CASTDesktop.total_frames
                     #
                     # append not zero value to bytes to solve ShareableList bug
                     # see https://github.com/python/cpython/issues/106939
@@ -658,7 +659,7 @@ class CASTDesktop(TextAnimatorMixin):
                     cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
 
                 i_preview, i_todo_stop, self.preview_text = CV2Utils.cv2_display_frame(
-                    CASTDesktop.total_frame,
+                    CASTDesktop.total_frames,
                     iframe,
                     port,
                     t_viinput,
@@ -700,7 +701,7 @@ class CASTDesktop(TextAnimatorMixin):
             try:
                 i_sl = ShareableList(
                     [
-                        CASTDesktop.total_frame,
+                        CASTDesktop.total_frames,
                         full_array.tobytes(),
                         port,
                         t_viinput,
@@ -1050,7 +1051,7 @@ class CASTDesktop(TextAnimatorMixin):
             t_cast_y=t_cast_y,
             start_time=start_time,
             initial_preview_state=t_preview,  # Pass the initial preview state
-            interval=interval,
+            fps=t_fps,
             media_length=media_length,
             swapper=swapper,
             shared_buffer=shared_buffer,  # queue
@@ -1100,7 +1101,7 @@ class CASTDesktop(TextAnimatorMixin):
                             """
 
                             frame_count += 1
-                            CASTDesktop.total_frame += 1
+                            CASTDesktop.total_frames += 1
 
                             if output_container:
                                 # we send frame to output only if it exists, here only for test, this bypass ddp etc ...
@@ -1216,7 +1217,7 @@ class CASTDesktop(TextAnimatorMixin):
                                 frame = frame.reshape(int(t_scale_height), int(t_scale_width), 3)
                                 #
                                 frame_count += 1
-                                CASTDesktop.total_frame += 1
+                                CASTDesktop.total_frames += 1
                                 #
                                 frame, grid = process_frame(frame)
                                 #
@@ -1310,7 +1311,7 @@ class CASTDesktop(TextAnimatorMixin):
                             frame = np.array(frame)  # RGBA format
 
                             frame_count += 1
-                            CASTDesktop.total_frame += 1
+                            CASTDesktop.total_frames += 1
                             #
                             frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                             frame, grid = process_frame(frame)

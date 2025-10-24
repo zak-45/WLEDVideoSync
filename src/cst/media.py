@@ -135,8 +135,8 @@ class CASTMedia(TextAnimatorMixin):
 
     count = 0  # initialise running casts count to zero
 
-    total_frame = 0  # total number of processed frames
-    total_packet = 0  # net packets number
+    total_frames = 0  # total number of processed frames
+    total_packets = 0  # net packets number
 
     cast_names = []  # should contain running Cast instances
     cast_name_todo = []  # list of cast names with action that need to execute from 'to do'
@@ -230,8 +230,9 @@ class CASTMedia(TextAnimatorMixin):
         """
         t_name = threading.current_thread().name
         if CASTMedia.count == 0 or self.reset_total is True:
-            CASTMedia.total_frame = 0
-            CASTMedia.total_packet = 0
+            CASTMedia.total_frames = 0
+            CASTMedia.total_packets = 0
+            self.reset_total = False
 
         media_logger.debug(f'Child thread: {t_name}')
 
@@ -323,7 +324,7 @@ class CASTMedia(TextAnimatorMixin):
                     for dev in t_ddp_multi_names:
                         if ip == dev._destination:
                             dev.send_to_queue(image, self.retry_number)
-                            CASTMedia.total_packet += dev.frame_count
+                            CASTMedia.total_packets += dev.frame_count
                             break
                 else:
                     media_logger.warning(f'{t_name} Multicast frame dropped')
@@ -546,7 +547,7 @@ class CASTMedia(TextAnimatorMixin):
             t_cast_y=t_cast_y,
             start_time=start_time,
             initial_preview_state=t_preview,  # Pass the initial preview state
-            interval=interval,
+            fps=frame_interval,
             media_length=media_length,
             swapper=swapper,
             shared_buffer=shared_buffer,  # queue
@@ -845,7 +846,7 @@ class CASTMedia(TextAnimatorMixin):
                             if ip_addresses[0] != '127.0.0.1':
                                 # send data to queue
                                 ddp_host.send_to_queue(frame_to_send, self.retry_number)
-                                CASTMedia.total_packet += ddp_host.frame_count
+                                CASTMedia.total_packets += ddp_host.frame_count
                         except Exception as tr_error:
                             media_logger.error(traceback.format_exc())
                             media_logger.error(f"{t_name} Exception Error on IP device : {tr_error}")
@@ -915,7 +916,7 @@ class CASTMedia(TextAnimatorMixin):
                         try:
                             sl = ShareableList(
                                 [
-                                    CASTMedia.total_frame,
+                                    CASTMedia.total_frames,
                                     full_array.tobytes(),
                                     port,
                                     t_viinput,
@@ -972,7 +973,7 @@ class CASTMedia(TextAnimatorMixin):
                                 t_preview = False
                             self.preview_text = sl[15] is not False
                             # Update Data on shared List
-                            sl[0] = CASTMedia.total_frame
+                            sl[0] = CASTMedia.total_frames
                             #
                             # append not zero value to bytes to solve ShareableList bug
                             # see https://github.com/python/cpython/issues/106939
@@ -998,7 +999,7 @@ class CASTMedia(TextAnimatorMixin):
                         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
                     t_preview, t_todo_stop, self.preview_text = CV2Utils.cv2_display_frame(
-                        CASTMedia.total_frame,
+                        CASTMedia.total_frames,
                         frame,
                         port,
                         t_viinput,
@@ -1047,7 +1048,7 @@ class CASTMedia(TextAnimatorMixin):
             update data
             """
             frame_count += 1
-            CASTMedia.total_frame += 1
+            CASTMedia.total_frames += 1
 
         """
             Final : End Media Loop

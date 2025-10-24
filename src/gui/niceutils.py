@@ -84,8 +84,8 @@ async def system_stats(CastAPI, Desktop, Media):
 
     CastAPI.cpu = psutil.cpu_percent(interval=1, percpu=False)
     CastAPI.ram = psutil.virtual_memory().percent
-    CastAPI.total_packet = Desktop.total_packet + Media.total_packet
-    CastAPI.total_frame = Desktop.total_frame + Media.total_frame
+    CastAPI.total_packets = Desktop.total_packets + Media.total_packets
+    CastAPI.total_frames = Desktop.total_frames + Media.total_frames
 
     if str2bool(cfg_mgr.custom_config['cpu_chart']) and CastAPI.cpu_chart is not None:
         now = datetime.now()
@@ -93,8 +93,8 @@ async def system_stats(CastAPI, Desktop, Media):
     
         CastAPI.cpu_chart.options['series'][0]['data'].append(CastAPI.cpu)
         CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
-    
-        CastAPI.cpu_chart.update()
+
+        # CastAPI.cpu_chart.update()
 
     if CastAPI.cpu >= 75:
         ui.notify('High CPU utilization', type='negative', close_button=True)
@@ -218,11 +218,11 @@ async def sync_button(CastAPI, Media):
         CastAPI.media_button_sync.props(add="color=green")
         CastAPI.media_button_sync.classes(remove="animate-pulse")
         CastAPI.media_button_sync.text = "VSYNC"
-        CastAPI.media_button_sync.update()
+        # CastAPI.media_button_sync.update()
         CastAPI.slider_button_sync.props(add="color=green")
         CastAPI.slider_button_sync.classes(remove="animate-pulse")
         CastAPI.slider_button_sync.text = "TSYNC"
-        CastAPI.slider_button_sync.update()
+        # CastAPI.slider_button_sync.update()
         CastAPI.type_sync = 'none'
 
 
@@ -639,7 +639,7 @@ async def player_pick_file(CastAPI) -> None:
             result = str(result[0])
 
             CastAPI.player.set_source(result)
-            CastAPI.player.update()
+
         except Exception as e:
             ui.notify(f'Error :  {e}')
 
