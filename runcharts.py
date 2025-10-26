@@ -17,6 +17,8 @@ from src.gui.niceutils import apply_custom
 from src.gui.syscharts import SysCharts, NetCharts, DevCharts
 from configmanager import NATIVE_UI
 
+DEV_LIST = None
+
 @ui.page('/')
 async def main_page():
     """The main launcher page with buttons for each chart type."""
@@ -46,10 +48,14 @@ async def net_stat_page():
 async def dev_stat_page():
     await apply_custom()
     devstat = DevCharts(dark=CastAPI.dark_mode)
+    await devstat.setup_ui(DEV_LIST)
 
 def main(dev_list: list = None, inter_proc_file: str = None):
+    global DEV_LIST
 
     srv_port = native.find_open_port()
+
+    DEV_LIST = ['192.168.1.125','192.168.1.126','192.168.1.127','192.168.1.128']
 
     ui.run(title='Charts Launcher',
            reload=False,

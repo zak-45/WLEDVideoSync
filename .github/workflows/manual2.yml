@@ -89,11 +89,11 @@ jobs:
       - name: MacOS specific Intel
         if: matrix.os == 'macos-15-intel'
           # brew unlink python@3.12 && brew link --overwrite python@3.12
+        # brew update
+        # brew upgrade
         run: |
           brew unlink python@3.13 && brew link --overwrite python@3.13
           brew cleanup
-          brew update
-          brew upgrade          
           brew install portaudio
           brew reinstall libsndfile
           brew install ffmpeg

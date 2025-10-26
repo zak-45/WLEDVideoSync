@@ -1,12 +1,9 @@
-import asyncio
-from datetime import datetime
-
 import requests
-from ping3 import ping
-
 import psutil
-from nicegui import ui
 
+from datetime import datetime
+from ping3 import ping
+from nicegui import ui, run
 
 class NetCharts:
     """
@@ -37,7 +34,7 @@ class NetCharts:
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
         with ui.row():
             ui.button('Clear all', on_click=self.clear)
-            ui.button('Pause 5s', on_click=self.pause_chart)
+            ui.button('Pause 10s', on_click=self.pause_chart)
         self.log.push(f"Auto refresh time: {self.chart_refresh_s}sec")
 
         """ timers """
@@ -66,8 +63,22 @@ class NetCharts:
         self.multi_net.options['series'].append(series_data)
 
     def pause_chart(self):
-        ui.notify('Refresh has been paused for 5s ')
-        self.log.push('Pause for 5 seconds')
+        """Pauses chart updates for 10 seconds."""
+        ui.notify('Refresh has been paused for 10s ')
+        self.log.push('Pause for 10 seconds')
+
+        # Deactivate the timers
+        self.chart_net_timer.deactivate()
+        for timer in self.net_data_timer:
+            timer.deactivate()
+
+        # Set a one-time timer to reactivate them after 10 seconds
+        def reactivate_timers():
+            self.chart_net_timer.activate()
+            for timer in self.net_data_timer:
+                timer.activate()
+            self.log.push('Chart refresh resumed.')
+        ui.timer(10, reactivate_timers, once=True)
 
     def clear(self):
         self.multi_net.options['series'][0]['data'].clear()
@@ -178,7 +189,7 @@ class SysCharts:
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
         with ui.row():
             ui.button('Clear all', on_click=self.clear)
-            ui.button('Pause 5s', on_click=self.pause_chart)
+            ui.button('Pause 10s', on_click=self.pause_chart)
 
         self.log.push(f"Auto refresh time: {self.chart_refresh_s}sec")
 
@@ -340,9 +351,26 @@ class SysCharts:
                     }).classes('min-w-full min-h-80')
 
     async def pause_chart(self):
-        ui.notify('Refresh has been paused for 5s ')
-        self.log.push('Pause for 5 seconds')
-        await asyncio.sleep(5)
+        """Pauses chart updates for 10 seconds."""
+        ui.notify('Refresh has been paused for 10s ')
+        self.log.push('Pause for 10 seconds')
+
+        # Deactivate all timers
+        self.chart_sys_timer.deactivate()
+        for timer in self.cpu_data_timer:
+            timer.deactivate()
+        for timer in self.sys_data_timer:
+            timer.deactivate()
+
+        # Set a one-time timer to reactivate them
+        def reactivate_timers():
+            self.chart_sys_timer.activate()
+            for timer in self.cpu_data_timer:
+                timer.activate()
+            for timer in self.sys_data_timer:
+                timer.activate()
+            self.log.push('Chart refresh resumed.')
+        ui.timer(10, reactivate_timers, once=True)
 
     async def update_charts(self):
         self.memory_chart.update()
@@ -441,10 +469,14 @@ class DevCharts:
     param: IPs list e.g. '192.168.1.1,192.168.1.5, ...'
     """
 
-    def __init__(self, dev_ips=None, dark: bool = False):
-        if dev_ips is None:
-            dev_ips = '127.0.0.1'
-        self.ips = dev_ips.split(',')
+    def __init__(self, dark: bool = False):
+        self.log = None
+        self.dark_mode = None
+        self.chart_wled_timer = None
+        self.chart_ping_timer = None
+        self.dark_switch = dark
+        self.notify = None
+        self.ips = None
         self.maxTimeSec = 600
         self.pingAlertLimitMs = 100
         self.maxPingResponseTimeS = 0.3
@@ -461,30 +493,38 @@ class DevCharts:
         self.multi_ping = None
         self.multi_signal = None
 
+
+    async def setup_ui(self, dev_ips: list = None):
         """ ui design """
+
+        if dev_ips is None:
+            dev_ips = '127.0.0.1'
+        self.ips = dev_ips
 
         with ui.row().classes('no-wrap'):
             self.notify = ui.switch('Notification')
             self.notify.value = True
             self.dark_switch = ui.switch('Dark Mode')
             self.dark_mode = ui.dark_mode()
-            if dark:
-                self.dark_switch.value = True
 
-        self.create_charts()
+        await self.create_charts()
+        self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
+        with ui.row():
+            ui.button('Clear all', on_click=self.clear)
+            ui.button('Pause 10s', on_click=self.pause_chart)
+
+        self.log.push(f"Auto refresh time: {self.chart_refresh_s}sec")
 
         self.ping_data_timer.append(ui.timer(self.pingIntervalS, lambda: self.ping_datas()))
 
-        i = 0
-        for ip in self.wled_ips:
+        for i, _ in enumerate(self.wled_ips):
             self.wled_data_timer.append(
                 ui.timer(self.wled_interval, lambda chart_number=i: self.wled_datas(chart_number)))
-            i += 1
 
         self.chart_ping_timer = ui.timer(self.chart_refresh_s, lambda: self.multi_ping.update())
         self.chart_wled_timer = ui.timer(self.wled_chart_refresh_s, lambda: self.update_wled_charts())
 
-    def create_charts(self):
+    async def create_charts(self):
         self.multi_ping = ui.echart(
             {
                 'title': {'text': 'Ping (ms)'},
@@ -511,7 +551,7 @@ class DevCharts:
 
         with ui.row():
             for cast_ip in self.ips:
-                wled_data = self.get_wled_info(cast_ip)
+                wled_data = await self.get_wled_info(cast_ip)
                 ip_exp = ui.expansion(cast_ip, icon='cast') \
                     .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
 
@@ -573,10 +613,30 @@ class DevCharts:
                         editor.run_editor_method('updateProps', {'readOnly': True})
                         wled_card.set_visibility(False)
 
-    def pause_chart(self):
+    async def pause_chart(self):
+        """Pauses chart updates for 10 seconds."""
         if self.notify.value:
-            ui.notify('Refresh has been paused for 5s ')
-        self.log.push('Pause for 5 seconds')
+            ui.notify('Refresh has been paused for 10s ')
+        self.log.push('Pause for 10 seconds')
+
+        # Deactivate all timers
+        self.chart_ping_timer.deactivate()
+        self.chart_wled_timer.deactivate()
+        for timer in self.ping_data_timer:
+            timer.deactivate()
+        for timer in self.wled_data_timer:
+            timer.deactivate()
+
+        # Set a one-time timer to reactivate them
+        def reactivate_timers():
+            self.chart_ping_timer.activate()
+            self.chart_wled_timer.activate()
+            for timer in self.ping_data_timer:
+                timer.activate()
+            for timer in self.wled_data_timer:
+                timer.activate()
+            self.log.push('Chart refresh resumed.')
+        ui.timer(10, reactivate_timers, once=True)
 
 
     def clear(self):
@@ -595,14 +655,21 @@ class DevCharts:
         date_time_str = now.strftime("%H:%M:%S")
 
         for cast_ip in self.ips:
-            response_time = ping(cast_ip, timeout=int(self.maxPingResponseTimeS), unit='ms')
-            if response_time is None:
+            response_time = await run.io_bound(lambda: ping(cast_ip, timeout=self.maxPingResponseTimeS, unit='ms'))
+            if response_time is None or response_time is False:
                 self.log.push(datetime.now().strftime('%H:%M:%S') + " no ping reply from " + cast_ip)
                 if self.notify.value:
                     ui.notify(datetime.now().strftime('%H:%M:%S') + " no ping reply from " + cast_ip, type='negative')
 
-                for j, item in enumerate(self.multi_ping.options['series']):
-                    self.multi_ping.options['series'][j]['data'].append(0)
+                # Find the correct series for the IP that failed and append 0
+                series_found = False
+                for series in self.multi_ping.options['series']:
+                    if series['name'] == cast_ip:
+                        series['data'].append(0)
+                        series_found = True
+                        break
+                if not series_found:
+                    self.log.push(f"Error: Could not find chart series for IP {cast_ip}")
             else:
                 k = 0
                 for item in self.multi_ping.options['series']:
@@ -629,7 +696,7 @@ class DevCharts:
         now = datetime.now()
         date_time_str = now.strftime("%H:%M:%S")
 
-        wled_data = self.get_wled_info(cast_ip)
+        wled_data = await self.get_wled_info(cast_ip)
 
         if wled_data == {}:
             self.log.push(datetime.now().strftime('%H:%M:%S') + " no data from " + cast_ip)
@@ -664,7 +731,7 @@ class DevCharts:
         self.multi_signal.update()
 
     @staticmethod
-    def get_wled_info(host, timeout: int = 1):
+    async def get_wled_info(host, timeout: int = 1):
         """
         Take matrix information from WLED device
         :param host:
