@@ -47,3 +47,4 @@ stupidArtnet
 requests
 zeroconf
 cryptography
+ping3
