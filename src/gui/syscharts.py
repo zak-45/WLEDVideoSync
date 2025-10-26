@@ -20,6 +20,8 @@ class NetCharts:
         self.timestamps = []
         self.last_rec = psutil.net_io_counters().bytes_recv
         self.last_sent = psutil.net_io_counters().bytes_sent
+        self.is_paused = False
+        self.pause_button = None
 
         """ ui design """
         with ui.row().classes('no-wrap'):
@@ -34,7 +36,7 @@ class NetCharts:
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
         with ui.row():
             ui.button('Clear all', on_click=self.clear)
-            ui.button('Pause 10s', on_click=self.pause_chart)
+            self.pause_button = ui.button('Pause', icon='pause', on_click=self.toggle_pause_chart)
         self.log.push(f"Auto refresh time: {self.chart_refresh_s}sec")
 
         """ timers """
@@ -44,15 +46,35 @@ class NetCharts:
     def create_charts(self):
         self.multi_net = ui.echart(
             {
-                'title': {'text': 'Net (MB)'},
-                'tooltip': {'trigger': 'axis'},
-                'legend': {'data': []},
-                'grid': {'left': '3%', 'right': '4%', 'bottom': '3%', 'containLabel': 'true'},
-                'toolbox': {'feature': {'dataZoom': {'yAxisIndex': 'none'}, 'restore': {}, 'saveAsImage': {}}},
-                'xAxis': {'type': 'category', 'data': []},
-                'yAxis': {'type': 'value', 'axisLabel': {':formatter': 'value =>  value + " " '}},
+                'title': {'text': 'Net (MB)', 'left': 'center'},
+                'tooltip': {'trigger': 'axis', 'axisPointer': {'type': 'cross'}},
+                'legend': {
+                    'data': [],
+                    'top': '20%',
+                    'orient': 'horizontal',
+                    'textStyle': {'fontWeight': 'bold'}
+                },
+                'grid': {'left': '5%', 'right': '5%', 'bottom': '10%', 'containLabel': True},
+                'toolbox': {
+                    'feature': {
+                        'dataZoom': {'yAxisIndex': 'none'},
+                        'restore': {},
+                        'saveAsImage': {}
+                    }
+                },
+                'xAxis': {
+                    'type': 'category',
+                    'data': []
+                },
+                'yAxis': {
+                    'type': 'value',
+                    'min': 0,
+                    'axisLabel': {':formatter': 'value => value + " MB"'},
+                    'splitLine': {'show': True, 'lineStyle': {'type': 'dashed'}}
+                },
                 'series': []
-            }).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
+            }
+        ).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
 
         self.multi_net.options['legend']['data'].append('bytes_in')
         series_data = {'name': 'bytes_in', 'type': 'line', 'data': []}
@@ -62,23 +84,23 @@ class NetCharts:
         series_data = {'name': 'bytes_out', 'type': 'line', 'data': []}
         self.multi_net.options['series'].append(series_data)
 
-    def pause_chart(self):
-        """Pauses chart updates for 10 seconds."""
-        ui.notify('Refresh has been paused for 10s ')
-        self.log.push('Pause for 10 seconds')
-
-        # Deactivate the timers
-        self.chart_net_timer.deactivate()
-        for timer in self.net_data_timer:
-            timer.deactivate()
-
-        # Set a one-time timer to reactivate them after 10 seconds
-        def reactivate_timers():
+    def toggle_pause_chart(self):
+        """Toggles the pause state of the chart updates."""
+        self.is_paused = not self.is_paused
+        if self.is_paused:
+            ui.notify('Chart refresh paused.')
+            self.log.push('Chart refresh paused.')
+            self.chart_net_timer.deactivate()
+            for timer in self.net_data_timer:
+                timer.deactivate()
+            self.pause_button.props('icon=play_arrow').set_text('Resume')
+        else:
+            ui.notify('Chart refresh resumed.')
+            self.log.push('Chart refresh resumed.')
             self.chart_net_timer.activate()
             for timer in self.net_data_timer:
                 timer.activate()
-            self.log.push('Chart refresh resumed.')
-        ui.timer(10, reactivate_timers, once=True)
+            self.pause_button.props('icon=pause').set_text('Pause')
 
     def clear(self):
         self.multi_net.options['series'][0]['data'].clear()
@@ -138,6 +160,8 @@ class SysCharts:
         self.sys_interval = 5
         self.cpu_interval = 2
         self.timestamps = []
+        self.is_paused = False
+        self.pause_button = None
 
         self.gauge_data = [
             {
@@ -189,7 +213,7 @@ class SysCharts:
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
         with ui.row():
             ui.button('Clear all', on_click=self.clear)
-            ui.button('Pause 10s', on_click=self.pause_chart)
+            self.pause_button = ui.button('Pause', icon='pause', on_click=self.toggle_pause_chart)
 
         self.log.push(f"Auto refresh time: {self.chart_refresh_s}sec")
 
@@ -350,27 +374,27 @@ class SysCharts:
                         ]
                     }).classes('min-w-full min-h-80')
 
-    async def pause_chart(self):
-        """Pauses chart updates for 10 seconds."""
-        ui.notify('Refresh has been paused for 10s ')
-        self.log.push('Pause for 10 seconds')
-
-        # Deactivate all timers
-        self.chart_sys_timer.deactivate()
-        for timer in self.cpu_data_timer:
-            timer.deactivate()
-        for timer in self.sys_data_timer:
-            timer.deactivate()
-
-        # Set a one-time timer to reactivate them
-        def reactivate_timers():
+    async def toggle_pause_chart(self):
+        """Toggles the pause state of the chart updates."""
+        self.is_paused = not self.is_paused
+        if self.is_paused:
+            ui.notify('Chart refresh paused.')
+            self.log.push('Chart refresh paused.')
+            self.chart_sys_timer.deactivate()
+            for timer in self.cpu_data_timer:
+                timer.deactivate()
+            for timer in self.sys_data_timer:
+                timer.deactivate()
+            self.pause_button.props('icon=play_arrow').set_text('Resume')
+        else:
+            ui.notify('Chart refresh resumed.')
+            self.log.push('Chart refresh resumed.')
             self.chart_sys_timer.activate()
             for timer in self.cpu_data_timer:
                 timer.activate()
             for timer in self.sys_data_timer:
                 timer.activate()
-            self.log.push('Chart refresh resumed.')
-        ui.timer(10, reactivate_timers, once=True)
+            self.pause_button.props('icon=pause').set_text('Pause')
 
     async def update_charts(self):
         self.memory_chart.update()
@@ -492,6 +516,8 @@ class DevCharts:
         self.pingIntervalS = 2
         self.multi_ping = None
         self.multi_signal = None
+        self.is_paused = False
+        self.pause_button = None
 
 
     async def setup_ui(self, dev_ips: list = None):
@@ -511,7 +537,7 @@ class DevCharts:
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
         with ui.row():
             ui.button('Clear all', on_click=self.clear)
-            ui.button('Pause 10s', on_click=self.pause_chart)
+            self.pause_button = ui.button('Pause', icon='pause', on_click=self.toggle_pause_chart)
 
         self.log.push(f"Auto refresh time: {self.chart_refresh_s}sec")
 
@@ -527,33 +553,74 @@ class DevCharts:
     async def create_charts(self):
         self.multi_ping = ui.echart(
             {
-                'title': {'text': 'Ping (ms)'},
-                'tooltip': {'trigger': 'axis'},
-                'legend': {'data': []},
-                'grid': {'left': '3%', 'right': '4%', 'bottom': '3%', 'containLabel': 'true'},
-                'toolbox': {'feature': {'saveAsImage': {}}},
-                'xAxis': {'type': 'category', 'data': []},
-                'yAxis': {'type': 'value', 'axisLabel': {':formatter': 'value =>  value + " ms " '}},
+                'title': {'text': 'Ping (ms)', 'left': 'center'},
+                'tooltip': {'trigger': 'axis', 'axisPointer': {'type': 'cross'}},
+                'legend': {
+                    'data': [],
+                    'top': '20%',
+                    'orient': 'horizontal',
+                    'textStyle': {'fontWeight': 'bold'}
+                },
+                'grid': {'left': '5%', 'right': '5%', 'bottom': '10%', 'containLabel': True},
+                'toolbox': {
+                    'feature': {
+                        'dataZoom': {'yAxisIndex': 'none'},
+                        'restore': {},
+                        'saveAsImage': {}
+                    }
+                },
+                'xAxis': {
+                    'type': 'category',
+                    'data': []
+                },
+                'yAxis': {
+                    'type': 'value',
+                    'min': 0,
+                    'axisLabel': {':formatter': 'value => value + " ms"'},
+                    'splitLine': {'show': True, 'lineStyle': {'type': 'dashed'}}
+                },
                 'series': []
-            }).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
+            }
+        ).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
 
         self.multi_signal = ui.echart(
             {
-                'title': {'text': 'WLED Signal (%)'},
-                'tooltip': {'trigger': 'axis'},
-                'legend': {'data': []},
-                'grid': {'left': '3%', 'right': '4%', 'bottom': '3%', 'containLabel': 'true'},
-                'toolbox': {'feature': {'saveAsImage': {}}},
-                'xAxis': {'type': 'category', 'data': []},
-                'yAxis': {'type': 'value', 'axisLabel': {':formatter': 'value =>  value + " % " '}},
+                'title': {'text': 'WLED Signal (%)', 'left': 'center'},
+                'tooltip': {'trigger': 'axis', 'axisPointer': {'type': 'cross'}},
+                'legend': {
+                    'data': [],
+                    'top': '20%',
+                    'orient': 'horizontal',
+                    'textStyle': {'fontWeight': 'bold'}
+                },
+                'grid': {'left': '5%', 'right': '5%', 'bottom': '10%', 'containLabel': True},
+                'toolbox': {
+                    'feature': {
+                        'dataZoom': {'yAxisIndex': 'none'},
+                        'restore': {},
+                        'saveAsImage': {}
+                    }
+                },
+                'xAxis': {
+                    'type': 'category',
+                    'data': []
+                },
+                'yAxis': {
+                    'type': 'value',
+                    'min': 0,
+                    'max': 100,
+                    'axisLabel': {':formatter': 'value => value + " %"'},
+                    'splitLine': {'show': True, 'lineStyle': {'type': 'dashed'}}
+                },
                 'series': []
-            }).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
+            }
+        ).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
 
-        with ui.row():
+        with ((ui.row())):
             for cast_ip in self.ips:
                 wled_data = await self.get_wled_info(cast_ip)
-                ip_exp = ui.expansion(cast_ip, icon='cast') \
-                    .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
+                ip_exp = ui.expansion(cast_ip, icon='lightbulb')
+                ip_exp.classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
 
                 self.multi_ping.options['legend']['data'].append(cast_ip)
                 series_data = {'name': cast_ip, 'type': 'line', 'data': []}
@@ -565,29 +632,57 @@ class DevCharts:
                 self.multi_signal.options['series'].append(series_data)
 
                 with ip_exp:
-                    with ui.row():
-                        if wled_data == {}:
+                    # Use a responsive grid to center the charts and adapt to screen size
+                    with ui.grid(columns=1).classes('w-full justify-center'):
+                        if not wled_data:
                             ui.label('Not WLED device').style('background: red')
                         else:
                             self.wled_ips.append(cast_ip)
-                            with ui.card().classes('w-full'):
+                            with ui.card().style('min-width: 400px'):
                                 self.wled_chart_fps.append(
                                     ui.echart({
-                                        'tooltip': {'formatter': '{a} <br/>{b} : {c}'},
+                                        'title': {'text': 'WLED FPS', 'left': 'center'},
+                                        'tooltip': {
+                                            'formatter': '{a} <br/>{b} : {c}',
+                                            'backgroundColor': '#222',
+                                            'borderColor': '#aaa',
+                                            'textStyle': {'color': '#fff'}
+                                        },
                                         'series': [
-                                            {'name': 'FramePerSecond',
-                                             'type': 'gauge',
-                                             'progress': {'show': 'true'},
-                                             'detail': {
-                                                 'valueAnimation': 'true',
-                                                 'formatter': '{value}'
-                                             },
-                                             'data': [{'value': 0, 'name': 'FPS'}]
-                                             }
+                                            {
+                                                'name': 'FramePerSecond',
+                                                'type': 'gauge',
+                                                'min': 0,
+                                                'max': 120,
+                                                'splitNumber': 6,
+                                                'axisLine': {
+                                                    'lineStyle': {
+                                                        'width': 10,
+                                                        'color': [
+                                                            [0.5, '#91cc75'],
+                                                            [0.8, '#fac858'],
+                                                            [1, '#ee6666']
+                                                        ]
+                                                    }
+                                                },
+                                                'progress': {'show': True, 'width': 10},
+                                                'pointer': {'show': True, 'length': '70%', 'width': 4},
+                                                'detail': {
+                                                    'valueAnimation': True,
+                                                    'formatter': '{value} FPS',
+                                                    'fontSize': 18,
+                                                    'color': '#333'
+                                                },
+                                                'title': {
+                                                    'fontSize': 14,
+                                                    'offsetCenter': [0, '-30%']
+                                                },
+                                                'data': [{'value': 0, 'name': 'FPS'}]
+                                            }
                                         ]
                                     }).on('dblclick', lambda: self.pause_chart())
                                 )
-                            with ui.card().classes('w-full'):
+                            with ui.card().style('min-width: 400px'):
                                 self.wled_chart_rsi.append(
                                     ui.echart({
                                         'tooltip': {'trigger': 'axis'},
@@ -613,30 +708,25 @@ class DevCharts:
                         editor.run_editor_method('updateProps', {'readOnly': True})
                         wled_card.set_visibility(False)
 
-    async def pause_chart(self):
-        """Pauses chart updates for 10 seconds."""
+    async def toggle_pause_chart(self):
+        """Toggles the pause state of the chart updates."""
+        self.is_paused = not self.is_paused
         if self.notify.value:
-            ui.notify('Refresh has been paused for 10s ')
-        self.log.push('Pause for 10 seconds')
+            ui.notify(f'Chart refresh {"paused" if self.is_paused else "resumed"}.')
+        self.log.push(f'Chart refresh {"paused" if self.is_paused else "resumed"}.')
 
-        # Deactivate all timers
-        self.chart_ping_timer.deactivate()
-        self.chart_wled_timer.deactivate()
-        for timer in self.ping_data_timer:
-            timer.deactivate()
-        for timer in self.wled_data_timer:
-            timer.deactivate()
-
-        # Set a one-time timer to reactivate them
-        def reactivate_timers():
+        if self.is_paused:
+            self.chart_ping_timer.deactivate()
+            self.chart_wled_timer.deactivate()
+            for timer in self.ping_data_timer: timer.deactivate()
+            for timer in self.wled_data_timer: timer.deactivate()
+            self.pause_button.props('icon=play_arrow').set_text('Resume')
+        else:
             self.chart_ping_timer.activate()
             self.chart_wled_timer.activate()
-            for timer in self.ping_data_timer:
-                timer.activate()
-            for timer in self.wled_data_timer:
-                timer.activate()
-            self.log.push('Chart refresh resumed.')
-        ui.timer(10, reactivate_timers, once=True)
+            for timer in self.ping_data_timer: timer.activate()
+            for timer in self.wled_data_timer: timer.activate()
+            self.pause_button.props('icon=pause').set_text('Pause')
 
 
     def clear(self):
