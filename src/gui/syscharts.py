@@ -74,7 +74,7 @@ class NetCharts:
                 },
                 'series': []
             }
-        ).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
+        ).on('dblclick', lambda: self.toggle_pause_chart()).classes('w-full h-45')
 
         self.multi_net.options['legend']['data'].append('bytes_in')
         series_data = {'name': 'bytes_in', 'type': 'line', 'data': []}
@@ -248,7 +248,7 @@ class SysCharts:
                 'areaStyle': {'color': '#535894', 'opacity': 0.5},
                 'type': 'line'
             }]
-        }).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
+        }).on('dblclick', lambda: self.toggle_pause_chart()).classes('w-full h-45')
 
         self.memory_chart = ui.echart({
             'title': {
@@ -274,7 +274,7 @@ class SysCharts:
                     'color': 'rgba(220, 220, 220, 0.8)'
                 }
             }]
-        }).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
+        }).on('dblclick', lambda: self.toggle_pause_chart()).classes('w-full h-45')
 
         with ui.row().classes('w-full no-wrap'):
             with ui.card().classes('w-1/2'):
@@ -310,7 +310,7 @@ class SysCharts:
                             'color': 'rgba(220, 220, 220, 0.8)'
                         }
                     }]
-                }).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
+                }).on('dblclick', lambda: self.toggle_pause_chart()).classes('w-full h-45')
 
             with ui.card().classes('w-1/2'):
                 self.load_chart = ui.echart(
@@ -581,7 +581,7 @@ class DevCharts:
                 },
                 'series': []
             }
-        ).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
+        ).on('dblclick', lambda: self.toggle_pause_chart()).classes('w-full h-45')
 
         self.multi_signal = ui.echart(
             {
@@ -614,7 +614,7 @@ class DevCharts:
                 },
                 'series': []
             }
-        ).on('dblclick', lambda: self.pause_chart()).classes('w-full h-45')
+        ).on('dblclick', lambda: self.toggle_pause_chart()).classes('w-full h-45')
 
         with ((ui.row())):
             for cast_ip in self.ips:
@@ -680,7 +680,7 @@ class DevCharts:
                                                 'data': [{'value': 0, 'name': 'FPS'}]
                                             }
                                         ]
-                                    }).on('dblclick', lambda: self.pause_chart())
+                                    }).on('dblclick', lambda: self.toggle_pause_chart())
                                 )
                             with ui.card().style('min-width: 400px'):
                                 self.wled_chart_rsi.append(
@@ -694,15 +694,15 @@ class DevCharts:
                                             {'type': 'line', 'name': cast_ip,
                                              'areaStyle': {'color': '#535894', 'opacity': 0.5}, 'data': []}
                                         ]
-                                    }).on('dblclick', lambda: self.pause_chart())
+                                    }).on('dblclick', lambda: self.toggle_pause_chart())
                                 )
 
                     wled_card = ui.card()
                     with ui.row():
                         add_icon = ui.icon('add', size='md').style('cursor: pointer')
-                        add_icon.on('click', lambda wled_card=wled_card: wled_card.set_visibility(True))
+                        add_icon.on('click', lambda i_wled_card=wled_card: i_wled_card.set_visibility(True))
                         remove_icon = ui.icon('remove', size='md').style('cursor: pointer')
-                        remove_icon.on('click', lambda wled_card=wled_card: wled_card.set_visibility(False))
+                        remove_icon.on('click', lambda i_wled_card=wled_card: i_wled_card.set_visibility(False))
                     with wled_card:
                         editor = ui.json_editor({'content': {'json': wled_data}})
                         editor.run_editor_method('updateProps', {'readOnly': True})
@@ -762,7 +762,7 @@ class DevCharts:
                     self.log.push(f"Error: Could not find chart series for IP {cast_ip}")
             else:
                 k = 0
-                for item in self.multi_ping.options['series']:
+                for _ in self.multi_ping.options['series']:
                     if self.multi_ping.options['series'][k]['name'] == cast_ip:
                         self.multi_ping.options['series'][k]['data'].append(round(response_time, 2))
                         break
@@ -805,7 +805,7 @@ class DevCharts:
             self.wled_chart_fps[i].options['series'][0]['data'][0]['value'] = wled_data['leds']['fps']
 
             k = 0
-            for item in self.multi_signal.options['series']:
+            for _ in self.multi_signal.options['series']:
                 if self.multi_signal.options['series'][k]['name'] == cast_ip:
                     self.multi_signal.options['series'][k]['data'].append(wled_data['wifi']['signal'])
                     break
