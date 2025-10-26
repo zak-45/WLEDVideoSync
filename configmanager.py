@@ -230,6 +230,7 @@ class ConfigManager:
         self.text_config = None
         self.scheduler_config = None
         self.config_file = self.app_root_path(config_file)
+        self.pid = os.getpid()
         self.initialize()
 
     @staticmethod
@@ -481,6 +482,9 @@ class LoggerManager:
 # Create a single, shared instance of the ConfigManager
 # This code runs only ONCE when the module is first imported.
 cfg_mgr = ConfigManager()
-WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
+# Define the path to the temporary inter-process file.
+# This makes the path available as a constant to any module that imports it.
+WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{cfg_mgr.pid}_file")
+# Also define NATIVE_UI here as it's a global setting derived from config.
 NATIVE_UI = str2bool(cfg_mgr.app_config['systray_native']) if cfg_mgr.app_config is not None else False
 # --- End of addition ---

@@ -155,6 +155,41 @@ class CASTUtils:
             utils_logger.error(f'Error launching mobile server subprocess: {er}', exc_info=True)
 
     @staticmethod
+    async def run_sys_charts(file):
+        """
+        Launches the system charts server in a separate, isolated process.
+
+        This is the recommended way to run a secondary service from a compiled Nuitka
+        executable. It re-launches the main executable (`sys.executable`) with a special
+        command-line flag (`--run-sys-charts`) that tells it to start the system charts
+        server instead of the main GUI.
+
+        Args:
+            file (str) : absolute path for inter process file
+
+        """
+
+        executable_path = sys.executable  # This correctly points to the running executable
+
+        try:
+            utils_logger.info(f"Launching sysstat server via subprocess: {executable_path} --run-sys-charts with file {file}")
+
+            # Use Popen for a non-blocking call to start the server process
+            if CASTUtils.is_compiled():
+                subprocess.Popen([executable_path,
+                                  '--run-sys-charts',
+                                  f'--file={file}'])
+            else:
+                subprocess.Popen([executable_path,
+                                  f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
+                                  '--run-sys-charts',
+                                  f'--file={file}'])
+
+            utils_logger.info("System charts server process started.")
+        except Exception as er:
+            utils_logger.error(f'Error launching sysstat server subprocess: {er}', exc_info=True)
+
+    @staticmethod
     def get_local_ip_address(remote_server="192.0.2.1"):
         """Returns the local IP address
 
@@ -949,7 +984,7 @@ class CASTUtils:
             with shelve.open(WLED_PID_TMP_FILE, 'r') as db:
                 server_port = db['server_port']
         except Exception as er:
-            utils_logger.warning(f'Using 8080 as Not able to retrieve Server Port  from {WLED_PID_TMP_FILE}: {er}')
+            utils_logger.debug(f'Using 8080 as Not able to retrieve Server Port  from {WLED_PID_TMP_FILE}: {er}')
             server_port = 8080
         finally:
             if server_port == 0:
@@ -1252,3 +1287,37 @@ class CASTUtils:
         # Convert the list of dictionaries to a JSON string
         json_output = json.dumps(func_with_params)
         return json.loads(json_output)
+
+    @staticmethod
+    async def get_all_running_hosts():
+        """
+        Retrieves a unique list of all IP hosts from all currently running casts.
+
+        This function queries all active Desktop and Media casts for their
+        device information and compiles a single, deduplicated list of all
+        IP addresses they are streaming to.
+
+        Returns:
+            list: A sorted list of unique IP addresses.
+        """
+        from mainapp import util_casts_info
+
+        all_hosts = set()
+        info_data = await util_casts_info()
+
+        if info_data and 't_info' in info_data:
+            for thread_info in info_data['t_info'].values():
+                devices = thread_info.get('data', {}).get('devices', [])
+                for device_ip in devices:
+                    all_hosts.add(device_ip)
+
+        dev_list = list(sorted(list(all_hosts)))
+
+        if os.path.exists(WLED_PID_TMP_FILE):
+            # Store all running hosts in the inter-process file for other components to use
+            with shelve.open(WLED_PID_TMP_FILE, writeback=True) as proc_file:
+                proc_file["all_hosts"] = dev_list
+        else:
+            utils_logger.warning(f"Inter-process file '{WLED_PID_TMP_FILE}' not found. Devices list will not be stored.")
+
+        return dev_list

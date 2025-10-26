@@ -428,6 +428,7 @@ def run_gui():
         wled_proc_file["server_port"] = server_port
         wled_proc_file["sc_area"] = []
         wled_proc_file["media"] = None
+        wled_proc_file["all_hosts"] = []
 
     """
     Pystray
@@ -533,6 +534,10 @@ def handle_command_line_args(argv):
     
                 --height=<number>       Set the height for the Desktop cast matrix.
                                         Example: --height=32
+            
+            --run-sys-charts        Run the system charts server. 
+            
+            --file=<absolute path>  Absolute path of the inter process file (shelve)
 
 
         If no flags are provided, the main GUI application will start with settings from the .ini file.
@@ -574,6 +579,15 @@ def handle_command_line_args(argv):
                 bypass_shelve = False
                 main_logger.error("Invalid value for --height. Please provide an integer.")
 
+    if any(arg.startswith('--file=') for arg in argv):
+        if i_file_arg := next((arg for arg in argv if arg.startswith('--file=')), None):
+            try:
+                i_inter_proc_file = i_file_arg.split('=', 1)[1]
+                main_logger.info(f"Command-line file name : {i_inter_proc_file}")
+            except ValueError:
+                bypass_shelve = False
+                main_logger.error("Invalid value for --file. Please provide a string.")
+
     return 'run_gui', bypass_shelve
 
 
@@ -598,51 +612,82 @@ if __name__ == "__main__":
     multiprocessing.freeze_support()
 
     # Check for special command-line flags to run in a different mode.
-    if '--run-mobile-server' in sys.argv or '--help' in sys.argv:
+    if '--run-mobile-server' in sys.argv or '--help' in sys.argv or '--run-sys-charts' in sys.argv:
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server.
 
-        # args
-        file = sys.argv[2] if len(sys.argv) > 2 else 'None'
+        if '--run-sys-charts' in sys.argv:
 
-        try:
-            # 1. Initialize the desktop cast to create and listen on a shared memory queue.
-            from src.cst import desktop
-            from src.utl.utils import CASTUtils as Utils
+            try:
 
-            Desktop = desktop.CASTDesktop()
-            Desktop.viinput = 'queue'
-            Desktop.stopcast = False
+                import runcharts
+                dev_list = asyncio.run(Utils.get_all_running_hosts())
+                inter_proc_file = None
 
-            # Check for special command-line flags to run in a different mode.
-            action, do_bypass_shelve = handle_command_line_args(sys.argv)
-            if action == 'exit':
+                if any(arg.startswith('--file=') for arg in sys.argv):
+                    if file_arg := next((arg for arg in sys.argv if arg.startswith('--file=')), None):
+                        try:
+                            inter_proc_file = file_arg.split('=', 1)[1]
+                            main_logger.info(f"Command-line file name : {inter_proc_file}")
+                        except ValueError:
+                            main_logger.error("Invalid value for --file. Please provide a string.")
+
+                runcharts.main(dev_list, inter_proc_file)
+
+            except Exception as e:
+                main_logger.error(f'Error in run charts server : {e}')
+                sys.exit(1)
+
+            finally:
                 sys.exit(0)
 
-            # retrieve Media objects from other process
-            if not do_bypass_shelve:
-                with shelve.open(file, "r") as proc_file:
-                    media = proc_file["media"]
-                # update Desktop attributes from media attributes (have been copied into proc_file)
-                Desktop.set_from_media(media)
 
-            shared_list_instance_thread = Desktop.cast()  # This creates the shared list and returns the handle
+        else:
+            # args
+            file = sys.argv[2] if len(sys.argv) > 2 else 'None'
 
-            # 2. Get necessary info for the mobile server.
-            local_ip = Utils.get_local_ip_address()
+            try:
+                # 1. Initialize the desktop cast to create and listen on a shared memory queue.
+                from src.cst import desktop
+                from src.utl.utils import CASTUtils as Utils
 
-            # 3. import mobile.
-            import mobile
+                Desktop = desktop.CASTDesktop()
+                Desktop.viinput = 'queue'
+                Desktop.stopcast = False
 
-            # 4. Start the mobile server. This is a blocking call.
-            mobile.start_server(shared_list_instance_thread, local_ip)
+                # Check for special command-line flags to run in a different mode.
+                action, do_bypass_shelve = handle_command_line_args(sys.argv)
+                if action == 'exit':
+                    sys.exit(0)
 
-        except Exception as e:
-            main_logger.error(f'Error in mobile server : {e}')
-            sys.exit(1)
+                # retrieve Media objects from other process
+                if not do_bypass_shelve:
+                    if os.path.exists(f'{file}'): # Shelve creates files with extensions like .dat, .bak, .dir
+                        with shelve.open(file, "r") as proc_file:
+                            media = proc_file.get("media") # Use .get for safer access
+                        if media:
+                            # update Desktop attributes from media attributes (have been copied into proc_file)
+                            Desktop.set_from_media(media)
+                    else:
+                        main_logger.warning(f"Inter-process file '{file}' not found. Proceeding with default settings.")
 
-        finally:
-            sys.exit(0) # Exit cleanly when the server stops.
+                shared_list_instance_thread = Desktop.cast()  # This creates the shared list and returns the handle
+
+                # 2. Get necessary info for the mobile server.
+                local_ip = Utils.get_local_ip_address()
+
+                # 3. import mobile.
+                import mobile
+
+                # 4. Start the mobile server. This is a blocking call.
+                mobile.start_server(shared_list_instance_thread, local_ip)
+
+            except Exception as e:
+                main_logger.error(f'Error in mobile server : {e}')
+                sys.exit(1)
+
+            finally:
+                sys.exit(0) # Exit cleanly when the server stops.
 
     else:
 

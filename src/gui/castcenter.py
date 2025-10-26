@@ -55,7 +55,7 @@ from src.gui.text_page import text_page
 from src.utl.utils import CASTUtils as Utils
 from src.txt.fontsmanager import font_page, FontPreviewManager
 
-from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE, NATIVE_UI
+from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE
 from src.utl.winutil import all_titles
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.center')
@@ -66,18 +66,13 @@ async def open_webview_control_panel_page() -> None:
     """
     Opens a new native webview or browser window (depend on native_ui) for control panel page.
     """
-    from src.gui.wledtray import WLEDVideoSync_gui, server_port
-    import webbrowser
-
-    url = f"http://localhost:{server_port}/control_panel"
-    title = f"WLEDVideoSync - Control Panel ({server_port})"
-
-    center_logger.info(f"Requesting new webview or browser window for: {url}")
-    if NATIVE_UI:
-        WLEDVideoSync_gui.open_webview(url=url, title=title, width=1200, height=520)
-    else:
-        webbrowser.open_new(url=url)
-
+    from mainapp import _open_page_in_new_window
+    await _open_page_in_new_window(
+        path='/control_panel',
+        title="WLEDVideoSync - Control Panel",
+        width=1200,
+        height=520
+    )
 
 class CastCenter:
     def __init__(self, Desktop, Media, CastAPI, t_data_buffer):

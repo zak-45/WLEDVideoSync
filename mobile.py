@@ -74,6 +74,7 @@ from fastapi import WebSocket
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils as ImgUtils
 from src.cst import desktop
+from src.gui.niceutils import apply_custom
 from configmanager import cfg_mgr
 import base64
 import qrcode
@@ -85,13 +86,18 @@ _stream_url = ''
 _my_sl = None
 
 @ui.page('/')
-def index():
+async def index():
     """
     Displays the landing page with a QR code for joining the WLEDVideoSync stream.
 
     This function generates a QR code containing the stream URL and presents it along with
     a link and shutdown button for user interaction.
     """
+    from mainapp import CastAPI
+    ui.dark_mode(value=CastAPI.dark_mode)
+
+    await apply_custom()
+
     with ui.column().classes('self-center'):
         # Generate QR code as image
         qr = qrcode.make(_stream_url)

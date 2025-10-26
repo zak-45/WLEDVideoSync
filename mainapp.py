@@ -28,8 +28,9 @@ import shelve
 import sys
 import queue
 import tkinter as tk
-from subprocess import Popen
+import webbrowser
 
+from subprocess import Popen
 from threading import current_thread
 from datetime import datetime
 from PIL import Image
@@ -45,6 +46,7 @@ from src.gui.schedulergui import SchedulerGUI
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
 from src.gui.videoplayer import VideoPlayer
+from src.gui.wledtray import WLEDVideoSync_gui
 
 from src.gui.presets import *
 from src.api.api import *
@@ -83,6 +85,9 @@ async def init_actions():
     """ Done at start of app and before GUI available """
 
     if '--run-mobile-server' in sys.argv:
+        return
+
+    elif '--run-sys-charts' in sys.argv:
         return
 
     # Main Event Loop
@@ -353,18 +358,8 @@ async def main_page():
         await net_view_button(show_only=False)
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
-        ui.button('SysStats', on_click=charts_select, color='bg-red-800')
-        CastAPI.charts_row = ui.row().classes('w-full no-wrap')
-        with CastAPI.charts_row:
-            with ui.card().classes('w-1/3'):
-                ui.button('Device', on_click=dev_stats_info_page)
-
-            with ui.card().classes('w-1/3'):
-                ui.button('Network', on_click=net_stats_info_page)
-
-            with ui.card().classes('w-1/3'):
-                ui.button('System', on_click=sys_stats_info_page)
-        CastAPI.charts_row.set_visibility(False)
+        sysstat = ui.button('SysStats', on_click=lambda: Utils.run_sys_charts(WLED_PID_TMP_FILE), color='bg-red-800')
+        sysstat.tooltip('Run System Stats')
         root_page_url = Utils.root_page()
         go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
         ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url))
@@ -1153,6 +1148,30 @@ async def create_preview_help_page():
 helpers /Commons main app pages
 """
 
+
+async def _open_page_in_new_window(path: str, title: str, width: int, height: int):
+    """
+    Helper function to open a new native webview or browser window.
+
+    Args:
+        path: The URL path to open (e.g., '/manage_cast/Thread-1').
+        title: The title for the new window.
+        width: The width of the new native window.
+        height: The height of the new native window.
+    """
+
+    server_port = Utils.get_server_port()
+    title = f'{title} - {str(server_port)}'
+
+    url = f"http://localhost:{server_port}{path}"
+    main_logger.info(f"Requesting new window for: {url}")
+
+    if NATIVE_UI and WLEDVideoSync_gui:
+        WLEDVideoSync_gui.open_webview(url=url, title=title, width=width, height=height)
+    else:
+        webbrowser.open_new(url=url)
+
+
 async def control_panel_page():
     """
     Row for Cast /Filters / info / Run / Close
@@ -1270,36 +1289,24 @@ async def open_webview_cast_page(thread_name: str) -> None:
     Opens a new native webview or browser window (depend on native_ui) for a specific cast's management page.
     This function is safely called from a background thread.
     """
-    from src.gui.wledtray import WLEDVideoSync_gui, server_port
-    import webbrowser
-
-    url = f"http://localhost:{server_port}/manage_cast/{thread_name}"
-    main_logger.info(f"Requesting new webview or browser window for: {url}")
-
-    if NATIVE_UI:
-        title = f"WLEDVideoSync - Manage: {thread_name}"
-        WLEDVideoSync_gui.open_webview(url=url, title=title, width=440, height=580)
-    else:
-        webbrowser.open_new(url=url)
-
+    await _open_page_in_new_window(
+        path=f'/manage_cast/{thread_name}',
+        title=f"WLEDVideoSync - Manage: {thread_name}",
+        width=440,
+        height=580
+    )
 
 async def open_webview_help_page():
     """
     Opens a new native webview or browser window (depend on native_ui) to provide help on keys.
     This function is safely called from a background thread.
     """
-    from src.gui.wledtray import WLEDVideoSync_gui, server_port
-    import webbrowser
-
-    url = f"http://localhost:{server_port}/preview_help"
-    main_logger.info(f"Requesting new webview or browser window for: {url}")
-
-    if NATIVE_UI:
-        title = "WLEDVideoSync - HELP Preview"
-        WLEDVideoSync_gui.open_webview(url=url, title=title, width=440, height=580)
-    else:
-        webbrowser.open_new(url=url)
-
+    await _open_page_in_new_window(
+         path='/preview_help',
+         title="WLEDVideoSync - HELP Preview",
+         width=600,
+         height=400
+     )
 
 async def grab_windows():
     """Retrieves and displays window titles.
@@ -1335,18 +1342,6 @@ async def reset_total():
         ui.notify(result)
 
     ui.notify('Reset Total')
-
-
-def charts_select():
-    """
-    select charts
-    :return:
-    """
-    if os.path.isfile(select_chart_exe()):
-        CastAPI.charts_row.set_visibility(True)
-    else:
-        ui.notify('No charts executable', type='warning')
-
 
 async def font_select():
     """
