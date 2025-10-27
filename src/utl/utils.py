@@ -155,7 +155,7 @@ class CASTUtils:
             utils_logger.error(f'Error launching mobile server subprocess: {er}', exc_info=True)
 
     @staticmethod
-    async def run_sys_charts(file):
+    async def run_sys_charts(file, dark):
         """
         Launches the system charts server in a separate, isolated process.
 
@@ -166,10 +166,12 @@ class CASTUtils:
 
         Args:
             file (str) : absolute path for inter process file
+            dark (bool) : dark mode
 
         """
 
         executable_path = sys.executable  # This correctly points to the running executable
+        dev_list = await CASTUtils.get_all_running_hosts()
 
         try:
             utils_logger.info(f"Launching sysstat server via subprocess: {executable_path} --run-sys-charts with file {file}")
@@ -178,12 +180,17 @@ class CASTUtils:
             if CASTUtils.is_compiled():
                 subprocess.Popen([executable_path,
                                   '--run-sys-charts',
-                                  f'--file={file}'])
+                                  f'--file={file}',
+                                  f'--dark={dark}',
+                                  f'--dev_list={",".join(dev_list)}'])
             else:
                 subprocess.Popen([executable_path,
                                   f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
                                   '--run-sys-charts',
-                                  f'--file={file}'])
+                                  f'--file={file}',
+                                  f'--dark={dark}',
+                                  f'--dev_list={",".join(dev_list)}'])
+
 
             utils_logger.info("System charts server process started.")
         except Exception as er:

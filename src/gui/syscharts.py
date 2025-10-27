@@ -494,11 +494,12 @@ class DevCharts:
     """
 
     def __init__(self, dark: bool = False):
+        self.in_dark = dark
         self.log = None
         self.dark_mode = None
         self.chart_wled_timer = None
         self.chart_ping_timer = None
-        self.dark_switch = dark
+        self.dark_switch = None
         self.notify = None
         self.ips = None
         self.maxTimeSec = 600
@@ -531,7 +532,9 @@ class DevCharts:
             self.notify = ui.switch('Notification')
             self.notify.value = True
             self.dark_switch = ui.switch('Dark Mode')
-            self.dark_mode = ui.dark_mode()
+            self.dark_mode = ui.dark_mode(on_change=self.change_chart_mode)
+            if self.in_dark:
+                self.dark_switch.value = True
 
         await self.create_charts()
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
@@ -899,3 +902,11 @@ class DevCharts:
                 self.log.push(f"Refreshed data for {ip_address}")
             except (ValueError, IndexError) as e:
                 self.log.push(f"Error refreshing chart for {ip_address}: {e}")
+
+    async def change_chart_mode(self):
+        """toggle dark mode on chart
+        self.cpu_chart.options.update({'darkMode': not self.cpu_chart.options['darkMode']})
+        self.disk_chart.options.update({'darkMode': not self.cpu_chart.options['darkMode']})
+        self.cpu_chart.update()  # render on client
+        self.disk_chart.update()  # render on client
+        """

@@ -10,14 +10,15 @@ in its own separate window.
 This script is intended to be run as a standalone application, typically called by the main
 WLEDVideoSync application.
 """
-
+import argparse
 from nicegui import ui, app, native
-from mainapp import CastAPI
 from src.gui.niceutils import apply_custom
 from src.gui.syscharts import SysCharts, NetCharts, DevCharts
 from configmanager import NATIVE_UI
 
-DEV_LIST = None
+DEV_LIST = []
+INTER_PROC_FILE = None
+DARK_MODE = False
 
 @ui.page('/')
 async def main_page():
@@ -36,31 +37,71 @@ async def main_page():
 @ui.page('/sysstat')
 async def sys_stat_page():
     await apply_custom()
-    sysstat = SysCharts(dark=CastAPI.dark_mode)
+    sysstat = SysCharts(dark=DARK_MODE)
     await sysstat.setup_ui()
 
 @ui.page('/netstat')
 async def net_stat_page():
     await apply_custom()
-    netstat = NetCharts(dark=CastAPI.dark_mode)
+    netstat = NetCharts(dark=DARK_MODE)
 
 @ui.page('/devstat')
 async def dev_stat_page():
     await apply_custom()
-    devstat = DevCharts(dark=CastAPI.dark_mode)
+    devstat = DevCharts(dark=DARK_MODE)
     await devstat.setup_ui(DEV_LIST)
 
-def main(dev_list: list = None, inter_proc_file: str = None):
-    global DEV_LIST
 
-    srv_port = native.find_open_port()
+def main(dev_list: list = None, inter_proc_file: str = None, dark: bool = False):
+    """Launches the WLEDVideoSync chart UI as a standalone application.
+
+    This function parses command-line arguments, sets up device and inter-process file
+    configuration, and starts the NiceGUI server for chart selection and display.
+
+    Args:
+        dev_list (list, optional): List of device IPs for the device chart. Defaults to None.
+        inter_proc_file (str, optional): Path to the inter-process file (shelve). Defaults to None.
+        dark (bool, optional): Enable dark mode for the chart. Defaults to False.
+
+    ************* Args are used when executed via WLEDVideoSync *****************
+
+    """
+    global DEV_LIST, INTER_PROC_FILE, DARK_MODE
 
     DEV_LIST = dev_list
+    INTER_PROC_FILE = inter_proc_file
+    DARK_MODE = dark
 
+    parser = argparse.ArgumentParser(description="WLEDVideoSync Chart Launcher")
+    parser.add_argument('--run-sys-charts', action='store_true', help='If run from WLEDVideoSync directly.')
+    parser.add_argument('--sysstats', action='store_true', help='Launch System Stats chart directly.')
+    parser.add_argument('--netstats', action='store_true', help='Launch Network Stats chart directly.')
+    parser.add_argument('--devstats', action='store_true', help='Launch Device Stats chart directly.')
+    parser.add_argument('--dark', type=bool, help='Enable dark mode for the chart.')
+    parser.add_argument('--dev_list', type=str, help='Comma-separated list of device IPs for the device chart.')
+    parser.add_argument('--file', type=str, help='Absolute path of the inter process file (shelve).')
+
+    args = parser.parse_args()
+
+    if args.dev_list:
+        # Filter out empty strings that can result from an empty --dev_list="" argument
+        DEV_LIST = [ip for ip in args.dev_list.split(',') if ip]
+    if args.file:
+        INTER_PROC_FILE = args.file
+
+    # If the list is still empty, default to localhost
+    if not DEV_LIST:
+        DEV_LIST = ['127.0.0.1']
+
+    # find an open port for the charts server
+    srv_port = native.find_open_port()
+
+    # infinite loop
     ui.run(title='Charts Launcher',
            reload=False,
            port=srv_port,
-           native=NATIVE_UI)
+           native=NATIVE_UI,
+           dark=DARK_MODE)
 
 if __name__ == "__main__":
     main()

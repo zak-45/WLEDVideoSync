@@ -614,7 +614,7 @@ if __name__ == "__main__":
     # Check for special command-line flags to run in a different mode.
     if '--run-mobile-server' in sys.argv or '--help' in sys.argv or '--run-sys-charts' in sys.argv:
         # This block is executed ONLY when the app is launched as a child process
-        # with the specific purpose of running the mobile camera server.
+        # with the specific purpose of running the mobile camera server or system charts.
 
         if '--run-sys-charts' in sys.argv:
 
@@ -623,16 +623,25 @@ if __name__ == "__main__":
                 import runcharts
                 dev_list = asyncio.run(Utils.get_all_running_hosts())
                 inter_proc_file = None
+                dark = False
 
                 if any(arg.startswith('--file=') for arg in sys.argv):
                     if file_arg := next((arg for arg in sys.argv if arg.startswith('--file=')), None):
                         try:
                             inter_proc_file = file_arg.split('=', 1)[1]
-                            main_logger.info(f"Command-line file name : {inter_proc_file}")
+                            main_logger.debug(f"Command-line file name : {inter_proc_file}")
                         except ValueError:
                             main_logger.error("Invalid value for --file. Please provide a string.")
 
-                runcharts.main(dev_list, inter_proc_file)
+                if any(arg.startswith('--dark=') for arg in sys.argv):
+                    if file_arg := next((arg for arg in sys.argv if arg.startswith('--dark=')), None):
+                        try:
+                            dark = file_arg.split('=', 1)[1]
+                            main_logger.debug(f"Command-line dark : {dark}")
+                        except ValueError:
+                            main_logger.error("Invalid value for --dark. Please provide a string, True or False.")
+
+                runcharts.main(dev_list, inter_proc_file, str2bool(dark))
 
             except Exception as e:
                 main_logger.error(f'Error in run charts server : {e}')
@@ -640,7 +649,6 @@ if __name__ == "__main__":
 
             finally:
                 sys.exit(0)
-
 
         else:
             # args

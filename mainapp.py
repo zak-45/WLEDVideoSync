@@ -358,7 +358,8 @@ async def main_page():
         await net_view_button(show_only=False)
 
         ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
-        sysstat = ui.button('SysStats', on_click=lambda: Utils.run_sys_charts(WLED_PID_TMP_FILE), color='bg-red-800')
+        sysstat = ui.button('SysStats', on_click=lambda: Utils.run_sys_charts(WLED_PID_TMP_FILE,CastAPI.dark_mode),
+                            color='bg-red-800')
         sysstat.tooltip('Run System Stats')
         root_page_url = Utils.root_page()
         go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
