@@ -12,17 +12,28 @@ WLEDVideoSync application.
 """
 import argparse
 from nicegui import ui, app, native
-from src.gui.niceutils import apply_custom
 from src.gui.syscharts import SysCharts, NetCharts, DevCharts
-from configmanager import NATIVE_UI
 
 DEV_LIST = []
 INTER_PROC_FILE = None
 DARK_MODE = False
+NATIVE_UI = False
+
+try :
+    from src.gui.niceutils import apply_custom
+    from configmanager import NATIVE_UI
+except Exception as e:
+    print(f'NOT WLEDVideoSync: {e}')
+    async def apply_custom():
+        pass
+
 
 @ui.page('/')
 async def main_page():
     """The main launcher page with buttons for each chart type."""
+
+    await apply_custom()
+
     ui.label('WLEDVideoSync Charts').classes('text-2xl font-bold self-center mb-4')
 
     with ui.card().classes('mx-auto'):
@@ -48,29 +59,29 @@ async def net_stat_page():
 @ui.page('/devstat')
 async def dev_stat_page():
     await apply_custom()
-    devstat = DevCharts(dark=DARK_MODE)
+    devstat = DevCharts(dark=DARK_MODE, inter_proc_file=INTER_PROC_FILE)
     await devstat.setup_ui(DEV_LIST)
 
 
-def main(dev_list: list = None, inter_proc_file: str = None, dark: bool = False):
+def main(i_dev_list: list = None, i_inter_proc_file: str = None, i_dark: bool = False):
     """Launches the WLEDVideoSync chart UI as a standalone application.
 
     This function parses command-line arguments, sets up device and inter-process file
     configuration, and starts the NiceGUI server for chart selection and display.
 
     Args:
-        dev_list (list, optional): List of device IPs for the device chart. Defaults to None.
-        inter_proc_file (str, optional): Path to the inter-process file (shelve). Defaults to None.
-        dark (bool, optional): Enable dark mode for the chart. Defaults to False.
+        i_dev_list (list, optional): List of device IPs for the device chart. Defaults to None.
+        i_inter_proc_file (str, optional): Path to the inter-process file (shelve). Defaults to None.
+        i_dark (bool, optional): Enable dark mode for the chart. Defaults to False.
 
     ************* Args are used when executed via WLEDVideoSync *****************
 
     """
     global DEV_LIST, INTER_PROC_FILE, DARK_MODE
 
-    DEV_LIST = dev_list
-    INTER_PROC_FILE = inter_proc_file
-    DARK_MODE = dark
+    DEV_LIST = i_dev_list
+    INTER_PROC_FILE = i_inter_proc_file
+    DARK_MODE = i_dark
 
     parser = argparse.ArgumentParser(description="WLEDVideoSync Chart Launcher")
     parser.add_argument('--run-sys-charts', action='store_true', help='If run from WLEDVideoSync directly.')

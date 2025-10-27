@@ -492,6 +492,37 @@ def run_gui():
 
     print('End WLEDVideoSync - NiceGUI')
 
+def run_sys_charts():
+    """Launches the system charts server as a separate process.
+
+    This function gathers device information, parses command-line arguments for inter-process file and dark mode,
+    and starts the charts server using the runcharts module.
+    """
+
+    import runcharts
+    dev_list = asyncio.run(Utils.get_all_running_hosts())
+    inter_proc_file = None
+    dark = False
+
+    if any(arg.startswith('--file=') for arg in sys.argv):
+        if file_arg := next((arg for arg in sys.argv if arg.startswith('--file=')), None):
+            try:
+                inter_proc_file = file_arg.split('=', 1)[1]
+                main_logger.debug(f"Command-line file name : {inter_proc_file}")
+            except ValueError:
+                main_logger.error("Invalid value for --file. Please provide a string.")
+
+    if any(arg.startswith('--dark=') for arg in sys.argv):
+        if file_arg := next((arg for arg in sys.argv if arg.startswith('--dark=')), None):
+            try:
+                dark = file_arg.split('=', 1)[1]
+                main_logger.debug(f"Command-line dark : {dark}")
+            except ValueError:
+                main_logger.error("Invalid value for --dark. Please provide a string, True or False.")
+
+    runcharts.main(dev_list, inter_proc_file, str2bool(dark))
+
+
 def handle_command_line_args(argv):
     """
     Parses command-line arguments and configures the application state.
@@ -620,35 +651,16 @@ if __name__ == "__main__":
 
             try:
 
-                import runcharts
-                dev_list = asyncio.run(Utils.get_all_running_hosts())
-                inter_proc_file = None
-                dark = False
-
-                if any(arg.startswith('--file=') for arg in sys.argv):
-                    if file_arg := next((arg for arg in sys.argv if arg.startswith('--file=')), None):
-                        try:
-                            inter_proc_file = file_arg.split('=', 1)[1]
-                            main_logger.debug(f"Command-line file name : {inter_proc_file}")
-                        except ValueError:
-                            main_logger.error("Invalid value for --file. Please provide a string.")
-
-                if any(arg.startswith('--dark=') for arg in sys.argv):
-                    if file_arg := next((arg for arg in sys.argv if arg.startswith('--dark=')), None):
-                        try:
-                            dark = file_arg.split('=', 1)[1]
-                            main_logger.debug(f"Command-line dark : {dark}")
-                        except ValueError:
-                            main_logger.error("Invalid value for --dark. Please provide a string, True or False.")
-
-                runcharts.main(dev_list, inter_proc_file, str2bool(dark))
+                main_logger.info('WLEDVideoSync -- Run System Charts process')
+                # this is a blocking call
+                run_sys_charts()
 
             except Exception as e:
                 main_logger.error(f'Error in run charts server : {e}')
                 sys.exit(1)
 
             finally:
-                sys.exit(0)
+                sys.exit(0) # Exit cleanly when the server stops.
 
         else:
             # args
@@ -687,6 +699,7 @@ if __name__ == "__main__":
                 # 3. import mobile.
                 import mobile
 
+                main_logger.info('WLEDVideoSync -- Run mobile process')
                 # 4. Start the mobile server. This is a blocking call.
                 mobile.start_server(shared_list_instance_thread, local_ip)
 

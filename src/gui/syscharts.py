@@ -1,3 +1,5 @@
+import os
+
 import psutil
 import aiohttp
 
@@ -226,52 +228,104 @@ class SysCharts:
         self.cpu_chart = ui.echart({
             'darkMode': 'false',
             'legend': {
-                'show': 'true',
-                'data': []
+                'show': True,
+                'data': ['CPU %'],
+                'top': '20%',
+                'textStyle': {'fontWeight': 'bold', 'fontSize': 13}
             },
             'title': {
-                'text': "CPU"
+                'text': "CPU Usage",
+                'left': 'center',
+                'textStyle': {'fontSize': 18, 'fontWeight': 'bold'}
             },
             'tooltip': {
-                'trigger': 'axis'
+                'trigger': 'axis',
+                'backgroundColor': '#222',
+                'borderColor': '#aaa',
+                'textStyle': {'color': '#fff'}
+            },
+            'grid': {'left': '5%', 'right': '5%', 'bottom': '10%', 'containLabel': True},
+            'toolbox': {
+                'feature': {
+                    'dataZoom': {'yAxisIndex': 'none'},
+                    'restore': {},
+                    'saveAsImage': {}
+                }
             },
             'xAxis': {
                 'type': 'category',
-                'data': []
+                'data': [],
+                'axisLabel': {'fontSize': 12, 'color': '#333'}
             },
             'yAxis': {
-                'type': 'value', 'axisLabel': {':formatter': 'value =>  value + " % " '}
+                'type': 'value',
+                'min': 0,
+                'max': 100,
+                'axisLabel': {':formatter': 'value => value + " %"'},
+                'splitLine': {'show': True, 'lineStyle': {'type': 'dashed'}}
             },
             'series': [{
                 'data': [],
                 'name': 'CPU %',
-                'areaStyle': {'color': '#535894', 'opacity': 0.5},
-                'type': 'line'
+                'type': 'line',
+                'smooth': True,
+                'areaStyle': {'color': '#535894', 'opacity': 0.3},
+                'lineStyle': {'width': 3, 'color': '#535894'},
+                'symbol': 'circle',
+                'symbolSize': 7,
+                'emphasis': {'focus': 'series'}
             }]
         }).on('dblclick', lambda: self.toggle_pause_chart()).classes('w-full h-45')
 
         self.memory_chart = ui.echart({
+            'darkMode': 'false',
             'title': {
-                'text': "Memory Utilization"
+                'text': "Memory Utilization (%)",
+                'left': 'center',
+                'textStyle': {'fontSize': 18, 'fontWeight': 'bold'}
+            },
+            'tooltip': {
+                'trigger': 'axis',
+                'backgroundColor': '#222',
+                'borderColor': '#aaa',
+                'textStyle': {'color': '#fff'}
+            },
+            'grid': {'left': '5%', 'right': '5%', 'bottom': '10%', 'containLabel': True},
+            'toolbox': {
+                'feature': {
+                    'dataZoom': {'yAxisIndex': 'none'},
+                    'restore': {},
+                    'saveAsImage': {}
+                }
             },
             'xAxis': {
                 'type': 'category',
-                'data': []
-            },
-            'tooltip': {
-                'trigger': 'axis'
+                'data': [],
+                'axisLabel': {'fontSize': 12, 'color': '#333'}
             },
             'yAxis': {
+                'type': 'value',
                 'min': 0,
                 'max': 100,
-                'type': 'value'
+                'axisLabel': {':formatter': 'value => value + " %"'},
+                'splitLine': {'show': True, 'lineStyle': {'type': 'dashed'}}
             },
             'series': [{
                 'data': [],
+                'name': 'Memory %',
                 'type': 'bar',
-                'showBackground': 'true',
+                'showBackground': True,
                 'backgroundStyle': {
                     'color': 'rgba(220, 220, 220, 0.8)'
+                },
+                'itemStyle': {
+                    'color': '#4caf50',
+                    'borderRadius': [6, 6, 0, 0]
+                },
+                'emphasis': {
+                    'itemStyle': {
+                        'color': '#388e3c'
+                    }
                 }
             }]
         }).on('dblclick', lambda: self.toggle_pause_chart()).classes('w-full h-45')
@@ -493,7 +547,7 @@ class DevCharts:
     param: IPs list e.g. '192.168.1.1,192.168.1.5, ...'
     """
 
-    def __init__(self, dark: bool = False):
+    def __init__(self, dark: bool = False, inter_proc_file: str = None):
         self.in_dark = dark
         self.log = None
         self.dark_mode = None
@@ -518,7 +572,9 @@ class DevCharts:
         self.multi_ping = None
         self.multi_signal = None
         self.is_paused = False
+        self.refresh_button = None
         self.pause_button = None
+        self.inter_proc_file = inter_proc_file
 
 
     async def setup_ui(self, dev_ips: list = None):
@@ -540,6 +596,7 @@ class DevCharts:
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
         with ui.row():
             ui.button('Clear all', on_click=self.clear)
+            self.refresh_button = ui.button('Refresh Devices', icon='refresh', on_click=self.refresh_devices)
             self.pause_button = ui.button('Pause', icon='pause', on_click=self.toggle_pause_chart)
 
         self.log.push(f"Auto refresh time: {self.chart_refresh_s}sec")
@@ -553,9 +610,49 @@ class DevCharts:
         self.chart_ping_timer = ui.timer(self.chart_refresh_s, lambda: self.multi_ping.update())
         self.chart_wled_timer = ui.timer(self.wled_chart_refresh_s, lambda: self.update_wled_charts())
 
+    async def refresh_devices(self):
+        """Refreshes the list of devices from the inter-process file and reloads the charts."""
+        import shelve
+        proc_file = self.inter_proc_file
+
+        self.log.push("Refreshing device list...")
+        ui.notify("Refreshing device list...")
+
+        if os.path.exists(f'{proc_file}'):
+            with shelve.open(proc_file, 'r') as proc_file:
+                new_ips = proc_file.get("all_hosts", [])
+        else:
+            new_ips = ['127.0.0.1']
+            self.log.push(f"Warning: Inter-process file '{proc_file}' not found. Defaulting to localhost.")
+
+        if new_ips != self.ips:
+            self.ips = new_ips
+            self.log.push(f"Device list updated to: {self.ips}")
+            
+            # Deactivate and clear all existing timers before reloading
+            for timer in self.ping_data_timer:
+                timer.deactivate()
+            for timer in self.wled_data_timer:
+                timer.deactivate()
+            self.ping_data_timer.clear()
+            self.wled_data_timer.clear()
+
+            # Clear existing chart data
+            self.clear()
+            self.wled_ips.clear()
+            self.wled_chart_fps.clear()
+            self.wled_chart_rsi.clear()
+            
+            # Reload the page to recreate all UI elements and timers
+            ui.navigate.reload()
+            ui.notify("Device charts refreshed.", type='positive')
+        else:
+            ui.notify("Device list is already up-to-date.", type='info')
+
     async def create_charts(self):
         self.multi_ping = ui.echart(
             {
+                'darkMode': 'false',
                 'title': {'text': 'Ping (ms)', 'left': 'center'},
                 'tooltip': {'trigger': 'axis', 'axisPointer': {'type': 'cross'}},
                 'legend': {
@@ -588,6 +685,7 @@ class DevCharts:
 
         self.multi_signal = ui.echart(
             {
+                'darkMode': 'false',
                 'title': {'text': 'WLED Signal (%)', 'left': 'center'},
                 'tooltip': {'trigger': 'axis', 'axisPointer': {'type': 'cross'}},
                 'legend': {
@@ -651,6 +749,7 @@ class DevCharts:
                             with ui.card().style('min-width: 480px'):
                                 self.wled_chart_fps.append(
                                     ui.echart({
+                                        'darkMode': 'false',
                                         'title': {'text': 'WLED FPS', 'left': 'center'},
                                         'tooltip': {
                                             'formatter': '{a} <br/>{b} : {c}',
@@ -684,8 +783,8 @@ class DevCharts:
                                                     'color': '#333'
                                                 },
                                                 'title': {
-                                                    'fontSize': 14,
-                                                    'offsetCenter': [0, '-30%']
+                                                    'fontSize': 1,
+                                                    'offsetCenter': [0, '-35%']
                                                 },
                                                 'data': [{'value': 0, 'name': 'FPS'}]
                                             }
@@ -695,6 +794,7 @@ class DevCharts:
                             with ui.card().style('min-width: 480px'):
                                 self.wled_chart_rsi.append(
                                     ui.echart({
+                                        'darkMode': 'false',
                                         'tooltip': {'trigger': 'axis'},
                                         'xAxis': {'type': 'category', 'data': []},
                                         'yAxis': {'type': 'value',
@@ -831,7 +931,7 @@ class DevCharts:
         self.multi_signal.update()
 
     @staticmethod
-    async def get_wled_info(host, timeout: int = 1):
+    async def get_wled_info(host, timeout: int = 2):
         """
         Take matrix information from WLED device
         :param host:
@@ -904,9 +1004,8 @@ class DevCharts:
                 self.log.push(f"Error refreshing chart for {ip_address}: {e}")
 
     async def change_chart_mode(self):
-        """toggle dark mode on chart
-        self.cpu_chart.options.update({'darkMode': not self.cpu_chart.options['darkMode']})
-        self.disk_chart.options.update({'darkMode': not self.cpu_chart.options['darkMode']})
-        self.cpu_chart.update()  # render on client
-        self.disk_chart.update()  # render on client
-        """
+        """toggle dark mode on chart """
+        self.multi_ping.options.update({'darkMode': not self.multi_ping.options['darkMode']})
+        self.multi_signal.options.update({'darkMode': not self.multi_signal.options['darkMode']})
+        self.multi_signal.update()  # render on client
+        self.multi_ping.update()  # render on client
