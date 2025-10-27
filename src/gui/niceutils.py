@@ -707,8 +707,47 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                                                                               execute=True)
                               ).classes('shadow-lg').tooltip('Multicast Effects')
 
-                base64_img = 'data:image/png;base64,' + info_data[item_th]["data"]['img']
-                ui.image(base64_img).classes('w-64 m-auto animate__animated animate__fadeInDown border-8')
+                    # A pause/resume button for the live preview
+                    pause_button = ui.button(icon='pause', on_click=None).classes('shadow-lg').tooltip('Pause/Resume Preview Refresh')
+
+                    def toggle_pause(timer: ui.timer, button: ui.button):
+                        """Toggles the timer and updates the button icon."""
+                        if timer.active:
+                            timer.deactivate()
+                            button.props('icon=play_arrow')
+                            ui.notify('Preview paused', throttle=1.0)
+                        else:
+                            timer.activate()
+                            button.props('icon=pause')
+                            ui.notify('Preview resumed', throttle=1.0)
+
+                # Create the image with an initial source
+                initial_b64 = info_data.get(item_th, {}).get("data", {}).get("img", "")
+                preview_image = ui.image(f'data:image/png;base64,{initial_b64}') \
+                    .classes('w-64 m-auto border-8')
+                    # .classes('w-64 m-auto animate__animated animate__fadeInDown border-8')
+
+                # Define an async function to update this specific image
+                async def update_preview(thread_name: str, image_element: ui.image):
+                    # Import here to avoid circular dependency at module level
+                    from mainapp import util_casts_info
+                    latest_info = await util_casts_info(img=True)
+                    thread_data = latest_info.get('t_info', {}).get(thread_name)
+                    if thread_data:
+                        new_b64 = thread_data.get("data", {}).get("img")
+                        if new_b64 and new_b64 != "None":
+                            image_element.set_source(f'data:image/png;base64,{new_b64}')
+                    else:
+                        # If the thread is no longer running, stop the timer
+                        image_element.set_source('assets/cast_stopped.png')
+                        timer.deactivate()
+
+                # Create a timer to refresh the image every second
+                timer = ui.timer(1.0, lambda thread_name=item_th, image_element=preview_image: update_preview(thread_name, image_element))
+
+                # Now that the timer is created, set the button's on_click handler
+                pause_button.on('click', lambda t=timer, b=pause_button: toggle_pause(t, b))
+
                 def show_details(item_v):
                     with ui.dialog() as dialog:
                         dialog.open()
