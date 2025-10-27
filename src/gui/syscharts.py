@@ -7,6 +7,7 @@ from datetime import datetime
 from ping3 import ping
 from nicegui import ui, run
 
+
 class NetCharts:
     """
     Create charts from network utilization
@@ -135,7 +136,6 @@ class NetCharts:
             self.dark_mode.disable()
 
 
-
 class SysCharts:
     """
     Create charts from system datas
@@ -224,7 +224,7 @@ class SysCharts:
         self.sys_data_timer.append(ui.timer(self.sys_interval, lambda: self.sys_datas()))
         self.chart_sys_timer = ui.timer(self.chart_refresh_s, lambda: self.update_charts())
 
-    async def  create_charts(self):
+    async def create_charts(self):
         self.cpu_chart = ui.echart({
             'darkMode': 'false',
             'legend': {
@@ -547,7 +547,7 @@ class DevCharts:
     param: IPs list e.g. '192.168.1.1,192.168.1.5, ...'
     """
 
-    def __init__(self, dark: bool = False, inter_proc_file: str = None):
+    def __init__(self, dark: bool = False, inter_proc_file: str = ''):
         self.in_dark = dark
         self.log = None
         self.dark_mode = None
@@ -575,7 +575,6 @@ class DevCharts:
         self.refresh_button = None
         self.pause_button = None
         self.inter_proc_file = inter_proc_file
-
 
     async def setup_ui(self, dev_ips: list = None):
         """ ui design """
@@ -613,12 +612,20 @@ class DevCharts:
     async def refresh_devices(self):
         """Refreshes the list of devices from the inter-process file and reloads the charts."""
         import shelve
+        import runcharts  # Import the runcharts module to access its globals
+        import sys
         proc_file = self.inter_proc_file
 
         self.log.push("Refreshing device list...")
         ui.notify("Refreshing device list...")
 
-        if os.path.exists(f'{proc_file}'):
+        # Shelve file extension handling can differ between Python versions.
+        # Conditionally check for the .dat file for better compatibility.
+        file_to_check = proc_file
+        if sys.version_info < (3, 13):
+            file_to_check = f'{proc_file}.dat'
+
+        if os.path.exists(file_to_check):
             with shelve.open(proc_file, 'r') as proc_file:
                 new_ips = proc_file.get("all_hosts", [])
         else:
@@ -627,8 +634,11 @@ class DevCharts:
 
         if new_ips != self.ips:
             self.ips = new_ips
+            # Update the global DEV_LIST in the runcharts module
+            runcharts.DEV_LIST = new_ips
+
             self.log.push(f"Device list updated to: {self.ips}")
-            
+
             # Deactivate and clear all existing timers before reloading
             for timer in self.ping_data_timer:
                 timer.deactivate()
@@ -642,7 +652,7 @@ class DevCharts:
             self.wled_ips.clear()
             self.wled_chart_fps.clear()
             self.wled_chart_rsi.clear()
-            
+
             # Reload the page to recreate all UI elements and timers
             ui.navigate.reload()
             ui.notify("Device charts refreshed.", type='positive')
@@ -838,7 +848,6 @@ class DevCharts:
             for timer in self.wled_data_timer: timer.activate()
             self.pause_button.props('icon=pause').set_text('Pause')
 
-
     def clear(self):
         for n, _ in enumerate(self.ips):
             self.multi_ping.options['series'][n]['data'].clear()
@@ -948,7 +957,6 @@ class DevCharts:
             print(f'Not able to get WLED info for {host}: {error}')
             return {}
 
-
     async def _refresh_single_wled_chart(self, event, ip_address, wled_grid):
         """Refreshes the data for a single WLED device when its expansion is opened."""
         if event.args:  # Only refresh when the expansion is opened (event.args is True)
@@ -966,12 +974,25 @@ class DevCharts:
                         self.wled_chart_fps.append(
                             ui.echart({
                                 'title': {'text': 'WLED FPS', 'left': 'center'},
-                                'tooltip': {'formatter': '{a} <br/>{b} : {c}', 'backgroundColor': '#222', 'borderColor': '#aaa', 'textStyle': {'color': '#fff'}},
-                                'series': [{'name': 'FramePerSecond', 'type': 'gauge', 'min': 0, 'max': 120, 'splitNumber': 6,
-                                            'axisLine': {'lineStyle': {'width': 10, 'color': [[0.5, '#91cc75'], [0.8, '#fac858'], [1, '#ee6666']]}},
+                                'tooltip': {'formatter': '{a} <br/>{b} : {c}',
+                                            'backgroundColor': '#222',
+                                            'borderColor': '#aaa',
+                                            'textStyle': {'color': '#fff'}},
+                                'series': [{'name': 'FramePerSecond',
+                                            'type': 'gauge',
+                                            'min': 0,
+                                            'max': 120,
+                                            'splitNumber': 6,
+                                            'axisLine': {'lineStyle': {'width': 10,
+                                                                       'color': [[0.5, '#91cc75'],
+                                                                                 [0.8, '#fac858'],
+                                                                                 [1, '#ee6666']]}},
                                             'progress': {'show': True, 'width': 10},
                                             'pointer': {'show': True, 'length': '70%', 'width': 4},
-                                            'detail': {'valueAnimation': True, 'formatter': '{value} FPS', 'fontSize': 18, 'color': '#333'},
+                                            'detail': {'valueAnimation': True,
+                                                       'formatter': '{value} FPS',
+                                                       'fontSize': 18,
+                                                       'color': '#333'},
                                             'title': {'fontSize': 14, 'offsetCenter': [0, '-30%']},
                                             'data': [{'value': 0, 'name': 'FPS'}]
                                             }]
@@ -984,13 +1005,17 @@ class DevCharts:
                                 'xAxis': {'type': 'category', 'data': []},
                                 'yAxis': {'type': 'value', 'axisLabel': {':formatter': 'value =>  "dBm " + value'}},
                                 'legend': {'formatter': 'RSSI', 'textStyle': {'color': 'red'}},
-                                'series': [{'type': 'line', 'name': ip_address, 'areaStyle': {'color': '#535894', 'opacity': 0.5}, 'data': []}]
+                                'series': [{'type': 'line',
+                                            'name': ip_address,
+                                            'areaStyle': {'color': '#535894', 'opacity': 0.5},
+                                            'data': []}]
                             }).on('dblclick', lambda: self.toggle_pause_chart())
                         )
                 # Add a new timer for the newly created charts
                 wled_index = self.wled_ips.index(ip_address)
-                self.wled_data_timer.append(ui.timer(self.wled_interval, lambda chart_number=wled_index: self.wled_datas(chart_number)))
-                if self.is_paused: # If paused, keep the new timer paused
+                self.wled_data_timer.append(
+                    ui.timer(self.wled_interval, lambda chart_number=wled_index: self.wled_datas(chart_number)))
+                if self.is_paused:  # If paused, keep the new timer paused
                     self.wled_data_timer[-1].deactivate()
 
             # Now, refresh the data for the device

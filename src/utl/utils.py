@@ -1318,6 +1318,10 @@ class CASTUtils:
                 for device_ip in devices:
                     all_hosts.add(device_ip)
 
+        # if no casts running we set 127.0.0.1 as default
+        if not all_hosts:
+            all_hosts.add('127.0.0.1')
+
         dev_list = list(sorted(list(all_hosts)))
 
         if os.path.exists(WLED_PID_TMP_FILE):

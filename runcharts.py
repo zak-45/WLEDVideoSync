@@ -15,7 +15,7 @@ from nicegui import ui, app, native
 from src.gui.syscharts import SysCharts, NetCharts, DevCharts
 
 DEV_LIST = []
-INTER_PROC_FILE = None
+INTER_PROC_FILE = ''
 DARK_MODE = False
 NATIVE_UI = False
 
@@ -63,7 +63,7 @@ async def dev_stat_page():
     await devstat.setup_ui(DEV_LIST)
 
 
-def main(i_dev_list: list = None, i_inter_proc_file: str = None, i_dark: bool = False):
+def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = False):
     """Launches the WLEDVideoSync chart UI as a standalone application.
 
     This function parses command-line arguments, sets up device and inter-process file
