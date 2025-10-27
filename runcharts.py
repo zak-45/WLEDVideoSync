@@ -55,12 +55,12 @@ def main(dev_list: list = None, inter_proc_file: str = None):
 
     srv_port = native.find_open_port()
 
-    DEV_LIST = ['192.168.1.125','192.168.1.126','192.168.1.127','192.168.1.128', '192.168.1.1', '192.168.1.5', '192.168.1.6', '192.168.1.7', '192.168.1.8', '192.168.1.9', '192.168.1.10']
+    DEV_LIST = dev_list
 
     ui.run(title='Charts Launcher',
            reload=False,
            port=srv_port,
            native=NATIVE_UI)
 
-if __name__ in {"__main__", "__mp_main__"}:
+if __name__ == "__main__":
     main()

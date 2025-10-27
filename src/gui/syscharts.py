@@ -1,5 +1,5 @@
-import requests
 import psutil
+import aiohttp
 
 from datetime import datetime
 from ping3 import ping
@@ -524,7 +524,7 @@ class DevCharts:
         """ ui design """
 
         if dev_ips is None:
-            dev_ips = '127.0.0.1'
+            dev_ips = ['127.0.0.1']
         self.ips = dev_ips
 
         with ui.row().classes('no-wrap'):
@@ -616,11 +616,18 @@ class DevCharts:
             }
         ).on('dblclick', lambda: self.toggle_pause_chart()).classes('w-full h-45')
 
-        with ((ui.row())):
-            for cast_ip in self.ips:
-                wled_data = await self.get_wled_info(cast_ip)
-                ip_exp = ui.expansion(cast_ip, icon='lightbulb')
-                ip_exp.classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
+        # Fetch all WLED info concurrently to speed up page load
+        import asyncio
+        tasks = [self.get_wled_info(ip) for ip in self.ips]
+        all_wled_data = await asyncio.gather(*tasks)
+
+        with ui.row():
+            for i, cast_ip in enumerate(self.ips):
+                wled_data = all_wled_data[i]
+
+                ip_exp = ui.expansion(cast_ip, icon='lightbulb') \
+                    .classes('shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') \
+                    .on('update:model-value', lambda e, ip=cast_ip: self._refresh_single_wled_chart(e, ip, wled_grid))
 
                 self.multi_ping.options['legend']['data'].append(cast_ip)
                 series_data = {'name': cast_ip, 'type': 'line', 'data': []}
@@ -633,12 +640,12 @@ class DevCharts:
 
                 with ip_exp:
                     # Use a responsive grid to center the charts and adapt to screen size
-                    with ui.grid(columns=1).classes('w-full justify-center'):
+                    with ui.grid(columns=1).classes('w-full justify-center') as wled_grid:
                         if not wled_data:
-                            ui.label('Not WLED device').style('background: red')
+                            ui.label('NOT WLED device').style('background: red')
                         else:
                             self.wled_ips.append(cast_ip)
-                            with ui.card().style('min-width: 400px'):
+                            with ui.card().style('min-width: 480px'):
                                 self.wled_chart_fps.append(
                                     ui.echart({
                                         'title': {'text': 'WLED FPS', 'left': 'center'},
@@ -682,7 +689,7 @@ class DevCharts:
                                         ]
                                     }).on('dblclick', lambda: self.toggle_pause_chart())
                                 )
-                            with ui.card().style('min-width: 400px'):
+                            with ui.card().style('min-width: 480px'):
                                 self.wled_chart_rsi.append(
                                     ui.echart({
                                         'tooltip': {'trigger': 'axis'},
@@ -699,9 +706,9 @@ class DevCharts:
 
                     wled_card = ui.card()
                     with ui.row():
-                        add_icon = ui.icon('add', size='md').style('cursor: pointer')
+                        add_icon = ui.icon('add', size='sm').style('cursor: pointer')
                         add_icon.on('click', lambda i_wled_card=wled_card: i_wled_card.set_visibility(True))
-                        remove_icon = ui.icon('remove', size='md').style('cursor: pointer')
+                        remove_icon = ui.icon('remove', size='sm').style('cursor: pointer')
                         remove_icon.on('click', lambda i_wled_card=wled_card: i_wled_card.set_visibility(False))
                     with wled_card:
                         editor = ui.json_editor({'content': {'json': wled_data}})
@@ -828,12 +835,67 @@ class DevCharts:
         :param timeout:
         :return:
         """
+        url = f'http://{host}/json/info'
         try:
-            url = f'http://{host}/json/info'
-            result = requests.get(url, timeout=timeout)
-            result = result.json()
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=timeout)) as session:
+                async with session.get(url) as response:
+                    response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
+                    return await response.json()
         except Exception as error:
-            print(f'Not able to get WLED info : {error}')
-            result = {}
+            print(f'Not able to get WLED info for {host}: {error}')
+            return {}
 
-        return result
+
+    async def _refresh_single_wled_chart(self, event, ip_address, wled_grid):
+        """Refreshes the data for a single WLED device when its expansion is opened."""
+        if event.args:  # Only refresh when the expansion is opened (event.args is True)
+            wled = await self.get_wled_info(ip_address)
+            if not wled:
+                return  # Not a WLED device or offline, do nothing.
+
+            # If this is the first time we see this IP as a WLED device, create its charts.
+            if ip_address not in self.wled_ips:
+                self.log.push(f"Device {ip_address} is now a WLED device. Creating charts...")
+                self.wled_ips.append(ip_address)
+                wled_grid.clear()  # Clear the "NOT WLED device" label
+                with wled_grid:
+                    with ui.card().style('min-width: 480px'):
+                        self.wled_chart_fps.append(
+                            ui.echart({
+                                'title': {'text': 'WLED FPS', 'left': 'center'},
+                                'tooltip': {'formatter': '{a} <br/>{b} : {c}', 'backgroundColor': '#222', 'borderColor': '#aaa', 'textStyle': {'color': '#fff'}},
+                                'series': [{'name': 'FramePerSecond', 'type': 'gauge', 'min': 0, 'max': 120, 'splitNumber': 6,
+                                            'axisLine': {'lineStyle': {'width': 10, 'color': [[0.5, '#91cc75'], [0.8, '#fac858'], [1, '#ee6666']]}},
+                                            'progress': {'show': True, 'width': 10},
+                                            'pointer': {'show': True, 'length': '70%', 'width': 4},
+                                            'detail': {'valueAnimation': True, 'formatter': '{value} FPS', 'fontSize': 18, 'color': '#333'},
+                                            'title': {'fontSize': 14, 'offsetCenter': [0, '-30%']},
+                                            'data': [{'value': 0, 'name': 'FPS'}]
+                                            }]
+                            }).on('dblclick', lambda: self.toggle_pause_chart())
+                        )
+                    with ui.card().style('min-width: 480px'):
+                        self.wled_chart_rsi.append(
+                            ui.echart({
+                                'tooltip': {'trigger': 'axis'},
+                                'xAxis': {'type': 'category', 'data': []},
+                                'yAxis': {'type': 'value', 'axisLabel': {':formatter': 'value =>  "dBm " + value'}},
+                                'legend': {'formatter': 'RSSI', 'textStyle': {'color': 'red'}},
+                                'series': [{'type': 'line', 'name': ip_address, 'areaStyle': {'color': '#535894', 'opacity': 0.5}, 'data': []}]
+                            }).on('dblclick', lambda: self.toggle_pause_chart())
+                        )
+                # Add a new timer for the newly created charts
+                wled_index = self.wled_ips.index(ip_address)
+                self.wled_data_timer.append(ui.timer(self.wled_interval, lambda chart_number=wled_index: self.wled_datas(chart_number)))
+                if self.is_paused: # If paused, keep the new timer paused
+                    self.wled_data_timer[-1].deactivate()
+
+            # Now, refresh the data for the device
+            try:
+                wled_index = self.wled_ips.index(ip_address)
+                await self.wled_datas(wled_index)
+                self.wled_chart_fps[wled_index].update()
+                self.wled_chart_rsi[wled_index].update()
+                self.log.push(f"Refreshed data for {ip_address}")
+            except (ValueError, IndexError) as e:
+                self.log.push(f"Error refreshing chart for {ip_address}: {e}")
