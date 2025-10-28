@@ -33,6 +33,7 @@
  */
 
 const video = document.getElementById('video');
+const sourceInfo = document.getElementById('source-info');
 const imagePreview = document.getElementById('image-preview');
 const statusIndicator = document.getElementById('status-indicator');
 const statusDot = document.getElementById('status-dot');
@@ -219,6 +220,7 @@ function startVideoStream(facingMode) {
             if (settings.facingMode) {
                 console.log('Successfully started stream with facing mode:', settings.facingMode);
                 currentFacingMode = settings.facingMode;
+                sourceInfo.textContent = `Live Camera (${currentFacingMode})`;
             }
         }
 
@@ -252,6 +254,7 @@ cameraModeButton.addEventListener('click', () => {
     video.style.display = 'block';
     URL.revokeObjectURL(video.src); // Clean up previous object URL if any
     startVideoStream(currentFacingMode);
+    sourceInfo.textContent = `Live Camera (${currentFacingMode})`;
     selectedFile = null; // Clear selected file
     playFileButton.style.display = 'none';
 });
@@ -273,6 +276,7 @@ fileInput.addEventListener('change', (event) => {
         video.style.display = 'none';
         imagePreview.style.display = 'block';
         imagePreview.src = fileURL;
+        sourceInfo.textContent = `Image: ${file.name}`;
         playFileButton.style.display = 'none';
         switchCameraButton.style.display = 'none';
     } else if (file.type.startsWith('video/')) {
@@ -296,6 +300,7 @@ fileInput.addEventListener('change', (event) => {
         selectedFile = file; // Store the file object
         imagePreview.style.display = 'none';
         video.style.display = 'block';
+        sourceInfo.textContent = `Video: ${file.name}`;
         // Don't set src or load yet. Just show the play button.
         playFileButton.style.display = 'inline-block'; // Show the play button
         switchCameraButton.style.display = 'none';

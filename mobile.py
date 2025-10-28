@@ -93,10 +93,12 @@ async def index():
     This function generates a QR code containing the stream URL and presents it along with
     a link and shutdown button for user interaction.
     """
-    from mainapp import CastAPI
-    ui.dark_mode(value=CastAPI.dark_mode)
 
     await apply_custom()
+
+    with ui.header(bordered=True, elevated=True).classes('items-center justify-between'):
+        ui.label('Mobile Webcam / Media Stream').classes('text-2xl font-bold')
+        ui.button('Shutdown', on_click=app.shutdown).classes('self-center')
 
     with ui.column().classes('self-center'):
         # Generate QR code as image
@@ -108,7 +110,7 @@ async def index():
         ui.image(f'data:image/png;base64,{qr_b64}').style('width: 100px; height: 100px; border: 1px solid #ccc;') \
             .classes('self-center')
         ui.link('Open stream', _stream_url, new_tab=True).classes('self-center')
-        ui.button('Shutdown', on_click=app.shutdown).classes('self-center')
+
 
 
 @ui.page('/stream')
@@ -149,17 +151,31 @@ def stream():
             transform: scale(0.98);
             box-shadow: none;
         }
+        #status-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(128, 128, 128, 0.7);
+            padding: 5px 10px;
+            border-radius: 10px;
+            display: none;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+        }
     </style>
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;">
         <h4>WLEDVideoSync - Mobile Webcam / Media Stream (iOS/Android)</h4>
-        <video id="video" muted autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
-        <img id="image-preview" style="display: none; width: 320px; height: 240px; border: 4px solid #ccc; object-fit: contain;">
-        <div id="controls" style="display: flex; align-items: center; margin-top: 10px; gap: 15px;">
-            <div id="status-indicator" style="display: none; align-items: center; cursor: pointer;">
-                <div id="status-dot" class="blinking-dot" style="width: 15px; height: 15px; background-color: #28a745; 
-                border-radius: 50%;"></div>
-                <span id="status-text" style="margin-left: 8px; color: #28a745; font-weight: bold;">Streaming...</span>
+        <div id="media-container" style="position: relative; width: 320px; height: 240px;">
+            <video id="video" muted autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
+            <img id="image-preview" style="display: none; width: 320px; height: 240px; border: 4px solid #ccc; object-fit: contain;">
+            <div id="status-indicator">
+                <div id="status-dot" class="blinking-dot" style="width: 15px; height: 15px; background-color: #28a745; border-radius: 50%;"></div>
+                <span id="status-text" style="margin-left: 8px; color: white; font-weight: bold;">Streaming...</span>
             </div>
+        </div>
+        <p id="source-info" style="margin-top: 5px; font-style: italic; color: #555; height: 20px;"></p>
+        <div id="controls" style="display: flex; align-items: center; margin-top: 10px; gap: 15px;">
             <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
             <button id="select-file-btn" class="control-btn">Select File</button>
             <button id="camera-mode-btn" class="control-btn">Live Camera</button>
