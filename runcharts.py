@@ -19,7 +19,7 @@ INTER_PROC_FILE = ''
 DARK_MODE = False
 NATIVE_UI = False
 
-try :
+try:
     from src.gui.niceutils import apply_custom
     from configmanager import NATIVE_UI
 except Exception as e:
@@ -45,18 +45,21 @@ async def main_page():
 
         ui.button('Close', on_click=app.shutdown).classes('mt-6 self-center')
 
-@ui.page('/sysstat')
+
+@ui.page('/sysstat', title='System Stats')
 async def sys_stat_page():
     await apply_custom()
     sysstat = SysCharts(dark=DARK_MODE)
     await sysstat.setup_ui()
 
-@ui.page('/netstat')
+
+@ui.page('/netstat', title='Network Stats')
 async def net_stat_page():
     await apply_custom()
     netstat = NetCharts(dark=DARK_MODE)
 
-@ui.page('/devstat')
+
+@ui.page('/devstat', title='Device Stats')
 async def dev_stat_page():
     await apply_custom()
     devstat = DevCharts(dark=DARK_MODE, inter_proc_file=INTER_PROC_FILE)
@@ -113,6 +116,7 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
            port=srv_port,
            native=NATIVE_UI,
            dark=DARK_MODE)
+
 
 if __name__ == "__main__":
     main()

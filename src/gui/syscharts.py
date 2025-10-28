@@ -27,13 +27,14 @@ class NetCharts:
         self.pause_button = None
 
         """ ui design """
-        with ui.row().classes('no-wrap'):
-            self.notify = ui.switch('Notification')
-            self.notify.value = True
-            self.dark_switch = ui.switch('Dark Mode')
-            self.dark_mode = ui.dark_mode()
-            if dark:
-                self.dark_switch.value = True
+        with ui.header(bordered=True, elevated=True).classes('items-center justify-between'):
+            ui.label('Network Stats').classes('text-2xl font-bold')
+            with ui.row():
+                self.notify = ui.switch('Notification', value=True).props('color=cyan')
+                self.dark_switch = ui.switch('Dark Mode', value=dark).bind_value_to(ui.dark_mode(), 'value').props('color=cyan')
+                self.dark_mode = ui.dark_mode()
+                if dark:
+                    self.dark_switch.value = True
 
         self.create_charts()
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
@@ -203,13 +204,14 @@ class SysCharts:
 
     async def setup_ui(self):
         """ ui design """
-        with ui.row().classes('no-wrap'):
-            self.notify = ui.switch('Notification')
-            self.notify.value = True
-            self.dark_switch = ui.switch('Dark Mode')
-            self.dark_mode = ui.dark_mode(on_change=self.change_chart_mode)
-            if self.in_dark:
-                self.dark_switch.value = True
+        with ui.header(bordered=True, elevated=True).classes('items-center justify-between'):
+            ui.label('System Stats').classes('text-2xl font-bold')
+            with ui.row():
+                self.notify = ui.switch('Notification', value=True).props('color=cyan')
+                self.dark_switch = ui.switch('Dark Mode', value=self.in_dark).bind_value_to(ui.dark_mode(), 'value').props('color=cyan')
+                self.dark_mode = ui.dark_mode(on_change=self.change_chart_mode)
+                if self.in_dark:
+                    self.dark_switch.value = True
 
         await self.create_charts()
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
@@ -583,13 +585,14 @@ class DevCharts:
             dev_ips = ['127.0.0.1']
         self.ips = dev_ips
 
-        with ui.row().classes('no-wrap'):
-            self.notify = ui.switch('Notification')
-            self.notify.value = True
-            self.dark_switch = ui.switch('Dark Mode')
-            self.dark_mode = ui.dark_mode(on_change=self.change_chart_mode)
-            if self.in_dark:
-                self.dark_switch.value = True
+        with ui.header(bordered=True, elevated=True).classes('items-center justify-between'):
+            ui.label('Device Stats').classes('text-2xl font-bold')
+            with ui.row():
+                self.notify = ui.switch('Notification', value=True).props('color=cyan')
+                self.dark_switch = ui.switch('Dark Mode', value=self.in_dark).bind_value_to(ui.dark_mode(), 'value').props('color=cyan')
+                self.dark_mode = ui.dark_mode(on_change=self.change_chart_mode)
+                if self.in_dark:
+                    self.dark_switch.value = True
 
         await self.create_charts()
         self.log = ui.log(max_lines=30).classes('w-full h-20 bg-black text-white')
