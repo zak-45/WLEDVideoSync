@@ -402,6 +402,35 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
 
 ![Mobile QR](docs/img/mobile.png)
 
+
+ ### Monitoring Dashboards
+ WLEDVideoSync includes a suite of real-time monitoring dashboards to help you keep an eye on system performance and device status. These charts run in a separate, dedicated window so they don't interfere with the main application.
+ 
+ **How to Launch:**
+ From the main application, click the **SysStats** button in the footer menu to open the Chart Launcher.
+ 
+ !Chart Launcher
+ 
+ From the launcher, you can open any of the following dashboards:
+ 
+ #### System Stats
+ Provides a comprehensive overview of the computer running WLEDVideoSync.
+ - **CPU Usage (%)**: Real-time graph of total CPU load.
+ - **Memory Utilization (%)**: Real-time graph of RAM usage.
+ - **System Load**: Gauge chart showing 1, 5, and 15-minute load averages.
+ - **Disk Space**: A pie chart displaying used and free disk space on the main drive.
+ 
+ #### Network Stats
+ Monitors your computer's overall network traffic.
+ - **Bytes In/Out (MB)**: A line chart showing the amount of data being received and sent by your system in megabytes.
+ 
+ #### Device Stats
+ A powerful dashboard for monitoring the status of all your target devices.
+ - **Ping Latency (ms)**: A line chart comparing the ping response time for all active devices.
+ - **WLED-Specific Data**: For devices identified as WLED controllers, you can expand their section to see detailed, real-time gauges for **FPS** (Frames Per Second) and **RSSI** (WiFi Signal Strength).
+ - **Live Refresh**: Click the "Refresh Devices" button to dynamically update the list of monitored devices without restarting the window.
+
+
 ---
 
  ### Preview Window Shortcuts
@@ -435,50 +464,11 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
  
  ---
  
- ### Monitoring Dashboards
- WLEDVideoSync includes a suite of real-time monitoring dashboards to help you keep an eye on system performance and device status. These charts run in a separate, dedicated window so they don't interfere with the main application.
- 
- **How to Launch:**
- From the main application, click the **SysStats** button in the footer menu to open the Chart Launcher.
- 
- !Chart Launcher
- 
- From the launcher, you can open any of the following dashboards:
- 
- #### System Stats
- Provides a comprehensive overview of the computer running WLEDVideoSync.
- - **CPU Usage (%)**: Real-time graph of total CPU load.
- - **Memory Utilization (%)**: Real-time graph of RAM usage.
- - **System Load**: Gauge chart showing 1, 5, and 15-minute load averages.
- - **Disk Space**: A pie chart displaying used and free disk space on the main drive.
- 
- #### Network Stats
- Monitors your computer's overall network traffic.
- - **Bytes In/Out (MB)**: A line chart showing the amount of data being received and sent by your system in megabytes.
- 
- #### Device Stats
- A powerful dashboard for monitoring the status of all your target devices.
- - **Ping Latency (ms)**: A line chart comparing the ping response time for all active devices.
- - **WLED-Specific Data**: For devices identified as WLED controllers, you can expand their section to see detailed, real-time gauges for **FPS** (Frames Per Second) and **RSSI** (WiFi Signal Strength).
- - **Live Refresh**: Click the "Refresh Devices" button to dynamically update the list of monitored devices without restarting the window.
-
 ### Configuration
 The main App configuration file is: ``WLEDVideoSync/config/WLEDVideoSync.ini``
 See ``WLEDVideoSync/config/WLEDVideoSync.readme`` for in-deep information.
 
 > **Tip:** You can also edit the configuration directly in the UI by navigating to the **Config** page from the footer menu.
- 
- ### Troubleshooting
- - Ensure your WLED device is properly connected and configured.
- - Check network connectivity between the application and WLED. For optimal performance, be on the same VLAN.
- - On Linux, Wayland does not support screen capture for the preview window. Please use an **X11** session.
- - On macOS/Linux, ensure the main application file has execute permissions (`chmod +x WLEDVideoSync-app`).
- 
- ### Contributing
- Contributions to the project are welcome. Please follow the standard GitHub fork and pull request workflow.
- 
- ### License
- This project is licensed under the MIT License.
 
 The logging configuration file is : ``WLEDVideoSync/config/logging.ini``. Logs can be found under ``log/`` folder.
 
@@ -519,3 +509,15 @@ Communication data use Json format for in / out.
 
 action/type/param are required keys.
 e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}``
+
+ ### Troubleshooting
+ - Ensure your WLED device is properly connected and configured.
+ - Check network connectivity between the application and WLED. For optimal performance, be on the same VLAN.
+ - On Linux, Wayland does not support screen capture for the preview window. Please use an **X11** session.
+ - On macOS/Linux, ensure the main application file has execute permissions (`chmod +x WLEDVideoSync-app`).
+ 
+ ### Contributing
+ Contributions to the project are welcome. Please follow the standard GitHub fork and pull request workflow.
+ 
+ ### License
+ This project is licensed under the MIT License.
