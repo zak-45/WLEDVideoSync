@@ -1,3 +1,43 @@
+"""
+a: zak-45
+d: 27/10/2025
+v: 1.0.0
+
+Overview:
+This script provides a set of standalone, real-time monitoring dashboards for the WLEDVideoSync application,
+built using the NiceGUI framework. It is designed to be launched as a separate process, creating native
+windows to display various system and device statistics without interfering with the main application's
+event loop.
+
+The script contains three main classes, each responsible for a specific type of dashboard:
+
+1.  NetCharts:
+    -   Monitors and displays real-time network utilization.
+    -   Charts bytes sent and received in megabytes (MB).
+    -   Uses the `psutil` library to gather network I/O counters.
+
+2.  SysCharts:
+    -   Provides a comprehensive overview of system performance.
+    -   Displays charts for CPU usage (%), memory utilization (%), and disk space usage (pie chart).
+    -   Includes a gauge chart for system load averages (1, 5, and 15 minutes).
+    -   Uses `psutil` to collect system-wide performance metrics.
+
+3.  DevCharts:
+    -   A dynamic dashboard for monitoring the status of specific network devices, particularly WLED controllers.
+    -   Displays real-time charts for ping latency (ms) and WLED signal strength (%).
+    -   Features expandable sections for each device, which, upon opening, dynamically generate
+        and display detailed charts for WLED-specific data like FPS and RSSI.
+    -   Uses `ping3` for latency checks and `aiohttp` for asynchronous requests to the WLED JSON API.
+    -   Includes a "Refresh Devices" feature to dynamically update the list of monitored devices from
+      an inter-process file, allowing for live updates without restarting the window.
+
+Common Features Across All Charts:
+-   **Interactive Controls**: Each chart window includes controls to pause/resume live updates, clear
+    chart data, toggle notifications, and switch between light and dark modes.
+-   **Logging**: A dedicated log panel in each window provides real-time feedback and error messages.
+-   **Standalone Execution**: Designed to be launched from a main application (like `runcharts.py`),
+    receiving necessary configuration (e.g., device IPs, dark mode state) via command-line arguments.
+"""
 import os
 
 import psutil
@@ -543,13 +583,35 @@ class SysCharts:
 
 
 class DevCharts:
-    """
-    Create charts from IPs list
-    Detect if WLED device or not
-    param: IPs list e.g. '192.168.1.1,192.168.1.5, ...'
+    """Creates a dynamic dashboard for monitoring network devices.
+
+    This class provides a user interface for monitoring the status of multiple
+    network devices. It displays real-time charts for ping latency and, for
+    WLED devices, signal strength, FPS, and RSSI.
+
+    Key Features:
+    - **Concurrent Device Probing**: Uses `asyncio.gather` to fetch initial
+      device information concurrently, ensuring a fast page load even with
+      many offline devices.
+    - **Dynamic Chart Generation**: Detailed charts for WLED devices (FPS, RSSI)
+      are created on-demand when the user expands that device's section,
+      reducing initial load and network traffic.
+    - **Live Refresh**: A "Refresh Devices" button allows the user to update the
+      list of monitored devices from the main application without restarting
+      the chart window.
+    - **Interactive Controls**: Provides controls to pause/resume all chart
+      updates, clear chart data, and toggle notifications and dark mode.
+    - **Robust Error Handling**: Gracefully handles offline or non-WLED devices,
+      clearly marking them in the UI.
     """
 
     def __init__(self, dark: bool = False, inter_proc_file: str = ''):
+        """Initializes the DevCharts instance.
+
+        Args:
+            dark: Whether to start in dark mode.
+            inter_proc_file: The path to the shelve file for inter-process communication.
+        """
         self.in_dark = dark
         self.log = None
         self.dark_mode = None
