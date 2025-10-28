@@ -45,7 +45,7 @@ import aiohttp
 
 from datetime import datetime
 from ping3 import ping
-from nicegui import ui, run
+from nicegui import ui, run, app
 
 
 class NetCharts:
@@ -54,7 +54,7 @@ class NetCharts:
     Bytes in / out
     """
 
-    def __init__(self, dark: bool = False):
+    def __init__(self, dark: bool = False, direct_launch: bool = False):
         self.multi_net = None
         self.chart_refresh_s = 2
 
@@ -64,6 +64,7 @@ class NetCharts:
         self.last_rec = psutil.net_io_counters().bytes_recv
         self.last_sent = psutil.net_io_counters().bytes_sent
         self.is_paused = False
+        self.direct_launch = direct_launch
         self.pause_button = None
 
         """ ui design """
@@ -72,6 +73,8 @@ class NetCharts:
             with ui.row():
                 self.notify = ui.switch('Notification', value=True).props('color=cyan')
                 self.dark_switch = ui.switch('Dark Mode', value=dark).bind_value_to(ui.dark_mode(), 'value').props('color=cyan')
+                if self.direct_launch:
+                    ui.button(icon='power_settings_new', on_click=app.shutdown).props('flat color=white').tooltip('Shutdown Chart Window')
                 self.dark_mode = ui.dark_mode()
                 if dark:
                     self.dark_switch.value = True
@@ -186,7 +189,7 @@ class SysCharts:
     memory_warning: int = 85
     free_warning: int = 10
 
-    def __init__(self, dark: bool = False):
+    def __init__(self, dark: bool = False, direct_launch: bool = False):
         self.chart_sys_timer = None
         self.log = None
         self.dark_mode = None
@@ -205,6 +208,7 @@ class SysCharts:
         self.timestamps = []
         self.is_paused = False
         self.pause_button = None
+        self.direct_launch = direct_launch
 
         self.gauge_data = [
             {
@@ -249,6 +253,8 @@ class SysCharts:
             with ui.row():
                 self.notify = ui.switch('Notification', value=True).props('color=cyan')
                 self.dark_switch = ui.switch('Dark Mode', value=self.in_dark).bind_value_to(ui.dark_mode(), 'value').props('color=cyan')
+                if self.direct_launch:
+                    ui.button(icon='power_settings_new', on_click=app.shutdown).props('flat color=white').tooltip('Shutdown Chart Window')
                 self.dark_mode = ui.dark_mode(on_change=self.change_chart_mode)
                 if self.in_dark:
                     self.dark_switch.value = True
@@ -605,7 +611,7 @@ class DevCharts:
       clearly marking them in the UI.
     """
 
-    def __init__(self, dark: bool = False, inter_proc_file: str = ''):
+    def __init__(self, dark: bool = False, inter_proc_file: str = '', direct_launch: bool = False):
         """Initializes the DevCharts instance.
 
         Args:
@@ -639,6 +645,7 @@ class DevCharts:
         self.refresh_button = None
         self.pause_button = None
         self.inter_proc_file = inter_proc_file
+        self.direct_launch = direct_launch
 
     async def setup_ui(self, dev_ips: list = None):
         """ ui design """
@@ -652,6 +659,8 @@ class DevCharts:
             with ui.row():
                 self.notify = ui.switch('Notification', value=True).props('color=cyan')
                 self.dark_switch = ui.switch('Dark Mode', value=self.in_dark).bind_value_to(ui.dark_mode(), 'value').props('color=cyan')
+                if self.direct_launch:
+                    ui.button(icon='power_settings_new', on_click=app.shutdown).props('flat color=white').tooltip('Shutdown Chart Window')
                 self.dark_mode = ui.dark_mode(on_change=self.change_chart_mode)
                 if self.in_dark:
                     self.dark_switch.value = True

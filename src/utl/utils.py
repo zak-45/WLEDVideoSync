@@ -1324,7 +1324,7 @@ class CASTUtils:
         if not all_hosts:
             all_hosts.add('127.0.0.1')
 
-        dev_list = list(sorted(list(all_hosts)))
+        dev_list = sorted(all_hosts)
 
         if os.path.exists(WLED_PID_TMP_FILE):
             # Store all running hosts in the inter-process file for other components to use

@@ -18,6 +18,7 @@ DEV_LIST = []
 INTER_PROC_FILE = ''
 DARK_MODE = False
 NATIVE_UI = False
+parsed_args = None # Global to store parsed command-line arguments
 
 try:
     from src.gui.niceutils import apply_custom
@@ -31,6 +32,17 @@ except Exception as e:
 @ui.page('/')
 async def main_page():
     """The main launcher page with buttons for each chart type."""
+    # If a specific chart was requested via command line, redirect immediately.
+    if parsed_args:
+        if parsed_args.sysstats:
+            ui.navigate.to('/sysstat')
+            return
+        if parsed_args.netstats:
+            ui.navigate.to('/netstat')
+            return
+        if parsed_args.devstats:
+            ui.navigate.to('/devstat')
+            return
 
     await apply_custom()
 
@@ -49,20 +61,20 @@ async def main_page():
 @ui.page('/sysstat', title='System Stats')
 async def sys_stat_page():
     await apply_custom()
-    sysstat = SysCharts(dark=DARK_MODE)
+    sysstat = SysCharts(dark=DARK_MODE, direct_launch=parsed_args.sysstats)
     await sysstat.setup_ui()
 
 
 @ui.page('/netstat', title='Network Stats')
 async def net_stat_page():
     await apply_custom()
-    netstat = NetCharts(dark=DARK_MODE)
+    netstat = NetCharts(dark=DARK_MODE, direct_launch=parsed_args.netstats)
 
 
 @ui.page('/devstat', title='Device Stats')
 async def dev_stat_page():
     await apply_custom()
-    devstat = DevCharts(dark=DARK_MODE, inter_proc_file=INTER_PROC_FILE)
+    devstat = DevCharts(dark=DARK_MODE, inter_proc_file=INTER_PROC_FILE, direct_launch=parsed_args.devstats)
     await devstat.setup_ui(DEV_LIST)
 
 
@@ -80,7 +92,7 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
     ************* Args are used when executed via WLEDVideoSync *****************
 
     """
-    global DEV_LIST, INTER_PROC_FILE, DARK_MODE
+    global DEV_LIST, INTER_PROC_FILE, DARK_MODE, parsed_args
 
     DEV_LIST = i_dev_list
     INTER_PROC_FILE = i_inter_proc_file
@@ -96,6 +108,7 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
     parser.add_argument('--file', type=str, help='Absolute path of the inter process file (shelve).')
 
     args = parser.parse_args()
+    parsed_args = args # Store args globally for the main page to access
 
     if args.dev_list:
         # Filter out empty strings that can result from an empty --dev_list="" argument
@@ -110,13 +123,14 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
     # find an open port for the charts server
     srv_port = native.find_open_port()
 
-    # infinite loop
+    # start server & infinite loop
     ui.run(title='Charts Launcher',
            reload=False,
            port=srv_port,
            native=NATIVE_UI,
            dark=DARK_MODE)
 
+    print('End of sys charts')
 
 if __name__ == "__main__":
     main()
