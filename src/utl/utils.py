@@ -658,16 +658,18 @@ class CASTUtils:
             for tmp_filename in PathLib("tmp/").glob("*_file*"):
                 tmp_filename.unlink()
 
+            for tmp_filename in PathLib("tmp/").glob("*_file.*"):
+                tmp_filename.unlink()
+
             # remove yt files
-            if str2bool(cfg_mgr.app_config['keep_yt']) is not True:
+            if str2bool(cfg_mgr.app_config['keep_yt']):
                 for media_filename in PathLib("media/").glob("yt-tmp-*.*"):
                     media_filename.unlink()
 
             # remove image files
-            if str2bool(cfg_mgr.app_config['keep_image']) is not True:
+            if str2bool(cfg_mgr.app_config['keep_image']):
                 for img_filename in PathLib("media/").glob("image-tmp_*_*.jpg"):
                     img_filename.unlink()
-
 
         except Exception as error:
             utils_logger.error(f'Error to remove tmp files : {error}')
