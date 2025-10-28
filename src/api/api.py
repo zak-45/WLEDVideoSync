@@ -478,6 +478,15 @@ async def util_blackout():
     return {"blackout": "done"}
 
 
+@app.get("/api/util/all_hosts", tags=["utility"])
+async def util_get_all_hosts():
+    """
+    Retrieves a unique list of all IP hosts from all currently running casts.
+    """
+    hosts = await Utils.get_all_running_hosts()
+    return {"all_hosts": hosts}
+
+
 @app.get("/api/util/casts_info", tags=["casts"])
 async def util_casts_info(img: bool = False):
     """Collects and returns real-time status information from all active casting threads.

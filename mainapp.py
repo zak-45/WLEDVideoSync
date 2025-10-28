@@ -306,13 +306,19 @@ async def main_page():
 
         with ui.row(wrap=False).classes('w-full justify-center items-center gap-4'):
             with ui.row():
-                text_desktop = ui.button('Allow Desktop', on_click=lambda: cast_app.toggle_text_desktop(text_desktop)).tooltip('Enable or disable text overlay for Desktop casts')
+                text_desktop = ui.button('Allow',
+                                         icon='computer',
+                                         on_click=lambda: cast_app.toggle_text_desktop(text_desktop))
+                text_desktop.tooltip('Enable or disable text overlay for Desktop casts')
                 ui.button(icon='edit', on_click=lambda: cast_app.animator_update(Desktop)).tooltip("Edit Desktop Text Animation")
 
             ui.button('Fonts', on_click=cast_app.font_select).tooltip('Open font selection and configuration dialog')
 
             with ui.row():
-                text_media = ui.button('Allow Media', on_click=lambda: cast_app.toggle_text_media(text_media)).tooltip('Enable or disable text overlay for Media casts')
+                text_media = ui.button('Allow',
+                                       icon='image',
+                                       on_click=lambda: cast_app.toggle_text_media(text_media))
+                text_media.tooltip('Enable or disable text overlay for Media casts')
                 ui.button(icon='edit', on_click=lambda: cast_app.animator_update(Media)).tooltip("Edit Media Text Animation")
 
     ui.separator().classes('mt-6')
@@ -352,15 +358,18 @@ async def main_page():
     """
     Footer : usefully links help
     """
+    async def generate_device():
+        ui.notify('Device List generation in progress...')
+        await Utils.get_all_running_hosts()
+
     with ui.footer(value=False).classes('items-center bg-red-900') as footer:
         ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip('Change Layout Mode')
 
-        await net_view_button(show_only=False)
-
-        ui.button('Run discovery', on_click=discovery_net_notify, color='bg-red-800')
         sysstat = ui.button('SysStats', on_click=lambda: Utils.run_sys_charts(WLED_PID_TMP_FILE,CastAPI.dark_mode),
                             color='bg-red-800')
         sysstat.tooltip('Run System Stats')
+        sysstat_device= ui.button(icon='settings', on_click=lambda: generate_device(), color='bg-red-800')
+        sysstat_device.tooltip('Re-Generate device list from running casts to SysCharts')
         root_page_url = Utils.root_page()
         go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
         ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url))
@@ -665,7 +674,7 @@ async def main_page_desktop():
 
     with ui.footer():
 
-        await net_view_button(show_only=False)
+        ui.button('Run Net discovery', on_click=discovery_net_notify, color='bg-red-800')
 
         async def display_windows():
             with ui.dialog() as dialog, ui.card():
@@ -861,11 +870,11 @@ async def main_page_media():
 
     with ui.footer():
 
-        await net_view_button(show_only=False)
+        ui.button('Run Net discovery', on_click=discovery_net_notify, color='bg-red-800')
 
         await media_dev_view_page()
 
-        ui.button('Run discovery', on_click=discovery_media_notify, color='bg-red-800')
+        ui.button('Run Media discovery', on_click=discovery_media_notify, color='bg-red-800')
 
 
 @ui.page('/WLEDVideoSync')
@@ -967,20 +976,6 @@ async def info_page():
 async def manage_info_page():
     """ Manage cast page from systray """
     await tabs_info_page()
-
-
-@ui.page('/RunCharts')
-async def manage_charts_page():
-    """ Select chart """
-    with ui.row(wrap=False).classes('w-full'):
-        with ui.card().classes('w-1/3'):
-            ui.button('Device', on_click=dev_stats_info_page)
-
-        with ui.card().classes('w-1/3'):
-            ui.button('Network', on_click=net_stats_info_page)
-
-        with ui.card().classes('w-1/3'):
-            ui.button('System', on_click=sys_stats_info_page)
 
 
 @ui.page('/Fonts')
@@ -1355,63 +1350,6 @@ async def font_select():
         with ui.card().classes('w-full'):
             await manage_font_page()
             ui.button('close', on_click=font_dialog.close).classes('self-center')
-
-
-def dev_stats_info_page():
-    """ devices charts """
-
-    dev_ip = ['--dev_ip']
-    ips_list = []
-    if Desktop.host != '127.0.0.1':
-        ips_list.append(Desktop.host)
-    if Media.host != '127.0.0.1':
-        ips_list.append(Media.host)
-
-    ips_list.extend(
-        Desktop.cast_devices[i][1] for i in range(len(Desktop.cast_devices))
-    )
-    ips_list.extend(
-        Media.cast_devices[i][1] for i in range(len(Media.cast_devices))
-    )
-
-    if not ips_list:
-        ips_list.append('127.0.0.1')
-
-    ips_list = [','.join(ips_list)]
-
-    dark = ['--dark'] if CastAPI.dark_mode is True else []
-    # run chart on its own process
-    Popen(["devstats"] + dev_ip + ips_list + dark,
-          executable=select_chart_exe())
-
-    main_logger.debug('Run Device(s) Charts')
-    CastAPI.charts_row.set_visibility(False)
-
-
-def net_stats_info_page():
-    """ network charts """
-
-    dark = ['--dark'] if CastAPI.dark_mode is True else []
-    Popen(["netstats"] + dark,
-          executable=select_chart_exe())
-
-    CastAPI.charts_row.set_visibility(False)
-    main_logger.debug('Run Network Chart')
-
-
-def sys_stats_info_page():
-    """ system charts """
-
-    dark = ['--dark'] if CastAPI.dark_mode is True else []
-    Popen(["sysstats"] + dark,
-          executable=select_chart_exe())
-
-    CastAPI.charts_row.set_visibility(False)
-    main_logger.debug('Run System Charts')
-
-
-def select_chart_exe():
-    return cfg_mgr.app_root_path(cfg_mgr.app_config['charts_exe'])
 
 
 async def cast_manage_page():

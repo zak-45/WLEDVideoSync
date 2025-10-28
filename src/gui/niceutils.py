@@ -867,7 +867,7 @@ async def edit_protocol(class_obj):
 
     new_protocol = ui.select(['ddp', 'artnet', 'e131', 'other'], label='Protocol')
     new_protocol.bind_value(class_obj, 'protocol')
-    new_protocol.classes('w-40')
+    new_protocol.classes('w-20')
     new_protocol.tooltip('Select other to test experimental feature ....')
 
     return new_protocol

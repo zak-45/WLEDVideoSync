@@ -689,29 +689,45 @@ class DevCharts:
         import runcharts  # Import the runcharts module to access its globals
         import sys
         proc_file = self.inter_proc_file
+        new_ips = []
 
         self.log.push("Refreshing device list...")
         ui.notify("Refreshing device list...")
 
         # Shelve file extension handling can differ between Python versions.
         # Conditionally check for the .dat file for better compatibility.
-        file_to_check = proc_file
+        file_to_read = proc_file
         if sys.version_info < (3, 13):
-            file_to_check = f'{proc_file}.dat'
+            file_to_read = f'{proc_file}.dat'
 
-        if os.path.exists(file_to_check):
-            with shelve.open(proc_file, 'r') as proc_file:
-                new_ips = proc_file.get("all_hosts", [])
-        else:
-            new_ips = ['127.0.0.1']
-            self.log.push(f"Warning: Inter-process file '{proc_file}' not found. Defaulting to localhost.")
+        # First, try via API call
+        try:
+            # Read the main server port from the inter-process file
+            with shelve.open(file_to_read, 'r') as db:
+                server_port = db.get('server_port', 8080)
+
+            # Call the API to get the list of running hosts
+            url = f'http://localhost:{server_port}/api/util/all_hosts'
+            async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=2)) as session:
+                async with session.get(url) as response:
+                    response.raise_for_status()
+                    data = await response.json()
+                    new_ips = data.get("all_hosts", [])
+
+        except Exception as e:
+            self.log.push(f"Error fetching device list from API: {e}")
+            ui.notify(f"Could not refresh device list: {e}", type='negative')
+
+            # Second from file
+            if os.path.exists(file_to_read):
+                with shelve.open(file_to_read, 'r') as proc_file:
+                    new_ips = proc_file.get("all_hosts", ['127.0.0.1'])
+            else:
+                new_ips = ['127.0.0.1']
+                self.log.push(f"Warning: Inter-process file '{proc_file}' not found. Defaulting to localhost.")
+
 
         if new_ips != self.ips:
-            self.ips = new_ips
-            # Update the global DEV_LIST in the runcharts module
-            runcharts.DEV_LIST = new_ips
-
-            self.log.push(f"Device list updated to: {self.ips}")
 
             # Deactivate and clear all existing timers before reloading
             for timer in self.ping_data_timer:
@@ -727,9 +743,14 @@ class DevCharts:
             self.wled_chart_fps.clear()
             self.wled_chart_rsi.clear()
 
+            self.ips = new_ips
+            self.log.push(f"Device list updated to: {self.ips}")
+            # Update the global DEV_LIST in the runcharts module
+            runcharts.DEV_LIST = new_ips
+
             # Reload the page to recreate all UI elements and timers
-            ui.navigate.reload()
             ui.notify("Device charts refreshed.", type='positive')
+            ui.timer(3,lambda: ui.navigate.reload(), once=True)
         else:
             ui.notify("Device list is already up-to-date.", type='info')
 

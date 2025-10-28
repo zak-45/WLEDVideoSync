@@ -519,11 +519,17 @@ class CastCenter:
                 card_text = ui.card().tight().classes('w-1/3 self-center')
                 card_text.set_visibility(True)
                 with ui.row():
-                    text_desktop = ui.button('Allow Desktop', on_click= lambda: self.toggle_text_desktop(text_desktop)).tooltip('Enable or disable text overlay for Desktop casts')
+                    text_desktop = ui.button('Allow ',
+                                             icon='computer',
+                                             on_click= lambda: self.toggle_text_desktop(text_desktop))
+                    text_desktop.tooltip('Enable or disable text overlay for Desktop casts')
                     ui.button(icon='edit', on_click=lambda: self.animator_update(self.Desktop)).tooltip("Edit Desktop Text Animation")
                 ui.button('Fonts',on_click=self.font_select).tooltip('Open font selection and configuration dialog')
                 with ui.row():
-                    text_media = ui.button('Allow Media', on_click= lambda: self.toggle_text_media(text_media)).tooltip('Enable or disable text overlay for Media casts')
+                    text_media = ui.button('Allow',
+                                           icon='image',
+                                           on_click= lambda: self.toggle_text_media(text_media))
+                    text_media.tooltip('Enable or disable text overlay for Media casts')
                     ui.button(icon='edit', on_click=lambda: self.animator_update(self.Media)).tooltip("Edit Media Text Animation")
 
         with ui.card().classes('self-center w-full') as tools_card:
@@ -603,7 +609,7 @@ class CastCenter:
             with ui.row():
                 await edit_ip(self.Desktop)
                 await edit_protocol(self.Desktop)
-                with ui.expansion() as desktop_artnet:
+                with ui.expansion(icon='menu') as desktop_artnet:
                     await edit_artnet(self.Desktop)
                 with ui.row():
                     await edit_rate_x_y(self.Desktop)
@@ -620,7 +626,7 @@ class CastCenter:
             with ui.row():
                 await edit_ip(self.Media)
                 await edit_protocol(self.Media)
-                with ui.expansion() as media_artnet:
+                with ui.expansion(icon='menu') as media_artnet:
                     await edit_artnet(self.Media)
                 with ui.row():
                     await edit_rate_x_y(self.Media)
