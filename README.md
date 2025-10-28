@@ -434,6 +434,33 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
  | `--run-mobile-server` | Runs the mobile camera streaming server (usually launched by the app). |                                       |
  
  ---
+ 
+ ### Monitoring Dashboards
+ WLEDVideoSync includes a suite of real-time monitoring dashboards to help you keep an eye on system performance and device status. These charts run in a separate, dedicated window so they don't interfere with the main application.
+ 
+ **How to Launch:**
+ From the main application, click the **SysStats** button in the footer menu to open the Chart Launcher.
+ 
+ !Chart Launcher
+ 
+ From the launcher, you can open any of the following dashboards:
+ 
+ #### System Stats
+ Provides a comprehensive overview of the computer running WLEDVideoSync.
+ - **CPU Usage (%)**: Real-time graph of total CPU load.
+ - **Memory Utilization (%)**: Real-time graph of RAM usage.
+ - **System Load**: Gauge chart showing 1, 5, and 15-minute load averages.
+ - **Disk Space**: A pie chart displaying used and free disk space on the main drive.
+ 
+ #### Network Stats
+ Monitors your computer's overall network traffic.
+ - **Bytes In/Out (MB)**: A line chart showing the amount of data being received and sent by your system in megabytes.
+ 
+ #### Device Stats
+ A powerful dashboard for monitoring the status of all your target devices.
+ - **Ping Latency (ms)**: A line chart comparing the ping response time for all active devices.
+ - **WLED-Specific Data**: For devices identified as WLED controllers, you can expand their section to see detailed, real-time gauges for **FPS** (Frames Per Second) and **RSSI** (WiFi Signal Strength).
+ - **Live Refresh**: Click the "Refresh Devices" button to dynamically update the list of monitored devices without restarting the window.
 
 ### Configuration
 The main App configuration file is: ``WLEDVideoSync/config/WLEDVideoSync.ini``
