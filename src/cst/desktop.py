@@ -137,8 +137,6 @@ from configmanager import LoggerManager
 logger_manager = LoggerManager(logger_name='WLEDLogger.desktop')
 desktop_logger = logger_manager.logger
 
-Process, Queue = Utils.mp_setup()
-
 """
 Class definition
 """
@@ -150,6 +148,9 @@ class ExitFromLoop(Exception):
 Main class
 """
 class CASTDesktop(TextAnimatorMixin):
+    # Defer the import of multiprocessing components
+    Process, Queue = None, None
+
     """Casts desktop screen or window content to DDP devices.
 
     Captures screen or window content using PyAV, processes the frames, and sends
@@ -173,6 +174,10 @@ class CASTDesktop(TextAnimatorMixin):
     allow_text_animator = True # allow or not, text overlay globally
 
     def __init__(self):
+        # Lazy-load multiprocessing components only when an instance is created
+        if CASTDesktop.Queue is None:
+            CASTDesktop.Process, CASTDesktop.Queue = Utils.mp_setup()
+
         self.capture_methode: str = 'av'
         if (
             cfg_mgr.desktop_config is not None
@@ -737,7 +742,7 @@ class CASTDesktop(TextAnimatorMixin):
             # run main_preview in another process
             # create a child process, so cv2.imshow() will run from its own Main Thread
             w_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
-            i_sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop', w_name,))
+            i_sl_process = CASTDesktop.Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop', w_name,))
             i_sl_process.daemon = True
             # start the child process
             # small delay should occur, OS take some time to initiate the new process

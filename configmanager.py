@@ -484,6 +484,7 @@ class LoggerManager:
 cfg_mgr = ConfigManager()
 # Define the path to the temporary inter-process file.
 # This makes the path available as a constant to any module that imports it.
+# Shelve file extension handling can differ between Python versions.
 WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{cfg_mgr.pid}_file")
 # Also define NATIVE_UI here as it's a global setting derived from config.
 NATIVE_UI = str2bool(cfg_mgr.app_config['systray_native']) if cfg_mgr.app_config is not None else False

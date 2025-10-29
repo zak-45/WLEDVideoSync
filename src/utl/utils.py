@@ -662,12 +662,12 @@ class CASTUtils:
                 tmp_filename.unlink()
 
             # remove yt files
-            if str2bool(cfg_mgr.app_config['keep_yt']):
+            if str2bool(cfg_mgr.app_config['keep_yt']) is not True:
                 for media_filename in PathLib("media/").glob("yt-tmp-*.*"):
                     media_filename.unlink()
 
             # remove image files
-            if str2bool(cfg_mgr.app_config['keep_image']):
+            if str2bool(cfg_mgr.app_config['keep_image']) is not True:
                 for img_filename in PathLib("media/").glob("image-tmp_*_*.jpg"):
                     img_filename.unlink()
 
@@ -993,11 +993,13 @@ class CASTUtils:
             with shelve.open(WLED_PID_TMP_FILE, 'r') as db:
                 server_port = db['server_port']
         except Exception as er:
-            utils_logger.debug(f'Using 8080 as Not able to retrieve Server Port  from {WLED_PID_TMP_FILE}: {er}')
+            utils_logger.warning(f'Using 8080 as Not able to retrieve Server Port  from {WLED_PID_TMP_FILE}: {er}')
             server_port = 8080
         finally:
             if server_port == 0:
                 utils_logger.error(f'Server Port should not be 0 from {WLED_PID_TMP_FILE}')
+
+        utils_logger.debug('Utils get server port wled_pid_tmp_file', WLED_PID_TMP_FILE)
 
         return server_port
 
@@ -1326,7 +1328,14 @@ class CASTUtils:
 
         dev_list = sorted(all_hosts)
 
-        if os.path.exists(WLED_PID_TMP_FILE):
+        # Shelve file extension handling can differ between Python versions.
+        # Conditionally check for the .dat file for better compatibility.
+        file_to_check = WLED_PID_TMP_FILE
+        if sys.version_info < (3, 13):
+            # On older versions, shelve often creates a .dat file
+            file_to_check += '.dat'
+
+        if os.path.exists(file_to_check):
             # Store all running hosts in the inter-process file for other components to use
             with shelve.open(WLED_PID_TMP_FILE, writeback=True) as proc_file:
                 proc_file["all_hosts"] = dev_list
@@ -1334,3 +1343,5 @@ class CASTUtils:
             utils_logger.warning(f"Inter-process file '{WLED_PID_TMP_FILE}' not found. Devices list will not be stored.")
 
         return dev_list
+
+utils_logger.debug('Utils wled_pid_tmp_file', WLED_PID_TMP_FILE)

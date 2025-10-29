@@ -45,8 +45,6 @@ import webview
 
 from src.utl.utils import CASTUtils as Utils
 
-Process, Queue = Utils.mp_setup()
-
 def start_webview(url: str, title: str, width: int, height: int):
     """Start a webview window in a separate process."""
     webview.create_window(
@@ -64,14 +62,21 @@ class WebviewManager:
     Provides methods for opening, closing, and tracking the status
     of multiple webview windows concurrently.
     """
+    # Defer the import of multiprocessing components
+    Process = None
+
     def __init__(self):
         # List to hold all running webview processes
         self.webview_processes = []
 
+        # Lazy-load multiprocessing components only when an instance is created
+        if WebviewManager.Process is None:
+            WebviewManager.Process, _ = Utils.mp_setup()
+
     def open_webview(self, url: str, title: str, width: int, height: int):
         """Open a new process for a webview window."""
         # Create a new process and pass the parameters to it
-        process = Process(target=start_webview, args=(url, title, width, height))
+        process = self.Process(target=start_webview, args=(url, title, width, height))
         process.daemon = True
         process.start()
         self.webview_processes.append(process)

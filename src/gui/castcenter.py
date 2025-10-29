@@ -652,6 +652,7 @@ class CastCenter:
                         with slide_item.right():
                             ui.button('STOP', on_click=lambda: app.shutdown())
 
+center_logger.debug('Castcenter wled_pid_tmp_file', WLED_PID_TMP_FILE)
 
 if __name__ == "__main__":
     from mainapp import Desktop as Dk, Media as Md, CastAPI as Api, t_data_buffer as queue

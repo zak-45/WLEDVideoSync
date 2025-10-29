@@ -39,8 +39,7 @@ server_ip, server_port:
     They are used to construct URLs for various application functionalities.
 
 """
-
-
+import asyncio
 import webbrowser
 
 from PIL import Image
@@ -48,7 +47,7 @@ from pystray import Icon, Menu, MenuItem
 from src.utl.utils import CASTUtils as Utils
 from src.utl.webviewmanager import WebviewManager
 
-from configmanager import cfg_mgr, LoggerManager, NATIVE_UI
+from configmanager import cfg_mgr, LoggerManager, NATIVE_UI, WLED_PID_TMP_FILE
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.systray')
 systray_logger = logger_manager.logger
@@ -141,12 +140,12 @@ def on_info():
                480, 220)
 
 
-def on_net():
+def on_charts():
     """
-    Menu Net  option : show charts
+    Menu Charts  option : show charts
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/RunCharts",f'WLEDVideoSync Charts: {server_port}')
+    asyncio.run(Utils.run_sys_charts(WLED_PID_TMP_FILE,True))
 
 
 def on_details():
@@ -196,7 +195,7 @@ pystray_menu = Menu(
     Menu.SEPARATOR,
     MenuItem('Cast details', on_details),
     MenuItem('Info', on_info),
-    MenuItem('Charts', on_net),
+    MenuItem('Charts', on_charts),
     MenuItem('PyEditor', on_py),
     Menu.SEPARATOR,
     MenuItem(f'Exit - server :  {server_port}', on_exit)

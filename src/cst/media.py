@@ -119,13 +119,14 @@ from configmanager import LoggerManager
 logger_manager = LoggerManager(logger_name='WLEDLogger.media')
 media_logger = logger_manager.logger
 
-Process, Queue = Utils.mp_setup()
-
 """
 Class definition
 """
 
 class CASTMedia(TextAnimatorMixin):
+    # Defer the import of multiprocessing components
+    Process, Queue = None, None
+
     """Casts media (video, image, or capture device) to DDP devices.
 
     Sends image data via DDP (e131 or ArtNet) protocol, using a queue for network
@@ -150,6 +151,10 @@ class CASTMedia(TextAnimatorMixin):
     allow_text_animator = True # allow or not, text overlay globally
 
     def __init__(self):
+        # Lazy-load multiprocessing components only when an instance is created
+        if CASTMedia.Queue is None:
+            CASTMedia.Process, CASTMedia.Queue = Utils.mp_setup()
+
         self.rate: int = 25
         self.stopcast: bool = True
         self.preview_top: bool = False
@@ -956,7 +961,7 @@ class CASTMedia(TextAnimatorMixin):
                         # create a child process, so cv2.imshow() will run from its own Main Thread
                         media_logger.debug(f'Define sl_process for Preview : {sl_name}')
                         window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"[:64]
-                        sl_process = Process(target=CV2Utils.sl_main_preview, args=(sl_name, 'Media', window_name,))
+                        sl_process = CASTMedia.Process(target=CV2Utils.sl_main_preview, args=(sl_name, 'Media', window_name,))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
                         media_logger.debug(f'Starting Child Process for Preview : {sl_name}')

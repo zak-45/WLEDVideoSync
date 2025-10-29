@@ -63,9 +63,9 @@ Temporary File Handling:
     It also cleans up these temporary files on exit.
 
 """
-import multiprocessing
 import os
 import socket
+from subprocess import Popen
 
 # Suppress the specific UserWarning from the 'fs' library about pkg_resources.
 # This is a known issue with some dependencies and newer versions of setuptools.
@@ -397,7 +397,7 @@ def show_splash_screen():
         main_logger.error(f"Failed to show splash screen: {er}")
 
 
-def run_gui():
+def main():
     """Run the main graphical user interface (GUI).
 
     This function initializes and runs the NiceGUI application, handling server
@@ -423,7 +423,8 @@ def run_gui():
             main_logger.info('Application Terminated')
             sys.exit(4)
 
-    # store server port info for others processes, add sc_area for macOS
+    # store server port info for others processes, add sc_area for macOS ...
+    # on python < 3.13 file extension will be .dat and added automatically otherwise none
     with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
         wled_proc_file["server_port"] = server_port
         wled_proc_file["sc_area"] = []
@@ -639,8 +640,7 @@ app.on_startup(init_actions)
 """
 Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 """
-if __name__ == "__main__":
-    multiprocessing.freeze_support()
+if __name__  == "__main__":
 
     # Check for special command-line flags to run in a different mode.
     if '--run-mobile-server' in sys.argv or '--help' in sys.argv or '--run-sys-charts' in sys.argv:
@@ -757,7 +757,7 @@ if __name__ == "__main__":
         """
         Start infinite loop
         """
-        run_gui()
+        main()
 
         """
         STOP

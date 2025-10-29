@@ -3,17 +3,16 @@ from nicegui import ui
 from src.utl.utils import CASTUtils as Utils
 import sys
 import threading
-from queue import Empty, Full
 import time  # Added for sleep
 import io  # Import io for type checking
-
-# mp is required
-Process, Queue = Utils.mp_setup()
-
+from queue import Empty, Full
 
 # Helper class to capture a single stream
 class StreamCapture:
     """Captures a single stream (stdout/stderr), queues for UI, and passes through."""
+
+    # Defer the import of multiprocessing components
+    Process, Queue = None, None
 
     def __init__(self, original_stream: io.TextIOBase, log_queue: Queue, capture_controller: 'ConsoleCapture'):
         """
@@ -80,6 +79,9 @@ class StreamCapture:
 class ConsoleCapture:
     """Captures and displays console output in a NiceGUI UI using StreamCapture helpers."""
 
+    # Defer the import of multiprocessing components
+    Process, Queue = None, None
+
     def __init__(self, show_console=False, text_color='text-white', bg_color='bg-black'):
         """Initialize the ConsoleCapture."""
         self.original_stdout = sys.stdout
@@ -87,17 +89,21 @@ class ConsoleCapture:
         self.text_color = text_color
         self.bg_color = bg_color
         self.log_ui = None
-        self.log_queue = Queue()  # Shared queue for both streams
         self._queue_read_thread = None
         self.running = False
         self.stdout_capture = None  # Placeholder
         self.stderr_capture = None  # Placeholder
 
+        # Lazy-load multiprocessing components only when an instance is created
+        if ConsoleCapture.Queue is None:
+            ConsoleCapture.Process, ConsoleCapture.Queue = Utils.mp_setup()
+
+        self.log_queue = self.Queue()  # Shared queue for both streams
+
         if show_console:
             self.setup_ui()
 
         self._create_stream_handler()
-
     def _create_stream_handler(self):
         # Create separate stream handlers AFTER initializing members
         self.stdout_capture = StreamCapture(self.original_stdout, self.log_queue, self)
@@ -200,6 +206,7 @@ class ConsoleCapture:
 # --- Keep the __main__ block as is ---
 if __name__ in "__main__":
     # NiceGUI app
+    from nicegui import app  # Ensure app is imported if not already
     @ui.page('/')
     async def main_page():
         # console false to not generate ui now
@@ -217,8 +224,5 @@ if __name__ in "__main__":
 
         # Ensure restore is called when the app shuts down
         # app.on_shutdown(capture.restore)
-
-
-    from nicegui import app  # Ensure app is imported if not already
 
     ui.run(reload=False)

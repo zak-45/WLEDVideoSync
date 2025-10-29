@@ -30,7 +30,6 @@ import queue
 import tkinter as tk
 import webbrowser
 
-from subprocess import Popen
 from threading import current_thread
 from datetime import datetime
 from PIL import Image
@@ -46,7 +45,7 @@ from src.gui.schedulergui import SchedulerGUI
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
 from src.gui.videoplayer import VideoPlayer
-from src.gui.wledtray import WLEDVideoSync_gui
+from src.utl.webviewmanager import WebviewManager
 
 from src.gui.presets import *
 from src.api.api import *
@@ -59,6 +58,7 @@ main_logger = logger_manager.logger
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
 Netdevice = Net()
+window_native = WebviewManager()
 
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
@@ -1162,8 +1162,8 @@ async def _open_page_in_new_window(path: str, title: str, width: int, height: in
     url = f"http://localhost:{server_port}{path}"
     main_logger.info(f"Requesting new window for: {url}")
 
-    if NATIVE_UI and WLEDVideoSync_gui:
-        WLEDVideoSync_gui.open_webview(url=url, title=title, width=width, height=height)
+    if NATIVE_UI:
+        window_native.open_webview(url=url, title=title, width=width, height=height)
     else:
         webbrowser.open_new(url=url)
 
@@ -1787,6 +1787,8 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
             main_logger.error(f'An exception occurred: {im_error}')
 
 
+main_logger.debug('Mainapp wled_pid_tmp_file', WLED_PID_TMP_FILE)
+
 
 # do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 if __name__ == "__main__":
@@ -1809,6 +1811,6 @@ if __name__ == "__main__":
     app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
     app.on_startup(init_actions)
 
-    ui.run(reload=False, fastapi_docs=True)
+    ui.run(reload=False, fastapi_docs=True, native=False)
 
     print('end nicegui')

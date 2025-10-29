@@ -688,7 +688,6 @@ class DevCharts:
         import shelve
         import runcharts  # Import the runcharts module to access its globals
         import sys
-        proc_file = self.inter_proc_file
         new_ips = []
 
         self.log.push("Refreshing device list...")
@@ -696,15 +695,15 @@ class DevCharts:
 
         # Shelve file extension handling can differ between Python versions.
         # Conditionally check for the .dat file for better compatibility.
-        file_to_read = proc_file
+        file_to_test = self.inter_proc_file
         if sys.version_info < (3, 13):
-            file_to_read = f'{proc_file}.dat'
+            file_to_test = f'{self.inter_proc_file}.dat'
 
         # First, try via API call
         try:
             # Read the main server port from the inter-process file
-            with shelve.open(file_to_read, 'r') as db:
-                server_port = db.get('server_port', 8080)
+            with shelve.open(self.inter_proc_file, 'r') as db:
+                server_port = db.get('server_port', 0000)
 
             # Call the API to get the list of running hosts
             url = f'http://localhost:{server_port}/api/util/all_hosts'
@@ -719,12 +718,12 @@ class DevCharts:
             ui.notify(f"Could not refresh device list: {e}", type='negative')
 
             # Second from file
-            if os.path.exists(file_to_read):
-                with shelve.open(file_to_read, 'r') as proc_file:
+            if os.path.exists(file_to_test):
+                with shelve.open(self.inter_proc_file, 'r') as proc_file:
                     new_ips = proc_file.get("all_hosts", ['127.0.0.1'])
             else:
                 new_ips = ['127.0.0.1']
-                self.log.push(f"Warning: Inter-process file '{proc_file}' not found. Defaulting to localhost.")
+                self.log.push(f"Warning: Inter-process file '{self.inter_proc_file}' not found. Defaulting to localhost.")
 
 
         if new_ips != self.ips:
