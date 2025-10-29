@@ -736,14 +736,14 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                             image_element.set_source(f'data:image/png;base64,{new_b64}')
                     else:
                         image_element.set_source('assets/Source-intro.png')
-                        timer.deactivate()
+                        timer_refresh.deactivate()
 
                 # Create a timer to refresh the image every second or whatever set in config
                 refresh_interval = float(cfg_mgr.app_config.get('preview_refresh_interval', 1.0))
-                timer = ui.timer(refresh_interval, lambda t=item_th, i=preview_image: update_preview(t, i))
+                timer_refresh = ui.timer(refresh_interval, lambda t=item_th, i=preview_image: update_preview(t, i))
 
                 # Now that the timer is created, set the button's on_click handler
-                pause_button.on('click', lambda t=timer, b=pause_button: toggle_pause(t, b))
+                pause_button.on('click', lambda t=timer_refresh, b=pause_button: toggle_pause(t, b))
 
                 def show_details(item_v):
                     with ui.dialog() as dialog:
