@@ -30,7 +30,7 @@ import queue
 import tkinter as tk
 import webbrowser
 
-from threading import current_thread
+from threading import Lock, current_thread
 from datetime import datetime
 from PIL import Image
 
@@ -54,6 +54,25 @@ from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE, N
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
+
+
+class LatestFrame:
+    """A thread-safe class to hold the latest frame from a cast."""
+
+    def __init__(self):
+        self.frame = None
+        self.lock = Lock()
+
+    def set(self, frame):
+        """Safely sets the latest frame."""
+        with self.lock:
+            self.frame = frame
+
+    def get(self):
+        """Safely gets the latest frame."""
+        with self.lock:
+            return self.frame
+
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
@@ -209,6 +228,7 @@ class CastAPI:
     info_timer = None
     control_panel = None
     loop = None
+    previews = {}  # Thread-safe dictionary to hold latest preview frames
 
     def __init__(self):
         pass

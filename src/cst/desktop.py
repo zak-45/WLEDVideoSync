@@ -1147,6 +1147,11 @@ class CASTDesktop(TextAnimatorMixin):
 
                                     t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
 
+                            # Update the shared preview dictionary for the UI
+                            from mainapp import CastAPI, LatestFrame
+                            if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
+                            CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
+
                             # check to see if something to do
                             if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
                                 t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = do_action()
@@ -1225,6 +1230,13 @@ class CASTDesktop(TextAnimatorMixin):
                                 CASTDesktop.total_frames += 1
                                 #
                                 frame, grid = process_frame(frame)
+                                #
+                                #
+                                # Update the shared preview dictionary for the UI
+                                from mainapp import CastAPI, LatestFrame
+                                CastAPI.previews[t_name] = ImageUtils.image_array_to_base64(frame)
+                                if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
+                                CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
                                 #
                                 if t_preview:
                                     t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
@@ -1320,6 +1332,11 @@ class CASTDesktop(TextAnimatorMixin):
                             #
                             frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                             frame, grid = process_frame(frame)
+
+                            # Update the shared preview dictionary for the UI
+                            from mainapp import CastAPI, LatestFrame
+                            if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
+                            CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
 
                             #
                             if t_preview:

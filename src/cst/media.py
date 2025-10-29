@@ -902,6 +902,11 @@ class CASTMedia(TextAnimatorMixin):
             """
             Manage preview window, depend on the platform
             """
+            # Update the shared preview dictionary for the UI
+            from mainapp import CastAPI, LatestFrame
+            if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
+            CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
+
             # preview on fixed size window
             if t_preview:
 

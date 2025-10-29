@@ -729,21 +729,22 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
 
                 # Define an async function to update this specific image
                 async def update_preview(thread_name: str, image_element: ui.image):
-                    # Import here to avoid circular dependency at module level
-                    from mainapp import util_casts_info
-                    latest_info = await util_casts_info(img=True)
-                    thread_data = latest_info.get('t_info', {}).get(thread_name)
-                    if thread_data:
-                        new_b64 = thread_data.get("data", {}).get("img")
-                        if new_b64 and new_b64 != "None":
+                    from mainapp import CastAPI
+                    if thread_name in CastAPI.previews:
+                        new_b64 = CastAPI.previews[thread_name].get()
+                        if new_b64:
                             image_element.set_source(f'data:image/png;base64,{new_b64}')
-                    else:
-                        # If the thread is no longer running, stop the timer
-                        image_element.set_source('assets/cast_stopped.png')
-                        timer.deactivate()
+                        else:
+                            # If the thread is no longer running, its key will be removed from previews.
+                            from mainapp import Desktop, Media
+                            if thread_name not in Desktop.cast_names and thread_name not in Media.cast_names:
+                                image_element.set_source('assets/cast_stopped.png')
+                                del CastAPI.previews[thread_name]  # Clean up
+                                timer.deactivate()
 
-                # Create a timer to refresh the image every second
-                timer = ui.timer(1.0, lambda thread_name=item_th, image_element=preview_image: update_preview(thread_name, image_element))
+                # Create a timer to refresh the image every second or whatever set in config
+                refresh_interval = float(cfg_mgr.app_config.get('preview_refresh_interval', 1.0))
+                timer = ui.timer(refresh_interval, lambda t=item_th, i=preview_image: update_preview(t, i))
 
                 # Now that the timer is created, set the button's on_click handler
                 pause_button.on('click', lambda t=timer, b=pause_button: toggle_pause(t, b))

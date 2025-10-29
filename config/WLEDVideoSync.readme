@@ -82,6 +82,7 @@
 # 3 INTER_AREA   	Resampling using pixel area relation	                  Best for shrinking images (avoid aliasing)
 # 4 INTER_LANCZOS4	Lanczos interpolation using 8×8 pixel neighborhood	      High-quality upscaling & downscaling
 #                                                                             (preserves fine details)
+# preview_refresh_interval: 1.0, seconds between each refresh of the preview image on the Manage page.
 # splash        : True or False, show splash screen at app init, need to be false if you run app as a service !
 
 [colors]
