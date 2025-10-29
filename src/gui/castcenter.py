@@ -74,6 +74,19 @@ async def open_webview_control_panel_page() -> None:
         height=520
     )
 
+async def open_webview_manage_casts_page() -> None:
+    """
+    Opens a new native webview or browser window (depend on native_ui) for manage cast page.
+    """
+    from mainapp import _open_page_in_new_window
+    await _open_page_in_new_window(
+        path='/DetailsInfo',
+        title="WLEDVideoSync - Manage Casts",
+        width=1200,
+        height=520
+    )
+
+
 class CastCenter:
     def __init__(self, Desktop, Media, CastAPI, t_data_buffer):
 
@@ -561,7 +574,10 @@ class CastCenter:
                         mobile_cast = ui.button(icon='mobile_screen_share')
                         mobile_cast.tooltip('SmartPhone Camera Media Cast')
                         mobile_cast.on('click', lambda : self.run_mobile())
-                        ui.button('Control Panel', on_click=open_webview_control_panel_page).tooltip('Open the main control panel in a new window')
+                        ui.button('Control Panel', on_click=open_webview_control_panel_page).tooltip(
+                            'Open the main control panel in a new window')
+                        ui.button('Manage Casts', on_click=open_webview_manage_casts_page).tooltip(
+                            'Open the Manage Casts page in a new window')
 
                 ui.separator().style('width: 2px; height: 40px; background-color: red;')
 

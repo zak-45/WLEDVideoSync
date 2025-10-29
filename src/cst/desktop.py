@@ -234,7 +234,7 @@ class CASTDesktop(TextAnimatorMixin):
         self.monitor_number: int = 0  # monitor to use for area selection / mss
         self.screen_coordinates = []
         self.reset_total = False
-        self.preview = True
+        self.preview = False
         self.record = False  # put True to record to file
         self.output_file = "" # Name of the file to save video recording
 

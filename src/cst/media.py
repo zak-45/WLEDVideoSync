@@ -211,7 +211,7 @@ class CASTMedia(TextAnimatorMixin):
         self.add_all_sync_delay = 0  # additional time to add to player_time during all sync +/-
         self.cast_sleep = False  # instruct cast to wait until all sync
         self.reset_total = False  # reset total number of frame / packets on monitor
-        self.preview = True
+        self.preview = False
         self.repeat = 0  # number of repetition, from -1 to 9999,  -1 = infinite
         self.e131_name = 'WVSMedia'  # name for e131/artnet
         self.universe = 1  # universe start number e131/artnet

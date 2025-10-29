@@ -722,10 +722,11 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                             ui.notify('Preview resumed', throttle=1.0)
 
                 # Create the image with an initial source
-                initial_b64 = info_data.get(item_th, {}).get("data", {}).get("img", "")
-                preview_image = ui.image(f'data:image/png;base64,{initial_b64}') \
-                    .classes('w-64 m-auto border-8')
-                    # .classes('w-64 m-auto animate__animated animate__fadeInDown border-8')
+                # Start with a transparent placeholder to ensure the element renders correctly.
+                preview_image = ui.image('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')
+                preview_image.classes('w-64 m-auto border-8')
+                # Apply the transition style directly to the underlying <img> tag for a smooth effect.
+                preview_image.props('no-transition')
 
                 # Define an async function to update this specific image
                 async def update_preview(thread_name: str, image_element: ui.image):

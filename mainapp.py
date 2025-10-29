@@ -995,6 +995,9 @@ async def info_page():
 @ui.page('/DetailsInfo')
 async def manage_info_page():
     """ Manage cast page from systray """
+    ui.dark_mode(CastAPI.dark_mode)
+    await apply_custom()
+    ui.button(icon='refresh', on_click=ui.navigate.reload)
     await tabs_info_page()
 
 
@@ -1002,11 +1005,8 @@ async def manage_info_page():
 async def manage_font_page():
 
     ui.dark_mode(CastAPI.dark_mode)
-
     await apply_custom()
-
     from src.txt.fontsmanager import font_page
-
     await font_page()
 
 
