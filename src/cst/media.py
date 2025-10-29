@@ -1068,6 +1068,10 @@ class CASTMedia(TextAnimatorMixin):
         CASTMedia.cast_names.remove(t_name)
         CASTMedia.t_exit_event.clear()
 
+        from mainapp import CastAPI
+        if t_name in CastAPI.previews:
+            del CastAPI.previews[t_name]
+
         self.all_sync = False
         self.cast_sleep = False
 

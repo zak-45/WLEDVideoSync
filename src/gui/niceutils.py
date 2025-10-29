@@ -734,13 +734,9 @@ async def generate_actions_to_cast(class_name, class_threads, action_to_casts, i
                         new_b64 = CastAPI.previews[thread_name].get()
                         if new_b64:
                             image_element.set_source(f'data:image/png;base64,{new_b64}')
-                        else:
-                            # If the thread is no longer running, its key will be removed from previews.
-                            from mainapp import Desktop, Media
-                            if thread_name not in Desktop.cast_names and thread_name not in Media.cast_names:
-                                image_element.set_source('assets/cast_stopped.png')
-                                del CastAPI.previews[thread_name]  # Clean up
-                                timer.deactivate()
+                    else:
+                        image_element.set_source('assets/Source-intro.png')
+                        timer.deactivate()
 
                 # Create a timer to refresh the image every second or whatever set in config
                 refresh_interval = float(cfg_mgr.app_config.get('preview_refresh_interval', 1.0))

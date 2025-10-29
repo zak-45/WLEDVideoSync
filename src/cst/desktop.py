@@ -1397,6 +1397,10 @@ class CASTDesktop(TextAnimatorMixin):
         CASTDesktop.cast_names.remove(t_name)
         CASTDesktop.t_exit_event.clear()
 
+        from mainapp import CastAPI
+        if t_name in CastAPI.previews:
+            del CastAPI.previews[t_name]
+
         if capture_methode == 'mss':
             with contextlib.suppress(Exception):
                 sct.close()
