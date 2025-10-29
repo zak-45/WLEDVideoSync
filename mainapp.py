@@ -997,7 +997,7 @@ async def manage_info_page():
     """ Manage cast page from systray """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
-    ui.button(icon='refresh', on_click=ui.navigate.reload)
+    ui.button(icon='refresh', on_click=ui.navigate.reload).tooltip('refresh info')
     await tabs_info_page()
 
 
@@ -1062,7 +1062,7 @@ async def stop_app():
 
     await apply_custom()
 
-    ui.button('ShutDown', on_click=app.shutdown).classes('flex h-screen m-auto')
+    ui.button('ShutDown',icon='power_settings_new', on_click=app.shutdown).classes('flex h-screen m-auto')
 
 
 @ui.page(cast_center_url)

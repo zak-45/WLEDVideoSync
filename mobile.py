@@ -98,7 +98,8 @@ async def index():
 
     with ui.header(bordered=True, elevated=True).classes('items-center justify-between'):
         ui.label('Mobile Webcam / Media Stream').classes('text-2xl font-bold')
-        ui.button('Shutdown', on_click=app.shutdown).classes('self-center')
+        power = ui.button(icon='power_settings_new', on_click=app.shutdown).classes('self-center')
+        power.tooltip('Shutdown app')
 
     with ui.column().classes('self-center'):
         # Generate QR code as image

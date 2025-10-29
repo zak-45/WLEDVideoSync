@@ -234,7 +234,7 @@ class CASTDesktop(TextAnimatorMixin):
         self.monitor_number: int = 0  # monitor to use for area selection / mss
         self.screen_coordinates = []
         self.reset_total = False
-        self.preview = False
+        self.preview = True
         self.record = False  # put True to record to file
         self.output_file = "" # Name of the file to save video recording
 
@@ -1232,9 +1232,8 @@ class CASTDesktop(TextAnimatorMixin):
                                 frame, grid = process_frame(frame)
                                 #
                                 #
-                                # Update the shared preview dictionary for the UI
                                 from mainapp import CastAPI, LatestFrame
-                                CastAPI.previews[t_name] = ImageUtils.image_array_to_base64(frame)
+                                # Update the shared preview dictionary for the UI
                                 if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
                                 CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
                                 #

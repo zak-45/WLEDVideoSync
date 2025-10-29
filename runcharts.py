@@ -29,6 +29,14 @@ except Exception as e:
         pass
 
 
+def shutdown():
+     """Gracefully shut down the application by cleaning up resources first."""
+
+     # Schedule the shutdown to run after a short delay.
+     # This allows the UI to process the click event before the server stops.
+     ui.timer(0.1, app.shutdown, once=True)
+
+
 @ui.page('/')
 async def main_page():
     """The main launcher page with buttons for each chart type."""
@@ -51,11 +59,15 @@ async def main_page():
     with ui.card().classes('mx-auto'):
         ui.label('Select a chart to open in a new window.').classes('self-center')
         with ui.row().classes('w-full justify-center gap-4 mt-4'):
-            ui.button('System Stats', on_click=lambda: ui.navigate.to('/sysstat', new_tab=True))
-            ui.button('Network Stats', on_click=lambda: ui.navigate.to('/netstat', new_tab=True))
-            ui.button('Devices Stats', on_click=lambda: ui.navigate.to('/devstat', new_tab=True))
+            system = ui.button('System Stats', on_click=lambda: ui.navigate.to('/sysstat', new_tab=True))
+            system.tooltip('Show system stats ')
+            network = ui.button('Network Stats', on_click=lambda: ui.navigate.to('/netstat', new_tab=True))
+            network.tooltip('Show network stats')
+            devices = ui.button('Devices Stats', on_click=lambda: ui.navigate.to('/devstat', new_tab=True))
+            devices.tooltip('Show device stats')
 
-        ui.button('Close', on_click=app.shutdown).classes('mt-6 self-center')
+        close = ui.button('Stop',icon='power_settings_new', on_click=shutdown).classes('mt-6 self-center')
+        close.tooltip('Shutdown Chart Launcher application')
 
 
 @ui.page('/sysstat', title='System Stats')
