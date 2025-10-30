@@ -409,7 +409,7 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
  **How to Launch:**
  From the main application, click the **SysStats** button in the footer menu to open the Chart Launcher.
  
- !Chart Launcher
+![Chart Launcher](docs/img/chart_launcher.png)
  
  From the launcher, you can open any of the following dashboards:
  
@@ -419,10 +419,14 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
  - **Memory Utilization (%)**: Real-time graph of RAM usage.
  - **System Load**: Gauge chart showing 1, 5, and 15-minute load averages.
  - **Disk Space**: A pie chart displaying used and free disk space on the main drive.
- 
+
+<img src="docs/img/system_stats.png" alt="System Stats"  height="600">
+
  #### Network Stats
  Monitors your computer's overall network traffic.
  - **Bytes In/Out (MB)**: A line chart showing the amount of data being received and sent by your system in megabytes.
+
+<img src="docs/img/network_stats.png" alt="Network Stats"  height="400">
  
  #### Device Stats
  A powerful dashboard for monitoring the status of all your target devices.
@@ -430,6 +434,7 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
  - **WLED-Specific Data**: For devices identified as WLED controllers, you can expand their section to see detailed, real-time gauges for **FPS** (Frames Per Second) and **RSSI** (WiFi Signal Strength).
  - **Live Refresh**: Click the "Refresh Devices" button to dynamically update the list of monitored devices without restarting the window.
 
+<img src="docs/img/device_stats.png" alt="Network Stats"  height="400">
 
 ---
 
