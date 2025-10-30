@@ -286,28 +286,27 @@ class PythonEditor:
         if self.use_capture:
             self.capture.restore()
         if self.go_back:
-            ui.navigate.back()
+            ui.navigate.reload()  # use reload, back do not work in native
 
     async def setup_ui(self):
         """Set up the UI layout and actions."""
 
         # UI Layout
-        ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
+        with ui.row().classes('self-center'):
+            if self.go_back:
+                ui.button(icon='reply', on_click=self.do_go_back).props('flat')
+            ui.label('Python Code Editor with Syntax Checking').classes('self-center text-2xl font-bold')
         run_type = 'Coldtype' if self.coldtype else 'Python'
         with ui.row().classes('self-center'):
             ui.label(f'Run Type: {run_type}').classes('self-center text-sm')
             self.back_ground = ui.checkbox('Run in Background', value=False)
             self.back_ground.set_visibility(False) if run_type == 'Coldtype' else True
-        if self.go_back:
-            ui.button(icon='reply', on_click=self.do_go_back)
-        with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):
 
+        with ui.row().classes('w-full max-w-4xl mx-auto mt-8 gap-0'):
             # Toolbar
             with ui.row().classes('w-full justify-between'):
                 if run_type == 'Coldtype' or self.show_upload:
-                    ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit)
-                ui.button('Check Syntax',icon='check', on_click=self.check_code_syntax).classes('bg-blue-500 text-white')
-                ui.button('Fullscreen', icon='fullscreen', on_click=self.toggle_fullscreen).classes('bg-gray-700 text-white')
+                    ui.button('Upload File', icon='folder', on_click=self.pick_file_to_edit).props('flat')
 
             ui.label('Current Editor File:').classes('text-sm text-gray-500')
             self.editor_file = ui.label(self.current_file).classes('text-sm')
@@ -315,22 +314,24 @@ class PythonEditor:
             self.syntax.set_visibility(False)
 
             # Code editor with syntax highlighting - remove any default margins-top/padding-top
-            with ui.column().classes(f'editor-container-{self.container} w-full h-96 border border-gray-300 mt-0 pt-0 gap-1'):
-                with ui.row():
-                    if run_type == 'Coldtype' or self.show_upload or self.current_file != '':
-                        save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
-                        save_file.classes('bg-green-500 text-white')
-                    self.py_run = ui.button(icon='settings', on_click=self.run_py)
-                    self.py_run.set_visibility(False)
-                    with ui.button(icon='palette'):
-                        ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
-                    ui.button(icon='calculate', on_click=self.show_calculator)
-                    ui.button(icon='queue', on_click=PythonEditor.show_queues)
-
-                self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
-                self.editor.style(add='font-family:Roboto !important')
-                self.editor.set_value(self.preview.value)
-
+            with ui.row().classes('w-full items-start no-wrap'):
+                with ui.column().classes(f'editor-container-{self.container} w-full h-96 border border-gray-300 mt-0 pt-0 gap-1'):
+                    with ui.row():
+                        if run_type == 'Coldtype' or self.show_upload or self.current_file != '':
+                            save_file = ui.button(icon='save', on_click=lambda: self.save_file(self.editor_file.text))
+                            save_file.classes('bg-green-500 text-white')
+                        self.py_run = ui.button(icon='settings', on_click=self.run_py)
+                        self.py_run.set_visibility(False)
+                        check = ui.button(icon='check', on_click=self.check_code_syntax)
+                        check.classes('bg-blue-500 text-white').props('flat')
+                        with ui.button(icon='palette').props('flat'):
+                            ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
+                        ui.button(icon='calculate', on_click=self.show_calculator).props('flat')
+                        ui.button(icon='queue', on_click=PythonEditor.show_queues).props('flat')
+                        ui.button(icon='fullscreen', on_click=self.toggle_fullscreen).props('flat').classes('items-end')
+                    self.editor = ui.codemirror(language='Python', theme='dracula').classes('w-full h-full')
+                    self.editor.style(add='font-family:Roboto !important')
+                    self.editor.set_value(self.preview.value)
         ui.separator()
 
         if self.use_capture:
@@ -354,7 +355,7 @@ if __name__ == "__main__":
         editor_file_python = PythonEditor(file_to_load=py_file,use_capture=False,go_back=False, coldtype=False)
         await editor_file_python.setup_ui()
 
-        editor_coldtype = PythonEditor(use_capture=True, upload_folder=cfg_mgr.app_root_path('xtra/text'), go_back=False)
+        editor_coldtype = PythonEditor(use_capture=True, upload_folder=cfg_mgr.app_root_path('xtra/text'), go_back=True)
         await editor_coldtype.setup_ui()
 
         ui.button('shutdown', on_click=app.shutdown).classes('self-center')

@@ -420,10 +420,10 @@ async def main_page():
         sysstat_device.tooltip('Re-Generate device list from running casts to SysCharts')
         root_page_url = Utils.root_page()
         go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
-        ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url))
+        ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url)).tooltip('Go to Cast Center Page')
         ui.button('Fonts', on_click=font_select, color='bg-red-800')
         ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
-        ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor'), color='bg-red-800')
+        ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor?from_menu=true'), color='bg-red-800')
         ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \
@@ -1094,30 +1094,32 @@ async def coldtype_test_page():
 
 
 @ui.page('/Pyeditor')
-async def pyeditor_test_page():
+async def pyeditor_test_page(from_menu: bool = False):
 
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
-    await nice.head_menu(name='PyEditor', target='/Pyeditor', icon='code')
+    if from_menu:
+        await nice.head_menu(name='PyEditor', target='/Pyeditor?from_menu=true', icon='code')
 
     # A container to hold the editor UI
     editor_container = ui.column().classes('w-full items-center')
 
-    async def show_editor(editor_type: str):
+    async def show_editor(editor_type: str, go_back: bool):
         """Clears the container and loads the selected editor."""
+        go_back = not from_menu
         editor_container.clear()
         with editor_container:
             if editor_type == 'script':
                 ui.label('Python Editor for Scripts').classes('text-xl self-center font-bold')
-                editor_app = PythonEditor(coldtype=False, show_upload=True, upload_folder='xtra/scripts', go_back=False)
+                editor_app = PythonEditor(coldtype=False, show_upload=True, upload_folder='xtra/scripts', go_back=go_back)
                 await editor_app.setup_ui()
             elif editor_type == 'animator':
                 ui.label('Python Editor for Text Animator').classes('text-xl self-center font-bold')
-                editor_app = PythonEditor(coldtype=False, show_upload=True, upload_folder='xtra/text/animator', go_back=False)
+                editor_app = PythonEditor(coldtype=False, show_upload=True, upload_folder='xtra/text/animator', go_back=go_back)
                 await editor_app.setup_ui()
             elif editor_type == 'coldtype':
                 ui.label('Python Editor for Coldtype').classes('text-xl self-center font-bold')
-                editor_app = PythonEditor(coldtype=True, show_upload=True, upload_folder='xtra/text/coldtype', go_back=False)
+                editor_app = PythonEditor(coldtype=True, show_upload=True, upload_folder='xtra/text/coldtype', go_back=go_back)
                 await editor_app.setup_ui()
 
     # Initially, show the selection buttons
@@ -1125,9 +1127,9 @@ async def pyeditor_test_page():
         with ui.card().classes('mx-auto mt-12'):
             ui.label('Select an editor to open').classes('text-xl self-center')
             with ui.row().classes('w-full justify-center gap-4 mt-4'):
-                ui.button('Script Editor', on_click=lambda: show_editor('script')).props('icon=description')
-                ui.button('Animator Editor', on_click=lambda: show_editor('animator')).props('icon=animation')
-                ui.button('Coldtype Editor', on_click=lambda: show_editor('coldtype')).props('icon=text_fields')
+                ui.button('Script Editor', on_click=lambda: show_editor('script', from_menu)).props('icon=description')
+                ui.button('Animator Editor', on_click=lambda: show_editor('animator', from_menu)).props('icon=animation')
+                ui.button('Coldtype Editor', on_click=lambda: show_editor('coldtype', from_menu)).props('icon=text_fields')
 
 
 @ui.page('/ShutDown')
