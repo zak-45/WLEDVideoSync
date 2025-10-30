@@ -44,6 +44,8 @@ import webbrowser
 
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
+
+from mainapp import check_server
 from src.utl.utils import CASTUtils as Utils
 from src.utl.webviewmanager import WebviewManager
 
@@ -52,7 +54,7 @@ from configmanager import cfg_mgr, LoggerManager, NATIVE_UI, WLED_PID_TMP_FILE
 logger_manager = LoggerManager(logger_name='WLEDLogger.systray')
 systray_logger = logger_manager.logger
 
-server_port = Utils.get_server_port()
+_, server_port = check_server()
 server_ip = 'localhost'
 
 WLEDVideoSync_gui = WebviewManager()
