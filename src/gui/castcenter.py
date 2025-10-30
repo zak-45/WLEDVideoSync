@@ -90,6 +90,8 @@ async def open_webview_manage_casts_page() -> None:
 class CastCenter:
     def __init__(self, Desktop, Media, CastAPI, t_data_buffer):
 
+        self.media_text_status = None
+        self.desktop_text_status = None
         self.Desktop = Desktop
         self.Media = Media
         self.CastAPI = CastAPI
@@ -339,6 +341,16 @@ class CastCenter:
         else:
             self.media_status.props('color="green"')
 
+        if self.Desktop.allow_text_animator:
+            self.desktop_text_status.props('color="green"')
+        else:
+            self.desktop_text_status.props('color="yellow"')
+
+        if self.Media.allow_text_animator:
+            self.media_text_status.props('color="green"')
+        else:
+            self.media_text_status.props('color="yellow"')
+
     async def setup_ui(self):
         """Initializes and displays the main user interface for the casting application.
 
@@ -371,7 +383,10 @@ class CastCenter:
         ui.label('WLEDVideoSync CAST Center').classes('self-center mb-4 text-red-900 text-2xl font-extrabold  dark:text-white md:text-4xl lg:text-5xl')
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
-                self.desktop_status = ui.icon('cast_connected', size='sm', color='green').tooltip('Desktop Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
+                self.desktop_text_status = ui.icon('subtitles', size='sm', color='red')
+                self.desktop_text_status.tooltip('Text Animator Status: Yellow (Disabled), Green (Enabled)')
+                self.desktop_status = ui.icon('cast_connected', size='sm', color='green')
+                self.desktop_status.tooltip('Desktop Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
                 ui.label(f'DESKTOP : {self.Desktop.host}').classes('self-center')
             with ui.row().classes('self-center'):
                 ui.label().bind_text_from(self.Desktop, 'scale_width', lambda v: f'width: {v}')
@@ -384,7 +399,8 @@ class CastCenter:
                 with card_desktop:
                     ui.image('assets/desktop.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row().classes('self-center'):
-                        monitor = ui.number('Monitor', value=0, min=-1, max=1).tooltip('Select monitor for screen capture (-1 for all, 0 for primary, etc.)')
+                        monitor = ui.number('Monitor', value=0, min=-1, max=1)
+                        monitor.tooltip('Select monitor for screen capture (-1 for all, 0 for primary, etc.)')
                         monitor.bind_value(self.Desktop, 'monitor_number')
                         desktop_cast = ui.button(icon='cast').classes('m-4').tooltip('Start Full Desktop Cast')
                         desktop_cast.on('click', lambda: self.cast_class(self.Desktop, 'Desktop'))
@@ -422,7 +438,8 @@ class CastCenter:
                 with card_window:
                     ui.image('assets/windows.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row().classes('self-center'):
-                        self.win = ui.select(['** click WINDOWS to refresh **'], label='Select Window').tooltip('Select a window to cast')
+                        self.win = ui.select(['** click WINDOWS to refresh **'], label='Select Window')
+                        self.win.tooltip('Select a window to cast')
                         self.win.classes('w-40')
                         #
                         await self.upd_windows()
@@ -432,7 +449,10 @@ class CastCenter:
 
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
-                self.media_status = ui.icon('cast_connected', size='sm', color='green').tooltip('Media Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
+                self.media_text_status = ui.icon('subtitles', size='sm', color='red')
+                self.media_text_status.tooltip('Text Animator Status: Yellow (Disabled), Green (Enabled)')
+                self.media_status = ui.icon('cast_connected', size='sm', color='green')
+                self.media_status.tooltip('Media Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
                 ui.label(f'MEDIA : {self.Media.host}').classes('self-center')
             with ui.row().classes('self-center'):
                 ui.label().bind_text_from(self.Media, 'scale_width', lambda v: f'width: {v}')
@@ -445,7 +465,8 @@ class CastCenter:
                 with card_capture:
                     ui.image('assets/camera.png').classes('self-center border-4 border-red-800 w-1/5')
                     with ui.row().classes('self-center'):
-                        self.device = ui.select(['** click DEVICES to refresh **'], label='Select Device').tooltip('Select a capture device (e.g., webcam)')
+                        self.device = ui.select(['** click DEVICES to refresh **'], label='Select Device')
+                        self.device.tooltip('Select a device to cast')
                         self.device.classes('w-40')
                         #
                         await self.upd_devices()
@@ -528,6 +549,12 @@ class CastCenter:
                 self.font_name_label = ui.label('').classes('self-center')
                 ui.label('Size:').classes('self-center')
                 self.font_size_label = ui.label('').classes('self-center')
+
+            # Set initial values for the font labels
+            if self.font_path:
+                self.font_name_label.set_text(os.path.basename(self.font_path))
+            self.font_size_label.set_text(str(self.font_size))
+
             with ui.row(wrap=False).classes('w-full'):
                 card_text = ui.card().tight().classes('w-1/3 self-center')
                 card_text.set_visibility(True)

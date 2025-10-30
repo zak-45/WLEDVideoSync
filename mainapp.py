@@ -1029,30 +1029,77 @@ async def config_editor_page():
 async def coldtype_test_page():
 
     ui.dark_mode(CastAPI.dark_mode)
-
     await apply_custom()
+    await nice.head_menu(name='Coldtype', target='/Coldtype', icon='gesture')
 
-    def cold_run():
-        cold = RUNColdtype()
-        cold.start()
+    # A variable to hold the path of the selected file
+    selected_file = None
 
-    ui.button('run Coldtype', on_click=cold_run).classes('self-center')
+    with ui.card().classes('mx-auto mt-12'):
+        ui.label('Coldtype Script Runner').classes('text-xl self-center')
 
-    print('end of coldtype page load')
+        selected_file_label = ui.label('No file selected.').classes('self-center mt-4 italic')
+
+        async def pick_script():
+            nonlocal selected_file
+            # Use the LocalFilePicker to browse for .py files in the 'xtra' folder
+            result = await LocalFilePicker(cfg_mgr.app_root_path('xtra'), multiple=False)
+            if result:
+                selected_file = result[0]
+                selected_file_label.set_text(os.path.basename(selected_file))
+                run_button.enable()
+
+        def cold_run():
+            if selected_file:
+                ui.notify(f"Running Coldtype script: {os.path.basename(selected_file)}", type='info')
+                cold = RUNColdtype(script_file=selected_file)
+                cold.start()
+            else:
+                ui.notify("Please select a script first.", type='warning')
+
+        with ui.row().classes('w-full justify-center gap-4 mt-4'):
+            ui.button('Select Script', on_click=pick_script, icon='folder')
+            run_button = ui.button('Run Coldtype', on_click=cold_run, icon='play_arrow')
+            run_button.disable()
+
+
 
 
 @ui.page('/Pyeditor')
 async def pyeditor_test_page():
 
     ui.dark_mode(CastAPI.dark_mode)
-
     await apply_custom()
+    await nice.head_menu(name='PyEditor', target='/Pyeditor', icon='code')
 
-    # Instantiate and run the editor
-    editor_app = PythonEditor(coldtype=False, show_upload=True, upload_folder='xtra/scripts')
-    await editor_app.setup_ui()
+    # A container to hold the editor UI
+    editor_container = ui.column().classes('w-full items-center')
 
-    print('end of pyeditor page load')
+    async def show_editor(editor_type: str):
+        """Clears the container and loads the selected editor."""
+        editor_container.clear()
+        with editor_container:
+            if editor_type == 'script':
+                ui.label('Python Editor for Scripts').classes('text-xl self-center font-bold')
+                editor_app = PythonEditor(coldtype=False, show_upload=True, upload_folder='xtra/scripts', go_back=False)
+                await editor_app.setup_ui()
+            elif editor_type == 'animator':
+                ui.label('Python Editor for Text Animator').classes('text-xl self-center font-bold')
+                editor_app = PythonEditor(coldtype=False, show_upload=True, upload_folder='xtra/text/animator', go_back=False)
+                await editor_app.setup_ui()
+            elif editor_type == 'coldtype':
+                ui.label('Python Editor for Coldtype').classes('text-xl self-center font-bold')
+                editor_app = PythonEditor(coldtype=True, show_upload=True, upload_folder='xtra/text/coldtype', go_back=False)
+                await editor_app.setup_ui()
+
+    # Initially, show the selection buttons
+    with editor_container:
+        with ui.card().classes('mx-auto mt-12'):
+            ui.label('Select an editor to open').classes('text-xl self-center')
+            with ui.row().classes('w-full justify-center gap-4 mt-4'):
+                ui.button('Script Editor', on_click=lambda: show_editor('script')).props('icon=description')
+                ui.button('Animator Editor', on_click=lambda: show_editor('animator')).props('icon=animation')
+                ui.button('Coldtype Editor', on_click=lambda: show_editor('coldtype')).props('icon=text_fields')
 
 
 @ui.page('/ShutDown')
