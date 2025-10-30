@@ -65,16 +65,13 @@ Temporary File Handling:
 
 """
 import os
-import socket
+
 from subprocess import Popen
 
 # Suppress the specific UserWarning from the 'fs' library about pkg_resources.
 # This is a known issue with some dependencies and newer versions of setuptools.
 # The warning is informational and does not affect the application's functionality.
 import warnings
-
-import src.gui.wledtray
-
 warnings.filterwarnings("ignore", category=UserWarning, message="pkg_resources is deprecated as an API")
 
 if os.getenv('WLEDVideoSync_trace'):
