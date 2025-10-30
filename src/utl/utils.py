@@ -93,6 +93,7 @@ from PIL import Image
 from unidecode import unidecode
 from coldtype.text.reader import Font
 from wled.exceptions import WLEDConnectionError, WLEDError # Specific WLED errors
+from ping3 import ping as wled_ping
 
 from src.gui.tkarea import ScreenAreaSelection as SCArea
 
@@ -1198,16 +1199,8 @@ class CASTUtils:
 
         if ping:
 
-            param = '-n' if PLATFORM == 'win32' else '-c'
-
-            command = ['ping', param, '1', ip_address]
-            try:
-                subprocess.check_output(command, stderr=subprocess.STDOUT, timeout=timeout)
-                return True
-            except subprocess.CalledProcessError:
-                return False
-            except subprocess.TimeoutExpired:
-                return False
+            result = wled_ping(ip_address, timeout=timeout)
+            return result is not None
 
         else:
 
