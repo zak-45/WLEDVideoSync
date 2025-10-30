@@ -268,49 +268,6 @@ def parse_native_ui_size(size_str):
     except Exception as er:
         raise ValueError(f"Invalid native_ui_size format: {size_str}") from er
 
-def check_server():
-    """Check and validate server IP and port configuration.
-
-    Retrieves server IP and port from configuration, validates the IP address,
-    and determines the port number. If the port is set to 'auto', it finds an
-    available port. Exits with an error code if the IP or port is invalid.
-
-    Returns:
-        tuple: A tuple containing the validated server IP and port.
-    """
-
-    srv_ip = cfg_mgr.server_config['server_ip']
-
-    if not Utils.validate_ip_address(srv_ip):
-        main_logger.error(f'Bad server IP: {srv_ip}')
-        return None, None
-
-    srv_port = cfg_mgr.server_config['server_port']
-
-    if srv_port == 'auto':
-        srv_port = native.find_open_port()
-    else:
-        # If a specific port is configured, check if it's available.
-        try:
-            srv_port = int(cfg_mgr.server_config['server_port'])
-            # Attempt to bind to the configured IP and port to check availability.
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind((srv_ip, srv_port))
-            # If bind is successful, the port is free. The 'with' statement closes it immediately.
-        except OSError as er:
-            # This error (e.g., "Address already in use") means the port is taken.
-            main_logger.error(f"Server Port {srv_port} on IP {srv_ip} is already in use. Please choose another port. Error: {er}")
-            return srv_ip, None
-        except Exception as er:
-            main_logger.error(f"Invalid Server Port configuration for port {srv_port}. Error: {er}")
-            return srv_ip, None
-
-    if srv_port not in range(1, 65536):
-        main_logger.error(f'Server Port {srv_port} is outside the valid range (1-65535).')
-        return srv_ip, None
-
-    return srv_ip, srv_port
-
 def select_gui():
     """Select the appropriate GUI mode based on configuration.
 
@@ -398,102 +355,6 @@ def show_splash_screen():
         main_logger.error(f"Failed to show splash screen: {er}")
 
 
-def main():
-    """Run the main graphical user interface (GUI).
-
-    This function initializes and runs the NiceGUI application, handling server
-    configurations, system tray icon, GUI settings, and cleanup operations.
-    """
-
-    server_port = None
-    server_ip = None
-
-    print(f'Start WLEDVideoSync - NiceGui for : {PLATFORM}')
-
-    if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']):
-        # Show splash screen in a separate thread to not block the main app
-        import threading
-        splash_thread = threading.Thread(target=show_splash_screen, daemon=True)
-        splash_thread.start()
-
-    if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
-        server_ip, server_port = check_server()
-        if server_ip is None or server_port is None:
-            print('Exiting due to invalid server configuration.')
-            main_logger.error('Exiting due to invalid server configuration.')
-            main_logger.info('Application Terminated')
-            sys.exit(4)
-
-    # store server port info for others processes, add sc_area for macOS ...
-    # on python < 3.13 file extension will be .dat and added automatically otherwise none
-    with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
-        wled_proc_file["server_port"] = server_port
-        wled_proc_file["sc_area"] = []
-        wled_proc_file["media"] = None
-        wled_proc_file["all_hosts"] = []
-
-    """
-    Pystray
-    """
-    if str2bool(cfg_mgr.app_config['put_on_systray']):
-        from src.gui.wledtray import WLEDVideoSync_systray
-
-        if PLATFORM == 'linux':
-            systray_backend = cfg_mgr.app_config['systray_backend'].lower()
-            if systray_backend in ['appindicator', 'gtk', 'xorg']:
-
-                os.environ["PYSTRAY_BACKEND"] = systray_backend
-            else:
-                main_logger.error(f'Bad value for systray_backend : {systray_backend}')
-                sys.exit(5)
-
-        # run systray in no blocking mode
-        WLEDVideoSync_systray.run_detached()
-
-    """
-    GUI
-    """
-    # set QT in linux if compiled version (let choice when run from source)
-    if  PLATFORM == 'linux' and (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])):
-        os.environ["PYWEBVIEW_GUI"] = "qt"
-    # Force software-based OpenGL rendering on Ubuntu
-    if  PLATFORM == 'linux' and str2bool(cfg_mgr.custom_config['libgl']):
-        os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
-
-    # choose GUI
-    show, native_ui, native_ui_size = select_gui()
-
-    """
-    RUN
-    """
-    ui.run(title=f'WLEDVideoSync - {server_port}',
-           favicon=cfg_mgr.app_root_path("favicon.ico"),
-           host=server_ip,
-           port=server_port,
-           fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
-           show=show,
-           reconnect_timeout=int(cfg_mgr.server_config['reconnect_timeout'] if cfg_mgr.server_config is not None else '3'),
-           reload=False,
-           native=native_ui,
-           window_size=native_ui_size,
-           access_log=False,
-           fullscreen=str2bool(cfg_mgr.app_config['fullscreen'] if cfg_mgr.app_config is not None else 'False'))
-
-    """
-    END
-    """
-
-    wled_proc_file.close()
-
-    # stop pystray
-    if str2bool(cfg_mgr.app_config['put_on_systray']):
-        from src.gui.wledtray import WLEDVideoSync_systray
-        from src.gui.wledtray import WLEDVideoSync_gui
-        WLEDVideoSync_gui.close_all_webviews()
-        WLEDVideoSync_systray.stop()
-
-    print('End WLEDVideoSync - NiceGUI')
-
 def run_sys_charts():
     """Launches the system charts server as a separate process.
 
@@ -527,101 +388,62 @@ def run_sys_charts():
 
 def handle_command_line_args(argv):
     """
-    Parses command-line arguments and configures the application state.
+    Parses command-line arguments using argparse to configure the application state.
 
-    This function handles flags like --help, --wled, --ip, --width, and --height.
-    It returns a status indicating the next action for the main script.
+    This function handles flags like --wled, --ip, --width, --height, etc.,
+    and updates the Desktop object accordingly. It's designed to be called
+    when the application is launched with specific child-process flags like
+    `--run-mobile-server`.
 
     Args:
         argv (list): The list of command-line arguments (e.g., sys.argv).
 
     Returns:
-        tuple: A tuple containing the action status ('run_gui' or 'exit')
-               and a boolean indicating if the shelve file logic should be bypassed.
+        bool: True if parsing is successful, False otherwise.
     """
-    if '--help' in argv:
-        help_text = """
-        WLEDVideoSync - Main Application
+    import argparse
+    # We only parse arguments after the script name
+    parser = argparse.ArgumentParser(description="WLEDVideoSync Child Process Runner")
 
-        Usage:
-            WLEDVideoSync.py [FLAGS]
+    # These arguments are relevant for the --run-mobile-server mode
+    parser.add_argument('--wled', action='store_true', help='Set Desktop cast to WLED mode to auto-detect matrix size.')
+    parser.add_argument('--no-text', action='store_true', help='Disable text overlay for the Desktop cast.')
+    parser.add_argument('--ip', type=str, help='Set the target IP address for the Desktop cast.')
+    parser.add_argument('--width', type=int, help='Set the width for the Desktop cast matrix.')
+    parser.add_argument('--height', type=int, help='Set the height for the Desktop cast matrix.')
+    parser.add_argument('--run-mobile-server', action='store_true', help='Run Mobile server application.')
+    parser.add_argument('--run-sys-charts', action='store_true',help='Run Charts server application. (add -h for more options)')
 
-        Flags:
-            --help                  Show this help message and exit.
-            
-            --run-mobile-server     Run the mobile camera streaming server. This is typically
-                                    launched by the main application and not intended for
-                                    direct user execution (but possible).
-                                    This will use Desktop cast Queue feature.          
+    # This argument is used by both --run-mobile-server and --run-sys-charts
+    parser.add_argument('--file', type=str, help='Absolute path of the inter-process file (shelve).')
 
-                --wled                  Set the Desktop cast to WLED mode. This automatically
-                                        retrieves matrix dimensions from the device.
-                                        
-                --no-text               Set the Desktop allow text-animator to false (no text overlay)
-                                        
-                --ip=<ip_address>       Set the target IP address for the Desktop cast.
-                                        Example: --ip=192.168.1.50
-    
-                --width=<number>        Set the width for the Desktop cast matrix.
-                                        Example: --width=32
-    
-                --height=<number>       Set the height for the Desktop cast matrix.
-                                        Example: --height=32
-            
-            --run-sys-charts        Run the system charts server. 
-            
-            --file=<absolute path>  Absolute path of the inter process file (shelve)
+    # Parse known arguments, ignoring others that might be for the parent process
+    args, _ = parser.parse_known_args(argv[1:])
 
+    if args.ip:
+        Desktop.host = args.ip
+        main_logger.info(f"Command-line override: Desktop host set to {Desktop.host}")
 
-        If no flags are provided, the main GUI application will start with settings from the .ini file.
-        """
-        print(help_text)
-        return 'exit', False
-
-    bypass_shelve = True
-
-    if any(arg.startswith('--ip=') for arg in argv):
-        if ip_arg := next((arg for arg in argv if arg.startswith('--ip=')), None):
-            Desktop.host = ip_arg.split('=', 1)[1]
-            main_logger.info(f"Command-line override: Desktop host set to {Desktop.host}")
-
-
-    if '--wled' in argv:
+    if args.wled:
         Desktop.wled = True
         main_logger.info("Command-line override: Desktop WLED mode enabled.")
 
-    if '--no-text' in argv:
+    if args.no_text:
         Desktop.allow_text_animator = False
         main_logger.info("Command-line override: Desktop Text overlay mode disabled.")
 
-    if any(arg.startswith('--width=') for arg in argv):
-        if width_arg := next((arg for arg in argv if arg.startswith('--width=')), None):
-            try:
-                Desktop.scale_width = int(width_arg.split('=', 1)[1])
-                main_logger.info(f"Command-line override: Desktop scale_width set to {Desktop.scale_width}")
-            except ValueError:
-                bypass_shelve = False
-                main_logger.error("Invalid value for --width. Please provide an integer.")
+    if args.width is not None:
+        Desktop.scale_width = args.width
+        main_logger.info(f"Command-line override: Desktop scale_width set to {Desktop.scale_width}")
 
-    if any(arg.startswith('--height=') for arg in argv):
-        if height_arg := next((arg for arg in argv if arg.startswith('--height=')), None):
-            try:
-                Desktop.scale_height = int(height_arg.split('=', 1)[1])
-                main_logger.info(f"Command-line override: Desktop scale_height set to {Desktop.scale_height}")
-            except ValueError:
-                bypass_shelve = False
-                main_logger.error("Invalid value for --height. Please provide an integer.")
+    if args.height is not None:
+        Desktop.scale_height = args.height
+        main_logger.info(f"Command-line override: Desktop scale_height set to {Desktop.scale_height}")
 
-    if any(arg.startswith('--file=') for arg in argv):
-        if i_file_arg := next((arg for arg in argv if arg.startswith('--file=')), None):
-            try:
-                i_inter_proc_file = i_file_arg.split('=', 1)[1]
-                main_logger.info(f"Command-line file name : {i_inter_proc_file}")
-            except ValueError:
-                bypass_shelve = False
-                main_logger.error("Invalid value for --file. Please provide a string.")
+    if args.file:
+        main_logger.info(f"Command-line file name: {args.file}")
 
-    return 'run_gui', bypass_shelve
+    return True
 
 
 """
@@ -638,13 +460,104 @@ app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
 app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
 app.on_startup(init_actions)
 
+
+def main():
+    """Run the main graphical user interface (GUI).
+
+    This function initializes and runs the NiceGUI application, handling server
+    configurations, system tray icon, GUI settings, and cleanup operations.
+    """
+
+    server_port = None
+    server_ip = None
+
+    print(f'Start WLEDVideoSync - NiceGui for : {PLATFORM}')
+
+    if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']):
+        # Show splash screen in a separate thread to not block the main app
+        import threading
+        splash_thread = threading.Thread(target=show_splash_screen, daemon=True)
+        splash_thread.start()
+
+    if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
+        server_ip, server_port = check_server()
+        if server_ip is None or server_port is None:
+            print('Exiting due to invalid server configuration.')
+            main_logger.error('Exiting due to invalid server configuration.')
+            main_logger.info('Application Terminated')
+            sys.exit(4)
+
+    """
+    Pystray
+    """
+    if str2bool(cfg_mgr.app_config['put_on_systray']):
+        from src.gui.wledtray import WLEDVideoSync_systray
+
+        if PLATFORM == 'linux':
+            systray_backend = cfg_mgr.app_config['systray_backend'].lower()
+            if systray_backend in ['appindicator', 'gtk', 'xorg']:
+
+                os.environ["PYSTRAY_BACKEND"] = systray_backend
+            else:
+                main_logger.error(f'Bad value for systray_backend : {systray_backend}')
+                sys.exit(5)
+
+        # run systray in no blocking mode
+        WLEDVideoSync_systray.run_detached()
+
+    """
+    GUI
+    """
+    # set QT in linux if compiled version (let choice when run from source)
+    if PLATFORM == 'linux' and (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])):
+        os.environ["PYWEBVIEW_GUI"] = "qt"
+    # Force software-based OpenGL rendering on Ubuntu
+    if PLATFORM == 'linux' and str2bool(cfg_mgr.custom_config['libgl']):
+        os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
+
+    # choose GUI
+    show, native_ui, native_ui_size = select_gui()
+
+    """
+    RUN
+    """
+    ui.run(title=f'WLEDVideoSync - {server_port}',
+           favicon=cfg_mgr.app_root_path("favicon.ico"),
+           host=server_ip,
+           port=server_port,
+           fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
+           show=show,
+           reconnect_timeout=int(
+               cfg_mgr.server_config['reconnect_timeout'] if cfg_mgr.server_config is not None else '3'),
+           reload=False,
+           native=native_ui,
+           window_size=native_ui_size,
+           access_log=False,
+           fullscreen=str2bool(cfg_mgr.app_config['fullscreen'] if cfg_mgr.app_config is not None else 'False'))
+
+    """
+    END
+    """
+
+    # stop pystray
+    if str2bool(cfg_mgr.app_config['put_on_systray']):
+        from src.gui.wledtray import WLEDVideoSync_systray
+        from src.gui.wledtray import WLEDVideoSync_gui
+        WLEDVideoSync_gui.close_all_webviews()
+        WLEDVideoSync_systray.stop()
+
+    print('End WLEDVideoSync - NiceGUI')
+
 """
 Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 """
 if __name__  == "__main__":
 
     # Check for special command-line flags to run in a different mode.
-    if '--run-mobile-server' in sys.argv or '--help' in sys.argv or '--run-sys-charts' in sys.argv:
+    if ('--run-mobile-server' in sys.argv or
+            '--h' in sys.argv or
+            '-h' in sys.argv or
+            '--run-sys-charts' in sys.argv):
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server or system charts.
 
@@ -677,20 +590,18 @@ if __name__  == "__main__":
                 Desktop.stopcast = False
 
                 # Check for special command-line flags to run in a different mode.
-                action, do_bypass_shelve = handle_command_line_args(sys.argv)
-                if action == 'exit':
-                    sys.exit(0)
+                if not handle_command_line_args(sys.argv):
+                    sys.exit(1) # Exit if argument parsing fails
 
                 # retrieve Media objects from other process
-                if not do_bypass_shelve:
-                    if os.path.exists(f'{file}'): # Shelve creates files with extensions like .dat, .bak, .dir
-                        with shelve.open(file, "r") as proc_file:
-                            media = proc_file.get("media") # Use .get for safer access
-                        if media:
-                            # update Desktop attributes from media attributes (have been copied into proc_file)
-                            Desktop.set_from_media(media)
-                    else:
-                        main_logger.warning(f"Inter-process file '{file}' not found. Proceeding with default settings.")
+                if os.path.exists(f'{file}'): # Shelve creates files with extensions like .dat, .bak, .dir
+                    with shelve.open(file, "r") as proc_file:
+                        media = proc_file.get("media") # Use .get for safer access
+                    if media:
+                        # update Desktop attributes from media attributes (have been copied into proc_file)
+                        Desktop.set_from_media(media)
+                else:
+                    main_logger.warning(f"Inter-process file '{file}' not found. Proceeding with default settings.")
 
                 shared_list_instance_thread = Desktop.cast()  # This creates the shared list and returns the handle
 

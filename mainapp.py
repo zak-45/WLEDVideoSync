@@ -25,6 +25,7 @@ Web GUI based on NiceGUI
 """
 import asyncio
 import shelve
+import socket
 import sys
 import queue
 import tkinter as tk
@@ -50,7 +51,7 @@ from src.utl.webviewmanager import WebviewManager
 from src.gui.presets import *
 from src.api.api import *
 
-from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE, NATIVE_UI
+from configmanager import cfg_mgr, LoggerManager, PLATFORM, NATIVE_UI, WLED_PID_TMP_FILE
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
@@ -102,7 +103,34 @@ Actions to do at application initialization
 """
 async def init_actions():
     """ Done at start of app and before GUI available """
+    # This is the definitive point of initialization for the temp file path.
+    # We update the global variable in the configmanager module so all other
+    # modules that import it will get the correct, process-specific path.
+    import configmanager
+    WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{cfg_mgr.pid}_file")
+    configmanager.WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{cfg_mgr.pid}_file")
 
+    # from WLEDVideoSync import check_server
+    server_ip = None
+    server_port = None
+
+    if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
+        server_ip, server_port = check_server()
+        if server_ip is None or server_port is None:
+            print('Exiting due to invalid server configuration.')
+            main_logger.error('Exiting due to invalid server configuration.')
+            main_logger.info('Application Terminated')
+            sys.exit(4)
+
+    # store server port info for others processes, add sc_area for macOS ...
+    # on python < 3.13 file extension will be .dat and added automatically otherwise none
+    with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
+        wled_proc_file["server_port"] = server_port
+        wled_proc_file["sc_area"] = []
+        wled_proc_file["media"] = None
+        wled_proc_file["all_hosts"] = []
+
+    #
     if '--run-mobile-server' in sys.argv:
         return
 
@@ -1806,6 +1834,51 @@ async def auth_cast(class_obj):
     await nice.cast_manage(CastAPI, Desktop, Media)
     main_logger.info(f' Cast auth. for {str(class_obj)}')
 
+def check_server():
+    """Check and validate server IP and port configuration.
+
+    Retrieves server IP and port from configuration, validates the IP address,
+    and determines the port number. If the port is set to 'auto', it finds an
+    available port. Exits with an error code if the IP or port is invalid.
+
+    Returns:
+        tuple: A tuple containing the validated server IP and port.
+    """
+    from nicegui import native
+
+    srv_ip = cfg_mgr.server_config['server_ip']
+
+    if not Utils.validate_ip_address(srv_ip):
+        main_logger.error(f'Bad server IP: {srv_ip}')
+        return None, None
+
+    srv_port = cfg_mgr.server_config['server_port']
+
+    if srv_port == 'auto':
+        srv_port = native.find_open_port()
+    else:
+        # If a specific port is configured, check if it's available.
+        try:
+            srv_port = int(cfg_mgr.server_config['server_port'])
+            # Attempt to bind to the configured IP and port to check availability.
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind((srv_ip, srv_port))
+            # If bind is successful, the port is free. The 'with' statement closes it immediately.
+        except OSError as er:
+            # This error (e.g., "Address already in use") means the port is taken.
+            main_logger.error(f"Server Port {srv_port} on IP {srv_ip} is already in use. Please choose another port. Error: {er}")
+            return srv_ip, None
+        except Exception as er:
+            main_logger.error(f"Invalid Server Port configuration for port {srv_port}. Error: {er}")
+            return srv_ip, None
+
+    if srv_port not in range(1, 65536):
+        main_logger.error(f'Server Port {srv_port} is outside the valid range (1-65535).')
+        return srv_ip, None
+
+    return srv_ip, srv_port
+
+
 
 async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
     """
@@ -1854,12 +1927,9 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
             main_logger.error(f'An exception occurred: {im_error}')
 
 
-main_logger.debug('Mainapp wled_pid_tmp_file', WLED_PID_TMP_FILE)
-
-
 # do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 if __name__ == "__main__":
-    from nicegui import app
+    from nicegui import app, native
 
     print('start nicegui')
 

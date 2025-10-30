@@ -56,6 +56,7 @@ from src.utl.utils import CASTUtils as Utils
 from src.txt.fontsmanager import font_page, FontPreviewManager
 
 from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE
+
 from src.utl.winutil import all_titles
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.center')
