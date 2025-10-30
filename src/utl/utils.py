@@ -1337,4 +1337,10 @@ class CASTUtils:
 
         return dev_list
 
+    @staticmethod
+    def enable_win_console():
+        import ctypes
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 4)
+
+
 utils_logger.debug('Utils wled_pid_tmp_file', WLED_PID_TMP_FILE)

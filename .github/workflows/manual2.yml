@@ -145,7 +145,6 @@ jobs:
           # nuitka-version: 2.6.2 or main
           nuitka-version: main
           script-name: WLEDVideoSync.py
-          windows-console-mode: disable
           mode: app
           deployment: true
           onefile-tempdir-spec: ./WLEDVideoSync

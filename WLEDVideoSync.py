@@ -6,6 +6,7 @@
 # nuitka-project-if: {OS} == "Windows":
 #   nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
 #   nuitka-project: --include-module=winloop
+#   nuitka-project: --windows-console-mode=attach
 # nuitka-project-if: os.getenv("DEBUG_COMPILATION", "no") == "yes":
 #   nuitka-project: --force-stdout-spec=WLEDVideoSync.out.txt
 #   nuitka-project: --force-stderr-spec=WLEDVideoSync.err.txt
