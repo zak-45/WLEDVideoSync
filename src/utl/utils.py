@@ -144,12 +144,12 @@ class CASTUtils:
             if CASTUtils.is_compiled():
                 subprocess.Popen([executable_path,
                                   '--run-mobile-server',
-                                  file])
+                                  '--file', file])
             else:
                 subprocess.Popen([executable_path,
                                   f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
                                   '--run-mobile-server',
-                                  file])
+                                  '--file', file])
 
             utils_logger.info("Mobile server process started.")
         except Exception as er:
