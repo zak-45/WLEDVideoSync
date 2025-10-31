@@ -449,24 +449,47 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
  | `M` | **Modify Cast**         | Opens a new window to manage the settings for this specific cast.        |
  | `H` | **Help**                | Opens a help page explaining these shortcuts.                            |
  
- ### Command-Line Usage
- You can launch the application with flags to quickly configure a cast (for mobile server).
+---
  
+
+#### Command-Line Usage
+ WLEDVideoSync can be launched with flags to run specific child processes, like the Mobile Server or System Charts. This is primarily used internally by the application but can be used for advanced scripting. You can see all available options by running the application with the `-h` or `--help` flag.
+  
  ```bash
- WLEDVideoSync.py [FLAGS]
+ python WLEDVideoSync.py --help from source
+ or
+ WLEDVideoSync_xxxx --help from executable
  ```
- 
- **Flags:**
- 
- | Flag                  | Description                                                              | Example                               |
- |-----------------------|--------------------------------------------------------------------------|---------------------------------------|
- | `--help`                | Show the help message and exit.                                          | `WLEDVideoSync.py --help`             |
- | `--wled`                | Set the Desktop cast to WLED mode to auto-detect matrix size.            | `WLEDVideoSync.py --wled`              |
- | `--ip=<ip_address>`     | Set the target IP address for the Desktop cast.                          | `WLEDVideoSync.py --ip=192.168.1.50`  |
- | `--width=<number>`      | Set the width for the Desktop cast matrix.                               | `WLEDVideoSync.py --width=32`         |
- | `--height=<number>`     | Set the height for the Desktop cast matrix.                              | `WLEDVideoSync.py --height=16`        |
- | `--run-mobile-server` | Runs the mobile camera streaming server (usually launched by the app). |                                       |
- 
+  
+ ##### Main Application (`WLEDVideoSync.py`)
+ These arguments are primarily used when the main application spawns a child process.
+  
+ | Flag                  | Description                                                              |
+ |-----------------------|--------------------------------------------------------------------------|
+ | `-h`, `--help`          | Show the help message and exit.                                          |
+ | `--wled`                | Set the Desktop cast to WLED mode to auto-detect matrix size.            |
+ | `--no-text`             | Disable text overlay for the Desktop cast.                               |
+ | `--ip IP`               | Set the target IP address for the Desktop cast.                          |
+ | `--width WIDTH`         | Set the width for the Desktop cast matrix.                               |
+ | `--height HEIGHT`       | Set the height for the Desktop cast matrix.                              |
+ | `--run-mobile-server`   | Runs the mobile camera streaming server.                                 |
+ | `--run-sys-charts`      | Runs the system charts server.                                           |
+ | `--file FILE`           | Absolute path of the inter-process file (shelve).                        |
+  
+ ##### Chart Launcher (`runcharts.py`)
+ When you run `WLEDVideoSync.py --run-sys-charts`, it launches the chart utility, which has its own set of arguments.
+  
+ | Flag                  | Description                                                              |
+ |-----------------------|--------------------------------------------------------------------------|
+ | `-h`, `--help`          | Show the help message and exit.                                          |
+ | `--sysstats`            | Launch the System Stats chart directly.                                  |
+ | `--netstats`            | Launch the Network Stats chart directly.                                 |
+ | `--devstats`            | Launch the Device Stats chart directly.                                  |
+ | `--dark {true,false}`   | Enable dark mode for the chart.                                          |
+ | `--dev_list DEV_LIST`   | Comma-separated list of device IPs for the device chart.                 |
+ | `--file FILE`           | Absolute path of the inter-process file (shelve).                        |
+  
+
  ---
  
 ### Configuration
