@@ -439,12 +439,13 @@ if __name__  == "__main__":
             finally:
                 sys.exit(0) # Exit cleanly when the server stops.
 
-        else:
+        elif '--run-mobile-server' in sys.argv :
 
             # Check for special command-line flags to run in a different mode.
             # set inter-process file name
             status, args = Utils.handle_command_line_args(sys.argv)
             if not status:
+                main_logger.error('argument parsing fails ')
                 sys.exit(1)  # Exit if argument parsing fails
             # args
             file = args.file
@@ -462,6 +463,7 @@ if __name__  == "__main__":
                 # set Desktop Cast obj attributes
                 status, args = Utils.handle_command_line_args(sys.argv)
                 if not status:
+                    main_logger.error('argument parsing fails ')
                     sys.exit(1) # Exit if argument parsing fails
 
                 # retrieve Media objects from other process
@@ -492,6 +494,12 @@ if __name__  == "__main__":
 
             finally:
                 sys.exit(0) # Exit cleanly when the server stops.
+
+        else:
+
+            main_logger.error(f'Unknown argument: {sys.argv}')
+            sys.exit(2)
+
 
     else:
 

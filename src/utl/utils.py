@@ -172,7 +172,7 @@ class CASTUtils:
         """
 
         executable_path = sys.executable  # This correctly points to the running executable
-        dev_list = await CASTUtils.get_all_running_hosts()
+        dev_list = await CASTUtils.get_all_running_hosts(file)
 
         try:
             utils_logger.info(f"Launching sysstat server via subprocess: {executable_path} --run-sys-charts with file {file}")
@@ -1293,7 +1293,7 @@ class CASTUtils:
         return json.loads(json_output)
 
     @staticmethod
-    async def get_all_running_hosts():
+    async def get_all_running_hosts(inter_proc_file=None):
         """
         Retrieves a unique list of all IP hosts from all currently running casts.
 
@@ -1301,10 +1301,15 @@ class CASTUtils:
         device information and compiles a single, deduplicated list of all
         IP addresses they are streaming to.
 
+        Data are saved into inter-process file for other components to use.
+
         Returns:
             list: A sorted list of unique IP addresses.
         """
         from mainapp import util_casts_info
+
+        if inter_proc_file is None:
+            inter_proc_file = WLED_PID_TMP_FILE
 
         all_hosts = set()
         info_data = await util_casts_info()
@@ -1323,17 +1328,17 @@ class CASTUtils:
 
         # Shelve file extension handling can differ between Python versions.
         # Conditionally check for the .dat file for better compatibility.
-        file_to_check = WLED_PID_TMP_FILE
+        file_to_check = inter_proc_file
         if sys.version_info < (3, 13):
             # On older versions, shelve often creates a .dat file
             file_to_check += '.dat'
 
         if os.path.exists(file_to_check):
             # Store all running hosts in the inter-process file for other components to use
-            with shelve.open(WLED_PID_TMP_FILE, writeback=True) as proc_file:
+            with shelve.open(inter_proc_file, writeback=True) as proc_file:
                 proc_file["all_hosts"] = dev_list
         else:
-            utils_logger.warning(f"Inter-process file '{WLED_PID_TMP_FILE}' not found. Devices list will not be stored.")
+            utils_logger.warning(f"Inter-process file '{file_to_check}' not found. Devices list will not be stored.")
 
         return dev_list
 
@@ -1466,7 +1471,6 @@ class CASTUtils:
         """
 
         import runcharts
-        dev_list = asyncio.run(CASTUtils.get_all_running_hosts())
         inter_proc_file = None
         dark = False
 
@@ -1485,6 +1489,8 @@ class CASTUtils:
                     utils_logger.debug(f"Command-line dark : {dark}")
                 except ValueError:
                     utils_logger.error("Invalid value for --dark. Please provide a string, True or False.")
+
+        dev_list = asyncio.run(CASTUtils.get_all_running_hosts(inter_proc_file))
 
         runcharts.main(dev_list, inter_proc_file, str2bool(dark))
 

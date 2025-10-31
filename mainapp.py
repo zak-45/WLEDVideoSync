@@ -103,6 +103,16 @@ Actions to do at application initialization
 """
 async def init_actions():
     """ Done at start of app and before GUI available """
+    #
+    # We do not want init execution when using command line arguments
+    #
+    if '--run-mobile-server' in sys.argv:
+        return
+
+    elif '--run-sys-charts' in sys.argv:
+        return
+
+    #
     # This is the definitive point of initialization for the temp file path.
     # We update the global variable in the configmanager module so all other
     # modules that import it will get the correct, process-specific path.
@@ -124,18 +134,11 @@ async def init_actions():
 
     # store server port info for others processes, add sc_area for macOS ...
     # on python < 3.13 file extension will be .dat and added automatically otherwise none
-    with shelve.open(WLED_PID_TMP_FILE) as wled_proc_file:
+    with shelve.open(WLED_PID_TMP_FILE,writeback=True) as wled_proc_file:
         wled_proc_file["server_port"] = server_port
         wled_proc_file["sc_area"] = []
         wled_proc_file["media"] = None
         wled_proc_file["all_hosts"] = []
-
-    #
-    if '--run-mobile-server' in sys.argv:
-        return
-
-    elif '--run-sys-charts' in sys.argv:
-        return
 
     # Main Event Loop
     CastAPI.loop = asyncio.get_running_loop()
@@ -408,7 +411,7 @@ async def main_page():
     """
     async def generate_device():
         ui.notify('Device List generation in progress...')
-        await Utils.get_all_running_hosts()
+        await Utils.get_all_running_hosts(WLED_PID_TMP_FILE)
 
     with ui.footer(value=False).classes('items-center bg-red-900') as footer:
         ui.switch("Light/Dark Mode", on_change=dark.toggle).classes('bg-red-900').tooltip('Change Layout Mode')
