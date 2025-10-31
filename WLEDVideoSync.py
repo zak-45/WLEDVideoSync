@@ -307,145 +307,6 @@ def select_gui():
 
     return show, native_ui, native_ui_size
 
-def show_splash_screen():
-    """
-    Displays a splash screen in a separate thread using tkinter.
-    This is cross-platform and doesn't block the main app startup.
-    """
-    import tkinter as tk
-    from PIL import Image, ImageTk
-
-    try:
-        root = tk.Tk()
-        # Use a specific color that will be made transparent
-        transparent_color = '#abcdef'
-        root.config(bg=transparent_color)
-        root.overrideredirect(True)  # Create a borderless window
-
-        # Load the splash screen image
-        image_path = cfg_mgr.app_root_path("splash-screen.png")
-        pil_image = Image.open(image_path)
-        splash_image = ImageTk.PhotoImage(pil_image)
-
-        # Get image dimensions
-        img_width = splash_image.width()
-        img_height = splash_image.height()
-
-        # Center the window on the screen
-        screen_width = root.winfo_screenwidth()
-        screen_height = root.winfo_screenheight()
-        x = (screen_width // 2) - (img_width // 2)
-        y = (screen_height // 2) - (img_height // 2)
-        root.geometry(f'{img_width}x{img_height}+{x}+{y}')
-
-        # Display the image
-        splash_label = tk.Label(root, image=splash_image, bg=transparent_color, borderwidth=0)
-        splash_label.pack()
-
-        # Make the window transparent. This is the key step.
-        # It works on Windows and some Linux window managers.
-        if PLATFORM == "win32":
-            root.wm_attributes('-transparentcolor', transparent_color)
-
-        # Close the splash screen after 3 seconds
-        root.after(3000, root.destroy)
-
-        root.mainloop()
-    except Exception as er:
-        main_logger.error(f"Failed to show splash screen: {er}")
-
-
-def run_sys_charts():
-    """Launches the system charts server as a separate process.
-
-    This function gathers device information, parses command-line arguments for inter-process file and dark mode,
-    and starts the charts server using the runcharts module.
-    """
-
-    import runcharts
-    dev_list = asyncio.run(Utils.get_all_running_hosts())
-    inter_proc_file = None
-    dark = False
-
-    if any(arg.startswith('--file=') for arg in sys.argv):
-        if file_arg := next((arg for arg in sys.argv if arg.startswith('--file=')), None):
-            try:
-                inter_proc_file = file_arg.split('=', 1)[1]
-                main_logger.debug(f"Command-line file name : {inter_proc_file}")
-            except ValueError:
-                main_logger.error("Invalid value for --file. Please provide a string.")
-
-    if any(arg.startswith('--dark=') for arg in sys.argv):
-        if file_arg := next((arg for arg in sys.argv if arg.startswith('--dark=')), None):
-            try:
-                dark = file_arg.split('=', 1)[1]
-                main_logger.debug(f"Command-line dark : {dark}")
-            except ValueError:
-                main_logger.error("Invalid value for --dark. Please provide a string, True or False.")
-
-    runcharts.main(dev_list, inter_proc_file, str2bool(dark))
-
-
-def handle_command_line_args(argv):
-    """
-    Parses command-line arguments using argparse to configure the application state.
-
-    This function handles flags like --wled, --ip, --width, --height, etc.,
-    and updates the Desktop object accordingly. It's designed to be called
-    when the application is launched with specific child-process flags like
-    `--run-mobile-server`.
-
-    Args:
-        argv (list): The list of command-line arguments (e.g., sys.argv).
-
-    Returns:
-        bool: True if parsing is successful, False otherwise.
-    """
-    import argparse
-    # We only parse arguments after the script name
-    parser = argparse.ArgumentParser(description="WLEDVideoSync Child Process Runner")
-
-    # These arguments are relevant for the --run-mobile-server mode
-    parser.add_argument('--wled', action='store_true', help='Set Desktop cast to WLED mode to auto-detect matrix size.')
-    parser.add_argument('--no-text', action='store_true', help='Disable text overlay for the Desktop cast.')
-    parser.add_argument('--ip', type=str, help='Set the target IP address for the Desktop cast.')
-    parser.add_argument('--width', type=int, help='Set the width for the Desktop cast matrix.')
-    parser.add_argument('--height', type=int, help='Set the height for the Desktop cast matrix.')
-    parser.add_argument('--run-mobile-server', action='store_true', help='Run Mobile server application.')
-    parser.add_argument('--run-sys-charts', action='store_true',help='Run Charts server application. (add -h for more options)')
-
-    # This argument is used by both --run-mobile-server and --run-sys-charts
-    parser.add_argument('--file', type=str, help='Absolute path of the inter-process file (shelve).')
-
-    # Parse known arguments, ignoring others that might be for the parent process
-    args, _ = parser.parse_known_args(argv[1:])
-
-    if args.ip:
-        Desktop.host = args.ip
-        main_logger.info(f"Command-line override: Desktop host set to {Desktop.host}")
-
-    if args.wled:
-        Desktop.wled = True
-        main_logger.info("Command-line override: Desktop WLED mode enabled.")
-
-    if args.no_text:
-        Desktop.allow_text_animator = False
-        main_logger.info("Command-line override: Desktop Text overlay mode disabled.")
-
-    if args.width is not None:
-        Desktop.scale_width = args.width
-        main_logger.info(f"Command-line override: Desktop scale_width set to {Desktop.scale_width}")
-
-    if args.height is not None:
-        Desktop.scale_height = args.height
-        main_logger.info(f"Command-line override: Desktop scale_height set to {Desktop.scale_height}")
-
-    if args.file:
-        main_logger.info(f"Command-line file name: {args.file}")
-
-    return True
-
-
 """
 MAIN Logic 
 """
@@ -476,7 +337,7 @@ def main():
     if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']):
         # Show splash screen in a separate thread to not block the main app
         import threading
-        splash_thread = threading.Thread(target=show_splash_screen, daemon=True)
+        splash_thread = threading.Thread(target=Utils.show_splash_screen, daemon=True)
         splash_thread.start()
 
     if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
@@ -555,9 +416,11 @@ if __name__  == "__main__":
 
     # Check for special command-line flags to run in a different mode.
     if ('--run-mobile-server' in sys.argv or
-            '--h' in sys.argv or
-            '-h' in sys.argv or
-            '--run-sys-charts' in sys.argv):
+            '--run-sys-charts' in sys.argv or
+            '--help' in sys.argv or
+            '-h' in sys.argv
+            ):
+
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server or system charts.
 
@@ -567,7 +430,7 @@ if __name__  == "__main__":
 
                 main_logger.info('WLEDVideoSync -- Run System Charts process')
                 # this is a blocking call
-                run_sys_charts()
+                Utils.exe_sys_charts()
 
             except Exception as e:
                 main_logger.error(f'Error in run charts server : {e}')
@@ -577,8 +440,14 @@ if __name__  == "__main__":
                 sys.exit(0) # Exit cleanly when the server stops.
 
         else:
+
+            # Check for special command-line flags to run in a different mode.
+            # set inter-process file name
+            status, args = Utils.handle_command_line_args(sys.argv)
+            if not status:
+                sys.exit(1)  # Exit if argument parsing fails
             # args
-            file = sys.argv[2] if len(sys.argv) > 2 else 'None'
+            file = args.file
 
             try:
                 # 1. Initialize the desktop cast to create and listen on a shared memory queue.
@@ -590,16 +459,18 @@ if __name__  == "__main__":
                 Desktop.stopcast = False
 
                 # Check for special command-line flags to run in a different mode.
-                if not handle_command_line_args(sys.argv):
+                # set Desktop Cast obj attributes
+                status, args = Utils.handle_command_line_args(sys.argv)
+                if not status:
                     sys.exit(1) # Exit if argument parsing fails
 
                 # retrieve Media objects from other process
-                if os.path.exists(f'{file}'): # Shelve creates files with extensions like .dat, .bak, .dir
-                    with shelve.open(file, "r") as proc_file:
-                        media = proc_file.get("media") # Use .get for safer access
-                    if media:
-                        # update Desktop attributes from media attributes (have been copied into proc_file)
-                        Desktop.set_from_media(media)
+                # Shelve creates files with extensions like .dat, .bak, .dir depend on py version
+                with shelve.open(file, "r") as proc_file:
+                    media = proc_file.get("media") # Use .get for safer access
+                if media:
+                    # update Desktop attributes from media attributes (have been copied into proc_file)
+                    Desktop.set_from_media(media)
                 else:
                     main_logger.warning(f"Inter-process file '{file}' not found. Proceeding with default settings.")
 
