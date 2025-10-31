@@ -391,6 +391,8 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
 
  > **Note:** Your phone must need to be connected on the same network
 
+> **Note:** This will take Settings from Media even if using a Desktop feature (queue) 
+
  **How to Use:**
  1.  **Start the Server**: In the **Cast Center**, find the **TOOLS** section and click the **Mobile Camera** icon.
  2.  **Open the QR Code Page**: A new window or browser tab will open, displaying a QR code. This page is served locally on your computer.
