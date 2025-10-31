@@ -87,10 +87,12 @@ class DualStream:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             formatted_message = f"[{timestamp}] [{self.stream_name}] {message.strip()}"
             self.queue.put(formatted_message)  # Send to log queue
-            self.original_stream.write(message+'\n')  # Send to original stdout/stderr
+            if self.original_stream:
+                self.original_stream.write(message+'\n')  # Send to original stdout/stderr
 
     def flush(self):
-        self.original_stream.flush()
+        if self.original_stream:
+            self.original_stream.flush()
 
 class RUNColdtype(multiprocessing.Process):
     """Run the Coldtype renderer in a separate process.
