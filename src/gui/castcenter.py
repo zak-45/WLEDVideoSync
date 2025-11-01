@@ -190,7 +190,7 @@ class CastCenter:
         with shelve.open(WLED_PID_TMP_FILE, writeback=True) as wled_proc_file:
             wled_proc_file["media"] = self.Media
         # run mobile cast
-        await Utils.run_mobile_cast(WLED_PID_TMP_FILE)
+        await Utils.run_mobile_cast(WLED_PID_TMP_FILE, str(self.CastAPI.dark_mode))
 
 
     async def validate(self):

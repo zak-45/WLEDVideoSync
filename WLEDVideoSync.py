@@ -65,6 +65,7 @@ Temporary File Handling:
 
 """
 import os
+import sys
 
 from subprocess import Popen
 
@@ -424,6 +425,16 @@ if __name__  == "__main__":
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server or system charts.
 
+        # Check for special command-line flags to run in a different mode.
+        # set inter-process file name, dark mode
+        status, args = Utils.handle_command_line_args(sys.argv)
+        if not status:
+            main_logger.error('argument parsing fails ')
+            sys.exit(1)  # Exit if argument parsing fails
+        # args
+        file = args.file
+        dark = args.dark
+
         if '--run-sys-charts' in sys.argv:
 
             try:
@@ -441,15 +452,6 @@ if __name__  == "__main__":
 
         elif '--run-mobile-server' in sys.argv :
 
-            # Check for special command-line flags to run in a different mode.
-            # set inter-process file name
-            status, args = Utils.handle_command_line_args(sys.argv)
-            if not status:
-                main_logger.error('argument parsing fails ')
-                sys.exit(1)  # Exit if argument parsing fails
-            # args
-            file = args.file
-
             try:
                 # 1. Initialize the desktop cast to create and listen on a shared memory queue.
                 from src.cst import desktop
@@ -461,20 +463,29 @@ if __name__  == "__main__":
 
                 # Check for special command-line flags to run in a different mode.
                 # set Desktop Cast obj attributes
-                status, args = Utils.handle_command_line_args(sys.argv)
+                status, args = Utils.handle_command_line_args(sys.argv, Desktop)
                 if not status:
                     main_logger.error('argument parsing fails ')
                     sys.exit(1) # Exit if argument parsing fails
 
                 # retrieve Media objects from other process
                 # Shelve creates files with extensions like .dat, .bak, .dir depend on py version
-                with shelve.open(file, "r") as proc_file:
-                    media = proc_file.get("media") # Use .get for safer access
-                if media:
-                    # update Desktop attributes from media attributes (have been copied into proc_file)
-                    Desktop.set_from_media(media)
+                if sys.version_info < (3, 13):
+                    file_to_check = file + '.dat'
                 else:
-                    main_logger.warning(f"Inter-process file '{file}' not found. Proceeding with default settings.")
+                    file_to_check = file
+
+                # Check if the file exists
+                if os.path.exists(file_to_check):
+                    with shelve.open(file, "r") as proc_file:
+                        media = proc_file.get("media") # Use .get for safer access
+                    if media:
+                        # update Desktop attributes from media attributes (have been copied into proc_file)
+                        Desktop.set_from_media(media)
+                    else:
+                        main_logger.warning("Inter-process Media object not found. Proceeding with default settings.")
+                else:
+                    main_logger.warning(f"Inter-process file {file_to_check} not found. Proceeding with default settings.")
 
                 shared_list_instance_thread = Desktop.cast()  # This creates the shared list and returns the handle
 
@@ -486,7 +497,7 @@ if __name__  == "__main__":
 
                 main_logger.info('WLEDVideoSync -- Run mobile process')
                 # 4. Start the mobile server. This is a blocking call.
-                mobile.start_server(shared_list_instance_thread, local_ip)
+                mobile.start_server(shared_list_instance_thread, local_ip, dark, file)
 
             except Exception as e:
                 main_logger.error(f'Error in mobile server : {e}')

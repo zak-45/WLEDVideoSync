@@ -79,6 +79,7 @@ from configmanager import cfg_mgr
 import base64
 import qrcode
 import numpy as np
+import str2bool
 
 # Global placeholders to be set by the start_server function.
 # This is a common pattern for web frameworks where route handlers are defined at the module level.
@@ -113,15 +114,17 @@ async def index():
         ui.link('Open stream', _stream_url, new_tab=True).classes('self-center')
 
 
-
 @ui.page('/stream')
-def stream():
+async def stream():
     """
     Renders the mobile streaming page for capturing and transmitting video from a phone's camera.
 
     This function injects the necessary HTML, CSS, and JavaScript to enable live video capture,
     camera switching, and real-time streaming to the server via WebSocket.
     """
+
+    await apply_custom()
+
     ui.add_body_html('''
     <style>
         @keyframes blink {
@@ -225,9 +228,10 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
             print(f'Received WebSocket error: {e}')
             break
 
+
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def start_server(shared_list, ip_address: str = '127.0.0.1'):
+def start_server(shared_list, ip_address: str = '127.0.0.1', dark: str = 'False', file: str = ''):
     """
     Configures and starts the mobile streaming server.
 
@@ -237,6 +241,8 @@ def start_server(shared_list, ip_address: str = '127.0.0.1'):
     Args:
         shared_list: The shared list instance from the casting process.
         ip_address (str): The local IP address of the server.
+        dark (bool): Whether to use dark mode.
+        file: inter proc file absolute path name
     """
     global _stream_url, _my_sl
 
@@ -247,7 +253,7 @@ def start_server(shared_list, ip_address: str = '127.0.0.1'):
 
     _stream_url = f'https://{ip_address}:{port}/stream'
     _my_sl = shared_list
-
+    dark_mode = str2bool.str2bool(dark)
 
     ui.run(
         title=f'WLEDVideoSync Mobile - {port}',
@@ -256,7 +262,8 @@ def start_server(shared_list, ip_address: str = '127.0.0.1'):
         show=True,
         ssl_certfile=cert,
         ssl_keyfile=key,
-        reload=False
+        reload=False,
+        dark=dark_mode
     )
 
 
@@ -275,4 +282,4 @@ if __name__ == "__main__":
     # local IP
     my_ip = Utils.get_local_ip_address()
     # run niceGui server
-    start_server(sl_instance, my_ip)
+    start_server(sl_instance, my_ip,'True')

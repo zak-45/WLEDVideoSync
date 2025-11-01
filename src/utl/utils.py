@@ -125,7 +125,7 @@ class CASTUtils:
         pass
 
     @staticmethod
-    async def run_mobile_cast(file):
+    async def run_mobile_cast(file, dark):
         """
         Launches the mobile camera server in a separate, isolated process.
 
@@ -144,12 +144,14 @@ class CASTUtils:
             if CASTUtils.is_compiled():
                 subprocess.Popen([executable_path,
                                   '--run-mobile-server',
-                                  '--file', file])
+                                  '--file', file,
+                                  '--dark', dark])
             else:
                 subprocess.Popen([executable_path,
                                   f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
                                   '--run-mobile-server',
-                                  '--file', file])
+                                  '--file', file,
+                                  '--dark', dark])
 
             utils_logger.info("Mobile server process started.")
         except Exception as er:
@@ -1383,7 +1385,8 @@ class CASTUtils:
                             help='Run Charts server application. (add -h for more options)')
 
         # This argument is used by both --run-mobile-server and --run-sys-charts
-        parser.add_argument('--file', type=str, help='Absolute path of the inter-process file (shelve).')
+        parser.add_argument('--file', type=str, default = '', help='Absolute path of the inter-process file (shelve).')
+        parser.add_argument('--dark', type=str, default='False', help='True or False for dark mode.')
 
         # Parse known arguments, ignoring others that might be for the parent process
         args, _ = parser.parse_known_args(argv[1:])
@@ -1392,24 +1395,22 @@ class CASTUtils:
             obj_name.host = args.ip
             utils_logger.info(f"Command-line override: host set to {obj_name.host}")
 
-        if args.wled:
-            obj_name.wled = True
-            utils_logger.info("Command-line override: WLED mode enabled.")
+        if obj_name is not None:
+            if args.wled:
+                obj_name.wled = True
+                utils_logger.info("Command-line override: WLED mode enabled.")
 
-        if args.no_text:
-            obj_name.allow_text_animator = False
-            utils_logger.info("Command-line override: Text overlay mode disabled.")
+            if args.no_text:
+                obj_name.allow_text_animator = False
+                utils_logger.info("Command-line override: Text overlay mode disabled.")
 
-        if args.width is not None:
-            obj_name.scale_width = args.width
-            utils_logger.info(f"Command-line override: scale_width set to {obj_name.scale_width}")
+            if args.width is not None:
+                obj_name.scale_width = args.width
+                utils_logger.info(f"Command-line override: scale_width set to {obj_name.scale_width}")
 
-        if args.height is not None:
-            obj_name.scale_height = args.height
-            utils_logger.info(f"Command-line override: scale_height set to {obj_name.scale_height}")
-
-        if args.file:
-            utils_logger.info(f"Command-line file name: {args.file}")
+            if args.height is not None:
+                obj_name.scale_height = args.height
+                utils_logger.info(f"Command-line override: scale_height set to {obj_name.scale_height}")
 
         return True, args
 
