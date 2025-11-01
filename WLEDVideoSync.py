@@ -470,11 +470,7 @@ if __name__  == "__main__":
 
                 # retrieve Media objects from other process
                 # Shelve creates files with extensions like .dat, .bak, .dir depend on py version
-                if sys.version_info < (3, 13):
-                    file_to_check = file + '.dat'
-                else:
-                    file_to_check = file
-
+                file_to_check = Utils.get_shelve_file_path(file)
                 # Check if the file exists
                 if os.path.exists(file_to_check):
                     with shelve.open(file, "r") as proc_file:

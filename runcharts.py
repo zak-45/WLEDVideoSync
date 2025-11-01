@@ -73,20 +73,20 @@ async def main_page():
 @ui.page('/sysstat', title='System Stats')
 async def sys_stat_page():
     await apply_custom()
-    sysstat = SysCharts(dark=DARK_MODE, direct_launch=parsed_args.sysstats)
+    sysstat = SysCharts(dark=DARK_MODE, direct_launch=parsed_args.sysstats if parsed_args is not None else False)
     await sysstat.setup_ui()
 
 
 @ui.page('/netstat', title='Network Stats')
 async def net_stat_page():
     await apply_custom()
-    netstat = NetCharts(dark=DARK_MODE, direct_launch=parsed_args.netstats)
+    netstat = NetCharts(dark=DARK_MODE, direct_launch=parsed_args.netstats if parsed_args is not None else False)
 
 
 @ui.page('/devstat', title='Device Stats')
 async def dev_stat_page():
     await apply_custom()
-    devstat = DevCharts(dark=DARK_MODE, inter_proc_file=INTER_PROC_FILE, direct_launch=parsed_args.devstats)
+    devstat = DevCharts(dark=DARK_MODE, inter_proc_file=INTER_PROC_FILE, direct_launch=parsed_args.devstats if parsed_args is not None else False)
     await devstat.setup_ui(DEV_LIST)
 
 
@@ -110,8 +110,10 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
     INTER_PROC_FILE = i_inter_proc_file
     DARK_MODE = i_dark
 
-    parser = argparse.ArgumentParser(description="WLEDVideoSync Chart Launcher")
-    parser.add_argument('--run-sys-charts', action='store_true', help='If run from WLEDVideoSync directly.')
+    # Disable default help to create a custom one with an alias
+    parser = argparse.ArgumentParser(description="WLEDVideoSync Chart Launcher", add_help=False)
+    parser.add_argument('-h', '--help', '--more', action='help', help='Show this help message and exit.')
+    parser.add_argument('--run-sys-charts', action='store_true', help='Charts Launcher directly (used by WLEDVideoSync).')
     parser.add_argument('--sysstats', action='store_true', help='Launch System Stats chart directly.')
     parser.add_argument('--netstats', action='store_true', help='Launch Network Stats chart directly.')
     parser.add_argument('--devstats', action='store_true', help='Launch Device Stats chart directly.')

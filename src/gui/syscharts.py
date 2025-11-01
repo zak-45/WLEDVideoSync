@@ -702,8 +702,9 @@ class DevCharts:
         # First, try via API call
         try:
             # Read the main server port from the inter-process file
-            with shelve.open(self.inter_proc_file, 'r') as db:
-                server_port = db.get('server_port', 0000)
+            if os.path.exists(file_to_test):
+                with shelve.open(self.inter_proc_file, 'r') as db:
+                    server_port = db.get('server_port', 0000)
 
             # Call the API to get the list of running hosts
             url = f'http://localhost:{server_port}/api/util/all_hosts'

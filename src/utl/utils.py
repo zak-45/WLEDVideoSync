@@ -1330,11 +1330,7 @@ class CASTUtils:
 
         # Shelve file extension handling can differ between Python versions.
         # Conditionally check for the .dat file for better compatibility.
-        file_to_check = inter_proc_file
-        if sys.version_info < (3, 13):
-            # On older versions, shelve often creates a .dat file
-            file_to_check += '.dat'
-
+        file_to_check = CASTUtils.get_shelve_file_path(inter_proc_file)
         if os.path.exists(file_to_check):
             # Store all running hosts in the inter-process file for other components to use
             with shelve.open(inter_proc_file, writeback=True) as proc_file:
@@ -1372,19 +1368,21 @@ class CASTUtils:
         # We only parse arguments after the script name
         parser = argparse.ArgumentParser(description="WLEDVideoSync Child Process Runner")
 
-        # These arguments are relevant for the --run-mobile-server mode
-        parser.add_argument('--wled', action='store_true', help='Set Desktop cast to WLED mode to auto-detect matrix size.')
-        parser.add_argument('--no-text', action='store_true', help='Disable text overlay for the Desktop cast.')
-        parser.add_argument('--ip', type=str, help='Set the target IP address for the Desktop cast.')
-        parser.add_argument('--width', type=int, help='Set the width for the Desktop cast matrix.')
-        parser.add_argument('--height', type=int, help='Set the height for the Desktop cast matrix.')
-        parser.add_argument('--run-mobile-server', action='store_true', help='Run Mobile server application.')
-
         #
         parser.add_argument('--run-sys-charts', action='store_true',
-                            help='Run Charts server application. (add -h for more options)')
+                            help='Run Charts server application. (add --more to see more options)')
 
-        # This argument is used by both --run-mobile-server and --run-sys-charts
+        # Group for mobile server arguments
+        mobile_group = parser.add_argument_group('Mobile Server Options', 'These arguments are only used with --run-mobile-server')
+        mobile_group.add_argument('--run-mobile-server', action='store_true', help='Run Mobile server application.')
+        mobile_group.add_argument('--wled', action='store_true', help='Set Desktop cast to WLED mode to auto-detect matrix size.')
+        mobile_group.add_argument('--no-text', action='store_true', help='Disable text overlay for the Desktop cast.')
+        mobile_group.add_argument('--ip', type=str, help='Set the target IP address for the Desktop cast.')
+        mobile_group.add_argument('--width', type=int, help='Set the width for the Desktop cast matrix.')
+        mobile_group.add_argument('--height', type=int, help='Set the height for the Desktop cast matrix.')
+
+
+        # Common arguments used by multiple modes
         parser.add_argument('--file', type=str, default = '', help='Absolute path of the inter-process file (shelve).')
         parser.add_argument('--dark', type=str, default='False', help='True or False for dark mode.')
 
@@ -1495,6 +1493,22 @@ class CASTUtils:
 
         runcharts.main(dev_list, inter_proc_file, str2bool(dark))
 
+    @staticmethod
+    def get_shelve_file_path(base_path: str) -> str:
+        """
+        Returns the appropriate shelve file path to check for existence,
+        accounting for Python version differences.
+
+        On Python < 3.13, shelve often creates a `.dat` file, so we check for that.
+        On Python >= 3.13, it uses a single file with no extension.
+
+        Args:
+            base_path: The base path of the shelve file.
+
+        Returns:
+            The path that should be checked with os.path.exists().
+        """
+        return f'{base_path}.dat' if sys.version_info < (3, 13) else base_path
 
 
 utils_logger.debug('Utils wled_pid_tmp_file', WLED_PID_TMP_FILE)
