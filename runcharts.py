@@ -91,7 +91,7 @@ async def dev_stat_page():
     await devstat.setup_ui(DEV_LIST)
 
 
-def run_gui(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = False):
+def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = False):
     """Launches the WLEDVideoSync chart UI as a standalone application.
 
     This function parses command-line arguments, sets up device and inter-process file
@@ -148,4 +148,4 @@ def run_gui(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool =
     print('End of sys charts')
 
 if __name__ == "__main__":
-    run_gui()
+    main()

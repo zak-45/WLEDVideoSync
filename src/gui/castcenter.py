@@ -354,15 +354,19 @@ class CastCenter:
         else:
             self.media_status.props('color="green"')
 
-        if self.Desktop.allow_text_animator:
-            self.desktop_text_status.props('color="green"')
-        else:
-            self.desktop_text_status.props('color="yellow"')
+        if self.Desktop.overlay_text or self.Media.overlay_text:
+            if self.Desktop.allow_text_animator:
+                self.desktop_text_status.props('color="green"')
+            else:
+                self.desktop_text_status.props('color="red"')
 
-        if self.Media.allow_text_animator:
-            self.media_text_status.props('color="green"')
+            if self.Media.allow_text_animator:
+                self.media_text_status.props('color="green"')
+            else:
+                self.media_text_status.props('color="red"')
         else:
-            self.media_text_status.props('color="yellow"')
+            self.desktop_text_status.props('color="gray"')
+            self.media_text_status.props('color="gray"')
 
     async def setup_ui(self):
         """Initializes and displays the main user interface for the casting application.
@@ -397,7 +401,7 @@ class CastCenter:
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
                 self.desktop_text_status = ui.icon('subtitles', size='sm', color='red')
-                self.desktop_text_status.tooltip('Text Animator Status: Yellow (Disabled), Green (Enabled)')
+                self.desktop_text_status.tooltip('Text Animator Status: Red (Disabled), Green (Enabled), Gray (Not Used)')
                 self.desktop_status = ui.icon('cast_connected', size='sm', color='green')
                 self.desktop_status.tooltip('Desktop Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
                 ui.label(f'DESKTOP : {self.Desktop.host}').classes('self-center')
@@ -463,7 +467,7 @@ class CastCenter:
         with ui.card().tight().classes('self-center w-full'):
             with ui.row().classes('self-center'):
                 self.media_text_status = ui.icon('subtitles', size='sm', color='red')
-                self.media_text_status.tooltip('Text Animator Status: Yellow (Disabled), Green (Enabled)')
+                self.media_text_status.tooltip('Text Animator Status: Red (Disable), Green (Enabled), Gray (Not Used)')
                 self.media_status = ui.icon('cast_connected', size='sm', color='green')
                 self.media_status.tooltip('Media Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
                 ui.label(f'MEDIA : {self.Media.host}').classes('self-center')
@@ -549,8 +553,9 @@ class CastCenter:
 
         # Add toggle icons for the Text and Tools sections
         with ui.row().classes('self-center gap-4'):
-            ui.icon('text_fields', size='sm').classes('cursor-pointer').tooltip('Show/Hide Text Overlay Controls') \
-                .on('click', lambda: toggle_animated(text_card))
+            if self.Desktop.overlay_text or self.Media.overlay_text:
+                ui.icon('text_fields', size='sm').classes('cursor-pointer').tooltip('Show/Hide Text Overlay Controls') \
+                    .on('click', lambda: toggle_animated(text_card))
             ui.icon('build', size='sm').classes('cursor-pointer').tooltip('Show/Hide Tools') \
                 .on('click', lambda: toggle_animated(tools_card))
 
