@@ -582,8 +582,7 @@ e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number"
  
         e.g. attach to **Thread-9 (t_desktop_cast)_q**
 
-
-        sl, w, h = Utils.attach_to_manager_queue('Thread-9 (t_desktop_cast)_q')
+ ```sl, w, h = Utils.attach_to_manager_queue('Thread-9 (t_desktop_cast)_q')```
 
 - stream to :
                   
