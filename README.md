@@ -286,12 +286,22 @@ def stop_all_casts():
     - just enter some keywords to search for
     - once result displayed clicked on the link provided to copy it into the Url/Path field / Clipboard
   - Clear YT Search: will clear all YT Search area
-  - GIF Menu: open GIF menu 
-    - you can create a new GIF from the selected video (with start / end frame selection)
-    - if WLED device, you can push the GIF to it.
-      - this will upload the gif file to the device and create corresponding preset, so can be played offline.
-      - You can also run the GIFPLAYER
-        - Thanks to : https://github.com/Manut38/WLED-GifPlayer-UI
+  
+  - **GIF Menu**: 
+    - WLEDVideoSync includes a powerful tool to create animated GIFs from video clips and upload them directly to a WLED device. This allows you to create custom, short animations that can be played offline on your WLED setup.
+      - you can create a new GIF from the selected video (with start / end frame selection)
+      - **How to Use:**
+          2.  **Load a Video**: Select a local video file or use a YouTube URL.
+          3.  **Open the GIF Menu**: Click the **"GIF Menu"** button to open the GIF creation tools.
+          4.  **Create Your GIF**:
+                 - Use the sliders or input fields to select the **Start Frame** and **End Frame** for your animation.
+                 - Click **"Create GIF"**. The application will process the video segment and generate the GIF.
+          5.  **Upload to WLED**:
+                 - If your target `Media` device is a WLED, a **"Push to WLED"** button will appear.
+                 - Clicking this will upload the GIF to the WLED device's internal storage and automatically create a new preset for it, making it easy to trigger from the WLED interface.         
+                 - You can also run the GIFPLAYER
+                   - Thanks to : https://github.com/Manut38/WLED-GifPlayer-UI
+                     
   - GIF Close: close the GIF Menu and restore player one.
 
   
