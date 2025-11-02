@@ -82,7 +82,8 @@ async def system_stats(CastAPI, Desktop, Media):
         Media: The Media instance.
     """
 
-    CastAPI.cpu = psutil.cpu_percent(interval=1, percpu=False)
+    # Use a non-blocking call. This returns CPU usage since the last call.
+    CastAPI.cpu = psutil.cpu_percent(interval=None, percpu=False)
     CastAPI.ram = psutil.virtual_memory().percent
     CastAPI.total_packets = Desktop.total_packets + Media.total_packets
     CastAPI.total_frames = Desktop.total_frames + Media.total_frames

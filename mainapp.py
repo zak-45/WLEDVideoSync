@@ -33,6 +33,8 @@ import webbrowser
 
 from threading import Lock, current_thread
 from datetime import datetime
+
+import psutil
 from PIL import Image
 
 from src.cst import desktop, media
@@ -164,6 +166,9 @@ async def init_actions():
 
     # Main Event Loop
     CastAPI.loop = asyncio.get_running_loop()
+
+    # Initial, non-blocking call to psutil to establish a baseline for cpu_percent
+    psutil.cpu_percent(interval=None, percpu=False)
 
     #
     main_logger.info(f'Main running {current_thread().name}')
@@ -1438,27 +1443,13 @@ async def grab_windows():
 
 async def reset_total():
     """ reset frames / packets total values for Media and Desktop """
-    Media.reset_total = True
-    Desktop.reset_total = True
-    #  instruct first cast to reset values
-    if len(Media.cast_names) != 0:
-        result = action_to_thread(class_name='Media',
-                                  cast_name=Media.cast_names[0],
-                                  action='reset',
-                                  clear=False,
-                                  execute=True
-                                  )
-        ui.notify(result)
-
-    if len(Desktop.cast_names) != 0:
-        result = action_to_thread(class_name='Desktop',
-                                  cast_name=Desktop.cast_names[0],
-                                  action='reset',
-                                  clear=False,
-                                  execute=True
-                                  )
-        ui.notify(result)
-
+    # Directly reset the class-level counters.
+    # We must modify the class attribute, not the instance attribute.
+    desktop.CASTDesktop.total_frames = 0
+    desktop.CASTDesktop.total_packets = 0
+    media.CASTMedia.total_frames = 0
+    media.CASTMedia.total_packets = 0
+    
     ui.notify('Reset Total')
 
 async def font_select():
