@@ -79,7 +79,7 @@ presets_logger = logger_manager.logger
 Filter preset mgr
 """
 
-def manage_filter_presets(class_name, class_obj):
+async def manage_filter_presets(class_name, class_obj):
     """ Manage presets"""
 
     ui.button('save preset', on_click=lambda: save_filter_preset(class_name, class_obj)).classes('w-20')
@@ -94,7 +94,7 @@ async def save_filter_preset(class_name: str, class_obj = None) -> None:
     - class_name (str): The name of the class to save the preset for. Must be 'Desktop' or 'Media'.
     """
 
-    def save_file(f_name: str) -> None:
+    async def save_file(f_name: str) -> None:
         if not f_name or not f_name.strip():
             ui.notify(f'Preset name could not be blank: {f_name}', type='negative')
             return
@@ -151,7 +151,7 @@ async def save_filter_preset(class_name: str, class_obj = None) -> None:
     with ui.dialog() as dialog:
         dialog.open()
         with ui.card():
-            ui.label(class_name).classes('self-center')
+            ui.label(f'Saving Preset for {class_name}').classes('self-center')
             ui.separator()
             file_name = ui.input('Enter name', placeholder='preset name')
             with ui.row():
@@ -176,7 +176,7 @@ async def load_filter_preset(class_name: str, class_obj: object = None, interact
         presets_logger.error(f'Unknown Class Name: {class_name}')
         return False
 
-    def apply_preset_filter(preset_data: dict):
+    async def apply_preset_filter(preset_data: dict):
         try:
             keys_to_check = [
                 ('balance_r', 'RGB', 'balance_r', int),
@@ -223,7 +223,6 @@ async def load_filter_preset(class_name: str, class_obj: object = None, interact
             with ui.card().classes('self-center'):
                 ui.label(f'{class_name} Preset').classes('self-center')
                 ui.separator()
-                ui.button('EXIT', on_click=dialog.close)
                 result = await LocalFilePicker(directory=cfg_mgr.app_root_path(f'config/presets/filter/{class_name}'),
                                                multiple=False,
                                                thumbs=False)
@@ -235,6 +234,7 @@ async def load_filter_preset(class_name: str, class_obj: object = None, interact
                             .run_editor_method('updateProps', {'readOnly': True})
                     with ui.row():
                         ui.button('Apply', on_click=lambda: apply_preset_filter(preset_filter_data))
+                        ui.button('EXIT', on_click=dialog.close)
                     return True
                 else:
                     ui.label('No preset selected')
@@ -244,7 +244,7 @@ async def load_filter_preset(class_name: str, class_obj: object = None, interact
 
         try:
             preset_filter_data = cfg.load(cfg_mgr.app_root_path(f'config/presets/filter/{class_name}/{file_name}'))
-            return apply_preset_filter(preset_filter_data)
+            return await apply_preset_filter(preset_filter_data)
 
         except Exception as e:
             presets_logger.error(f'Error loading preset: {e}')
@@ -274,7 +274,7 @@ async def save_cast_preset(class_name: str, class_obj = None) -> None:
     - class_name (str): The name of the class to save the preset for. Must be 'Desktop' or 'Media'.
     """
 
-    def save_file(f_name: str) -> None:
+    async def save_file(f_name: str) -> None:
         if not f_name or not f_name.strip():
             ui.notify(f'Preset name could not be blank: {f_name}', type='negative')
             return
@@ -325,7 +325,7 @@ async def save_cast_preset(class_name: str, class_obj = None) -> None:
     with ui.dialog() as dialog:
         dialog.open()
         with ui.card():
-            ui.label(class_name).classes('self-center')
+            ui.label(f'Saving Preset for {class_name}').classes('self-center')
             ui.separator()
             file_name = ui.input('Enter name', placeholder='Preset name')
 
@@ -351,7 +351,7 @@ async def load_cast_preset(class_name: str, class_obj: object = None, interactiv
         presets_logger.error(f'Unknown Class Name: {class_name}')
         return False
 
-    def apply_preset_cast(preset_cast_data: dict):
+    async def apply_preset_cast(preset_cast_data: dict):
         try:
             keys_to_check = [
                 ('rate', 'GENERAL', 'rate', int),
@@ -403,7 +403,6 @@ async def load_cast_preset(class_name: str, class_obj: object = None, interactiv
             with ui.card().classes('self-center'):
                 ui.label(f'{class_name} Preset').classes('self-center')
                 ui.separator()
-                ui.button('EXIT', on_click=dialog.close)
                 result = await LocalFilePicker(directory=cfg_mgr.app_root_path(f'config/presets/cast/{class_name}'),
                                                multiple=False,
                                                thumbs=False)
@@ -415,6 +414,7 @@ async def load_cast_preset(class_name: str, class_obj: object = None, interactiv
                             .run_editor_method('updateProps', {'readOnly': True})
                     with ui.row():
                         ui.button('Apply', on_click=lambda: apply_preset_cast(preset_data))
+                        ui.button('EXIT', on_click=dialog.close)
                     return True
                 else:
                     ui.label('No preset selected')
@@ -423,7 +423,7 @@ async def load_cast_preset(class_name: str, class_obj: object = None, interactiv
 
         try:
             preset_data = cfg.load(cfg_mgr.app_root_path(f'config/presets/cast/{class_name}/{file_name}'))
-            return apply_preset_cast(preset_data)
+            return await apply_preset_cast(preset_data)
         except Exception as e:
             presets_logger.error(f'Error loading preset: {e}')
             return False

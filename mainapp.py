@@ -99,6 +99,28 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.app_config is not None:
         root_page = '/'
 
 """
+Actions to do at shutdown
+"""
+
+async def shutdown_app():
+    """A graceful shutdown function to prevent race conditions."""
+    main_logger.info("Initiating graceful shutdown...")
+
+    # 1. Stop the scheduler and its worker threads
+    if 'scheduler_app' in globals() and scheduler_app.scheduler.is_running:
+        main_logger.info("Stopping scheduler...")
+        scheduler_app.scheduler.stop()
+
+    # 2. Add any other cleanup for child processes here in the future
+
+    # 3. Give a brief moment for processes to terminate
+    await asyncio.sleep(0.1)
+
+    # 4. Finally, shut down the NiceGUI app
+    app.shutdown()
+
+
+"""
 Actions to do at application initialization 
 """
 async def init_actions():
@@ -265,7 +287,7 @@ class CastAPI:
         pass
 
 # Instantiate Cast Center with Desktop and Media
-cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer)
+cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer, shutdown_func=shutdown_app)
 # Instantiate SchedulerGUI with Desktop and Media
 if str2bool(cfg_mgr.scheduler_config['enable']):
     scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer, True)
@@ -371,7 +393,7 @@ async def main_page():
                                        on_click=lambda: cast_app.toggle_text_media(text_media))
                 text_media.tooltip('Enable or disable text overlay for Media casts')
                 ui.button(icon='edit', on_click=lambda: cast_app.animator_update(Media)).tooltip("Edit Media Text Animation")
-
+        ui.separator().classes('mt-6')
     ui.separator().classes('mt-6')
 
     """
@@ -427,7 +449,7 @@ async def main_page():
         ui.button('Fonts', on_click=font_select, color='bg-red-800')
         ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor?from_menu=true'), color='bg-red-800')
-        ui.button('shutdown', on_click=app.shutdown)
+        ui.button('shutdown', on_click=shutdown_app)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \
                 .classes('text-white')
@@ -1142,7 +1164,7 @@ async def stop_app():
 
     await apply_custom()
 
-    ui.button('ShutDown',icon='power_settings_new', on_click=app.shutdown).classes('flex h-screen m-auto')
+    ui.button('ShutDown',icon='power_settings_new', on_click=shutdown_app).classes('flex h-screen m-auto')
 
 
 @ui.page(cast_center_url)
@@ -1321,8 +1343,8 @@ async def control_panel_page():
                 # presets
                 with ui.row().classes('self-center'):
 
-                    manage_filter_presets('Desktop', Desktop)
-                    manage_filter_presets('Media', Media)
+                    await manage_filter_presets('Desktop', Desktop)
+                    await manage_filter_presets('Media', Media)
 
                 # refreshable
                 with ui.expansion('Monitor', icon='query_stats').classes('self-center w-full'):

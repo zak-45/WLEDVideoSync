@@ -61,15 +61,6 @@ from configmanager import cfg_mgr, LoggerManager
 logger_manager = LoggerManager(logger_name='WLEDLogger.scheduler')
 scheduler_logger = logger_manager.logger
 
-try:
-    scheduler = Scheduler(num_workers=int(cfg_mgr.scheduler_config['num_workers']),
-                          queue_size=int(cfg_mgr.scheduler_config['queue_size']))
-except Exception:
-    scheduler = Scheduler()
-
-
-WLEDScheduler = scheduler.scheduler
-
 AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'))
 jobs = AllJobs()
 
@@ -186,19 +177,20 @@ class SchedulerGUI:
         self.Media = Media
         self.CastAPI = CastAPI
         self.queue = t_data_buffer
+        self.scheduler = Scheduler(num_workers=int(cfg_mgr.scheduler_config.get('num_workers', 2)),
+                                   queue_size=int(cfg_mgr.scheduler_config.get('queue_size', 20)))
+        self.WLEDScheduler = self.scheduler.scheduler
         if self.use_capture:
             self.capture = ConsoleCapture(show_console=False)
 
-    @staticmethod
-    async def start_scheduler():
+    async def start_scheduler(self):
         """Starts the scheduler.
 
         Initiates the scheduler to begin executing scheduled jobs.
         """
-        scheduler.start()
+        self.scheduler.start()
 
-    @staticmethod
-    def schedule_one_time_job(run_at: datetime, job_func, job_name: str = ""):
+    def schedule_one_time_job(self, run_at: datetime, job_func, job_name: str = ""):
         """Schedules a one-time job to run at a specific datetime.
 
         Adds a job to the scheduler that will execute only once at the specified date and time.
@@ -214,15 +206,14 @@ class SchedulerGUI:
         def one_time_wrapper():
             now = datetime.now()
             if now >= run_at:
-                scheduler.send_job_to_queue(job_func)
-                WLEDScheduler.clear(tag=tag)
+                self.scheduler.send_job_to_queue(job_func)
+                self.WLEDScheduler.clear(tag=tag)
 
         one_time_wrapper._job_name = job_name
         one_time_wrapper._run_time = run_at
-        WLEDScheduler.every(1).seconds.do(one_time_wrapper).tag('WLEDVideoSync', 'one-time', tag)
+        self.WLEDScheduler.every(1).seconds.do(one_time_wrapper).tag('WLEDVideoSync', 'one-time', tag)
 
-    @staticmethod
-    def schedule_recurring_job(run_at: WLEDScheduler, job_func, job_name: str = ""):
+    def schedule_recurring_job(self, run_at, job_func, job_name: str = ""):
         """Schedules a recurring job using the scheduler.
 
         Adds a job to the scheduler that will execute repeatedly according to the specified schedule.
@@ -235,11 +226,9 @@ class SchedulerGUI:
         tag = f"recurring-{job_name}"
         unique_id = f"{job_name}-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
 
-        run_at.do(scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', tag, unique_id)
+        run_at.do(self.scheduler.send_job_to_queue, job_func).tag('WLEDVideoSync', tag, unique_id)
 
-
-    @staticmethod
-    async def show_running():
+    async def show_running(self):
         """Displays currently running scheduled jobs.
 
         Opens a dialog box showing the current scheduled jobs retrieved from the scheduler.
@@ -249,7 +238,7 @@ class SchedulerGUI:
             with ui.card().classes('w-full'):
                 with ui.textarea() as schedule_list:
                     schedule_list.classes('w-full bg-gray-100 dark:bg-gray-800')
-                    schedule_list.set_value(format_job_descriptions(WLEDScheduler.get_jobs(), history=True))
+                    schedule_list.set_value(format_job_descriptions(self.WLEDScheduler.get_jobs(), history=True))
                 ui.button('close', on_click=running_jobs.close)
 
     def restart_capture(self):
@@ -274,12 +263,12 @@ class SchedulerGUI:
                                   go_back=False)
 
         def refresh_tag_dropdown():
-            tag_dropdown.options = get_all_unique_tags(WLEDScheduler.get_jobs())
+            tag_dropdown.options = get_all_unique_tags(self.WLEDScheduler.get_jobs())
 
         def clear_jobs_by_tag(tag: str):
             try:
                 if tag:
-                    WLEDScheduler.clear(tag=tag)
+                    self.WLEDScheduler.clear(tag=tag)
                     update_sched()
                     ui.notify(f'Jobs with tag "{tag}" cleared.', type='positive')
                     scheduler_logger.info(f'Jobs with tag "{tag}" cleared.')
@@ -293,7 +282,7 @@ class SchedulerGUI:
             """Clears all jobs from the scheduler."""
             try:
                 slide_item.reset()
-                WLEDScheduler.clear()
+                self.WLEDScheduler.clear()
                 update_sched()  # Update the list after clearing
                 ui.notify('All scheduled jobs cancelled.', type='positive')
                 scheduler_logger.info('All scheduled jobs cancelled.')
@@ -308,8 +297,8 @@ class SchedulerGUI:
             and updates the UI element displaying the list. Logs a warning if the
             scheduler is not running.
             """
-            if scheduler.is_running:
-                schedule_list.set_value(format_job_descriptions(WLEDScheduler.get_jobs()))
+            if self.scheduler.is_running:
+                schedule_list.set_value(format_job_descriptions(self.WLEDScheduler.get_jobs()))
 
             refresh_tag_dropdown()
             tag_dropdown.update()
@@ -322,13 +311,13 @@ class SchedulerGUI:
             """
             if scheduler_switch.value:
                 scheduler_logger.info('start scheduler')
-                scheduler.start()
+                self.scheduler.start()
                 scheduler_status.props('color=green')
                 clock_card.set_visibility(True)
                 analog_clock_card.set_visibility(False)
             else:
                 scheduler_logger.info('stop scheduler')
-                scheduler.stop()
+                self.scheduler.stop()
                 scheduler_status.props('color=yellow')
                 clock_card.set_visibility(False)
                 analog_clock_card.set_visibility(True)
@@ -352,8 +341,8 @@ class SchedulerGUI:
                 if job_func is None:
                     ui.notify(f'Job not found: {job_name}', type='negative')
                     return
-
-                sched = WLEDScheduler.every(interval)
+                
+                sched = self.WLEDScheduler.every(interval)
 
                 # Attach period
                 if period == 'second':
@@ -383,7 +372,7 @@ class SchedulerGUI:
 
                         sched = sched.until(until_dt)
 
-                SchedulerGUI.schedule_recurring_job(sched, job_func, job_name)
+                self.schedule_recurring_job(sched, job_func, job_name)
 
                 update_sched()
                 ui.notify(f'Recurring job \"{job_name}\" scheduled successfully.', type='positive')
@@ -412,7 +401,7 @@ class SchedulerGUI:
                     return
 
                 run_at_time = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
-                SchedulerGUI.schedule_one_time_job(run_at_time, job_func, job_name)
+                self.schedule_one_time_job(run_at_time, job_func, job_name)
 
                 update_sched()
                 ui.notify(f'Job \"{job_name}\" scheduled for {run_at_time}.', type='positive')
@@ -426,7 +415,7 @@ class SchedulerGUI:
             Sets the color of the scheduler status icon to green if the scheduler
             is active, and yellow otherwise.
             """
-            if scheduler_switch.value is True:
+            if self.scheduler.is_running:
                 scheduler_status.props('color=green')
                 update_sched()
             else:
@@ -463,7 +452,7 @@ class SchedulerGUI:
         with (ui.row(wrap=False).classes('w-1/3 self-center')):
             with ui.card().tight().classes('w-full self-center').props('flat'):
                 with ui.row().classes('self-center'):
-                    scheduler_switch = ui.switch('activate', value=scheduler.is_running, on_change=activate_scheduler) \
+                    scheduler_switch = ui.switch('activate', value=self.scheduler.is_running, on_change=activate_scheduler) \
                         .tooltip('Master switch to start or stop the entire scheduler.')
                     scheduler_status = ui.icon('history', size='lg', color='yellow').on('click',
                                                                                         lambda: self.show_running()) \
@@ -489,7 +478,7 @@ class SchedulerGUI:
          add clock
         """
         with ui.card().tight().classes('self-center') as clock_card:
-            if scheduler.is_running:
+            if self.scheduler.is_running:
                 clock_card.set_visibility(True)
             else:
                 clock_card.set_visibility(False)
@@ -513,7 +502,7 @@ class SchedulerGUI:
          add analog clock
         """
         with ui.card().tight().classes('self-center') as analog_clock_card:
-            if scheduler.is_running:
+            if self.scheduler.is_running:
                 analog_clock_card.set_visibility(False)
             else:
                 analog_clock_card.set_visibility(True)
@@ -602,11 +591,9 @@ class SchedulerGUI:
                 with ui.dialog() as clear_tag:
                     with ui.card().classes('self-center w-full'):
                         with ui.row().classes('items-center'):
-                            ui.label("Clear by Tag:")
-                            tag_dropdown = ui.select(
-                                options=get_all_unique_tags(WLEDScheduler.get_jobs()),
-                                label="Choose Tag"
-                            ).classes('w-64')
+                            ui.label("Clear by Tag:")                           
+                            tag_dropdown = ui.select(options=get_all_unique_tags(self.WLEDScheduler.get_jobs()),
+                                                    label="Choose Tag").classes('w-64')
                             ui.button("Clear", icon="delete", color="red",
                                       on_click=lambda: clear_jobs_by_tag(tag_dropdown.value)).tooltip('Remove all jobs with the selected tag.')
                 ui.button('Cancel Job(s)',icon='clear', on_click=clear_tag.open).tooltip('Open a dialog to remove jobs by tag.')
@@ -661,3 +648,4 @@ if __name__ == "__main__":
     ui.run(reload=False)
 
     print('End main')
+    

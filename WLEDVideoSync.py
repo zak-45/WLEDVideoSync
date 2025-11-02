@@ -321,6 +321,7 @@ app.add_static_files('/config', cfg_mgr.app_root_path('config'))
 app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
 app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
 app.on_startup(init_actions)
+app.on_shutdown(shutdown_app)
 
 
 def main():

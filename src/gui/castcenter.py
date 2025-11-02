@@ -89,7 +89,7 @@ async def open_webview_manage_casts_page() -> None:
 
 
 class CastCenter:
-    def __init__(self, Desktop, Media, CastAPI, t_data_buffer):
+    def __init__(self, Desktop, Media, CastAPI, t_data_buffer, shutdown_func=None):
 
         self.media_text_status = None
         self.desktop_text_status = None
@@ -109,6 +109,7 @@ class CastCenter:
         self.font_manager = None
         self.font_name_label = None
         self.font_size_label = None
+        self.shutdown_func = shutdown_func
 
 
     async def toggle_text_media(self, media_button):
@@ -574,6 +575,7 @@ class CastCenter:
                                            on_click= lambda: self.toggle_text_media(text_media))
                     text_media.tooltip('Enable or disable text overlay for Media casts')
                     ui.button(icon='edit', on_click=lambda: self.animator_update(self.Media)).tooltip("Edit Media Text Animation")
+            ui.separator().classes('mt-6')
 
         with ui.card().classes('self-center w-full') as tools_card:
             tools_card.set_visibility(False)
@@ -696,7 +698,7 @@ class CastCenter:
                 with ui.list().props('bordered'):
                     with ui.slide_item('ShutDown') as slide_item:
                         with slide_item.right():
-                            ui.button('STOP', on_click=lambda: app.shutdown())
+                            ui.button('STOP', on_click=self.shutdown_func)
 
 center_logger.debug('Castcenter wled_pid_tmp_file', WLED_PID_TMP_FILE)
 

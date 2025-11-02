@@ -11,6 +11,7 @@ This script is intended to be run as a standalone application, typically called 
 WLEDVideoSync application.
 """
 import argparse
+import asyncio
 from nicegui import ui, app, native
 from src.gui.syscharts import SysCharts, NetCharts, DevCharts
 
@@ -29,12 +30,12 @@ except Exception as e:
         pass
 
 
-def shutdown():
+async def shutdown():
      """Gracefully shut down the application by cleaning up resources first."""
-
-     # Schedule the shutdown to run after a short delay.
-     # This allows the UI to process the click event before the server stops.
-     ui.timer(0.1, app.shutdown, once=True)
+     # This delay gives the client-side a moment to process the shutdown command
+     # before the server starts tearing down connections, preventing a race condition.
+     await asyncio.sleep(0.1)
+     app.shutdown()
 
 
 @ui.page('/')
@@ -90,7 +91,7 @@ async def dev_stat_page():
     await devstat.setup_ui(DEV_LIST)
 
 
-def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = False):
+def run_gui(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = False):
     """Launches the WLEDVideoSync chart UI as a standalone application.
 
     This function parses command-line arguments, sets up device and inter-process file
@@ -147,4 +148,4 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
     print('End of sys charts')
 
 if __name__ == "__main__":
-    main()
+    run_gui()
