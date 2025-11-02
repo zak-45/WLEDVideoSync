@@ -22,6 +22,7 @@
  - **Powerful UI**: A modern web interface built with NiceGUI that can run as a native window, in a browser, or headlessly as a service.
  - **GIF Creation**: Create GIFs from video segments and upload them directly to a WLED device, complete with a new preset.
  - **Full-Featured Scheduler**: Automate your casts with recurring, one-shot, or custom-timed jobs.
+ - **Coldtype Integration**: a powerful Python library for typographic and graphic animation.
  - **Advanced Scripting**: Extend functionality with a built-in Python editor and an external API for third-party integration.
  
  ---
@@ -540,6 +541,8 @@ Communication data use Json format for in / out.
 action/type/param are required keys.
 e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}``
 
+
+ ---
 ### Advanced Usage
 
 #### Coldtype Integration for Creative Coding
@@ -578,7 +581,7 @@ e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number"
      - A preview window will appear, waiting for frames.
      - When you run your Coldtype script, the frames will appear in the preview and can be cast to your devices.
 
-
+ ---
 
  ### Troubleshooting
  - Ensure your WLED device is properly connected and configured.
