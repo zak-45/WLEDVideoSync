@@ -580,16 +580,19 @@ e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number"
  
  1.  **In your Coldtype script**: Use the `SharedListClient` to connect to the queue manager and put your rendered frames into a named queue.
  
-        e.g. attach to **Thread-9 (t_desktop_cast)_q**  ```sl, w, h = Utils.attach_to_manager_queue('Thread-9 (t_desktop_cast)_q')```
- 
-        stream to : 
-        ```
-        frame = gen_image.toarray()
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
+        e.g. attach to **Thread-9 (t_desktop_cast)_q**
 
-        if all(item is not None for item in [sl, w, h]):
-            ImgUtils.send_to_queue(frame, sl, w, h)
-        ```
+
+        sl, w, h = Utils.attach_to_manager_queue('Thread-9 (t_desktop_cast)_q')
+
+- stream to :
+                  
+                    frame = gen_image.toarray()
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
+    
+                    if all(item is not None for item in [sl, w, h]):
+                        ImgUtils.send_to_queue(frame, sl, w, h)
+              
  2.  **In WLEDVideoSync**:
      - Go to the **Desktop Params** page.
      - Set the **Input** to `queue`.
