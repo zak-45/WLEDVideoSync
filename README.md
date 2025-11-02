@@ -470,7 +470,7 @@ See ``WLEDVideoSync/config/WLEDVideoSync.readme`` for in-deep information.
 
 The logging configuration file is : ``WLEDVideoSync/config/logging.ini``. Logs can be found under ``log/`` folder.
 
-Default behaviour:
+#### Default behaviour:
 - Win OS /Mac : app will start on "native" windows.
   >To terminate the app, click on shutdown into footer or close the window
   
@@ -490,26 +490,15 @@ Default behaviour:
          export LIBGL_ALWAYS_SOFTWARE=1
  
 
-Put on Systray:
+#### Put on Systray:
 - To use the systray:
   - modify ``put_on_systray`` in the config file. Once set, no GUI will be launched: you need to click on systray icon 
 for that.
   >this work out-of-box for win, but some additional lib/settings should be necessary for linux/mac 
   > https://pystray.readthedocs.io/en/latest/usage.html#selecting-a-backend
-
-### WebSocket
-endpoint : ``/ws`` e.g: 127.0.0.1:8000/ws
-
-``/ws/docs`` : some online documentation
-
-Websocket has been implemented mainly to cast only image & small delay. The image need to be stored into BUFFER.
-Communication data use Json format for in / out. 
-
-action/type/param are required keys.
-e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}``
-
-
+  
  ---
+
 ### Advanced Usage
 
 #### Coldtype Integration for Creative Coding
@@ -585,11 +574,12 @@ e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number"
  
  This allows for dynamic control from external software.
  
- ##### WebSocket API
+ #### WebSocket API
  For lower-latency communication, a WebSocket endpoint is available. It's primarily designed for simple, fast actions like casting a pre-captured image from the buffer.
  
  *   **Endpoint**: `/ws` (e.g., `ws://localhost:8080/ws`)
  *   **Format**: JSON
+ * ``/ws/docs`` : some online documentation
  
  All messages must be a JSON object with an `action` key, which contains `type` and `param` keys.
  
