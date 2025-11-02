@@ -493,7 +493,7 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
   
 
  ---
- 
+
 ### Configuration
 The main App configuration file is: ``WLEDVideoSync/config/WLEDVideoSync.ini``
 See ``WLEDVideoSync/config/WLEDVideoSync.readme`` for in-deep information.
@@ -539,6 +539,46 @@ Communication data use Json format for in / out.
 
 action/type/param are required keys.
 e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number":-1, "class_name":"Media"}}}``
+
+### Advanced Usage
+
+#### Coldtype Integration for Creative Coding
+ WLEDVideoSync integrates Coldtype, a powerful Python library for typographic and graphic animation. This allows you to generate complex, code-driven visuals and stream them directly to your LED devices.
+ 
+ This feature is designed for advanced users who are comfortable with Python scripting. It runs Coldtype scripts in a separate, isolated process to ensure the main application remains responsive.
+ 
+ There are two main ways to work with Coldtype in WLEDVideoSync:
+ 
+ ##### 1. Coldtype Script Runner
+ The dedicated **Coldtype Runner** page allows you to browse and execute any Python script.
+ 
+ - **How to access**: Navigate to the `/Coldtype` page from the main menu.
+ - **Usage**:
+     1. Click **"Select Script"** to open a file browser.
+     2. Navigate to your script (e.g., in the `xtra/text/coldtype` folder).
+     3. Once a file is selected, click **"Run Coldtype"** to execute it.
+     4. Coldtype will run in a background process. Depending on the script, it may open its own preview window.
+ 
+ ##### 2. Built-in Coldtype Editor
+ For a more integrated experience, you can use the built-in Python Editor, which has a special mode for Coldtype.
+ 
+ - **How to access**: Navigate to the **PYEditor** from the footer menu and select **"Coldtype Editor"**.
+ - **Features**:
+     - Write and edit your Coldtype scripts directly in the browser.
+     - Use the "Run" button to execute the script via the `RUNColdtype` engine.
+     - View `print()` statements and errors from your script in the "Console" output section, which is invaluable for debugging.
+ 
+ ##### How it Works: Streaming Frames
+ To stream your Coldtype animation to WLEDVideoSync, your script needs to send its rendered frames to a shared queue. A `Desktop` cast can then be configured to read from this queue and stream the content to your LED devices.
+ 
+ 1.  **In your Coldtype script**: Use the `SharedListClient` to connect to the queue manager and put your rendered frames into a named queue.
+ 2.  **In WLEDVideoSync**:
+     - Go to the **Desktop Params** page.
+     - Set the **Input** to `queue`.
+     - A preview window will appear, waiting for frames.
+     - When you run your Coldtype script, the frames will appear in the preview and can be cast to your devices.
+
+
 
  ### Troubleshooting
  - Ensure your WLED device is properly connected and configured.

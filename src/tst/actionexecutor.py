@@ -101,7 +101,8 @@ class ActionExecutor:
                     self.logger.error(traceback.format_exc())
                     self.logger.error(f'Action {action} in ERROR from {self.t_name} : {error}')
 
-                self.class_obj.cast_name_todo.remove(item)
+                finally:
+                    self.class_obj.cast_name_todo.remove(item)
 
         return t_todo_stop, self.t_preview
 
