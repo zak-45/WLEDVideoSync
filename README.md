@@ -545,9 +545,13 @@ e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number"
  ---
 ### Advanced Usage
 
+
+
 #### Coldtype Integration for Creative Coding
  WLEDVideoSync integrates Coldtype, a powerful Python library for typographic and graphic animation. This allows you to generate complex, code-driven visuals and stream them directly to your LED devices.
  
+<img src="https://raw.githubusercontent.com/goodhertz/coldtype/main/examples/renders/simple_render.png" alt="Coldtype"  height="200">
+
  This feature is designed for advanced users who are comfortable with Python scripting. It runs Coldtype scripts in a separate, isolated process to ensure the main application remains responsive.
  
  There are two main ways to work with Coldtype in WLEDVideoSync:
