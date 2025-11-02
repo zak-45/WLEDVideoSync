@@ -78,6 +78,21 @@ async def text_page(class_obj=None):
         class_obj.update_text_animator(**params)
         ui.notify('TextAnimator parameters updated!', type='positive')
 
+    def reset_to_default():
+        """Resets the animator to its default state and updates the UI."""
+        # Explicitly reset the font attributes on the parent object to their defaults.
+        # This is crucial because the new animator will be created using these values.
+        class_obj.font_path = None
+        class_obj.font_size = 25
+
+        # Stop and restart the animator to reset it to default values.
+        class_obj.stop_text_animator()
+        class_obj.start_text_animator()
+        # Reload the page to ensure all UI elements are re-rendered with the new default values.
+        ui.navigate.reload()
+
+        ui.notify('Animator reset to default values.', type='info')
+
     with (ui.card().classes('w-full')):
         text_input = ui.textarea('Text', value=animator.text).props('autogrow').classes('w-full')
         with ui.grid(columns=3).classes('gap-4'):
@@ -148,4 +163,6 @@ async def text_page(class_obj=None):
                     shadow_offset_y = ui.number('Shadow Y', value=animator.shadow_offset[1])
 
 
-    ui.button('Apply Changes', on_click=apply_changes).classes('mt-4 self-center')
+    with ui.row().classes('w-full justify-center mt-4'):
+        ui.button('Apply Changes', on_click=apply_changes)
+        ui.button('Reset to Default', on_click=reset_to_default, color='orange')

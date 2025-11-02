@@ -450,8 +450,8 @@ async def main_page():
         sysstat_device.tooltip('Re-Generate device list from running casts to SysCharts')
         root_page_url = Utils.root_page()
         go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
-        ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url)).tooltip('Go to Cast Center Page')
-        ui.button('Fonts', on_click=font_select, color='bg-red-800')
+        ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url)).tooltip('Go to Cast Center Page')        
+        ui.button('Fonts', on_click=cast_app.font_select, color='bg-red-800')
         ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor?from_menu=true'), color='bg-red-800')
         ui.button('shutdown', on_click=shutdown_app)
@@ -1451,18 +1451,6 @@ async def reset_total():
     media.CASTMedia.total_packets = 0
     
     ui.notify('Reset Total')
-
-async def font_select():
-    """
-    Font Page
-    :return:
-    """
-
-    with ui.dialog() as font_dialog:
-        font_dialog.open()
-        with ui.card().classes('w-full'):
-            await manage_font_page()
-            ui.button('close', on_click=font_dialog.close).classes('self-center')
 
 
 async def cast_manage_page():

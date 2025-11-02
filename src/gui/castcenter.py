@@ -107,8 +107,10 @@ class CastCenter:
         self.font_path = None
         self.font_size = 25
         self.font_manager = None
-        self.font_name_label = None
-        self.font_size_label = None
+        self.desktop_font_name_label = None
+        self.desktop_font_size_label = None
+        self.media_font_name_label = None
+        self.media_font_size_label = None
         self.shutdown_func = shutdown_func
 
 
@@ -148,37 +150,44 @@ class CastCenter:
         Font Page
         :return:
         """
-        def apply_font(dialog):
+        def apply_font(dialog, apply_to_desktop, apply_to_media):
+            if not apply_to_desktop.value and not apply_to_media.value:
+                ui.notify('Please select at least one target (Desktop or Media).', type='warning')
+                return
+
             self.font_path = self.font_manager.selected_font_path
             self.font_size = self.font_manager.font_size
-            # Update both desktop and Media instances with the selected font
-            self.Desktop.font_path = self.font_path
-            self.Desktop.font_size = self.font_size
-            # dynamic update for running cast
-            self.Desktop.update_text_animator(font_path=self.font_path, font_size=self.font_size)
 
-            self.Media.font_path = self.font_path
-            self.Media.font_size = self.font_size
-            # dynamic update for running cast
-            self.Media.update_text_animator(font_path=self.font_path, font_size=self.font_size)
+            if apply_to_desktop.value:
+                self.Desktop.font_path = self.font_path
+                self.Desktop.font_size = self.font_size
+                self.Desktop.update_text_animator(font_path=self.font_path, font_size=self.font_size)
 
-            # Update the UI labels with the new font info
-            if self.font_path:
-                self.font_name_label.set_text(os.path.basename(self.font_path))
-            self.font_size_label.set_text(str(self.font_size))
+            if apply_to_media.value:
+                self.Media.font_path = self.font_path
+                self.Media.font_size = self.font_size
+                self.Media.update_text_animator(font_path=self.font_path, font_size=self.font_size)
 
-            ui.notify(f'Applied font: {os.path.basename(self.font_path or "None")} at size {self.font_size}',
-                      type='positive', position='top-right')
-            # dialog.close()
+            # Update the UI labels based on which cast type was updated
+            if apply_to_desktop.value:
+                self.desktop_font_name_label.set_text(os.path.basename(self.font_path or "Default"))
+                self.desktop_font_size_label.set_text(str(self.font_size))
+            if apply_to_media.value:
+                self.media_font_name_label.set_text(os.path.basename(self.font_path or "Default"))
+                self.media_font_size_label.set_text(str(self.font_size))
+
+            ui.notify(f'Applied font: {os.path.basename(self.font_path or "None")} at size {self.font_size}', type='positive')
+            dialog.close()
 
         with ui.dialog() as font_dialog:
             font_dialog.open()
             with ui.card().classes('w-full'):
-                # Pass the existing font_manager instance to the page
                 await font_page(self.font_manager)
                 with ui.row().classes('self-center'):
-                    ui.button('close', on_click=font_dialog.close)
-                    ui.button('apply', on_click=lambda: apply_font(font_dialog))
+                    apply_desktop_check = ui.checkbox('Apply to Desktop', value=True)
+                    apply_media_check = ui.checkbox('Apply to Media', value=True)
+                    ui.button('apply', on_click=lambda: apply_font(font_dialog, apply_desktop_check, apply_media_check))
+                ui.button('close', on_click=font_dialog.close).classes('self-center')
 
 
     async def run_mobile(self):
@@ -548,33 +557,36 @@ class CastCenter:
         with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') as text_card:
             text_card.set_visibility(False)
             ui.label('TEXT Overlay').classes('self-center')
-            with ui.row(wrap=False).classes('self-center'):
-                ui.label('Font:').classes('self-center')
-                self.font_name_label = ui.label('').classes('self-center')
-                ui.label('Size:').classes('self-center')
-                self.font_size_label = ui.label('').classes('self-center')
-
-            # Set initial values for the font labels
-            if self.font_path:
-                self.font_name_label.set_text(os.path.basename(self.font_path))
-            self.font_size_label.set_text(str(self.font_size))
 
             with ui.row(wrap=False).classes('w-full'):
                 card_text = ui.card().tight().classes('w-1/3 self-center')
                 card_text.set_visibility(True)
-                with ui.row():
-                    text_desktop = ui.button('Allow ',
-                                             icon='computer',
-                                             on_click= lambda: self.toggle_text_desktop(text_desktop))
-                    text_desktop.tooltip('Enable or disable text overlay for Desktop casts')
-                    ui.button(icon='edit', on_click=lambda: self.animator_update(self.Desktop)).tooltip("Edit Desktop Text Animation")
+                with ui.column().classes('items-center'):
+                    with ui.row():
+                        text_desktop = ui.button('Allow ',
+                                                 icon='computer',
+                                                 on_click= lambda: self.toggle_text_desktop(text_desktop))
+                        text_desktop.tooltip('Enable or disable text overlay for Desktop casts')
+                        ui.button(icon='edit', on_click=lambda: self.animator_update(self.Desktop)).tooltip("Edit Desktop Text Animation")
+                    with ui.row():
+                        ui.label('Font:')
+                        self.desktop_font_name_label = ui.label(os.path.basename(self.Desktop.font_path or "Default"))
+                        ui.label('Size:')
+                        self.desktop_font_size_label = ui.label(str(self.Desktop.font_size))
+
                 ui.button('Fonts',on_click=self.font_select).tooltip('Open font selection and configuration dialog')
-                with ui.row():
-                    text_media = ui.button('Allow',
-                                           icon='image',
-                                           on_click= lambda: self.toggle_text_media(text_media))
-                    text_media.tooltip('Enable or disable text overlay for Media casts')
-                    ui.button(icon='edit', on_click=lambda: self.animator_update(self.Media)).tooltip("Edit Media Text Animation")
+                with ui.column().classes('items-center'):
+                    with ui.row():
+                        text_media = ui.button('Allow',
+                                               icon='image',
+                                               on_click= lambda: self.toggle_text_media(text_media))
+                        text_media.tooltip('Enable or disable text overlay for Media casts')
+                        ui.button(icon='edit', on_click=lambda: self.animator_update(self.Media)).tooltip("Edit Media Text Animation")
+                    with ui.row():
+                        ui.label('Font:')
+                        self.media_font_name_label = ui.label(os.path.basename(self.Media.font_path or "Default"))
+                        ui.label('Size:')
+                        self.media_font_size_label = ui.label(str(self.Media.font_size))
             ui.separator().classes('mt-6')
 
         with ui.card().classes('self-center w-full') as tools_card:

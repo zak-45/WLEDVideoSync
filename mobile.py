@@ -168,18 +168,18 @@ async def stream():
             z-index: 10;
         }
     </style>
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90vh;">
+    <div style="display: flex; flex-direction: column; align-items: center; padding-top: 2vh;">
         <h4>WLEDVideoSync - Mobile Webcam / Media Stream (iOS/Android)</h4>
-        <div id="media-container" style="position: relative; width: 320px; height: 240px;">
-            <video id="video" muted autoplay playsinline width="320" height="240" style="border: 4px solid #ccc;"></video>
-            <img id="image-preview" style="display: none; width: 320px; height: 240px; border: 4px solid #ccc; object-fit: contain;">
+        <div id="media-container" style="position: relative; width: 90%; max-width: 480px;">
+            <video id="video" muted autoplay playsinline style="width: 100%; height: auto; border: 4px solid #ccc;"></video>
+            <img id="image-preview" style="display: none; width: 100%; height: auto; border: 4px solid #ccc; object-fit: contain;">
             <div id="status-indicator">
                 <div id="status-dot" class="blinking-dot" style="width: 15px; height: 15px; background-color: #28a745; border-radius: 50%;"></div>
                 <span id="status-text" style="margin-left: 8px; color: white; font-weight: bold;">Streaming...</span>
             </div>
         </div>
         <p id="source-info" style="margin-top: 5px; font-style: italic; color: #555; height: 20px;"></p>
-        <div id="controls" style="display: flex; align-items: center; margin-top: 10px; gap: 15px;">
+        <div id="controls" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 10px; gap: 15px;">
             <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
             <button id="select-file-btn" class="control-btn">Select File</button>
             <button id="camera-mode-btn" class="control-btn">Live Camera</button>
