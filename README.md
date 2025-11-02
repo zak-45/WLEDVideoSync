@@ -579,7 +579,8 @@ e.g: ``{"action":{"type":"cast_image", "param":{"image_number":0,"device_number"
  To stream your Coldtype animation to WLEDVideoSync, your script needs to send its rendered frames to a shared queue. A `Desktop` cast can then be configured to read from this queue and stream the content to your LED devices.
  
  1.  **In your Coldtype script**: Use the `SharedListClient` to connect to the queue manager and put your rendered frames into a named queue.
-    e.g. attach to **Thread-9 (t_desktop_cast)_q**  ```sl, w, h = Utils.attach_to_manager_queue('Thread-9 (t_desktop_cast)_q')```
+ 
+        e.g. attach to **Thread-9 (t_desktop_cast)_q**  ```sl, w, h = Utils.attach_to_manager_queue('Thread-9 (t_desktop_cast)_q')```
  
         stream to : 
         ```
