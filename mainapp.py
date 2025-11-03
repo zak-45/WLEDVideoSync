@@ -48,7 +48,6 @@ from src.gui.schedulergui import SchedulerGUI
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
 from src.gui.videoplayer import VideoPlayer
-from src.utl.console import ConsoleCapture
 from src.utl.webviewmanager import WebviewManager
 
 from src.gui.presets import *
