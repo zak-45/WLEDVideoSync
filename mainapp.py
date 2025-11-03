@@ -296,7 +296,7 @@ class LatestFrame:
 
 
 # Instantiate Cast Center with Desktop and Media
-cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer, shutdown_func=cleanup_on_shutdown)
+center_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer, shutdown_func=cleanup_on_shutdown)
 # Instantiate SchedulerGUI with Desktop and Media
 if str2bool(cfg_mgr.scheduler_config['enable']):
     scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer, True)
@@ -382,26 +382,26 @@ async def main_page():
         ui.label('TEXT Overlay').classes('self-center')
         with ui.row(wrap=False).classes('self-center'):
             ui.label('Font:').classes('self-center')
-            cast_app.font_name_label = ui.label('').classes('self-center')
+            center_app.font_name_label = ui.label('').classes('self-center')
             ui.label('Size:').classes('self-center')
-            cast_app.font_size_label = ui.label('').classes('self-center')
+            center_app.font_size_label = ui.label('').classes('self-center')
 
         with ui.row(wrap=False).classes('w-full justify-center items-center gap-4'):
             with ui.row():
                 text_desktop = ui.button('Allow',
                                          icon='computer',
-                                         on_click=lambda: cast_app.toggle_text_desktop(text_desktop))
+                                         on_click=lambda: center_app.toggle_text_desktop(text_desktop))
                 text_desktop.tooltip('Enable or disable text overlay for Desktop casts')
-                ui.button(icon='edit', on_click=lambda: cast_app.animator_update(Desktop)).tooltip("Edit Desktop Text Animation")
+                ui.button(icon='edit', on_click=lambda: center_app.animator_update(Desktop)).tooltip("Edit Desktop Text Animation")
 
-            ui.button('Fonts', on_click=cast_app.font_select).tooltip('Open font selection and configuration dialog')
+            ui.button('Fonts', on_click=center_app.font_select).tooltip('Open font selection and configuration dialog')
 
             with ui.row():
                 text_media = ui.button('Allow',
                                        icon='image',
-                                       on_click=lambda: cast_app.toggle_text_media(text_media))
+                                       on_click=lambda: center_app.toggle_text_media(text_media))
                 text_media.tooltip('Enable or disable text overlay for Media casts')
-                ui.button(icon='edit', on_click=lambda: cast_app.animator_update(Media)).tooltip("Edit Media Text Animation")
+                ui.button(icon='edit', on_click=lambda: center_app.animator_update(Media)).tooltip("Edit Media Text Animation")
         ui.separator().classes('mt-6')
     ui.separator().classes('mt-6')
 
@@ -455,7 +455,7 @@ async def main_page():
         root_page_url = Utils.root_page()
         go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
         ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url)).tooltip('Go to Cast Center Page')        
-        ui.button('Fonts', on_click=cast_app.font_select, color='bg-red-800')
+        ui.button('Fonts', on_click=center_app.font_select, color='bg-red-800')
         ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor?from_menu=true'), color='bg-red-800')
         ui.button('shutdown', on_click=app.shutdown)
@@ -1178,7 +1178,7 @@ async def stop_app():
 
 @ui.page(cast_center_url)
 async def cast_center_page():
-    await cast_app.setup_ui()
+    await center_app.setup_ui()
 
 @ui.page('/Scheduler')
 async def scheduler_page():
@@ -1957,6 +1957,7 @@ if __name__ == "__main__":
     app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
     app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
     app.on_startup(init_actions)
+    app.on_shutdown(cleanup_on_shutdown)
 
     ui.run(reload=False, fastapi_docs=True, native=False)
 
