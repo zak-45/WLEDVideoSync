@@ -88,6 +88,7 @@ class WebviewManager:
                 process.terminate()
                 process.join(timeout=5)
         self.webview_processes.clear()
+        print('Stop all running webview processes')
 
     def get_running_webviews(self):
         """Get a list of running webview processes."""

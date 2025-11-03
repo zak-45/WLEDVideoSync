@@ -38,7 +38,7 @@ import psutil
 from PIL import Image
 
 from src.cst import desktop, media
-from src.net.discover import HTTPDiscovery as Net
+from src.net.discover import HTTPDiscovery
 from src.gui.niceutils import apply_custom, media_dev_view_page, discovery_net_notify, net_view_button
 from src.gui.niceutils import LogElementHandler
 from src.gui.niceutils import AnimatedElement as Animate
@@ -59,27 +59,10 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
 
 
-class LatestFrame:
-    """A thread-safe class to hold the latest frame from a cast."""
-
-    def __init__(self):
-        self.frame = None
-        self.lock = Lock()
-
-    def set(self, frame):
-        """Safely sets the latest frame."""
-        with self.lock:
-            self.frame = frame
-
-    def get(self):
-        """Safely gets the latest frame."""
-        with self.lock:
-            return self.frame
-
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
-Netdevice = Net()
+Netdevice = HTTPDiscovery()
 window_native = WebviewManager()
 
 # to share data between threads and main
@@ -114,9 +97,14 @@ async def shutdown_app():
         scheduler_app.scheduler.stop()
 
     # 2. Add any other cleanup for child processes here in the future
+    Desktop.stopcast = True
+    Media.stopcast = True
+
+    window_native.close_all_webviews()
+
 
     # 3. Give a brief moment for processes to terminate
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.5)
 
     # 4. Finally, shut down the NiceGUI app
     app.shutdown()
@@ -290,6 +278,25 @@ class CastAPI:
 
     def __init__(self):
         pass
+
+class LatestFrame:
+    """A thread-safe class to hold the latest frame from a cast."""
+
+    def __init__(self):
+        self.frame = None
+        self.lock = Lock()
+
+    def set(self, frame):
+        """Safely sets the latest frame."""
+        with self.lock:
+            self.frame = frame
+
+    def get(self):
+        """Safely gets the latest frame."""
+        with self.lock:
+            return self.frame
+
+
 
 # Instantiate Cast Center with Desktop and Media
 cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer, shutdown_func=shutdown_app)
