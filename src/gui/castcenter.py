@@ -715,7 +715,7 @@ class CastCenter:
                 with ui.list().props('bordered'):
                     with ui.slide_item('ShutDown') as slide_item:
                         with slide_item.right():
-                            ui.button('STOP', on_click=self.shutdown_func)
+                            ui.button('STOP', on_click=app.shutdown)
 
 center_logger.debug('Castcenter wled_pid_tmp_file', WLED_PID_TMP_FILE)
 

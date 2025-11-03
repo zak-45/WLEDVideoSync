@@ -65,7 +65,6 @@ Temporary File Handling:
 
 """
 import os
-import sys
 
 from subprocess import Popen
 
@@ -78,7 +77,6 @@ warnings.filterwarnings("ignore", category=UserWarning, message="pkg_resources i
 if os.getenv('WLEDVideoSync_trace'):
     import tracetool
 
-from nicegui import native
 from src.gui.niceutils import custom_openapi
 
 # import everything from mainapp.py: the main logic come from there
@@ -321,7 +319,7 @@ app.add_static_files('/config', cfg_mgr.app_root_path('config'))
 app.add_static_files('/tmp', cfg_mgr.app_root_path('tmp'))
 app.add_static_files('/xtra', cfg_mgr.app_root_path('xtra'))
 app.on_startup(init_actions)
-app.on_shutdown(shutdown_app)
+app.on_shutdown(cleanup_on_shutdown)
 
 
 def main():

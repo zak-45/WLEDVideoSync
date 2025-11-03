@@ -88,11 +88,12 @@ class DualStream:
             formatted_message = f"[{timestamp}] [{self.stream_name}] {message.strip()}"
             self.queue.put(formatted_message)  # Send to log queue
             if self.original_stream:
-                self.original_stream.write(message+'\n')  # Send to original stdout/stderr
+                self.original_stream.write(message + '\n')  # Send to original stdout/stderr
 
     def flush(self):
         if self.original_stream:
             self.original_stream.flush()
+
 
 class RUNColdtype(multiprocessing.Process):
     """Run the Coldtype renderer in a separate process.
@@ -101,13 +102,18 @@ class RUNColdtype(multiprocessing.Process):
      redirects stdout and stderr to the log queue if provided,
      and then executes the Coldtype renderer.
      """
-    def __init__(self, script_file='', log_queue=None, shared_list_name=None, no_view:bool = False):
+    # Class-level list to keep track of all running instances
+    running_processes = []
+
+    def __init__(self, script_file='', log_queue=None, shared_list_name=None, no_view: bool = False):
         super().__init__()
         self.script_file = script_file
-        self.log_queue = log_queue   # Optional log queue for console capture
+        self.log_queue = log_queue  # Optional log queue for console capture
         self.shared_list = ShareableList(name=shared_list_name) if shared_list_name else None
         self.no_view = no_view
-
+        self.daemon = True  # Ensure the process runs as a daemon
+        # Add the new instance to the list when it's created
+        RUNColdtype.running_processes.append(self)
 
     def run(self):
         """Run the Coldtype renderer in a separate process.
@@ -138,12 +144,12 @@ class RUNColdtype(multiprocessing.Process):
             else:
                 editor = 'notepad'
             _, parser = Renderer.Argparser()
-            args =[self.script_file,
-                   "-kl", keyboard,
-                   "-wcs", "1",
-                   "-ec", editor,
-                   "-of", render_folder,
-                   "-nv", str(self.no_view)]
+            args = [self.script_file,
+                    "-kl", keyboard,
+                    "-wcs", "1",
+                    "-ec", editor,
+                    "-of", render_folder,
+                    "-nv", str(self.no_view)]
             print(f"Using arguments: {args}")
             params = parser.parse_args(args)
             renderer = Renderer(parser=params)
@@ -160,6 +166,20 @@ class RUNColdtype(multiprocessing.Process):
             if self.log_queue:
                 sys.stdout = sys.__stdout__  # Restore original stdout
                 sys.stderr = sys.__stderr__  # Restore original stderr
+            # Remove from the list when the process finishes
+            if self in RUNColdtype.running_processes:
+                RUNColdtype.running_processes.remove(self)
+
+    @staticmethod
+    def stop_all():
+        """Stops all running RUNColdtype processes."""
+        text_logger.info(f"Stopping {len(RUNColdtype.running_processes)} RUNColdtype processes...")
+        for process in list(RUNColdtype.running_processes):  # Iterate over a copy
+            if process.is_alive():
+                text_logger.info(f"Terminating RUNColdtype process {process.pid}...")
+                process.terminate()
+                process.join(timeout=1)  # Give it a moment to terminate
+        RUNColdtype.running_processes.clear()
 
 
 if __name__ == "__main__":
@@ -171,7 +191,6 @@ if __name__ == "__main__":
         print("Main process can perform tasks here.")
         time.sleep(5)  # Wait 1 second before checking again
         cold.join()
-
 
     # Now that Coldtype is finished, we can exit the main process
     print("Coldtype process finished. Main process is now ending.")

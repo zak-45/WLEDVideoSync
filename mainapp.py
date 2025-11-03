@@ -87,28 +87,25 @@ if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.app_config is not None:
 Actions to do at shutdown
 """
 
-async def shutdown_app():
+async def cleanup_on_shutdown():
     """A graceful shutdown function to prevent race conditions."""
     main_logger.info("Initiating graceful shutdown...")
 
-    # 1. Stop the scheduler and its worker threads
-    if 'scheduler_app' in globals() and scheduler_app.scheduler.is_running:
-        main_logger.info("Stopping scheduler...")
-        scheduler_app.scheduler.stop()
-
-    # 2. Add any other cleanup for child processes here in the future
+    # Add any other cleanup for child processes here in the future
     Desktop.stopcast = True
     Media.stopcast = True
 
     window_native.close_all_webviews()
 
+    # Stop the scheduler and its worker threads
+    if 'scheduler_app' in globals() and scheduler_app.scheduler.is_running:
+        main_logger.info("Stopping scheduler...")
+        scheduler_app.scheduler.stop()
 
-    # 3. Give a brief moment for processes to terminate
-    await asyncio.sleep(0.5)
+    RUNColdtype.stop_all()
 
-    # 4. Finally, shut down the NiceGUI app
-    app.shutdown()
-
+    #Give a brief moment for processes to terminate
+    await asyncio.sleep(0.1)
 
 """
 Actions to do at application initialization 
@@ -299,7 +296,7 @@ class LatestFrame:
 
 
 # Instantiate Cast Center with Desktop and Media
-cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer, shutdown_func=shutdown_app)
+cast_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer, shutdown_func=cleanup_on_shutdown)
 # Instantiate SchedulerGUI with Desktop and Media
 if str2bool(cfg_mgr.scheduler_config['enable']):
     scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer, True)
@@ -461,7 +458,7 @@ async def main_page():
         ui.button('Fonts', on_click=cast_app.font_select, color='bg-red-800')
         ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor?from_menu=true'), color='bg-red-800')
-        ui.button('shutdown', on_click=shutdown_app)
+        ui.button('shutdown', on_click=app.shutdown)
         with ui.row().classes('absolute inset-y-0 right-0.5 bg-red-900'):
             ui.link('® Zak-45 ' + str(datetime.now().strftime('%Y')), 'https://github.com/zak-45', new_tab=True) \
                 .classes('text-white')
@@ -1176,7 +1173,7 @@ async def stop_app():
 
     await apply_custom()
 
-    ui.button('ShutDown',icon='power_settings_new', on_click=shutdown_app).classes('flex h-screen m-auto')
+    ui.button('ShutDown',icon='power_settings_new', on_click=app.shutdown).classes('flex h-screen m-auto')
 
 
 @ui.page(cast_center_url)
