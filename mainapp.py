@@ -48,6 +48,7 @@ from src.gui.schedulergui import SchedulerGUI
 from src.txt.coldtypemp import RUNColdtype
 from src.gui.pyeditor import PythonEditor
 from src.gui.videoplayer import VideoPlayer
+from src.utl.console import ConsoleCapture
 from src.utl.webviewmanager import WebviewManager
 
 from src.gui.presets import *
@@ -100,6 +101,7 @@ async def cleanup_on_shutdown():
     # Stop the scheduler and its worker threads
     if 'scheduler_app' in globals() and scheduler_app.scheduler.is_running:
         main_logger.info("Stopping scheduler...")
+        scheduler_app.capture.restore()
         scheduler_app.scheduler.stop()
 
     RUNColdtype.stop_all()

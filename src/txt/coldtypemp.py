@@ -173,12 +173,28 @@ class RUNColdtype(multiprocessing.Process):
     @staticmethod
     def stop_all():
         """Stops all running RUNColdtype processes."""
+        import signal
         text_logger.info(f"Stopping {len(RUNColdtype.running_processes)} RUNColdtype processes...")
         for process in list(RUNColdtype.running_processes):  # Iterate over a copy
             if process.is_alive():
-                text_logger.info(f"Terminating RUNColdtype process {process.pid}...")
-                process.terminate()
-                process.join(timeout=1)  # Give it a moment to terminate
+                text_logger.info(f"Attempting to gracefully stop RUNColdtype process {process.pid}...")
+                try:
+                    # 1. Attempt a graceful shutdown with SIGINT (Ctrl+C)
+                    # This allows the 'finally' block in the run() method to execute.
+                    os.kill(process.pid, signal.SIGINT)
+                    process.join(timeout=2)  # Wait 2 seconds for a graceful exit
+
+                    # 2. If it's still alive, fall back to forceful termination
+                    if process.is_alive():
+                        text_logger.warning(f"Process {process.pid} did not respond, forcing termination.")
+                        process.terminate()
+                        process.join(timeout=1)
+
+                except Exception as e:
+                    text_logger.error(f"Error while stopping process {process.pid}: {e}. Forcing termination.")
+                    process.terminate()
+                    process.join(timeout=1)
+
         RUNColdtype.running_processes.clear()
 
 
