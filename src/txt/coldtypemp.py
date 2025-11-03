@@ -166,14 +166,13 @@ class RUNColdtype(multiprocessing.Process):
             if self.log_queue:
                 sys.stdout = sys.__stdout__  # Restore original stdout
                 sys.stderr = sys.__stderr__  # Restore original stderr
-            # Remove from the list when the process finishes
-            if self in RUNColdtype.running_processes:
-                RUNColdtype.running_processes.remove(self)
 
     @staticmethod
     def stop_all():
         """Stops all running RUNColdtype processes."""
         import signal
+        # First, remove any processes that have already finished
+        RUNColdtype.running_processes[:] = [p for p in RUNColdtype.running_processes if p.is_alive()]
         text_logger.info(f"Stopping {len(RUNColdtype.running_processes)} RUNColdtype processes...")
         for process in list(RUNColdtype.running_processes):  # Iterate over a copy
             if process.is_alive():
