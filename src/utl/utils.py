@@ -1389,10 +1389,6 @@ class CASTUtils:
         # Parse known arguments, ignoring others that might be for the parent process
         args, _ = parser.parse_known_args(argv[1:])
 
-        if args.ip:
-            obj_name.host = args.ip
-            utils_logger.info(f"Command-line override: host set to {obj_name.host}")
-
         if obj_name is not None:
             if args.wled:
                 obj_name.wled = True
@@ -1409,6 +1405,10 @@ class CASTUtils:
             if args.height is not None:
                 obj_name.scale_height = args.height
                 utils_logger.info(f"Command-line override: scale_height set to {obj_name.scale_height}")
+
+            if args.ip is not None:
+                obj_name.host = args.ip
+                utils_logger.info(f"Command-line override: host set to {obj_name.host}")
 
         return True, args
 
