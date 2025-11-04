@@ -1002,7 +1002,6 @@ class CASTUtils:
             if server_port == 0:
                 utils_logger.error(f'Server Port should not be 0 from {WLED_PID_TMP_FILE}')
 
-        utils_logger.debug('Utils get server port wled_pid_tmp_file', WLED_PID_TMP_FILE)
 
         return server_port
 
@@ -1510,6 +1509,3 @@ class CASTUtils:
             The path that should be checked with os.path.exists().
         """
         return f'{base_path}.dat' if sys.version_info < (3, 13) else base_path
-
-
-utils_logger.debug('Utils wled_pid_tmp_file', WLED_PID_TMP_FILE)

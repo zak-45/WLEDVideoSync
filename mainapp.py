@@ -413,8 +413,6 @@ async def main_page():
     if str2bool(cfg_mgr.app_config['log_to_main']):
         with ui.expansion('Show log', icon='feed').classes('w-full'):
             log_ui = ui.log(max_lines=250).classes('w-full h-30 bg-black text-white')
-            # logging Level
-            main_logger.setLevel(cfg_mgr.app_config['log_level'].upper())
             # handler
             log_ui_handler = LogElementHandler(log_ui)
             main_logger.addHandler(log_ui_handler)

@@ -99,10 +99,10 @@ async def create_config_page():
                     elif key == 'server_port' and value == 'auto':
                         # Special case for server_port with 'auto'
                         element = ui.input(label=key, value=value)
-                    elif key == 'log_level':
+                    elif key == 'uvicorn_logging_level':
                         # Use a select for log levels
-                        opts = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-                        element = ui.select(options=opts, label=key, value=value.upper())
+                        opts = ['debug', 'info', 'warning', 'error', 'critical', 'trace']
+                        element = ui.select(options=opts, label=key, value=value.lower())
                     elif 'color' in key or value.startswith('#'):
                         # Use a color picker for color values
                         element = ui.color_input(label=key, value=value)

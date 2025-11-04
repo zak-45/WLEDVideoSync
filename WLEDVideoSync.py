@@ -386,6 +386,7 @@ def main():
            favicon=cfg_mgr.app_root_path("favicon.ico"),
            host=server_ip,
            port=server_port,
+           uvicorn_logging_level=cfg_mgr.server_config['uvicorn_logging_level'].lower(),
            fastapi_docs=str2bool(cfg_mgr.app_config['fastapi_docs'] if cfg_mgr.app_config is not None else 'True'),
            show=show,
            reconnect_timeout=int(

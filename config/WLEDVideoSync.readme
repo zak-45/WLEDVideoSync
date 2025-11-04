@@ -18,7 +18,8 @@
 #                       enter 'localhost' (host name) if want to avoid 'video not available' and see YT Video locally
 #                       or hostname of the running computer
 # loop              : auto,  [auto|asyncio|uvloop]    Event loop implementation.  [default: auto]
-# log_level 	    : Set the log level of the server. Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'
+# uvicorn_logging_level : Set the log level of the server.
+#                           Options: 'critical', 'error', 'warning', 'info', 'debug', 'trace'
 # workers 	        : Uvicorn also has an option to start and run several worker processes
 #                       on 03/09/2024: niceGUI do not manage it, let to 1
 # reconnect_timeout : maximum time the server waits for the browser to reconnect (default: 3.0 seconds)
@@ -33,7 +34,6 @@
 # init_config_done : True or False, if False, app will set some default params depend on OS and put it to True after
 # init_screen   : center or expert
 # log_to_main   : False or True, capture logs from modules and display on the main page, put False to save resources
-# log_level     : Log level to filter, INFO, WARN, ERROR, DEBUG, CRITICAL on the main UI page (uvicorn & NiceGUI)
 # put_on_systray: True, application will go to systray
 # systray_backend: xorg, gtk, appindicator, used by linux
 #                   see : https://pystray.readthedocs.io/en/latest/usage.html#supported-backends
