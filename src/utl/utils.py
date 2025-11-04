@@ -1373,8 +1373,9 @@ class CASTUtils:
                             help='Run Charts server application. (add --more to see more options)')
 
         # Group for mobile server arguments
+        parser.add_argument('--run-mobile-server', action='store_true', help='Run Mobile server application.')
+        #
         mobile_group = parser.add_argument_group('Mobile Server Options', 'These arguments are only used with --run-mobile-server')
-        mobile_group.add_argument('--run-mobile-server', action='store_true', help='Run Mobile server application.')
         mobile_group.add_argument('--wled', action='store_true', help='Set Desktop cast to WLED mode to auto-detect matrix size.')
         mobile_group.add_argument('--no-text', action='store_true', help='Disable text overlay for the Desktop cast.')
         mobile_group.add_argument('--ip', type=str, help='Set the target IP address for the Desktop cast.')
