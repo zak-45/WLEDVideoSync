@@ -508,15 +508,23 @@ async def util_casts_info(img: bool = False):
 
     params = img
 
-    # create casts lists
+    # Helper to check if an info action already exists for a thread
+    def info_action_exists(todo_list, thread_name):
+        return any(f'{thread_name}||info||' in item for item in todo_list)
+
+    # Add info action for Desktop casts if not already present
     for item in ApiData.Desktop.cast_names:
         child_list.append(item)
-        ApiData.Desktop.cast_name_todo.append(
-            f'{str(item)}||info||{params}||{str(time.time())}'
-        )
+        if not info_action_exists(ApiData.Desktop.cast_name_todo, item):
+            ApiData.Desktop.cast_name_todo.append(
+                f'{str(item)}||info||{params}||{str(time.time())}'
+            )
+
+    # Add info action for Media casts if not already present
     for item in ApiData.Media.cast_names:
         child_list.append(item)
-        ApiData.Media.cast_name_todo.append(f'{str(item)}||info||{params}||{str(time.time())}')
+        if not info_action_exists(ApiData.Media.cast_name_todo, item):
+            ApiData.Media.cast_name_todo.append(f'{str(item)}||info||{params}||{str(time.time())}')
 
     # request info from threads
     ApiData.Desktop.t_todo_event.set()

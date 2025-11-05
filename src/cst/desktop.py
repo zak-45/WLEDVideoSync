@@ -140,13 +140,18 @@ desktop_logger = logger_manager.logger
 """
 Class definition
 """
+
+
 class ExitFromLoop(Exception):
     """ Raise when need to exit from loop """
     pass
 
+
 """
 Main class
 """
+
+
 class CASTDesktop(TextAnimatorMixin):
     # Defer the import of multiprocessing components
     Process, Queue = None, None
@@ -171,7 +176,7 @@ class CASTDesktop(TextAnimatorMixin):
 
     t_desktop_lock = threading.Lock()  # define lock for 'to do', to ensure only one task at time
 
-    allow_text_animator = True # allow or not, text overlay globally
+    allow_text_animator = True  # allow or not, text overlay globally
 
     def __init__(self):
         # Lazy-load multiprocessing components only when an instance is created
@@ -180,8 +185,8 @@ class CASTDesktop(TextAnimatorMixin):
 
         self.capture_methode: str = 'av'
         if (
-            cfg_mgr.desktop_config is not None
-            and cfg_mgr.desktop_config['capture'] != ''
+                cfg_mgr.desktop_config is not None
+                and cfg_mgr.desktop_config['capture'] != ''
         ):
             self.capture_methode = cfg_mgr.desktop_config['capture']
         else:
@@ -236,7 +241,7 @@ class CASTDesktop(TextAnimatorMixin):
         self.reset_total = False
         self.preview = True
         self.record = False  # put True to record to file
-        self.output_file = "" # Name of the file to save video recording
+        self.output_file = ""  # Name of the file to save video recording
 
         # Put some defaults on init
         if PLATFORM == 'win32':
@@ -318,7 +323,7 @@ class CASTDesktop(TextAnimatorMixin):
         t_scale_width = self.scale_width
         t_scale_height = self.scale_height
         t_multicast = self.multicast
-        t_ddp_multi_names =[]
+        t_ddp_multi_names = []
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
         media_length = -1
@@ -426,6 +431,7 @@ class CASTDesktop(TextAnimatorMixin):
         """
         actions processing
         """
+
         def do_action():
             """
             check if something to do
@@ -436,15 +442,25 @@ class CASTDesktop(TextAnimatorMixin):
             # only one running cast at time will take care of that
             CASTDesktop.t_desktop_lock.acquire()
             desktop_logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
+
             # will read cast_name_todo list and see if something to do
-            i_todo_stop, i_preview, i_frame_buffer, i_cast_frame_buffer = action_executor.process_actions(frame, frame_count)
+            (new_todo_stop,
+             new_preview,
+             new_frame_buffer,
+             new_cast_frame_buffer,
+             new_to_do) = action_executor.process_actions(frame, frame_count)
+
+            # set list without already executed actions
+            CASTDesktop.cast_name_todo = new_to_do
+
             # if list is empty, no more for any cast
             if len(CASTDesktop.cast_name_todo) == 0:
                 CASTDesktop.t_todo_event.clear()
+
             # release once task finished for this cast
             CASTDesktop.t_desktop_lock.release()
 
-            return i_todo_stop, i_preview, i_frame_buffer, i_cast_frame_buffer
+            return new_todo_stop, new_preview, new_frame_buffer, new_cast_frame_buffer
 
         """
         end actions
@@ -453,6 +469,7 @@ class CASTDesktop(TextAnimatorMixin):
         """
         frame processing
         """
+
         def process_frame(iframe):
 
             # resize frame for sending to device
@@ -499,7 +516,7 @@ class CASTDesktop(TextAnimatorMixin):
                         iframe = cv2.cvtColor(iframe, cv2.COLOR_GRAY2BGR)
                     elif iframe.shape[2] == 4:
                         iframe = cv2.cvtColor(iframe, cv2.COLOR_BGRA2BGR)
-                    
+
                     iframe = CV2Utils.overlay_bgra_on_bgr(iframe, text_overlay_bgra)
 
             if t_multicast and (t_cast_y != 1 or t_cast_x != 1):
@@ -520,8 +537,8 @@ class CASTDesktop(TextAnimatorMixin):
                 # resize frame to virtual matrix size
                 # frame_art = CV2Utils.pixelart_image(iframe, t_scale_width, t_scale_height)
                 iframe = CV2Utils.resize_image(iframe,
-                                              t_scale_width * t_cast_x,
-                                              t_scale_height * t_cast_y)
+                                               t_scale_width * t_cast_x,
+                                               t_scale_height * t_cast_y)
 
                 if frame_count > 1:
                     # split to matrix
@@ -615,7 +632,6 @@ class CASTDesktop(TextAnimatorMixin):
             if self.record and out_file is not None:
                 out_file.write_frame(frame)
 
-
             return iframe, i_grid
 
         """
@@ -626,6 +642,7 @@ class CASTDesktop(TextAnimatorMixin):
         preview process
         Manage preview window, depend on the platform
         """
+
         def show_preview(iframe, i_preview, i_todo_stop, i_grid):
             # preview on fixed size window
 
@@ -694,6 +711,7 @@ class CASTDesktop(TextAnimatorMixin):
         """
         create shareable list for preview      
         """
+
         def create_preview_sl(i_frame, i_grid):
             i_sl = None
             # Create a (9999, 9999, 3) array with all values set to 111 to reserve memory
@@ -805,7 +823,6 @@ class CASTDesktop(TextAnimatorMixin):
 
             artnet_host.activate()
 
-
         # retrieve matrix setup from wled and set w/h
         if self.wled:
             status = as_run(Utils.put_wled_live(self.host, on=True, live=True, timeout=1))
@@ -847,15 +864,17 @@ class CASTDesktop(TextAnimatorMixin):
                             ddp_exist = False
                             for device in t_ddp_multi_names:
                                 if cast_ip == device._destination:
-                                    desktop_logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
+                                    desktop_logger.warning(
+                                        f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
                                     ddp_exist = True
                                     break
                             if ddp_exist is not True:
                                 new_ddp = DDPDevice(cast_ip)
                                 t_ddp_multi_names.append(new_ddp)
                                 # add to global DDP list
-                                Utils.update_ddp_list(cast_ip,new_ddp)
-                                desktop_logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
+                                Utils.update_ddp_list(cast_ip, new_ddp)
+                                desktop_logger.debug(
+                                    f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         desktop_logger.error(f'{t_name} Not able to validate ip : {cast_ip}')
 
@@ -864,7 +883,7 @@ class CASTDesktop(TextAnimatorMixin):
 
         else:
 
-            ip_addresses=[self.host]
+            ip_addresses = [self.host]
 
         """
         Second, capture media
@@ -898,7 +917,6 @@ class CASTDesktop(TextAnimatorMixin):
             else:
                 sl_manager = SharedListManager()
                 sl_client = SharedListClient()
-
 
             # check server is running
             if sl_manager.is_running:
@@ -947,7 +965,6 @@ class CASTDesktop(TextAnimatorMixin):
                         desktop_logger.error(f'Not able to retrieve Window ID (hWnd) : {e}')
                         return False
 
-
             desktop_logger.debug(f'Options passed to av: {input_options}')
 
         elif capture_methode == 'mss':
@@ -961,7 +978,6 @@ class CASTDesktop(TextAnimatorMixin):
         else:
             desktop_logger.error(f'Do not know what to do from {self.viinput} with this capture : {capture_methode}')
             return False
-
 
         """
         viinput can be:
@@ -1087,7 +1103,6 @@ class CASTDesktop(TextAnimatorMixin):
 
                             # Calculate the expected time for the current frame
                             expected_time = start_time + frame_count * interval
-
 
                             if self.record and out_file is None:
                                 out_file = iio.imopen(self.output_file, "w", plugin="pyav")
@@ -1246,9 +1261,9 @@ class CASTDesktop(TextAnimatorMixin):
                             # preview default image
                             if t_preview:
                                 t_preview, t_todo_stop = show_preview(default_img,
-                                                                         t_preview,
-                                                                         t_todo_stop,
-                                                                         i_grid=False)
+                                                                      t_preview,
+                                                                      t_todo_stop,
+                                                                      i_grid=False)
 
                         need_to_sleep()
 
@@ -1442,7 +1457,7 @@ class CASTDesktop(TextAnimatorMixin):
                 desktop_logger.addHandler(log_ui)
         if os.getenv('WLEDVideoSync_trace'):
             threading.settrace(self.t_desktop_cast())
-        thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer,Utils.get_server_port()))
+        thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer, Utils.get_server_port()))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         desktop_logger.debug('Child Desktop cast initiated')
@@ -1454,9 +1469,9 @@ if __name__ == "__main__":
 
     test = CASTDesktop()
     test.stopcast = False
-    test.capture_methode='mss'
-    test.viinput='desktop'
-    test.preview=True
+    test.capture_methode = 'mss'
+    test.viinput = 'desktop'
+    test.preview = True
     test.overlay_text = True
     test.cast()
     while True:
@@ -1467,5 +1482,5 @@ if __name__ == "__main__":
                                   blink_interval=.1, speed=200)
         time.sleep(5)
         break
-    test.stopcast=True
+    test.stopcast = True
     print('desktop cast end')

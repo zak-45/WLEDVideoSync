@@ -6,7 +6,7 @@
 # CASTMedia class
 #
 #           Cast your media to ddp device (e.g.WLED)
-#                     
+#
 #
 # This utility aim to be cross-platform.
 # You can cast an image file , a video file, or a capture device (USB camera ...)
@@ -123,6 +123,7 @@ media_logger = logger_manager.logger
 Class definition
 """
 
+
 class CASTMedia(TextAnimatorMixin):
     # Defer the import of multiprocessing components
     Process, Queue = None, None
@@ -148,7 +149,7 @@ class CASTMedia(TextAnimatorMixin):
 
     t_media_lock = threading.Lock()  # define lock for to do
 
-    allow_text_animator = True # allow or not, text overlay globally
+    allow_text_animator = True  # allow or not, text overlay globally
 
     def __init__(self):
         # Lazy-load multiprocessing components only when an instance is created
@@ -221,7 +222,6 @@ class CASTMedia(TextAnimatorMixin):
         self.channel_offset = 0  # The channel offset within the universe. e131/artnet
         self.channels_per_pixel = 3  # Channels to use for e131/artnet
 
-
     """
     Cast Thread
     """
@@ -247,7 +247,7 @@ class CASTMedia(TextAnimatorMixin):
         t_scale_width = self.scale_width
         t_scale_height = self.scale_height
         t_multicast = self.multicast
-        t_ddp_multi_names =[]  # all DDP devices for this cast
+        t_ddp_multi_names = []  # all DDP devices for this cast
         t_cast_x = self.cast_x
         t_cast_y = self.cast_y
         t_cast_frame_buffer = []
@@ -381,7 +381,7 @@ class CASTMedia(TextAnimatorMixin):
             # add to global DDP list
             Utils.update_ddp_list(self.host, ddp_host)
 
-        elif t_protocol =='e131':
+        elif t_protocol == 'e131':
             e131_host = E131Device(name=self.e131_name,
                                    ip_address=self.host,
                                    universe=int(self.universe),
@@ -394,7 +394,7 @@ class CASTMedia(TextAnimatorMixin):
 
             e131_host.activate()
 
-        elif t_protocol =='artnet':
+        elif t_protocol == 'artnet':
             artnet_host = ArtNetDevice(name=self.e131_name,
                                        ip_address=self.host,
                                        universe=int(self.universe),
@@ -405,7 +405,6 @@ class CASTMedia(TextAnimatorMixin):
                                        )
 
             artnet_host.activate()
-
 
         # retrieve matrix setup from wled and set w/h
         if self.wled:
@@ -426,7 +425,7 @@ class CASTMedia(TextAnimatorMixin):
                 return False
             else:
                 media_logger.info(f'{t_name} Virtual Matrix size is :' +
-                                    str(t_scale_width * t_cast_x) + 'x' + str(t_scale_height * t_cast_y))
+                                  str(t_scale_width * t_cast_x) + 'x' + str(t_scale_height * t_cast_y))
                 # populate ip_addresses list
                 for i in range(len(self.cast_devices)):
                     cast_ip = self.cast_devices[i][1]
@@ -448,15 +447,17 @@ class CASTMedia(TextAnimatorMixin):
                             ddp_exist = False
                             for device in t_ddp_multi_names:
                                 if cast_ip == device._destination:
-                                    media_logger.warning(f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
+                                    media_logger.warning(
+                                        f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
                                     ddp_exist = True
                                     break
                             if ddp_exist:
                                 new_ddp = DDPDevice(cast_ip)
                                 t_ddp_multi_names.append(new_ddp)
                                 # add to global DDP list
-                                Utils.update_ddp_list(cast_ip,new_ddp)
-                                media_logger.debug(f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
+                                Utils.update_ddp_list(cast_ip, new_ddp)
+                                media_logger.debug(
+                                    f'{t_name} DDP Device Created for IP : {cast_ip} as device number {i}')
                     else:
                         media_logger.error(f'{t_name} Not able to validate ip : {cast_ip}')
 
@@ -465,7 +466,7 @@ class CASTMedia(TextAnimatorMixin):
 
         else:
 
-            ip_addresses=[self.host]
+            ip_addresses = [self.host]
 
         """
         Second, capture media
@@ -590,7 +591,7 @@ class CASTMedia(TextAnimatorMixin):
                         time_to_set = self.sync_to_time
                         self.cast_sync = True
                         media_logger.debug(f"{t_name}  Name to sync  :{CASTMedia.cast_name_to_sync}")
-                    
+
                         CASTMedia.t_media_lock.acquire()
                         if self.all_sync is True and len(CASTMedia.cast_name_to_sync) == 0:
                             # populate cast names to sync
@@ -599,7 +600,7 @@ class CASTMedia(TextAnimatorMixin):
                             time_to_set += self.add_all_sync_delay
                             media_logger.debug(f"{t_name}  Got these to sync from auto :{CASTMedia.cast_name_to_sync}")
                         CASTMedia.t_media_lock.release()
-                    
+
                         auto_expected_time = current_time
                         media_logger.debug(f'{t_name} Auto Sync Cast to time :{time_to_set}')
 
@@ -740,7 +741,7 @@ class CASTMedia(TextAnimatorMixin):
                         frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
                     elif frame.shape[2] == 4:
                         frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-                    
+
                     frame = CV2Utils.overlay_bgra_on_bgr(frame, text_overlay_bgra)
 
             # put frame to np buffer (so can be used after by the main)
@@ -760,17 +761,26 @@ class CASTMedia(TextAnimatorMixin):
                 # only one running cast at time will take care of that
                 CASTMedia.t_media_lock.acquire()
                 media_logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
+
                 # will read cast_name_todo list and see if something to do
-                t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = action_executor.process_actions(frame,
-                                                                                                              frame_count)
+                (t_todo_stop,
+                 t_preview,
+                 add_frame_buffer,
+                 add_cast_frame_buffer,
+                 new_to_do) = action_executor.process_actions(frame, frame_count)
+
                 if add_frame_buffer is not None:
                     self.frame_buffer.append(add_frame_buffer)
                 if add_cast_frame_buffer is not None:
                     self.cast_frame_buffer.append(add_cast_frame_buffer)
 
+                # set list without already executed actions
+                CASTMedia.cast_name_todo = new_to_do
+
                 # if list is empty, no more for any cast
                 if len(CASTMedia.cast_name_todo) == 0:
                     CASTMedia.t_todo_event.clear()
+
                 # release once task finished for this cast
                 CASTMedia.t_media_lock.release()
 
@@ -787,9 +797,9 @@ class CASTMedia(TextAnimatorMixin):
                     ==> this give 6 devices to set into cast_devices list                         
                         (tuple of: device index(0...n) , IP address) 
                         we will manage image of 3x16 leds for x and 2x16 for y    
-                        
+
                     on 10/04/2024: device_number come from list entry order (0...n)
-                        
+
                 """
 
                 grid = True
@@ -966,7 +976,8 @@ class CASTMedia(TextAnimatorMixin):
                         # create a child process, so cv2.imshow() will run from its own Main Thread
                         media_logger.debug(f'Define sl_process for Preview : {sl_name}')
                         window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"[:64]
-                        sl_process = CASTMedia.Process(target=CV2Utils.sl_main_preview, args=(sl_name, 'Media', window_name,))
+                        sl_process = CASTMedia.Process(target=CV2Utils.sl_main_preview,
+                                                       args=(sl_name, 'Media', window_name,))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process
                         media_logger.debug(f'Starting Child Process for Preview : {sl_name}')
@@ -1122,22 +1133,23 @@ class CASTMedia(TextAnimatorMixin):
                 media_logger.addHandler(log_ui)
         if os.getenv('WLEDVideoSync_trace'):
             threading.settrace(self.t_media_cast())
-        thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer,Utils.get_server_port(),))
+        thread = threading.Thread(target=self.t_media_cast, args=(shared_buffer, Utils.get_server_port(),))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         media_logger.debug('Child Media cast initiated')
         return thread
+
 
 # example: this work on windows with camera set as device 0
 if __name__ == "__main__":
 
     test = CASTMedia()
     test.stopcast = False
-    test.viinput=0
-    test.preview=True
+    test.viinput = 0
+    test.preview = True
     test.cast()
     while True:
         time.sleep(20)
         break
-    test.stopcast=True
+    test.stopcast = True
     print('end')

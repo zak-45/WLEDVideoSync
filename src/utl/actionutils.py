@@ -342,15 +342,15 @@ class ActionExecutor:
 
         # Safely remove processed or invalid items from the original list
         if items_to_remove:
-            # self.logger.debug(f"Removing items: {items_to_remove}")
-            # self.logger.debug(f"Current to do list before removal: {self.class_obj.cast_name_todo}")
+            self.logger.debug(f"Removing items: {items_to_remove}")
+            self.logger.debug(f"Current to do list before removal: {self.class_obj.cast_name_todo}")
             try:
                 # Create a new list excluding the items to remove
                 original_list = self.class_obj.cast_name_todo
                 self.class_obj.cast_name_todo = [i for i in original_list if i not in items_to_remove]
-                # self.logger.debug(f"Current to do list after removal: {self.class_obj.cast_name_todo}")
+                self.logger.debug(f"Current to do list after removal: {self.class_obj.cast_name_todo}")
             except Exception as remove_err:
                 self.logger.error(f"Error removing items from cast_name_todo: {remove_err}")
 
         # Return the current state of the flags
-        return self.t_todo_stop, self.t_preview, self.frame_buffer, self.cast_frame_buffer
+        return self.t_todo_stop, self.t_preview, self.frame_buffer, self.cast_frame_buffer, self.class_obj.cast_name_todo
