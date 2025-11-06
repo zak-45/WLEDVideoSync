@@ -21,7 +21,7 @@ class ActionExecutor:
     Manages and executes actions requested for a specific casting thread (Media or Desktop).
     """
 
-    # Define the handlers map at the class level.
+    # Define the handlers map at the class level to be accessible by the static method
     # This makes the list of actions static and accessible without an instance.
     _ACTION_HANDLERS_MAP = {
         'stop': '_handle_stop_action',
@@ -283,72 +283,64 @@ class ActionExecutor:
             frame_count: The current frame count, used by actions like 'info'.
 
         Returns:
-            tuple: A tuple containing the updated (t_todo_stop, t_preview) flags.
+            tuple: A tuple containing the updated (t_todo_stop, t_preview, frame_buffer, cast_frame_buffer, cast_name_todo).
         """
-        # Iterate over a copy of the list to allow safe removal
-        items_to_remove = []
+        import re
+
         self.cast_frame_buffer = None
         self.frame_buffer = None
-        for item in self.class_obj.cast_name_todo:
-            try:
-                name, action, params, added_time = item.split('||')
-                name = name.strip()
-                action = action.strip()
-                params = params.strip()  # Keep params as string for handlers
-            except ValueError:
-                self.logger.error(f"Error parsing action item: '{item}'. Skipping.")
-                items_to_remove.append(item)  # Mark malformed item for removal
-                continue
 
-            # Check if the action is for this specific thread instance
+        # Use a robust regex to split action items, allowing for extra delimiters in params
+        def parse_action_item(item):
+            # Expected format: name||action||params||added_time
+            # Allow params to contain '||' by splitting only the first three
+            parts = item.split('||', 3)
+            if len(parts) != 4:
+                return None
+            name, action, params, added_time = [p.strip() for p in parts]
+            return name, action, params, added_time
+
+        # Use a new list to collect valid actions
+        new_todo = []
+        for item in list(self.class_obj.cast_name_todo):
+            parsed = parse_action_item(item)
+            if not parsed:
+                self.logger.error(f"Malformed action item: '{item}'. Removing.")
+                continue
+            name, action, params, added_time = parsed
+
+            # Only process actions for this thread, or clean up for missing threads
             if name == self.t_name:
                 self.logger.debug(f'{self.t_name}: Processing action "{action}" with params "{params}".')
-
-                # Find the handler based on the base action name (e.g., 'info_True' -> 'info')
-                base_action = action.split('_')[0]
-                if action_handler := self._action_handlers.get(base_action):
-                    try:
-                        # Call the handler. Pass frame/params/frame_count if needed.
-                        # Adjust based on which handlers actually need these args.
-                        if base_action in ['shot', 'info']:
-                            action_handler(frame, params, frame_count)  # Info needs frame_count too
-                        elif base_action in ['multicast', 'host']:
-                            action_handler(params)
-                        else:
-                            action_handler(params)  # Pass params even if unused for consistency? Or check signature.
-                            # Or more precisely:
-                            # if base_action in ['stop', 'reset', 'close-preview', 'open-preview']:
-                            #    action_handler(None) # Explicitly pass None if params not needed
-                            # else:
-                            #    action_handler(params)
-
-                    except Exception:  # Catch broad exceptions during handler execution
-                        self.logger.error(
-                            f"Error executing action '{action}' for {self.t_name}:\n{traceback.format_exc()}")
-                else:
+                base_action = action.split('_', 1)[0]
+                action_handler = self._action_handlers.get(base_action)
+                if not action_handler:
                     self.logger.error(f'{self.t_name}: Unknown action command "{action}".')
-
-                # Mark the processed item for removal
-                items_to_remove.append(item)
-
+                    continue
+                try:
+                    if base_action in ['shot', 'info']:
+                        action_handler(frame, params, frame_count)
+                    elif base_action in ['multicast', 'host']:
+                        action_handler(params)
+                    else:
+                        action_handler(params)
+                except Exception as exc:
+                    self.logger.error(
+                        f"Error executing action '{action}' for {self.t_name} with {exc}:\n{traceback.format_exc()}")
+                # Do not add to new_todo (processed)
             elif name not in self.class_obj.cast_names:
-                 self.logger.warning(f"Removing action for seemingly non-existent cast name: {name}")
-                 items_to_remove.append(item)
+                self.logger.warning(f"Removing action for non-existent cast name: {name}")
+                continue
+            else:
+                # Keep actions for other threads
+                new_todo.append(item)
 
-        # Safely remove processed or invalid items from the original list
-        if items_to_remove:
-            self.logger.debug(f"Removing items: {items_to_remove}")
-            self.logger.debug(f"Current to do list before removal: {self.class_obj.cast_name_todo}")
-            try:
-                # Create a new list excluding the items to remove
-                original_list = self.class_obj.cast_name_todo
-                self.class_obj.cast_name_todo = [i for i in original_list if i not in items_to_remove]
-                self.logger.debug(f"Current to do list after removal: {self.class_obj.cast_name_todo}")
-            except Exception as remove_err:
-                self.logger.error(f"Error removing items from cast_name_todo: {remove_err}")
+        # Atomically update the to-do list
+        self.class_obj.cast_name_todo = new_todo
 
-        # Return the current state of the flags
         return self.t_todo_stop, self.t_preview, self.frame_buffer, self.cast_frame_buffer, self.class_obj.cast_name_todo
+
+    # --- Static Methods ---
 
     @staticmethod
     def get_available_actions():

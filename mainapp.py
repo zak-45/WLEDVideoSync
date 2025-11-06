@@ -89,7 +89,7 @@ Actions to do at shutdown
 
 async def cleanup_on_shutdown():
     """A graceful shutdown function to prevent race conditions."""
-    main_logger.info("Initiating graceful shutdown...")
+    main_logger.info(f"Initiating graceful shutdown for {__name__} with PID : {os.getpid()}")
 
     # Add any other cleanup for child processes here in the future
     Desktop.stopcast = True
