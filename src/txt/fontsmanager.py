@@ -101,7 +101,7 @@ async def font_page(font_manager: 'FontPreviewManager' = None):
         ui.clipboard.write(text_to_copy)
         ui.notify(f'Copied font details to clipboard: {i_font_name}', type='positive', position='top-right')
 
-    def generate_ok_image(i_font_path, i_font_size=24, color=(0, 200, 0, 255)):
+    async def generate_ok_image(i_font_path, i_font_size=24, color=(0, 200, 0, 255)):
         """
         Generates a PNG image of the text "OK" using the specified font, sized to fit the text.
 
@@ -165,7 +165,7 @@ async def font_page(font_manager: 'FontPreviewManager' = None):
         async def filter_fonts(e):
             query = e.value.lower()
             font_list.clear()
-            matching_fonts = font_manager.filter_fonts(query) # Use the class method
+            matching_fonts = await font_manager.filter_fonts(query) # Use the class method
             for list_font_name in matching_fonts:
                 with font_list, ui.row().classes('items-center w-full justify-between'):
                     with ui.row(wrap=False).classes('items-center'):
@@ -185,10 +185,10 @@ async def font_page(font_manager: 'FontPreviewManager' = None):
 
         async def set_preview(i_font_path, font_label, list_font_name):
             # Generate and add the "OK" image
-            if ok_image_src := generate_ok_image(fonts.get(list_font_name)):
+            if ok_image_src := await generate_ok_image(fonts.get(list_font_name)):
                 preview_image_text.set_source(ok_image_src)  # Set preview image source
             font_label.classes(add='bg-slate-300')
-            if preview_data := font_manager.get_preview(i_font_path, font_label): # Use class method, get preview data
+            if preview_data := await font_manager.get_preview(i_font_path, font_label): # Use class method, get preview data
                 preview_image.set_source(preview_data) # Set preview image source
 
         ui.label("Hover over a font to see a preview / Click to put in clipboard").classes("text-sm font-bold mb-4")
@@ -357,7 +357,7 @@ class FontPreviewManager:
         self.selected_font_path = None
         self.selected_font_label = ui.label()
 
-    def generate_preview(self, font_path, preview_text="The quick brown fox jumps over the lazy dog"):
+    async def generate_preview(self, font_path, preview_text="The quick brown fox jumps over the lazy dog"):
         """Generate a PNG preview image of a font.
 
         This method renders a given text string using the specified font and returns a byte stream
@@ -385,7 +385,7 @@ class FontPreviewManager:
             print(f"Could not generate preview: {e}")
             return None
 
-    def filter_fonts(self, query):
+    async def filter_fonts(self, query):
         """Filter available fonts based on a search query.
 
         This method filters the font list based on a case-insensitive search query
@@ -402,7 +402,7 @@ class FontPreviewManager:
             if query.lower() in font_name.lower()
         ]
 
-    def get_preview(self, font_path, font_label):
+    async def get_preview(self, font_path, font_label):
         """Display a preview image for a selected font.
 
         This method generates and sets a preview image for the selected font.
@@ -418,6 +418,6 @@ class FontPreviewManager:
             self.selected_font_path = font_path
             self.selected_font_label = font_label
 
-            if preview_buffer := self.generate_preview(font_path):
+            if preview_buffer := await self.generate_preview(font_path):
                 return f"data:image/png;base64,{base64.b64encode(preview_buffer.getvalue()).decode('utf-8')}"
         return None
