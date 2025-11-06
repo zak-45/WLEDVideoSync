@@ -16,13 +16,24 @@ from str2bool import str2bool
 from src.utl.cv2utils import CV2Utils, ImageUtils
 from src.utl.utils import CASTUtils as Utils
 
-# Consider moving this list inside the class or making it more dynamic if needed
-action_to_test = ['stop', 'stop-text', 'shot', 'info', 'close-preview', 'host', 'open-preview', 'reset', 'multicast']
-
 class ActionExecutor:
     """
     Manages and executes actions requested for a specific casting thread (Media or Desktop).
     """
+
+    # Define the handlers map at the class level.
+    # This makes the list of actions static and accessible without an instance.
+    _ACTION_HANDLERS_MAP = {
+        'stop': '_handle_stop_action',
+        'shot': '_handle_snapshot_action',
+        'info': '_handle_info_action',
+        'reset': '_handle_reset_action',
+        'host': '_handle_host_action',
+        'multicast': '_handle_multicast_action',
+        'close-preview': '_handle_close_preview',
+        'open-preview': '_handle_open_preview',
+        'stop-text': '_handle_stop_text_action'
+    }
 
     def __init__(self,
                  class_obj,  # Media or Desktop class instance containing state like cast_name_todo
@@ -75,19 +86,7 @@ class ActionExecutor:
         self.t_todo_stop = False
 
         # Action handlers dictionary
-        self._action_handlers = {
-            'stop': self._handle_stop_action,
-            'shot': self._handle_snapshot_action,
-            'info': self._handle_info_action,
-            'reset': self._handle_reset_action,
-            'host': self._handle_host_action,
-            'multicast': self._handle_multicast_action,
-            'close-preview': lambda params: self._handle_preview_control('close-preview'),
-            # Use lambda if params needed
-            'open-preview': lambda params: self._handle_preview_control('open-preview'),
-            # Use lambda if params needed
-            'stop-text': self._handle_stop_text_action
-        }
+        self._action_handlers = {key: getattr(self, method_name) for key, method_name in self._ACTION_HANDLERS_MAP.items()}
 
     # --- Private Handler Methods ---
 
@@ -254,22 +253,18 @@ class ActionExecutor:
         except AttributeError as e:
             self.logger.error(f'{self.t_name}: Failed to put allow text animator to False on class_obj: {e}')
 
-    def _handle_preview_control(self, t_action):
-        """Handles 'open-preview' and 'close-preview' actions."""
-        if t_action == 'close-preview':
-            if self.t_preview:  # Only close if currently open
-                self.logger.info(f'{self.t_name}: Closing preview window.')
-                # Use a unique window name based on relevant identifiers
-                CV2Utils.cv2_win_close(self.port,self.class_obj.__class__.__name__,self.t_name,self.t_viinput)
-                self.t_preview = False
-            else:
-                self.logger.debug(f'{self.t_name}: Preview window already closed.')
-        elif t_action == 'open-preview':
-            if not self.t_preview:  # Only open if currently closed
-                self.logger.info(f'{self.t_name}: Opening preview window.')
-                self.t_preview = True
-            else:
-                self.logger.debug(f'{self.t_name}: Preview window already open.')
+    def _handle_close_preview(self, params):
+        """Handles the 'close-preview' action."""
+        if self.t_preview:
+            self.logger.info(f'{self.t_name}: Closing preview window.')
+            CV2Utils.cv2_win_close(self.port, self.class_obj.__class__.__name__, self.t_name, self.t_viinput)
+            self.t_preview = False
+
+    def _handle_open_preview(self, params):
+        """Handles the 'open-preview' action."""
+        if not self.t_preview:
+            self.logger.info(f'{self.t_name}: Opening preview window.')
+            self.t_preview = True
 
     def _handle_stop_action(self, params):
         """Handles the 'stop' action: sets the stop flag."""
@@ -354,3 +349,8 @@ class ActionExecutor:
 
         # Return the current state of the flags
         return self.t_todo_stop, self.t_preview, self.frame_buffer, self.cast_frame_buffer, self.class_obj.cast_name_todo
+
+    @staticmethod
+    def get_available_actions():
+        """Returns a list of all available action keys."""
+        return list(ActionExecutor._ACTION_HANDLERS_MAP.keys())

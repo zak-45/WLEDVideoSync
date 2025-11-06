@@ -450,6 +450,11 @@ class CASTDesktop(TextAnimatorMixin):
              new_cast_frame_buffer,
              new_to_do) = action_executor.process_actions(frame, frame_count)
 
+            if new_frame_buffer is not None:
+                self.frame_buffer.append(new_frame_buffer)
+            if new_cast_frame_buffer is not None:
+                self.cast_frame_buffer.append(new_cast_frame_buffer)
+
             # set list without already executed actions
             CASTDesktop.cast_name_todo = new_to_do
 
@@ -460,7 +465,7 @@ class CASTDesktop(TextAnimatorMixin):
             # release once task finished for this cast
             CASTDesktop.t_desktop_lock.release()
 
-            return new_todo_stop, new_preview, new_frame_buffer, new_cast_frame_buffer
+            return new_todo_stop, new_preview
 
         """
         end actions
@@ -1169,11 +1174,7 @@ class CASTDesktop(TextAnimatorMixin):
 
                             # check to see if something to do
                             if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
-                                t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = do_action()
-                                if add_frame_buffer is not None:
-                                    self.frame_buffer.append(add_frame_buffer)
-                                if add_cast_frame_buffer is not None:
-                                    self.cast_frame_buffer.append(add_cast_frame_buffer)
+                                t_todo_stop, t_preview = do_action()
 
                             # Sleep to maintain the desired FPS
                             need_to_sleep()
@@ -1207,11 +1208,7 @@ class CASTDesktop(TextAnimatorMixin):
 
                         # check to see if something to do
                         if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
-                            t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = do_action()
-                            if add_frame_buffer is not None:
-                                self.frame_buffer.append(add_frame_buffer)
-                            if add_cast_frame_buffer is not None:
-                                self.cast_frame_buffer.append(add_cast_frame_buffer)
+                            t_todo_stop, t_preview = do_action()
 
                         """
                         instruct the thread to exit 
@@ -1317,11 +1314,7 @@ class CASTDesktop(TextAnimatorMixin):
 
                             # check to see if something to do
                             if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
-                                t_todo_stop, t_preview, add_frame_buffer, add_cast_frame_buffer = do_action()
-                                if add_frame_buffer is not None:
-                                    self.frame_buffer.append(add_frame_buffer)
-                                if add_cast_frame_buffer is not None:
-                                    self.cast_frame_buffer.append(add_cast_frame_buffer)
+                                t_todo_stop, t_preview = do_action()
 
                             """
                             instruct the thread to exit 

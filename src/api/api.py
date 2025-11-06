@@ -101,7 +101,7 @@ from src.gui.presets import load_filter_preset, load_cast_preset
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import ImageUtils
 from src.utl.cv2utils import CV2Utils
-from src.utl.actionutils import action_to_test
+from src.utl.actionutils import ActionExecutor
 
 from src.utl.winutil import *
 
@@ -111,6 +111,7 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.api')
 api_logger = logger_manager.logger
 
 class_to_test = ['Desktop', 'Media', 'Netdevice']
+action_to_test = ActionExecutor.get_available_actions()
 
 """
 Receive obj from mainapp
@@ -623,10 +624,10 @@ def action_to_thread(class_name: str = PathAPI(description=f'Class name, should 
         return {"message": f" To do cleared for {class_obj}'"}
 
     if action not in action_to_test and action is not None:
-        api_logger.error(f"Invalid action name. Allowed : {str(action_to_test)}")
+        api_logger.error(f"Invalid action name. Allowed : {action_to_test}")
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid action name {action}. Allowed : {str(action_to_test)}",
+            detail=f"Invalid action name {action}. Allowed : {action_to_test}",
         )
 
     if class_name == 'Desktop':
