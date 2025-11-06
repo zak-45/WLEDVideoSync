@@ -1,12 +1,57 @@
 """
-# a: zak-45
-# d: 01/10/2024
-# v: 1.1.0  # Incremented version
-#
-# Action Executor Utils
-#
-#          Handles execution of actions for Media or Desktop casting threads.
-#
+a: zak-45
+d: 06/11/2025
+v: 1.2.0
+
+Overview:
+This file defines the `ActionExecutor` class, which serves as the command processing engine for the background
+casting threads (`CASTDesktop` and `CASTMedia`). Its primary role is to take action requests from a list,
+parse them, and execute the corresponding logic in a structured and safe manner.
+
+The design of this class is critical for performance. It is instantiated **once** per casting thread at the beginning
+of the thread's lifecycle and is then reused for every subsequent action. This avoids the significant overhead of
+creating new objects within the real-time video processing loop.
+
+Key Architectural Components:
+
+1.  ActionExecutor Class:
+    -   **Purpose**: To encapsulate the logic for all possible actions that can be performed on a running cast,
+        such as stopping the stream, taking a snapshot, or changing the target IP address.
+
+    -   **Initialization (`__init__`)**:
+        -   The constructor is designed to be called once, capturing the **static context** of the casting thread.
+          This includes non-changing data like the thread's name, the logger instance, IP addresses, and other
+          configuration parameters.
+        -   This makes the `ActionExecutor` a stateful object that is tightly coupled with the specific thread it serves.
+
+    -   **Execution (`process_actions`)**:
+        -   This is the main public method, called from within the casting loop whenever there are pending actions.
+        -   It accepts the **dynamic context**—information that changes on every frame, namely the `frame` and
+          `frame_count`.
+        -   It iterates through the shared `cast_name_todo` list, identifies actions meant for its specific thread,
+          and calls the appropriate handler.
+        -   It returns a list of the actions it has processed, allowing the calling thread to safely remove them
+          from the shared queue.
+
+    -   **Action Dispatch (`_ACTION_HANDLERS_MAP`)**:
+        -   The class uses a static dictionary to map action strings (e.g., 'shot', 'stop') to their corresponding
+          handler methods (e.g., `_handle_snapshot_action`).
+        -   This dispatch table pattern is clean, efficient, and makes the system highly extensible. To add a new
+          action, a developer only needs to add a new handler method and an entry in this map.
+
+    -   **State Management**:
+        -   The handler methods directly modify the state of the parent casting object (`self.class_obj`) or the
+          executor's own internal flags (`self.t_todo_stop`, `self.t_preview`). This keeps the state changes
+          encapsulated and predictable.
+
+Design Philosophy:
+-   **Performance**: The "instantiate-once, reuse-many" pattern is crucial for avoiding performance bottlenecks in
+    the real-time video loop.
+-   **Decoupling**: The executor separates the "what" (the action logic) from the "when" (the loop management in the
+    casting thread). The casting thread manages the queue, while the executor handles the implementation details of
+    each action.
+-   **Extensibility**: The use of a dispatch dictionary makes it straightforward to add new actions in the future
+    without altering the core processing loop.
 """
 import traceback
 

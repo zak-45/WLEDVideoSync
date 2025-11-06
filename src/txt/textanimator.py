@@ -1,3 +1,61 @@
+"""
+a: zak-45
+d: 06/11/2025
+v: 1.1.0
+
+Overview:
+This file defines the `TextAnimator` class, a powerful and highly customizable engine for generating dynamic,
+animated text overlays. It is the creative core for all text-based visual effects within the WLEDVideoSync
+application, designed to produce frame-by-frame animations that can be superimposed onto any video stream.
+
+The animator uses a combination of the Python Imaging Library (PIL) for high-quality text rendering and OpenCV/NumPy
+for real-time image manipulation and effects processing. The result is a flexible system capable of producing a wide
+range of effects, from simple scrolling text to complex, physics-based explosions.
+
+Key Architectural Components:
+
+1.  TextAnimator Class:
+    -   **Purpose**: To generate a sequence of BGRA (Blue, Green, Red, Alpha) NumPy arrays, where each array
+        represents a single frame of the text animation. The alpha channel is crucial for correctly overlaying the
+        text onto a background video stream.
+    -   **Initialization (`__init__`)**: The class is instantiated with an extensive set of parameters that define the
+        animation's appearance and behavior from the start. This includes text content, dimensions, speed, color,
+        font, alignment, shadow properties, and a wide array of effect-specific settings (e.g., `wave_amplitude`,
+        `explode_speed`).
+    -   **Core Rendering (`create_text_image`)**: At its heart, the animator uses PIL to render the text onto a
+        transparent RGBA canvas. This method is the foundation for all visual output, handling the font, size, color,
+        opacity, and shadow rendering. The canvas is made larger than the final output to accommodate scrolling effects.
+    -   **Animation Loop (`generate`)**: This is the main public method, called repeatedly to produce the animation.
+        On each call, it:
+        1.  Calculates the new position of the text based on the `direction` and `speed` for scrolling effects.
+        2.  Calls `apply_effects()` to modify the text's state (e.g., changing its color, scale, or position for
+            effects like `wave` and `shake`).
+        3.  Composites the rendered text image (or effect-specific image, like explosion fragments) onto a final,
+            transparent output frame of the correct dimensions.
+        4.  Returns the final frame as a BGRA NumPy array.
+    -   **Modular Effects System (`apply_effects`, `apply_*_effect`)**: The effects are designed to be modular.
+        Each effect (e.g., `blink`, `explode`, `wave`) has its own dedicated handler method. This makes the system
+        highly extensible, as new effects can be added simply by creating a new handler method and adding it to the
+        dispatch logic.
+    -   **Dynamic Updates (`update_params`)**: This powerful method allows any parameter of a running animation to be
+        changed in real-time. When called, it updates the animator's state and re-initializes the necessary
+        components, enabling seamless, live control from a user interface.
+
+2.  BackgroundOverlay Class:
+    -   **Purpose**: A helper utility for creating tiled, repeating backgrounds from a source image.
+    -   **Mechanism**: It can take any image and generate a larger canvas filled with that image, which can serve as a
+        backdrop for animations. While not directly used by `TextAnimator` itself (which renders on a transparent
+        background), it's a useful companion for creating standalone animated videos.
+
+Design Philosophy:
+-   **Decoupling**: The animator is completely decoupled from the video casting logic. It knows nothing about WLED or
+    network protocols; its sole responsibility is to generate a series of image frames. This makes it highly reusable
+    and testable.
+-   **Performance**: By using efficient libraries like NumPy and OpenCV for image manipulation and by generating frames
+    on-the-fly, the animator is designed to be performant enough for real-time use.
+-   **Extensibility**: The modular design of the effects system makes it easy for developers to add new creative
+    effects in the future.
+"""
 import time
 from typing import Optional, Tuple
 import math

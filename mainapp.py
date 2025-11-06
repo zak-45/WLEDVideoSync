@@ -1,27 +1,63 @@
 """
-a: zak45
-d: 02/04/2024
-v: 1.0.0
+a: zak-45
+d: 07/11/2025
+v: 1.1.0
 
-CastAPI
+Overview:
+This file, `mainapp.py`, is the central nervous system of the WLEDVideoSync application. It serves as the primary
+entry point for the user interface, orchestrating all major components, including the web UI, the backend API,
+and the core casting logic. It is built upon the NiceGUI framework, which seamlessly integrates a FastAPI web server.
 
-Cast media to ddp device(s)
+The main responsibility of this file is to instantiate the core application objects, define the structure and routing
+of the web pages, and manage the application's lifecycle from startup to shutdown.
 
-DESKTOP: cast your full screen or a window content
-    capture frames
+Key Architectural Components:
 
-MEDIA: cast an image / video / capture device
-    capture frames
-    cast image with Websocket
-    create matrix based on ddp devices... so cast to a BIG one
+1.  **Core Object Instantiation**:
+    -   At the top level, it creates singleton instances of the main casting classes (`Desktop`, `Media`) and the
+        network discovery utility (`Netdevice`).
+    -   These objects hold the state and logic for their respective domains and are passed to other components,
+        acting as a form of dependency injection.
 
-+
-API: FastAPI, for integration with third party application (e.g. Chataigne)
+2.  **UI Component Integration**:
+    -   It instantiates the main UI components, such as `CastCenter`, `SchedulerGUI`, and `VideoPlayer`.
+    -   It passes the core `Desktop` and `Media` objects to these UI components, allowing them to interact with and
+        control the application's state.
 
-Web GUI based on NiceGUI
+3.  **API Integration (`ApiData`)**:
+    -   It uses the `ApiData` class to provide the FastAPI endpoints (defined in `api.py`) with safe, controlled
+        access to the live `Desktop` and `Media` objects. This decouples the API logic from the main UI application.
 
-# 27/05/2024: cv2.imshow with import av  freeze
+4.  **NiceGUI Page Routing (`@ui.page`)**:
+    -   This file defines all the routes for the web application (e.g., `/`, `/Manage`, `/Desktop`, `/Media`).
+    -   Each function decorated with `@ui.page` is responsible for building the content of a specific web page,
+        calling upon the various UI components and helper functions to do so.
 
+5.  **Application Lifecycle Management**:
+    -   `init_actions()`: This `async` function is registered with `app.on_startup`. It handles all necessary
+        initialization tasks, such as creating the inter-process communication file, applying presets, and starting
+        the scheduler.
+    -   `cleanup_on_shutdown()`: Registered with `app.on_shutdown`, this function ensures a graceful exit by stopping
+        all background threads, processes, and services (like the scheduler and `RUNColdtype` processes) before the
+        main application terminates.
+
+6.  **Global State Management (`CastAPI` class)**:
+    -   The `CastAPI` class acts as a simple, global namespace for storing UI-related state that needs to be shared
+        across different pages and components. This includes things like the dark mode state, references to UI timers,
+        and the shared dictionary of live preview frames (`CastAPI.previews`).
+
+7.  **UI Timers (`ui.timer`)**:
+    -   The application uses `ui.timer` to create background refresh loops (e.g., `root_timer_action`) that
+        periodically update the UI with the latest status from the casting threads, ensuring the interface remains
+        dynamic and responsive.
+
+Design Philosophy:
+-   **Centralized Orchestration**: This file acts as the central "glue" that connects the backend logic, the API, and
+    the user interface.
+-   **Component-Based UI**: The UI is broken down into logical, reusable components (like `CastCenter` and `niceutils`)
+    that are assembled within the page functions.
+-   **Asynchronous by Default**: The extensive use of `async` functions ensures that the application remains responsive,
+    even when performing I/O-bound tasks like fetching data or updating the UI.
 """
 import asyncio
 import shelve

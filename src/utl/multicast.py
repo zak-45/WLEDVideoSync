@@ -1,12 +1,49 @@
 """
-# a: zak-45
-# d: 01/10/2024
-# v: 1.0.0
-#
-# Multicast Utility
-# Class to apply some IP swapping from a List
-# this run in another thread to avoid blocking
-#
+a: zak-45
+d: 06/11/2025
+v: 1.1.0
+
+Overview:
+This file provides a set of utilities for managing multicast streams in the WLEDVideoSync application. It contains two
+main classes: `MultiUtils` for static helper functions related to virtual matrix setup, and `IPSwapper` for creating
+dynamic visual effects by manipulating the order of target IP addresses in real-time.
+
+These utilities are essential for advanced casting scenarios where a single video stream is distributed across multiple
+physical LED devices to form a larger, cohesive display.
+
+Key Architectural Components:
+
+1.  MultiUtils Class:
+    -   **Purpose**: To provide static, stateless helper functions for common multicast setup tasks.
+    -   **`is_valid_cast_device`**: A utility for validating the format of the `cast_devices` configuration string,
+        ensuring it's a correctly formatted list of tuples before it's used by the application.
+    -   **`split_image_to_matrix`**: The core function for creating a virtual matrix. It takes a single large image
+        (a NumPy array) and divides it into a grid of smaller sub-images. Each sub-image can then be sent to a
+        different physical device, effectively creating one large, virtual screen from multiple smaller ones.
+
+2.  IPSwapper Class:
+    -   **Purpose**: A stateful, threaded class designed to create dynamic visual effects by reordering the list of
+        target IP addresses over time.
+    -   **Mechanism**:
+        -   When an effect is started (e.g., `start_circular_swap`), it launches a new background `threading.Thread`.
+        -   This thread runs a loop that modifies the `ip_list` in-place at a specified delay. Because lists in Python
+          are mutable, the casting thread that holds a reference to this list will immediately see the changes.
+        -   This design allows the main casting loop to continue its real-time video processing without being blocked
+          by the `sleep()` calls needed for the swapping effects.
+    -   **Effects**: It supports a variety of effects, including:
+        -   `circular_swap`: Rotates the IP addresses in the list.
+        -   `reverse_swap`: Rotates the IPs in the opposite direction.
+        -   `random_order`: Shuffles the entire list of IPs.
+        -   `random_replace`: Temporarily "pauses" a random device by replacing its IP with '127.0.0.1'.
+    -   **Lifecycle**: The effects are started via the `start_*` methods and can be stopped by calling `stop()`, which
+        terminates the background thread and restores the original IP address list.
+
+Design Philosophy:
+-   **Decoupling**: The `IPSwapper` is completely decoupled from the network sending logic. It only manipulates the
+    list of target IPs; the casting thread is responsible for reading this modified list and sending the data.
+-   **Performance**: The use of a background thread for the `IPSwapper` effects is crucial for preventing any blocking
+    or stuttering in the main real-time video processing loop.
+-   **Modularity**: The static methods in `MultiUtils` provide reusable, easy-to-test functions for common setup tasks.
 """
 import re
 from time import sleep

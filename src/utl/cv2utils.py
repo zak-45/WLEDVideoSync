@@ -1,15 +1,60 @@
 """
-# a: zak-45
-# d: 23/08/2024
-# v: 1.0.0
-#
-# CV2Utils
-#
-#          CAST utilities
-#
-# Image utilities
-# cv2 preview
-#
+ a: zak-45
+ d: 06/11/2025
+ v: 1.1.0
+
+ Overview:
+ This file defines the `CV2Utils` and `ImageUtils` classes, which provide a comprehensive suite of static utility
+ functions for image and video processing, preview display, and inter-process communication within the WLEDVideoSync
+ application. It leverages the OpenCV (cv2) library for high-performance image manipulation and the Pillow (PIL)
+ library for image format handling.
+
+ These utilities are fundamental for handling all visual data, from capturing frames and applying filters to
+ displaying real-time previews and preparing images for network transmission.
+
+ Key Architectural Components:
+
+ 1.  CV2Utils Class:
+     -   **Purpose**: To centralize all OpenCV-related operations, ensuring consistency and reusability across the
+         application.
+     -   **Image Manipulation**: Includes methods for resizing images (`resize_image`, `resize_keep_aspect_ratio`),
+         applying pixel art effects (`pixelart_image`), and overlaying transparent images (`overlay_bgra_on_bgr`).
+     -   **Preview Display**: Manages the creation and control of OpenCV preview windows (`cv2_display_frame`,
+         `cv2_win_close`, `window_exists`). It also handles cross-platform complexities by supporting separate
+         processes for preview windows on non-Windows systems (`sl_main_preview`).
+     -   **Inter-Process Communication (IPC)**: Provides utilities for working with `multiprocessing.shared_memory.ShareableList`
+         (`send_to_queue`, `frame_add_one`, `frame_remove_one`), enabling efficient sharing of image data between
+         different processes or threads.
+     -   **Video/GIF Processing**: Offers methods for converting videos to GIFs (`video_to_gif`), resizing GIFs,
+         and extracting video metadata (`get_media_info`).
+     -   **File Operations**: Includes functionality to save images from buffers (`save_image`).
+
+ 2.  ImageUtils Class:
+     -   **Purpose**: To provide additional image processing and utility functions, often complementing `CV2Utils`.
+     -   **Format Conversion**: Converts NumPy arrays to Base64 strings (`image_array_to_base64`) for web display.
+     -   **Filters and Effects**: Applies various image filters such as saturation, brightness, contrast, sharpen,
+         and color balance (`process_filters_image`, `apply_filters_cv2`, `filter_balance`, `filter_saturation`, etc.).
+     -   **Artistic Effects**: Converts images to ASCII art (`image_to_ascii`).
+     -   **Visual Aids**: Draws grids and cell numbers on images (`grid_on_image`).
+     -   **Enhancements**: Provides automatic brightness and contrast adjustment (`automatic_brightness_and_contrast`)
+         and gamma correction (`gamma_correct_frame`).
+
+3.  VideoThumbnailExtractor Class:
+     -   **Purpose**: To extract thumbnail images from video or image files.
+     -   **Media Type Detection**: Intelligently determines if a given path points to an image or video file.
+     -   **Thumbnail Generation**: Extracts frames at specified time intervals from videos or resizes images to create
+         thumbnails (`extract_thumbnails`, `extract_thumbnails_from_video`, `extract_thumbnails_from_image`).
+     -   **Error Handling**: Generates blank frames for invalid media files, ensuring robust operation.
+
+ Design Philosophy:
+ -   **Static Utilities**: Most functions are static methods, making them easily accessible without needing to
+     instantiate the classes. This promotes a functional programming style for image processing tasks.
+ -   **Modularity**: Functions are grouped logically into `CV2Utils` (OpenCV-centric), `ImageUtils` (general image
+     processing), and `VideoThumbnailExtractor` (media-specific extraction), enhancing code organization.
+ -   **Performance**: Leverages OpenCV's optimized C++ backend for fast image processing operations.
+ -   **Cross-Platform Compatibility**: Designed with considerations for different operating systems, especially
+     regarding preview window management.
+
 """
 
 import asyncio

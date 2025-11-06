@@ -1,14 +1,46 @@
 """
 a: zak-45
 d: 10/03/2025
-v: 1.0.0
+v: 1.1.0
 
-This script provides a launcher UI for the various system and device monitoring charts.
-It presents a simple interface with buttons to open each chart type (System, Network, Device)
-in its own separate window.
+Overview:
+This file, `runcharts.py`, defines a standalone launcher application for the various system and device monitoring
+dashboards used by WLEDVideoSync. It is designed to be executed as a separate process, typically spawned by the main
+application, to ensure that the resource-intensive charting operations do not impact the performance of the core
+video streaming logic.
 
-This script is intended to be run as a standalone application, typically called by the main
-WLEDVideoSync application.
+The script creates a simple web-based launcher UI using NiceGUI, which provides buttons to open each specific chart
+(System, Network, Device) in a new window or tab. It also handles command-line argument parsing to receive necessary
+configuration from the parent process, such as the list of devices to monitor and the UI theme.
+
+Key Architectural Components:
+
+1.  **Command-Line Argument Parsing (`argparse`)**:
+    -   The `main()` function uses Python's `argparse` module to accept a variety of command-line flags.
+    -   This allows the main WLEDVideoSync application to pass crucial data, such as the list of device IPs
+        (`--dev_list`), the path to the inter-process communication file (`--file`), and the dark mode setting (`--dark`).
+    -   It also supports direct-launch flags (`--sysstats`, `--netstats`, `--devstats`), which bypass the launcher menu
+        and immediately open a specific chart. This is useful for creating direct shortcuts or for testing.
+
+2.  **NiceGUI Page Routing (`@ui.page`)**:
+    -   The application defines multiple pages:
+        -   A root page (`/`) that serves as the main launcher menu.
+        -   Separate pages for each chart type (`/sysstat`, `/netstat`, `/devstat`), each with a unique title.
+    -   This multi-page structure allows each chart to run in its own isolated browser tab or native window,
+        preventing them from interfering with each other.
+
+3.  **Chart Class Integration**:
+    -   The script imports the chart-generating classes (`SysCharts`, `NetCharts`, `DevCharts`) from `syscharts.py`.
+    -   On each respective page, it instantiates the appropriate class, passing the configuration (like `dark` mode
+        or `inter_proc_file`) that was received via the command-line arguments.
+
+Design Philosophy:
+-   **Process Decoupling**: By running as a separate application, the monitoring dashboards are completely decoupled
+    from the main WLEDVideoSync process, ensuring stability and performance for the core streaming functionality.
+-   **Configurability**: The use of command-line arguments provides a flexible and robust way to configure the charts
+    at launch time.
+-   **Simplicity**: The launcher UI is intentionally minimal, providing a straightforward way for the user to access
+    the detailed monitoring tools.
 """
 import argparse
 import asyncio
