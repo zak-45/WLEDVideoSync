@@ -48,7 +48,7 @@ from asyncio import sleep
 from str2bool import str2bool
 from nicegui import ui, run, app
 
-from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet
+from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet, toggle_animated
 from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_button, run_gif_player
 from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Animate
 from src.gui.presets import load_filter_preset
@@ -539,23 +539,10 @@ class CastCenter:
         self.yt_area = ui.scroll_area()
         self.yt_area.set_visibility(False)
 
-        def toggle_animated(element, animation_in='slideInDown', animation_out='slideOutUp'):
-            """Toggles the visibility of an element with animations."""
-            if element.visible:
-                if str2bool(cfg_mgr.custom_config['animate_ui']):
-                    element.classes(add=f'animate__animated animate__{animation_out}',
-                                    remove=f'animate__animated animate__{animation_in}')
-                ui.timer(0.5, lambda: element.set_visibility(False), once=True)
-            else:
-                element.set_visibility(True)
-                if str2bool(cfg_mgr.custom_config['animate_ui']):
-                    element.classes(add=f'animate__animated animate__{animation_in}',
-                                    remove=f'animate__animated animate__{animation_out}')
-
-        # Add toggle icons for the Text and Tools sections
+        # Add toggle icons for the Grid view, Text and Tools sections
         with ui.row().classes('self-center gap-4'):
             ui.icon('grid_on', size='sm').classes('cursor-pointer').tooltip('Show/Hide Preview Grid') \
-                .on('click', lambda: toggle_animated(preview_card))
+                .on('click', lambda: toggle_animated(preview_card, 'slideInRight', 'slideOutLeft'))
             if self.Desktop.overlay_text or self.Media.overlay_text:
                 ui.icon('text_fields', size='sm').classes('cursor-pointer').tooltip('Show/Hide Text Overlay Controls') \
                     .on('click', lambda: toggle_animated(text_card))

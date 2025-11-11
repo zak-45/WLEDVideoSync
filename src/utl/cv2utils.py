@@ -103,7 +103,16 @@ class CV2Utils:
             np.ndarray: A single image representing the grid of input images.
         """
         if not images:
-            return np.zeros((100, 400, 3), dtype=np.uint8)  # Return a blank image if list is empty
+            try:
+                # Load the default placeholder image if no images are provided
+                default_img_path = cfg_mgr.app_root_path('assets/Source-intro.png')
+                default_img = cv2.imread(default_img_path)
+                if default_img is not None:
+                    return cv2.resize(default_img, (400, 225)) # Resize to a reasonable placeholder size
+            except Exception as e:
+                cv2utils_logger.warning(f"Could not load default grid image: {e}")
+            # Fallback to a blank image if the default image can't be loaded
+            return np.zeros((100, 400, 3), dtype=np.uint8)
 
         # Determine grid dimensions
         num_images = len(images)
@@ -116,7 +125,17 @@ class CV2Utils:
         max_w = max(img.shape[1] for img in images)
 
         # Create the canvas for the grid
-        grid_image = np.zeros((grid_rows * max_h, grid_cols * max_w, 3), dtype=np.uint8)
+        try:
+            # Load the background image and resize it to the full grid dimensions
+            bg_img_path = cfg_mgr.app_root_path('assets/Source-intro.png')
+            grid_image = cv2.imread(bg_img_path)
+            if grid_image is None:
+                raise FileNotFoundError("Background image could not be loaded.")
+            grid_image = cv2.resize(grid_image, (grid_cols * max_w, grid_rows * max_h))
+        except Exception as e:
+            cv2utils_logger.warning(f"Could not load background for grid, falling back to black: {e}")
+            # Fallback to a black canvas if the image can't be loaded
+            grid_image = np.zeros((grid_rows * max_h, grid_cols * max_w, 3), dtype=np.uint8)
 
         # Place each image into the grid
         for i, img in enumerate(images):

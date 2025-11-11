@@ -39,6 +39,21 @@ from configmanager import cfg_mgr, PLATFORM, LoggerManager
 logger_manager = LoggerManager(logger_name='WLEDLogger.nice')
 nice_logger = logger_manager.logger
 
+
+async def toggle_animated(element, animation_in='slideInDown', animation_out='slideOutUp'):
+    """Toggles the visibility of an element with animations."""
+    if element.visible:
+        if str2bool(cfg_mgr.custom_config['animate_ui']):
+            element.classes(add=f'animate__animated animate__{animation_out}',
+                            remove=f'animate__animated animate__{animation_in}')
+        ui.timer(0.5, lambda: element.set_visibility(False), once=True)
+    else:
+        element.set_visibility(True)
+        if str2bool(cfg_mgr.custom_config['animate_ui']):
+            element.classes(add=f'animate__animated animate__{animation_in}',
+                            remove=f'animate__animated animate__{animation_out}')
+
+
 # Define a factory function to create a wheel event handler for a given slider
 def create_wheel_handler(slider):
     """Creates a wheel event handler for a slider.
