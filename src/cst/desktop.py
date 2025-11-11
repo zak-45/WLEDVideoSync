@@ -239,7 +239,7 @@ class CASTDesktop(TextAnimatorMixin):
         self.monitor_number: int = 0  # monitor to use for area selection / mss
         self.screen_coordinates = []
         self.reset_total = False
-        self.preview = True
+        self.preview = False
         self.record = False  # put True to record to file
         self.output_file = ""  # Name of the file to save video recording
 
@@ -1086,6 +1086,12 @@ class CASTDesktop(TextAnimatorMixin):
         )
         # --- End Initialization ---
 
+        """
+        Manage preview frame
+        """
+        from mainapp import CastAPI, LatestFrame
+        if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
+
         #
         # Main loop
         #
@@ -1168,8 +1174,6 @@ class CASTDesktop(TextAnimatorMixin):
                                     t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
 
                             # Update the shared preview dictionary for the UI
-                            from mainapp import CastAPI, LatestFrame
-                            if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
                             CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
 
                             # check to see if something to do
@@ -1244,9 +1248,7 @@ class CASTDesktop(TextAnimatorMixin):
                                 frame, grid = process_frame(frame)
                                 #
                                 #
-                                from mainapp import CastAPI, LatestFrame
                                 # Update the shared preview dictionary for the UI
-                                if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
                                 CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
                                 #
                                 if t_preview:
@@ -1341,8 +1343,6 @@ class CASTDesktop(TextAnimatorMixin):
                             frame, grid = process_frame(frame)
 
                             # Update the shared preview dictionary for the UI
-                            from mainapp import CastAPI, LatestFrame
-                            if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
                             CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
 
                             #
@@ -1404,7 +1404,6 @@ class CASTDesktop(TextAnimatorMixin):
         CASTDesktop.cast_names.remove(t_name)
         CASTDesktop.t_exit_event.clear()
 
-        from mainapp import CastAPI
         if t_name in CastAPI.previews:
             del CastAPI.previews[t_name]
 

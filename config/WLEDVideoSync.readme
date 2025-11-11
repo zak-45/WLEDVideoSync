@@ -82,6 +82,9 @@
 # 4 INTER_LANCZOS4	Lanczos interpolation using 8×8 pixel neighborhood	      High-quality upscaling & downscaling
 #                                                                             (preserves fine details)
 # preview_refresh_interval: 1.0, seconds between each refresh of the preview image on the Manage page.
+# grid_view_refresh_interval: 1.0, seconds between each refresh of the grid view.
+# grid_view_columns : 0..x, number of columns to display in the grid view.
+#                     if 0 it will be calculated to create a squarish layout.
 # splash        : True or False, show splash screen at app init, need to be false if you run app as a service !
 
 [colors]

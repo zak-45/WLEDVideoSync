@@ -60,6 +60,7 @@ Design Philosophy:
     even when performing I/O-bound tasks like fetching data or updating the UI.
 """
 import asyncio
+import base64
 import shelve
 import socket
 import sys
@@ -70,6 +71,8 @@ import webbrowser
 from threading import Lock, current_thread
 from datetime import datetime
 
+import cv2
+import numpy as np
 import psutil
 from PIL import Image
 
@@ -93,8 +96,6 @@ from configmanager import cfg_mgr, LoggerManager, PLATFORM, NATIVE_UI, WLED_PID_
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
-
-
 
 Desktop = desktop.CASTDesktop()
 Media = media.CASTMedia()
@@ -489,7 +490,9 @@ async def main_page():
         sysstat_device.tooltip('Re-Generate device list from running casts to SysCharts')
         root_page_url = Utils.root_page()
         go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
-        ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url)).tooltip('Go to Cast Center Page')        
+        ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url)).tooltip('Go to Cast Center Page')
+        ui.button('Grid View', on_click=lambda: ui.navigate.to('/grid_view', new_tab=True), icon='grid_on').classes(
+            'm-2')
         ui.button('Fonts', on_click=center_app.font_select, color='bg-red-800')
         ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor?from_menu=true'), color='bg-red-800')
@@ -1097,7 +1100,6 @@ async def manage_info_page():
     ui.button(icon='refresh', on_click=ui.navigate.reload).tooltip('refresh info')
     await tabs_info_page()
 
-
 @ui.page('/Fonts')
 async def manage_font_page():
 
@@ -1306,9 +1308,71 @@ async def create_preview_help_page():
                 ui.label('Displays this help page.').classes('text-sm text-gray-600 dark:text-gray-400')
 
 
+@ui.page('/grid_view')
+async def grid_view_page():
+    """Displays a grid of all active cast previews."""
+    ui.dark_mode(CastAPI.dark_mode)
+    await apply_custom()
+    await nice.head_menu(name='Grid View', target='/grid_view', icon='grid_on')
+
+    await grid_view()
+
 """
 helpers /Commons main app pages
 """
+
+
+async def grid_view(columns:int = 0):
+    """Displays a grid of all active cast previews."""
+
+    ui.dark_mode(CastAPI.dark_mode)
+    ui.label('Live Grid View').classes('text-2xl font-bold self-center mb-2')
+    grid_card = ui.card()
+    grid_card.classes('self-center w-2/3 bg-gray-500')
+    with grid_card:
+        grid_image_element = ui.image().classes('w-full h-auto')
+        grid_image_element.props('no-transition')
+
+
+    def update_grid():
+        """Fetches all preview frames and combines them into a grid."""
+        active_frames = []
+
+        # Safely get all available frames from the preview dictionary
+        # A try/except block is used to handle the rare race condition where a cast
+        # is added or removed while iterating, which is acceptable for a preview.
+        try:
+            for preview in CastAPI.previews.values():
+                frame_b64 = preview.get()
+                if frame_b64:
+                    # Decode base64 and convert to NumPy array
+                    img_data = base64.b64decode(frame_b64)
+                    img_array = np.frombuffer(img_data, np.uint8)
+                    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+                    if img is not None:
+                        active_frames.append(img)
+        except RuntimeError:
+            # This can happen if a cast starts/stops while we are iterating.
+            # It's safe to just skip this one frame update.
+            main_logger.debug("Skipping one grid view update due to a dictionary change during iteration.")
+            return
+
+        if active_frames:
+
+            if columns == 0:
+                final_col = int(cfg_mgr.app_config['grid_view_columns'])
+                if final_col == 0:
+                    final_col = None
+            else:
+                final_col = columns
+
+            grid_img = CV2Utils.create_grid_from_images(active_frames, final_col)
+            grid_b64 = ImageUtils.image_array_to_base64(cv2.cvtColor(grid_img, cv2.COLOR_BGR2RGB))
+            grid_image_element.set_source(f'data:image/jpeg;base64,{grid_b64}')
+
+    # Set a timer to refresh the grid view periodically
+    ui.timer(float(cfg_mgr.app_config['grid_view_refresh_interval']), update_grid)
+
 
 
 async def _open_page_in_new_window(path: str, title: str, width: int, height: int):

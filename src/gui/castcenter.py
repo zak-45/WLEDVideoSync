@@ -41,6 +41,7 @@ External Libraries and Modules:
 import os
 import shelve
 
+import mainapp
 import src.gui.tkinter_fonts
 
 from asyncio import sleep
@@ -553,11 +554,17 @@ class CastCenter:
 
         # Add toggle icons for the Text and Tools sections
         with ui.row().classes('self-center gap-4'):
+            ui.icon('grid_on', size='sm').classes('cursor-pointer').tooltip('Show/Hide Preview Grid') \
+                .on('click', lambda: toggle_animated(preview_card))
             if self.Desktop.overlay_text or self.Media.overlay_text:
                 ui.icon('text_fields', size='sm').classes('cursor-pointer').tooltip('Show/Hide Text Overlay Controls') \
                     .on('click', lambda: toggle_animated(text_card))
             ui.icon('build', size='sm').classes('cursor-pointer').tooltip('Show/Hide Tools') \
                 .on('click', lambda: toggle_animated(tools_card))
+
+        with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') as preview_card:
+            preview_card.set_visibility(False)
+            await mainapp.grid_view(2)
 
         with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') as text_card:
             text_card.set_visibility(False)
@@ -719,7 +726,7 @@ class CastCenter:
 
 
 if __name__ == "__main__":
-    from mainapp import Desktop as Dk, Media as Md, CastAPI as Api, t_data_buffer as queue
+    from mainapp import Desktop as Dk, Media as Md, CastAPI as Api, t_data_buffer as queue, grid_view
 
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     cast_app = CastCenter(Dk, Md, Api, queue)

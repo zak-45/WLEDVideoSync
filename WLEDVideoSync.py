@@ -77,10 +77,10 @@ warnings.filterwarnings("ignore", category=UserWarning, message="pkg_resources i
 if os.getenv('WLEDVideoSync_trace'):
     import tracetool
 
-from src.gui.niceutils import custom_openapi
-
 # import everything from mainapp.py: the main logic come from there
 from mainapp import *
+
+from src.gui.niceutils import custom_openapi
 
 # disable not used costly import (from nicegui)
 os.environ['MATPLOTLIB'] = 'false'

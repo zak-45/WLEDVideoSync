@@ -212,7 +212,7 @@ class CASTMedia(TextAnimatorMixin):
         self.add_all_sync_delay = 0  # additional time to add to player_time during all sync +/-
         self.cast_sleep = False  # instruct cast to wait until all sync
         self.reset_total = False  # reset total number of frame / packets on monitor
-        self.preview = True  # enable preview window
+        self.preview = False  # enable preview window
         self.repeat = 0  # number of repetition, from -1 to 9999,  -1 = infinite
         self.e131_name = 'WVSMedia'  # name for e131/artnet
         self.universe = 1  # universe start number e131/artnet
@@ -563,6 +563,13 @@ class CASTMedia(TextAnimatorMixin):
         # --- End Initialization ---
 
         """
+        Manage latest frame preview dict
+        """
+        # Update the shared preview dictionary for the UI
+        from mainapp import CastAPI, LatestFrame
+        if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
+
+        """
             Media Loop
         """
         # Main thread loop to read media frame, stop from global call or local
@@ -910,13 +917,13 @@ class CASTMedia(TextAnimatorMixin):
                             break
 
             """
-            Manage preview window, depend on the platform
+            Update latest frame preview dict
             """
-            # Update the shared preview dictionary for the UI
-            from mainapp import CastAPI, LatestFrame
-            if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
             CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
 
+            """
+            Manage preview window, depend on the platform
+            """
             # preview on fixed size window
             if t_preview:
 
@@ -1079,7 +1086,6 @@ class CASTMedia(TextAnimatorMixin):
         CASTMedia.cast_names.remove(t_name)
         CASTMedia.t_exit_event.clear()
 
-        from mainapp import CastAPI
         if t_name in CastAPI.previews:
             del CastAPI.previews[t_name]
 

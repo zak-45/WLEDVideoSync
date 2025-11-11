@@ -90,6 +90,52 @@ class CV2Utils:
         pass
 
     @staticmethod
+    def create_grid_from_images(images: list, grid_cols: int = None) -> np.ndarray:
+        """
+        Arranges a list of images into a single grid image.
+
+        Args:
+            images (list): A list of images as NumPy arrays (BGR or BGRA).
+            grid_cols (int, optional): The number of columns in the grid.
+                                       If None, it will be calculated to create a squarish layout.
+
+        Returns:
+            np.ndarray: A single image representing the grid of input images.
+        """
+        if not images:
+            return np.zeros((100, 400, 3), dtype=np.uint8)  # Return a blank image if list is empty
+
+        # Determine grid dimensions
+        num_images = len(images)
+        if grid_cols is None:
+            grid_cols = int(np.ceil(np.sqrt(num_images)))
+        grid_rows = int(np.ceil(num_images / grid_cols))
+
+        # Find the max dimensions to standardize frame size
+        max_h = max(img.shape[0] for img in images)
+        max_w = max(img.shape[1] for img in images)
+
+        # Create the canvas for the grid
+        grid_image = np.zeros((grid_rows * max_h, grid_cols * max_w, 3), dtype=np.uint8)
+
+        # Place each image into the grid
+        for i, img in enumerate(images):
+            row = i // grid_cols
+            col = i % grid_cols
+
+            # Resize image to max dimensions, converting to BGR if it has an alpha channel
+            if img.shape[2] == 4:
+                img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+            resized_img = cv2.resize(img, (max_w, max_h))
+
+            # Calculate position and paste the image
+            y_offset = row * max_h
+            x_offset = col * max_w
+            grid_image[y_offset:y_offset + max_h, x_offset:x_offset + max_w] = resized_img
+
+        return grid_image
+
+    @staticmethod
     def overlay_bgra_on_bgr(background_bgr, overlay_bgra):
         """
         Overlays a BGRA image with transparency onto a BGR image using vectorized operations.
