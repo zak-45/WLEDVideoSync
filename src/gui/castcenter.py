@@ -41,14 +41,13 @@ External Libraries and Modules:
 import os
 import shelve
 
-import mainapp
 import src.gui.tkinter_fonts
 
 from asyncio import sleep
 from str2bool import str2bool
 from nicegui import ui, run, app
 
-from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet, toggle_animated
+from src.gui.niceutils import edit_protocol, edit_rate_x_y, edit_ip, edit_artnet, toggle_animated, toggle_timer
 from src.gui.niceutils import apply_custom, discovery_net_notify, net_view_button, run_gif_player
 from src.gui.niceutils import LocalFilePicker, YtSearch, AnimatedElement as Animate
 from src.gui.presets import load_filter_preset
@@ -90,7 +89,7 @@ async def open_webview_manage_casts_page() -> None:
 
 
 class CastCenter:
-    def __init__(self, Desktop, Media, CastAPI, t_data_buffer, shutdown_func=None):
+    def __init__(self, Desktop, Media, CastAPI, t_data_buffer, shutdown_func=None, grid_view_func=None):
 
         self.media_text_status = None
         self.desktop_text_status = None
@@ -113,7 +112,7 @@ class CastCenter:
         self.media_font_name_label = None
         self.media_font_size_label = None
         self.shutdown_func = shutdown_func
-
+        self.grid_view_func = grid_view_func
 
     async def toggle_text_media(self, media_button):
         """ allow or not allow text overlay for Media """
@@ -257,8 +256,9 @@ class CastCenter:
         This method clears the YouTube area, makes it visible, and sets up the search interface for YouTube videos.
         """
         self.yt_area.clear()
-        self.yt_area.set_visibility(True)
+        # self.yt_area.set_visibility(True)
         self.yt_area.classes('w-full border')
+        await toggle_animated(self.yt_area)
         with self.yt_area:
             YtSearch(self.yt_input, True)
 
@@ -376,8 +376,11 @@ class CastCenter:
         and event handlers for casting operations.
         """
         dark = ui.dark_mode(self.CastAPI.dark_mode).bind_value_to(self.CastAPI, 'dark_mode')
-
         await apply_custom()
+
+        async def toggle_preview():
+            await toggle_animated(preview_card, 'slideInRight', 'slideOutLeft')
+            ui.timer(1.0, lambda: toggle_timer(grid_timer,preview_card), once=True)
 
         # Search for all system fonts and initialize the manager
         Utils.get_system_fonts()
@@ -532,7 +535,7 @@ class CastCenter:
                         self.yt_input = ui.input('enter YT url').tooltip('Enter a YouTube video URL')
                         yt_cancel = ui.icon('disabled_visible',size='sm', color='red').classes('m-4').tooltip('Close YouTube search results')
                         yt_cancel.style('cursor:pointer')
-                        yt_cancel.on('click', lambda: self.yt_area.set_visibility(False))
+                        yt_cancel.on('click', lambda: toggle_animated(self.yt_area))
                         yt_cast = ui.button(icon='cast').classes('m-4').tooltip('Start YouTube Cast')
                         yt_cast.on('click', lambda : self.cast_class(self.Media, 'Youtube'))
 
@@ -542,7 +545,7 @@ class CastCenter:
         # Add toggle icons for the Grid view, Text and Tools sections
         with ui.row().classes('self-center gap-4'):
             ui.icon('grid_on', size='sm').classes('cursor-pointer').tooltip('Show/Hide Preview Grid') \
-                .on('click', lambda: toggle_animated(preview_card, 'slideInRight', 'slideOutLeft'))
+                .on('click', lambda: toggle_preview())
             if self.Desktop.overlay_text or self.Media.overlay_text:
                 ui.icon('text_fields', size='sm').classes('cursor-pointer').tooltip('Show/Hide Text Overlay Controls') \
                     .on('click', lambda: toggle_animated(text_card))
@@ -551,7 +554,7 @@ class CastCenter:
 
         with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') as preview_card:
             preview_card.set_visibility(False)
-            await mainapp.grid_view(2)
+            grid_timer = await self.grid_view_func(2)
 
         with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') as text_card:
             text_card.set_visibility(False)
@@ -694,7 +697,7 @@ class CastCenter:
 
             ui.separator().props(add='size=8px')
             with ui.row():
-                ui.switch('Dark').bind_value(dark)
+                ui.switch('Dark').bind_value(self.CastAPI, 'dark_mode')
                 ui.button('Validate',icon='verified', on_click=self.validate).classes('self-center').tooltip('Apply WLED settings and refresh UI')
 
             ui.separator().props(add='size=8px')
@@ -716,7 +719,7 @@ if __name__ == "__main__":
     from mainapp import Desktop as Dk, Media as Md, CastAPI as Api, t_data_buffer as queue, grid_view
 
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
-    cast_app = CastCenter(Dk, Md, Api, queue)
+    cast_app = CastCenter(Dk, Md, Api, queue,None ,grid_view)
 
     print('start cast center main')
     @ui.page('/')

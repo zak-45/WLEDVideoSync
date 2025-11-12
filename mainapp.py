@@ -149,7 +149,15 @@ async def cleanup_on_shutdown():
 Actions to do at application initialization 
 """
 async def init_actions():
-    """ Done at start of app and before GUI available """
+    """
+    Performs all necessary initialization tasks for the WLEDVideoSync application.
+
+    This function sets up the application's environment, applies configuration presets, initializes core resources,
+    and starts background services such as the scheduler. It is intended to be called at application startup.
+
+    Returns:
+        None
+    """
     #
     # We do not want init execution when using command line arguments
     #
@@ -274,6 +282,76 @@ async def init_actions():
         main_logger.error(f"Error on app startup {e}")
 
 """
+Grid View
+"""
+
+async def grid_view(columns:int = 0):
+    """
+    Displays a live grid view of all active preview frames in the application.
+
+    This function creates a UI page that periodically fetches the latest preview frames from all active casts,
+    arranges them into a grid, and updates the displayed image. The number of columns in the grid can be specified,
+    or it will default to the configured value.
+
+    Args:
+        columns (int): The number of columns to use in the grid. If 0, uses the configured default.
+
+    Returns:
+        ui.timer: A NiceGUI timer object that periodically refreshes the grid view.
+    """
+    ui.dark_mode(CastAPI.dark_mode)
+    ui.label('Live Grid View').classes('text-2xl font-bold self-center mb-2')
+    grid_card = ui.card()
+    grid_card.classes('self-center w-2/3 bg-gray-500')
+    with grid_card:
+        grid_image_element = ui.image().classes('w-full h-auto')
+        grid_image_element.props('no-transition')
+        grid_image_element.set_source(cfg_mgr.app_root_path('assets/Source-intro.png'))
+
+    def update_grid():
+        """Fetches all preview frames and combines them into a grid."""
+        active_frames = []
+
+        # Safely get all available frames from the preview dictionary
+        # A try/except block is used to handle the rare race condition where a cast
+        # is added or removed while iterating, which is acceptable for a preview.
+        try:
+            for preview in CastAPI.previews.values():
+                frame_b64 = preview.get()
+                if frame_b64:
+                    # Decode base64 and convert to NumPy array
+                    img_data = base64.b64decode(frame_b64)
+                    img_array = np.frombuffer(img_data, np.uint8)
+                    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+                    if img is not None:
+                        active_frames.append(img)
+        except RuntimeError:
+            # This can happen if a cast starts/stops while we are iterating.
+            # It's safe to just skip this one frame update.
+            main_logger.debug("Skipping one grid view update due to a dictionary change during iteration.")
+            return
+
+        if active_frames:
+
+            if columns == 0:
+                final_col = int(cfg_mgr.app_config['grid_view_columns'])
+                if final_col == 0:
+                    final_col = None
+            else:
+                final_col = columns
+
+            grid_img = CV2Utils.create_grid_from_images(active_frames, final_col)
+            grid_b64 = ImageUtils.image_array_to_base64(cv2.cvtColor(grid_img, cv2.COLOR_BGR2RGB))
+            grid_image_element.set_source(f'data:image/jpeg;base64,{grid_b64}')
+        else:
+            grid_image_element.set_source(cfg_mgr.app_root_path('assets/Source-intro.png'))
+
+    # Set a timer to refresh the grid view periodically
+    grid_timer = ui.timer(float(cfg_mgr.app_config['grid_view_refresh_interval']), update_grid)
+
+    return grid_timer
+
+"""
 Class
 """
 class CastAPI:
@@ -334,7 +412,7 @@ class LatestFrame:
 
 
 # Instantiate Cast Center with Desktop and Media
-center_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer, shutdown_func=cleanup_on_shutdown)
+center_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer, shutdown_func=cleanup_on_shutdown, grid_view_func=grid_view)
 # Instantiate SchedulerGUI with Desktop and Media
 if str2bool(cfg_mgr.scheduler_config['enable']):
     scheduler_app = SchedulerGUI(Desktop, Media, CastAPI, t_data_buffer, True)
@@ -404,6 +482,8 @@ async def main_page():
     Video player
     """
     if str2bool(cfg_mgr.custom_config['player']):
+        CastAPI.player_timer = ui.timer(int(cfg_mgr.app_config['timer']),
+                                        callback=lambda: nice.sync_button(CastAPI, Media))
         await video_app.video_player_page()
         CastAPI.player.set_visibility(False)
 
@@ -546,8 +626,7 @@ async def run_video_player_page():
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
     #
-    #if CastAPI.player_timer is None:
-    CastAPI.player_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=player_timer_action)
+    CastAPI.player_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=lambda: nice.sync_button(CastAPI, Media))
     await video_app.video_player_page()
 
 
@@ -1088,7 +1167,7 @@ async def info_page():
         <link rel="stylesheet" href="assets/css/animate.min.css"/>
         """)
     #if CastAPI.info_timer is None:
-    CastAPI.info_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=info_timer_action)
+    CastAPI.info_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=lambda: nice.cast_manage(CastAPI, Desktop, Media))
     await cast_manage_page()
 
 
@@ -1263,7 +1342,7 @@ async def create_control_panel_page():
     await apply_custom()
 
     # Timer to update cast info
-    CastAPI.info_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=info_timer_action)
+    CastAPI.info_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=lambda: nice.cast_manage(CastAPI, Desktop, Media))
     # Generate the control panel
     await control_panel_page()
 
@@ -1313,67 +1392,13 @@ async def grid_view_page():
     """Displays a grid of all active cast previews."""
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
-    await nice.head_menu(name='Grid View', target='/grid_view', icon='grid_on')
+    # await nice.head_menu(name='Grid View', target='/grid_view', icon='grid_on')
 
     await grid_view()
 
 """
 helpers /Commons main app pages
 """
-
-
-async def grid_view(columns:int = 0):
-    """Displays a grid of all active cast previews."""
-
-    ui.dark_mode(CastAPI.dark_mode)
-    ui.label('Live Grid View').classes('text-2xl font-bold self-center mb-2')
-    grid_card = ui.card()
-    grid_card.classes('self-center w-2/3 bg-gray-500')
-    with grid_card:
-        grid_image_element = ui.image().classes('w-full h-auto')
-        grid_image_element.props('no-transition')
-
-
-    def update_grid():
-        """Fetches all preview frames and combines them into a grid."""
-        active_frames = []
-
-        # Safely get all available frames from the preview dictionary
-        # A try/except block is used to handle the rare race condition where a cast
-        # is added or removed while iterating, which is acceptable for a preview.
-        try:
-            for preview in CastAPI.previews.values():
-                frame_b64 = preview.get()
-                if frame_b64:
-                    # Decode base64 and convert to NumPy array
-                    img_data = base64.b64decode(frame_b64)
-                    img_array = np.frombuffer(img_data, np.uint8)
-                    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-                    if img is not None:
-                        active_frames.append(img)
-        except RuntimeError:
-            # This can happen if a cast starts/stops while we are iterating.
-            # It's safe to just skip this one frame update.
-            main_logger.debug("Skipping one grid view update due to a dictionary change during iteration.")
-            return
-
-        if active_frames:
-
-            if columns == 0:
-                final_col = int(cfg_mgr.app_config['grid_view_columns'])
-                if final_col == 0:
-                    final_col = None
-            else:
-                final_col = columns
-
-            grid_img = CV2Utils.create_grid_from_images(active_frames, final_col)
-            grid_b64 = ImageUtils.image_array_to_base64(cv2.cvtColor(grid_img, cv2.COLOR_BGR2RGB))
-            grid_image_element.set_source(f'data:image/jpeg;base64,{grid_b64}')
-
-    # Set a timer to refresh the grid view periodically
-    ui.timer(float(cfg_mgr.app_config['grid_view_refresh_interval']), update_grid)
-
-
 
 async def _open_page_in_new_window(path: str, title: str, width: int, height: int):
     """
@@ -1843,29 +1868,10 @@ async def root_timer_action():
     :return:
     """
 
-    await nice.sync_button(CastAPI, Media)
-
     await nice.cast_manage(CastAPI, Desktop, Media)
 
     if str2bool(cfg_mgr.custom_config['system_stats']):
         await nice.system_stats(CastAPI, Desktop, Media)
-
-
-async def info_timer_action():
-    """
-    timer action occur only when info page is active '/info'
-    :return:
-    """
-
-    await nice.cast_manage(CastAPI, Desktop, Media)
-
-
-async def player_timer_action():
-    """
-    timer action occur when player is displayed
-    :return:
-    """
-    await nice.sync_button(CastAPI, Media)
 
 
 async def cast_to_wled(class_obj, image_number):

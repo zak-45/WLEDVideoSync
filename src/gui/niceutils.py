@@ -40,6 +40,30 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.nice')
 nice_logger = logger_manager.logger
 
 
+
+async def toggle_timer(timer: ui.timer, element: ui.element):
+    """
+    Toggles the activation state of a timer based on the visibility of a UI element.
+
+    This function activates the timer if the element is visible, and deactivates it otherwise.
+    It also logs the timer's activation state.
+
+    Args:
+        timer (ui.timer): The timer to activate or deactivate.
+        element (ui.element): The UI element whose visibility determines the timer state.
+
+    Returns:
+        None
+    """
+    if timer is not None:
+        if element.visible:
+            timer.activate()
+            nice_logger.debug(f'Timer activated: {timer.html_id}')
+        else:
+            timer.deactivate()
+            nice_logger.debug(f'Timer deactivated: {timer.html_id}')
+
+
 async def toggle_animated(element, animation_in='slideInDown', animation_out='slideOutUp'):
     """Toggles the visibility of an element with animations."""
     if element.visible:
@@ -109,8 +133,6 @@ async def system_stats(CastAPI, Desktop, Media):
     
         CastAPI.cpu_chart.options['series'][0]['data'].append(CastAPI.cpu)
         CastAPI.cpu_chart.options['xAxis']['data'].append(date_time_str)
-
-        # CastAPI.cpu_chart.update()
 
     if CastAPI.cpu >= 75:
         ui.notify('High CPU utilization', type='negative', close_button=True)

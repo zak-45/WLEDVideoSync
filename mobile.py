@@ -276,6 +276,7 @@ if __name__ == "__main__":
     Desktop = desktop.CASTDesktop()
     Desktop.viinput = 'queue'
     Desktop.stopcast = False
+    Desktop.preview = True
     Desktop.host = host
     Desktop.wled = wled
     sl_instance = Desktop.cast()
