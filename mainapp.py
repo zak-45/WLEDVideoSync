@@ -133,6 +133,7 @@ async def cleanup_on_shutdown():
     Media.stopcast = True
 
     window_native.close_all_webviews()
+    if app.native.main_window: app.native.main_window.destroy()
 
     # Stop the scheduler and its worker threads
     if 'scheduler_app' in globals() and scheduler_app.scheduler.is_running:
@@ -143,7 +144,7 @@ async def cleanup_on_shutdown():
     RUNColdtype.stop_all()
 
     #Give a brief moment for processes to terminate
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.2)
 
 """
 Actions to do at application initialization 
