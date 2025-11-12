@@ -132,6 +132,19 @@ async def cleanup_on_shutdown():
     Desktop.stopcast = True
     Media.stopcast = True
 
+    # Timer
+    if CastAPI.root_timer is not None:
+        CastAPI.root_timer.cancel(with_current_invocation=True)
+    if CastAPI.player_timer is not None:
+        CastAPI.player_timer.cancel(with_current_invocation=True)
+    if CastAPI.info_timer is not None:
+        CastAPI.info_timer.cancel(with_current_invocation=True)
+    if center_app.cast_timer is not None:
+        center_app.cast_timer.cancel(with_current_invocation=True)
+    if 'scheduler_app' in globals() and scheduler_app.sched_timer is not None:
+        scheduler_app.sched_timer.cancel(with_current_invocation=True)
+
+    # Webview
     window_native.close_all_webviews()
     if app.native.main_window: app.native.main_window.destroy()
 

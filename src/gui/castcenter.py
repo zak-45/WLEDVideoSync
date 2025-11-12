@@ -97,6 +97,7 @@ class CastCenter:
         self.Media = Media
         self.CastAPI = CastAPI
         self.Queue = t_data_buffer
+        self.cast_timer = None
         self.win = None
         self.device = None
         self.video = None
@@ -396,7 +397,7 @@ class CastCenter:
         """
         timer created on main page run to refresh datas
         """
-        ui.timer(int(cfg_mgr.app_config['timer']), callback=self.center_timer_action)
+        self.cast_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=self.center_timer_action)
         #
         """
         Center page creation

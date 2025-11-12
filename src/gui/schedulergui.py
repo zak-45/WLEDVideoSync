@@ -173,6 +173,7 @@ class SchedulerGUI:
     def __init__(self, Desktop=None, Media=None, CastAPI=None, t_data_buffer=None, use_capture: bool = False):
         self.use_capture = use_capture
         self.log_queue = None
+        self.sched_timer = None
         self.Desktop = Desktop
         self.Media = Media
         self.CastAPI = CastAPI
@@ -442,7 +443,7 @@ class SchedulerGUI:
         """
         scheduler timer 
         """
-        ui.timer(int(cfg_mgr.app_config['timer']), callback=scheduler_timer_action)
+        self.sched_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=scheduler_timer_action)
 
         """
         Scheduler page creation
