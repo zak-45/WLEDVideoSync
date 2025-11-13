@@ -55,7 +55,6 @@ parsed_args = None # Global to store parsed command-line arguments
 
 try:
     from src.gui.niceutils import apply_custom
-    from configmanager import NATIVE_UI
 except Exception as e:
     print(f'NOT WLEDVideoSync: {e}')
     async def apply_custom():
@@ -76,13 +75,13 @@ async def main_page():
     # If a specific chart was requested via command line, redirect immediately.
     if parsed_args:
         if parsed_args.sysstats:
-            ui.navigate.to('/sysstat')
+            ui.navigate.to('/sysstats')
             return
         if parsed_args.netstats:
-            ui.navigate.to('/netstat')
+            ui.navigate.to('/netstats')
             return
         if parsed_args.devstats:
-            ui.navigate.to('/devstat')
+            ui.navigate.to('/devstats')
             return
 
     await apply_custom()
@@ -103,20 +102,20 @@ async def main_page():
         close.tooltip('Shutdown Chart Launcher application')
 
 
-@ui.page('/sysstat', title='System Stats')
+@ui.page('/sysstats', title='System Stats')
 async def sys_stat_page():
     await apply_custom()
     sysstat = SysCharts(dark=DARK_MODE, direct_launch=parsed_args.sysstats if parsed_args is not None else False)
     await sysstat.setup_ui()
 
 
-@ui.page('/netstat', title='Network Stats')
+@ui.page('/netstats', title='Network Stats')
 async def net_stat_page():
     await apply_custom()
     netstat = NetCharts(dark=DARK_MODE, direct_launch=parsed_args.netstats if parsed_args is not None else False)
 
 
-@ui.page('/devstat', title='Device Stats')
+@ui.page('/devstats', title='Device Stats')
 async def dev_stat_page():
     await apply_custom()
     devstat = DevCharts(dark=DARK_MODE, inter_proc_file=INTER_PROC_FILE, direct_launch=parsed_args.devstats if parsed_args is not None else False)
@@ -137,7 +136,7 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
     ************* Args are used when executed via WLEDVideoSync *****************
 
     """
-    global DEV_LIST, INTER_PROC_FILE, DARK_MODE, parsed_args
+    global DEV_LIST, INTER_PROC_FILE, DARK_MODE, NATIVE_UI, parsed_args
 
     DEV_LIST = i_dev_list
     INTER_PROC_FILE = i_inter_proc_file
@@ -150,8 +149,9 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
     parser.add_argument('--sysstats', action='store_true', help='Launch System Stats chart directly.')
     parser.add_argument('--netstats', action='store_true', help='Launch Network Stats chart directly.')
     parser.add_argument('--devstats', action='store_true', help='Launch Device Stats chart directly.')
-    parser.add_argument('--dark', type=bool, help='Enable dark mode for the chart.')
     parser.add_argument('--dev_list', type=str, help='Comma-separated list of device IPs for the device chart.')
+    parser.add_argument('--dark', action='store_true', help='If present, enable dark mode for the chart.')
+    parser.add_argument('--native', action='store_true', help='If present, enable native mode (pywebview).')
     parser.add_argument('--file', type=str, help='Absolute path of the inter process file (shelve).')
 
     args = parser.parse_args()
@@ -166,6 +166,13 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
     # If the list is still empty, default to localhost
     if not DEV_LIST:
         DEV_LIST = ['127.0.0.1']
+
+    #
+    if args.dark:
+        DARK_MODE = args.dark
+    #
+    if args.native:
+        NATIVE_UI = args.native
 
     # find an open port for the charts server
     srv_port = native.find_open_port()
