@@ -91,11 +91,11 @@ async def main_page():
     with ui.card().classes('mx-auto'):
         ui.label('Select a chart to open in a new window.').classes('self-center')
         with ui.row().classes('w-full justify-center gap-4 mt-4'):
-            system = ui.button('System Stats', on_click=lambda: ui.navigate.to('/sysstat', new_tab=True))
+            system = ui.button('System Stats', on_click=lambda: ui.navigate.to('/sysstats', new_tab=True))
             system.tooltip('Show system stats ')
-            network = ui.button('Network Stats', on_click=lambda: ui.navigate.to('/netstat', new_tab=True))
+            network = ui.button('Network Stats', on_click=lambda: ui.navigate.to('/netstats', new_tab=True))
             network.tooltip('Show network stats')
-            devices = ui.button('Devices Stats', on_click=lambda: ui.navigate.to('/devstat', new_tab=True))
+            devices = ui.button('Devices Stats', on_click=lambda: ui.navigate.to('/devstats', new_tab=True))
             devices.tooltip('Show device stats')
 
         close = ui.button('Stop',icon='power_settings_new', on_click=shutdown).classes('mt-6 self-center')
