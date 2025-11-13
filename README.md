@@ -449,15 +449,16 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
  ##### Chart Launcher (`runcharts.py`)
  When you run `WLEDVideoSync.py --run-sys-charts`, it launches the chart utility, which has its own set of arguments.
   
- | Flag                      | Description                                                              |
- |---------------------------|--------------------------------------------------------------------------|
- | `-h`, `--help` , `--more` | Show the help message and exit.                                          |
- | `--sysstats`              | Launch the System Stats chart directly.                                  |
- | `--netstats`              | Launch the Network Stats chart directly.                                 |
- | `--devstats`              | Launch the Device Stats chart directly.                                  |
- | `--dark {true,false}`     | Enable dark mode for the chart.                                          |
- | `--dev_list DEV_LIST`     | Comma-separated list of device IPs for the device chart.                 |
- | `--file FILE`             | Absolute path of the inter-process file (shelve).                        |
+ | Flag                      | Description                                              |
+ |---------------------------|----------------------------------------------------------|
+ | `-h`, `--help` , `--more` | Show the help message and exit.                          |
+ | `--sysstats`              | Launch the System Stats chart directly.                  |
+ | `--netstats`              | Launch the Network Stats chart directly.                 |
+ | `--devstats`              | Launch the Device Stats chart directly.                  |
+ | `--dark `                 | Enable dark mode for the chart.                          |
+ | `--native `               | Enable native window mode for the chart.                 | 
+ | `--dev_list DEV_LIST`     | Comma-separated list of device IPs for the device chart. |
+ | `--file FILE`             | Absolute path of the inter-process file (shelve).        |
   
 
  ---
