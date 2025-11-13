@@ -49,7 +49,7 @@ from mainapp import check_server
 from src.utl.utils import CASTUtils as Utils
 from src.utl.webviewmanager import WebviewManager
 
-from configmanager import cfg_mgr, LoggerManager, NATIVE_UI, WLED_PID_TMP_FILE
+from configmanager import cfg_mgr, LoggerManager, SYS_TRAY_NATIVE_UI, WLED_PID_TMP_FILE
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.systray')
 systray_logger = logger_manager.logger
@@ -66,7 +66,7 @@ def select_win(url, title, width=800, height=600):
     is True, otherwise opens it in the default web browser.
     """
 
-    if NATIVE_UI:
+    if SYS_TRAY_NATIVE_UI:
         WLEDVideoSync_gui.open_webview(url=url, title=title, width=width, height=height)
     else:
         webbrowser.open(url=url, new=0, autoraise=True)

@@ -92,7 +92,7 @@ from src.utl.webviewmanager import WebviewManager
 from src.gui.presets import *
 from src.api.api import *
 
-from configmanager import cfg_mgr, LoggerManager, PLATFORM, NATIVE_UI, WLED_PID_TMP_FILE
+from configmanager import cfg_mgr, LoggerManager, PLATFORM, WLED_PID_TMP_FILE
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.main')
 main_logger = logger_manager.logger
@@ -585,8 +585,10 @@ async def main_page():
         root_page_url = Utils.root_page()
         go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
         ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url)).tooltip('Go to Cast Center Page')
-        ui.button('Grid View', on_click=lambda: ui.navigate.to('/grid_view', new_tab=True), icon='grid_on').classes(
-            'm-2')
+        ui.button('Grid View', on_click=lambda: _open_page_in_new_window('/grid_view',
+                                                                         'Grid View',
+                                                                         width=600,
+                                                                         height=400), icon='grid_on').classes('m-2')
         ui.button('Fonts', on_click=center_app.font_select, color='bg-red-800')
         ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor?from_menu=true'), color='bg-red-800')
@@ -1414,7 +1416,7 @@ async def grid_view_page():
 helpers /Commons main app pages
 """
 
-async def _open_page_in_new_window(path: str, title: str, width: int, height: int):
+async def _open_page_in_new_window(path: str, title: str, width: int, height: int, notify: bool = True):
     """
     Helper function to open a new native webview or browser window.
 
@@ -1429,12 +1431,16 @@ async def _open_page_in_new_window(path: str, title: str, width: int, height: in
     title = f'{title} - {str(server_port)}'
 
     url = f"http://localhost:{server_port}{path}"
-    main_logger.info(f"Requesting new window for: {url}")
+    main_logger.debug(f"Requesting new window for: {url}")
 
-    if NATIVE_UI:
+    if app.native.main_window:
         window_native.open_webview(url=url, title=title, width=width, height=height)
+        main_logger.debug(f"New native window for: {url}")
     else:
         webbrowser.open_new(url=url)
+
+    if notify:
+        ui.notify(f'Opening new window _ {url}',position='center',timeout=3000,close_button=True, type='info')
 
 
 async def control_panel_page():

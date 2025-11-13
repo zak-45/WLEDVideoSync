@@ -484,6 +484,6 @@ class LoggerManager:
 cfg_mgr = ConfigManager()
 # Initialize as an empty string. The true path will be set in `mainapp.init_actions`.
 WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{cfg_mgr.pid}_file")
-# Also define NATIVE_UI here as it's a global setting derived from config.
-NATIVE_UI = str2bool(cfg_mgr.app_config['systray_native']) if cfg_mgr.app_config is not None else False
+# Also define NATIVE_UI here as it's a global setting derived from config (used by systray).
+SYS_TRAY_NATIVE_UI = str2bool(cfg_mgr.app_config['systray_native']) if cfg_mgr.app_config is not None else False
 # --- End of addition ---

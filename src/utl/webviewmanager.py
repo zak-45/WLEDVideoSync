@@ -102,7 +102,7 @@ if __name__ == '__main__':
     webview_manager = WebviewManager()
 
     # Open a couple of windows
-    webview_manager.open_webview('https://example.com', 'Example Window', 800, 600)
+    webview_manager.open_webview('https://example.com', 'Example Window', 600, 400)
     webview_manager.open_webview('https://google.com', 'Another Window', 800, 600)
 
     print("Running webview process windows:", webview_manager.get_running_webviews())
