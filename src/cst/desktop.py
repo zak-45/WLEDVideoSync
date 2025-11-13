@@ -1062,7 +1062,12 @@ class CASTDesktop(TextAnimatorMixin):
         """
 
         # List to keep all running cast objects
+        CASTDesktop.t_desktop_lock.acquire()
+        #
         CASTDesktop.cast_names.append(t_name)
+        #
+        CASTDesktop.t_desktop_lock.release()
+        #
         CASTDesktop.count += 1
 
         start_time = time.time()
@@ -1253,7 +1258,7 @@ class CASTDesktop(TextAnimatorMixin):
                                 frame, grid = process_frame(frame)
                                 #
                                 #
-                                # Update the shared preview dictionary for the UI
+                                # Update the shared preview dictionary for the UI (thread safe)
                                 CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
                                 #
                                 if t_preview:

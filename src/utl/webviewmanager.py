@@ -46,7 +46,12 @@ import webview
 from src.utl.utils import CASTUtils as Utils
 
 def start_webview(url: str, title: str, width: int, height: int):
-    """Start a webview window in a separate process."""
+    """Start a webview window in a separate process.
+    Keeping start_webview as a top-level function is the best practice for ensuring cross-platform compatibility and
+    reliability with the multiprocessing library.
+    Top-level functions defined in a module are very easy for Python to pickle and send to a child process.
+    It avoids potential pickling issues and clearly separates the process's entry point from the class that manages it.
+    """
     webview.create_window(
         title,
         url=url,

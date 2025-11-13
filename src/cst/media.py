@@ -312,15 +312,23 @@ class CASTMedia(TextAnimatorMixin):
                 time.sleep(sleep_time)
 
         """
-        MultiCast inner function protected from what happens outside.
+        MultiCast inner functions.
         """
 
         def send_multicast_image(ip, image):
             """
-            This sends an image to an IP address using DDP/e131/artnet, used by multicast
-            :param ip:
-            :param image:
-            :return:
+            Sends a single image to a specific IP address using the DDP protocol, used by multicast feature.
+
+            This function waits for a synchronization event before sending the image data to the appropriate device.
+            It updates the total packet count and logs a warning if the frame is dropped due to timeout.
+
+            Args:
+                ip (str): The IP address to send the image to.
+                image: The image data to send.
+
+            Returns:
+                None
+
             """
             if t_protocol == 'ddp':
                 # timeout provided to not have thread waiting infinitely
@@ -336,11 +344,20 @@ class CASTMedia(TextAnimatorMixin):
 
         def send_multicast_images_to_ips(images_buffer, to_ip_addresses):
             """
-            Create a thread for each image , IP pair and wait for all to finish
+            Create a thread for each image,IP pair and wait for all to finish
             Very simple synchro process
-            :param to_ip_addresses:
-            :param images_buffer:
-            :return:
+
+            Sends images to multiple IP addresses for multicast feature:
+
+            This function distributes images to a list of IP addresses, either sending a unique image to each address
+            (for grid/matrix mode) or the same image to all addresses. It uses a thread pool for concurrent sending.
+
+            Args:
+                images_buffer (list): List of images to send.
+                to_ip_addresses (list): List of IP addresses to send images to.
+
+            Returns:
+                None
             """
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 if t_multicast and (t_cast_x != 1 or t_cast_y != 1):
@@ -526,8 +543,13 @@ class CASTMedia(TextAnimatorMixin):
             media_logger.debug(f"{t_name} Start at frame number {self.frame_index}")
             media.set(cv2.CAP_PROP_POS_FRAMES, self.frame_index - 1)
 
+        #
+        CASTMedia.t_media_lock.acquire()
         # List to keep all running cast objects
         CASTMedia.cast_names.append(t_name)
+        #
+        CASTMedia.t_media_lock.release()
+        #
         CASTMedia.count += 1
 
         # Calculate the current time
@@ -801,7 +823,7 @@ class CASTMedia(TextAnimatorMixin):
             if t_multicast and (t_cast_y != 1 or t_cast_x != 1):
                 """
                     multicast manage any number of devices of same configuration
-                    matrix need to be more than 1 x 1
+                    2D matrix need to be more than 1 x 1
                     each device need to drive the same amount of leds, same config
                     e.g. WLED matrix 16x16 : 3(x) x 2(y)                    
                     ==> this give 6 devices to set into cast_devices list                         
