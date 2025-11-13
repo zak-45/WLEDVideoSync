@@ -279,6 +279,7 @@ if __name__ == "__main__":
     Desktop.preview = True
     Desktop.host = host
     Desktop.wled = wled
+    # as viinput = queue, this will create a ShareAble List {t_name}_p
     sl_instance = Desktop.cast()
     # local IP
     my_ip = Utils.get_local_ip_address()

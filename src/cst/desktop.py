@@ -432,7 +432,7 @@ class CASTDesktop(TextAnimatorMixin):
         actions processing
         """
 
-        def do_action():
+        def do_action(i_frame, i_frame_count):
             """
             check if something to do
             manage concurrent access to the list by using lock feature
@@ -443,27 +443,29 @@ class CASTDesktop(TextAnimatorMixin):
             CASTDesktop.t_desktop_lock.acquire()
             desktop_logger.debug(f"{t_name} We are inside todo :{CASTDesktop.cast_name_todo}")
 
-            # will read cast_name_todo list and see if something to do
-            (new_todo_stop,
-             new_preview,
-             new_frame_buffer,
-             new_cast_frame_buffer,
-             new_to_do) = action_executor.process_actions(frame, frame_count)
+            try:
+                # will read cast_name_todo list and see if something to do
+                (new_todo_stop,
+                 new_preview,
+                 new_frame_buffer,
+                 new_cast_frame_buffer,
+                 remain_to_do) = action_executor.process_actions(i_frame, i_frame_count)
 
-            if new_frame_buffer is not None:
-                self.frame_buffer.append(new_frame_buffer)
-            if new_cast_frame_buffer is not None:
-                self.cast_frame_buffer.append(new_cast_frame_buffer)
+                if new_frame_buffer is not None:
+                    self.frame_buffer.append(new_frame_buffer)
+                if new_cast_frame_buffer is not None:
+                    self.cast_frame_buffer.append(new_cast_frame_buffer)
 
-            # set list without already executed actions
-            CASTDesktop.cast_name_todo = new_to_do
+                # set list without already executed actions
+                CASTDesktop.cast_name_todo = remain_to_do
 
-            # if list is empty, no more for any cast
-            if len(CASTDesktop.cast_name_todo) == 0:
-                CASTDesktop.t_todo_event.clear()
+                # if list is empty, no more for any cast
+                if len(CASTDesktop.cast_name_todo) == 0:
+                    CASTDesktop.t_todo_event.clear()
 
-            # release once task finished for this cast
-            CASTDesktop.t_desktop_lock.release()
+            finally:
+                # release once task finished for this cast
+                CASTDesktop.t_desktop_lock.release()
 
             return new_todo_stop, new_preview
 
@@ -1181,7 +1183,7 @@ class CASTDesktop(TextAnimatorMixin):
 
                             # check to see if something to do
                             if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
-                                t_todo_stop, t_preview = do_action()
+                                t_todo_stop, t_preview = do_action(frame, frame_count)
 
                             # Sleep to maintain the desired FPS
                             need_to_sleep()
@@ -1215,7 +1217,7 @@ class CASTDesktop(TextAnimatorMixin):
 
                         # check to see if something to do
                         if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
-                            t_todo_stop, t_preview = do_action()
+                            t_todo_stop, t_preview = do_action(frame, frame_count)
 
                         """
                         instruct the thread to exit 
@@ -1319,7 +1321,7 @@ class CASTDesktop(TextAnimatorMixin):
 
                             # check to see if something to do
                             if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
-                                t_todo_stop, t_preview = do_action()
+                                t_todo_stop, t_preview = do_action(frame, frame_count)
 
                             """
                             instruct the thread to exit 
@@ -1404,12 +1406,17 @@ class CASTDesktop(TextAnimatorMixin):
         """
 
         CASTDesktop.count -= 1
-        CASTDesktop.cast_names.remove(t_name)
         CASTDesktop.t_exit_event.clear()
 
+        #
+        CASTDesktop.t_desktop_lock.acquire()
+        #
+        CASTDesktop.cast_names.remove(t_name)
         if t_name in CastAPI.previews:
             del CastAPI.previews[t_name]
-
+        #
+        CASTDesktop.t_desktop_lock.release()
+        #
         if capture_methode == 'mss':
             with contextlib.suppress(Exception):
                 sct.close()

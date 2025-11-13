@@ -765,31 +765,34 @@ class CASTMedia(TextAnimatorMixin):
             this should be owned by the first cast which take control
             """
             if CASTMedia.t_todo_event.is_set() and shared_buffer is not None:
+
                 # only one running cast at time will take care of that
                 CASTMedia.t_media_lock.acquire()
                 media_logger.debug(f"{t_name} We are inside todo :{CASTMedia.cast_name_todo}")
 
-                # will read cast_name_todo list and see if something to do
-                (t_todo_stop,
-                 t_preview,
-                 add_frame_buffer,
-                 add_cast_frame_buffer,
-                 new_to_do) = action_executor.process_actions(frame, frame_count)
+                try:
+                    # will read cast_name_todo list and see if something to do
+                    (t_todo_stop,
+                     t_preview,
+                     add_frame_buffer,
+                     add_cast_frame_buffer,
+                     new_to_do) = action_executor.process_actions(frame, frame_count)
 
-                if add_frame_buffer is not None:
-                    self.frame_buffer.append(add_frame_buffer)
-                if add_cast_frame_buffer is not None:
-                    self.cast_frame_buffer.append(add_cast_frame_buffer)
+                    if add_frame_buffer is not None:
+                        self.frame_buffer.append(add_frame_buffer)
+                    if add_cast_frame_buffer is not None:
+                        self.cast_frame_buffer.append(add_cast_frame_buffer)
 
-                # set list without already executed actions
-                CASTMedia.cast_name_todo = new_to_do
+                    # set list without already executed actions
+                    CASTMedia.cast_name_todo = new_to_do
 
-                # if list is empty, no more for any cast
-                if len(CASTMedia.cast_name_todo) == 0:
-                    CASTMedia.t_todo_event.clear()
+                    # if list is empty, no more for any cast
+                    if len(CASTMedia.cast_name_todo) == 0:
+                        CASTMedia.t_todo_event.clear()
 
-                # release once task finished for this cast
-                CASTMedia.t_media_lock.release()
+                finally:
+                    # release once task finished for this cast
+                    CASTMedia.t_media_lock.release()
 
             """
             End To do
@@ -1087,12 +1090,16 @@ class CASTMedia(TextAnimatorMixin):
         """
 
         CASTMedia.count -= 1
-        CASTMedia.cast_names.remove(t_name)
         CASTMedia.t_exit_event.clear()
-
+        #
+        CASTMedia.t_media_lock.acquire()
+        #
+        CASTMedia.cast_names.remove(t_name)
         if t_name in CastAPI.previews:
             del CastAPI.previews[t_name]
-
+        #
+        CASTMedia.t_media_lock.release()
+        #
         self.all_sync = False
         self.cast_sleep = False
 
