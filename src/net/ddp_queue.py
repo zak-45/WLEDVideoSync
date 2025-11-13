@@ -78,7 +78,7 @@ class DDPDevice:
     REPLY = 0x04
     STORAGE = 0x08
     TIME = 0x10
-    DATATYPE = 0x01
+    DATATYPE = 0x0B  # RGB (type=001), 8-bit (size=011)
     SOURCE = 0x01
     TIMEOUT = 1
 
