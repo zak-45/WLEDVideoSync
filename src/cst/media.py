@@ -994,26 +994,30 @@ class CASTMedia(TextAnimatorMixin):
                     # working with the shared list
                     if frame_count > 1:
                         try:
-                            # what to do from data updated by the child process (mainly user keystroke on preview)
-                            if sl[11] is True:
-                                t_todo_stop = True
-                            if sl[6] is False:
+                            if sl is not None:
+                                # what to do from data updated by the child process (mainly user keystroke on preview)
+                                if sl[11] is True:
+                                    t_todo_stop = True
+                                if sl[6] is False:
+                                    t_preview = False
+                                self.preview_text = sl[15] is not False
+                                # Update Data on shared List
+                                sl[0] = CASTMedia.total_frames
+                                #
+                                # append not zero value to bytes to solve ShareableList bug
+                                # see https://github.com/python/cpython/issues/106939
+                                sl[1] = CV2Utils.frame_add_one(frame)
+                                #
+                                sl[5] = self.preview_top
+                                sl[7] = self.preview_w
+                                sl[8] = self.preview_h
+                                sl[9] = self.pixel_w
+                                sl[10] = self.pixel_h
+                                sl[12] = frame_count
+                                sl[15] = self.preview_text
+                            else:
+                                media_logger.error(f'This cast need to be created with preview = True')
                                 t_preview = False
-                            self.preview_text = sl[15] is not False
-                            # Update Data on shared List
-                            sl[0] = CASTMedia.total_frames
-                            #
-                            # append not zero value to bytes to solve ShareableList bug
-                            # see https://github.com/python/cpython/issues/106939
-                            sl[1] = CV2Utils.frame_add_one(frame)
-                            #
-                            sl[5] = self.preview_top
-                            sl[7] = self.preview_w
-                            sl[8] = self.preview_h
-                            sl[9] = self.pixel_w
-                            sl[10] = self.pixel_h
-                            sl[12] = frame_count
-                            sl[15] = self.preview_text
 
                         except Exception as e:
                             media_logger.error(traceback.format_exc())

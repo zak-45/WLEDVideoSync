@@ -655,29 +655,32 @@ class CASTDesktop(TextAnimatorMixin):
                 # for non-win platform mainly, cv2.imshow() need to run into Main thread
                 # We use ShareableList to share data between this thread and new process
                 # preview window is managed by CV2Utils.sl_main_preview() running from sl_process
-
-                # working with the shared list
-                # what to do from data updated by the child process (keystroke from preview window)
-                if sl[11] is True:
-                    i_todo_stop = True
-                elif sl[6] is False:
-                    i_preview = False
+                if sl is not None:
+                    # working with the shared list
+                    # what to do from data updated by the child process (keystroke from preview window)
+                    if sl[11] is True:
+                        i_todo_stop = True
+                    elif sl[6] is False:
+                        i_preview = False
+                    else:
+                        # Update Data on shared List
+                        self.preview_text = sl[15] is not False
+                        sl[0] = CASTDesktop.total_frames
+                        #
+                        # append not zero value to bytes to solve ShareableList bug
+                        # see https://github.com/python/cpython/issues/106939
+                        sl[1] = CV2Utils.frame_add_one(frame)
+                        #
+                        sl[5] = self.preview_top
+                        sl[7] = self.preview_w
+                        sl[8] = self.preview_h
+                        sl[9] = self.pixel_w
+                        sl[10] = self.pixel_h
+                        sl[12] = frame_count
+                        sl[15] = self.preview_text
                 else:
-                    # Update Data on shared List
-                    self.preview_text = sl[15] is not False
-                    sl[0] = CASTDesktop.total_frames
-                    #
-                    # append not zero value to bytes to solve ShareableList bug
-                    # see https://github.com/python/cpython/issues/106939
-                    sl[1] = CV2Utils.frame_add_one(frame)
-                    #
-                    sl[5] = self.preview_top
-                    sl[7] = self.preview_w
-                    sl[8] = self.preview_h
-                    sl[9] = self.pixel_w
-                    sl[10] = self.pixel_h
-                    sl[12] = frame_count
-                    sl[15] = self.preview_text
+                    desktop_logger.error('This cast need to be created with preview = True')
+                    i_preview = False
 
             else:
 
