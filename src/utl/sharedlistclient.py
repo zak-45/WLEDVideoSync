@@ -185,8 +185,10 @@ class SharedListClient:
             slclient_logger.error(f"Error stopping the SL manager: {er}")
 
 if __name__ == "__main__":
+
     client = SharedListClient()
 
+    # for this to run successfully, SL manager must be UP and running
     try:
         client.connect()
         if shared_list := client.create_shared_list("mylist", 128, 128, 3):
@@ -212,5 +214,6 @@ if __name__ == "__main__":
         slclient_logger.error("Client Error:", e)
 
     finally:
-        client.stop_manager()
         slclient_logger.info("Client shutting down.")
+
+    client.stop_manager()
