@@ -130,7 +130,7 @@ def main(i_dev_list: list = None, i_inter_proc_file: str = '', i_dark: bool = Fa
 
     Args:
         i_dev_list (list, optional): List of device IPs for the device chart. Defaults to None.
-        i_inter_proc_file (str, optional): Path to the inter-process file (shelve). Defaults to None.
+        i_inter_proc_file (str, optional): Path to the inter-process file (shelve). Defaults to ''.
         i_dark (bool, optional): Enable dark mode for the chart. Defaults to False.
 
     ************* Args are used when executed via WLEDVideoSync *****************

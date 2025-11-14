@@ -158,7 +158,7 @@ class CASTUtils:
             utils_logger.error(f'Error launching mobile server subprocess: {er}', exc_info=True)
 
     @staticmethod
-    async def run_sys_charts(file, dark):
+    async def run_sys_charts(file, dark:bool = False, params: list = None):
         """
         Launches the system charts server in a separate, isolated process.
 
@@ -170,32 +170,40 @@ class CASTUtils:
         Args:
             file (str) : absolute path for inter process file
             dark (bool) : dark mode
+            params (list, optional): A list of additional command-line arguments to pass
+                                      to the runcharts.py script (e.g., ['--sysstats']).
 
         """
 
         executable_path = sys.executable  # This correctly points to the running executable
         dev_list = await CASTUtils.get_all_running_hosts(file)
 
+        # Start with the base command and essential arguments
+        command = ['--run-sys-charts', '--file', file, '--dev_list', ','.join(dev_list)]
+
+        # Add boolean flags if they are true
+        if dark:
+            command.append('--dark')
+        if str2bool(cfg_mgr.app_config['native_ui']):
+            command.append('--native')
+
+        # Append any extra user-provided parameters
+        if params:
+            command.extend(params)
+
         try:
-            utils_logger.info(f"Launching sysstat server via subprocess: {executable_path} --run-sys-charts with file {file}")
+            utils_logger.info(f"Launching sysstat server via subprocess: {executable_path} {command}")
 
             # Use Popen for a non-blocking call to start the server process
             if CASTUtils.is_compiled():
-                subprocess.Popen([executable_path,
-                                  '--run-sys-charts',
-                                  f'--file={file}',
-                                  f'--dark={dark}',
-                                  f'--dev_list={",".join(dev_list)}'])
+                subprocess.Popen([executable_path,*command])
             else:
                 subprocess.Popen([executable_path,
                                   f'{cfg_mgr.app_root_path("WLEDVideoSync.py")}',
-                                  '--run-sys-charts',
-                                  f'--file={file}',
-                                  f'--dark={dark}',
-                                  f'--dev_list={",".join(dev_list)}'])
-
+                                  *command])
 
             utils_logger.info("System charts server process started.")
+
         except Exception as er:
             utils_logger.error(f'Error launching sysstat server subprocess: {er}', exc_info=True)
 
@@ -1384,7 +1392,7 @@ class CASTUtils:
 
         # Common arguments used by multiple modes
         parser.add_argument('--file', type=str, default = '', help='Absolute path of the inter-process file (shelve).')
-        parser.add_argument('--dark', type=str, default='False', help='True or False for dark mode.')
+        parser.add_argument('--dark', action='store_true', help='If present set dark mode On')
 
         # Parse known arguments, ignoring others that might be for the parent process
         args, _ = parser.parse_known_args(argv[1:])
@@ -1460,38 +1468,6 @@ class CASTUtils:
             root.mainloop()
         except Exception as er:
             utils_logger.error(f"Failed to show splash screen: {er}")
-
-    @staticmethod
-    def exe_sys_charts():
-        """Launches the system charts server as a separate process.
-
-        This function gathers device information, parses command-line arguments for inter-process file and dark mode,
-        and starts the charts server using the runcharts module.
-        """
-
-        import runcharts
-        inter_proc_file = None
-        dark = False
-
-        if any(arg.startswith('--file=') for arg in sys.argv):
-            if file_arg := next((arg for arg in sys.argv if arg.startswith('--file=')), None):
-                try:
-                    inter_proc_file = file_arg.split('=', 1)[1]
-                    utils_logger.debug(f"Command-line file name : {inter_proc_file}")
-                except ValueError:
-                    utils_logger.error("Invalid value for --file. Please provide a string.")
-
-        if any(arg.startswith('--dark=') for arg in sys.argv):
-            if file_arg := next((arg for arg in sys.argv if arg.startswith('--dark=')), None):
-                try:
-                    dark = file_arg.split('=', 1)[1]
-                    utils_logger.debug(f"Command-line dark : {dark}")
-                except ValueError:
-                    utils_logger.error("Invalid value for --dark. Please provide a string, True or False.")
-
-        dev_list = asyncio.run(CASTUtils.get_all_running_hosts(inter_proc_file))
-
-        runcharts.main(dev_list, inter_proc_file, str2bool(dark))
 
     @staticmethod
     def get_shelve_file_path(base_path: str) -> str:

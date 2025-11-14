@@ -126,6 +126,13 @@ Actions to do at shutdown
 
 async def cleanup_on_shutdown():
     """A graceful shutdown function to prevent race conditions."""
+    
+    #
+    # We do not want init execution when using command line arguments
+    #
+    if '--run-mobile-server' in sys.argv or '--run-sys-charts' in sys.argv:
+        return
+
     main_logger.info(f"Initiating graceful shutdown for {__name__} with PID : {os.getpid()}")
 
     # Add any other cleanup for child processes here in the future
@@ -175,10 +182,7 @@ async def init_actions():
     #
     # We do not want init execution when using command line arguments
     #
-    if '--run-mobile-server' in sys.argv:
-        return
-
-    elif '--run-sys-charts' in sys.argv:
+    if '--run-mobile-server' in sys.argv or '--run-sys-charts' in sys.argv:
         return
 
     #
@@ -1302,7 +1306,6 @@ async def pyeditor_test_page(from_menu: bool = False):
 async def stop_app():
 
     ui.dark_mode(CastAPI.dark_mode)
-
     await apply_custom()
 
     ui.button('ShutDown',icon='power_settings_new', on_click=app.shutdown).classes('flex h-screen m-auto')
@@ -1314,8 +1317,8 @@ async def cast_center_page():
 
 @ui.page('/Scheduler')
 async def scheduler_page():
-    ui.dark_mode(CastAPI.dark_mode)
 
+    ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
     if str2bool(cfg_mgr.scheduler_config['enable']):
         await nice.head_menu(name='Scheduler', target='/Scheduler', icon='more_time')

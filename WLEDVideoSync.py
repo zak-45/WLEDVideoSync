@@ -392,6 +392,7 @@ def main():
            reconnect_timeout=int(
                cfg_mgr.server_config['reconnect_timeout'] if cfg_mgr.server_config is not None else '3'),
            reload=False,
+           dark=dark,
            native=native_ui,
            window_size=native_ui_size,
            access_log=False,
@@ -416,6 +417,19 @@ Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu
 if __name__  == "__main__":
 
     # Check for special command-line flags to run in a different mode.
+    # set inter-process file name, dark mode
+    status, args = Utils.handle_command_line_args(sys.argv)
+    if not status:
+        main_logger.error('argument parsing fails ')
+        sys.exit(1)  # Exit if argument parsing fails
+    # args
+    file = args.file
+    dark = args.dark
+
+    # Dark Mode
+    CastAPI.dark_mode = dark
+
+    # Check for special command-line flags to run in a different mode.
     if ('--run-mobile-server' in sys.argv or
             '--run-sys-charts' in sys.argv or
             '--help' in sys.argv or
@@ -424,24 +438,16 @@ if __name__  == "__main__":
 
         # This block is executed ONLY when the app is launched as a child process
         # with the specific purpose of running the mobile camera server or system charts.
-
-        # Check for special command-line flags to run in a different mode.
-        # set inter-process file name, dark mode
-        status, args = Utils.handle_command_line_args(sys.argv)
-        if not status:
-            main_logger.error('argument parsing fails ')
-            sys.exit(1)  # Exit if argument parsing fails
-        # args
-        file = args.file
-        dark = args.dark
-
         if '--run-sys-charts' in sys.argv:
 
             try:
-
                 main_logger.info('WLEDVideoSync -- Run System Charts process')
+                import runcharts
+
+                dev_list = asyncio.run(Utils.get_all_running_hosts(file))
+
                 # this is a blocking call
-                Utils.exe_sys_charts()
+                runcharts.main(dev_list, file, CastAPI.dark_mode)
 
             except Exception as e:
                 main_logger.error(f'Error in run charts server : {e}')
@@ -493,7 +499,7 @@ if __name__  == "__main__":
 
                 main_logger.info('WLEDVideoSync -- Run mobile process')
                 # 4. Start the mobile server. This is a blocking call.
-                mobile.start_server(shared_list_instance_thread, local_ip, dark, file)
+                mobile.start_server(shared_list_instance_thread, local_ip, CastAPI.dark_mode, file)
 
             except Exception as e:
                 main_logger.error(f'Error in mobile server : {e}')

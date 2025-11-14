@@ -231,7 +231,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def start_server(shared_list, ip_address: str = '127.0.0.1', dark: str = 'False', file: str = ''):
+def start_server(shared_list, ip_address: str = '127.0.0.1', dark: bool = False, file: str = ''):
     """
     Configures and starts the mobile streaming server.
 
@@ -253,7 +253,6 @@ def start_server(shared_list, ip_address: str = '127.0.0.1', dark: str = 'False'
 
     _stream_url = f'https://{ip_address}:{port}/stream'
     _my_sl = shared_list
-    dark_mode = str2bool.str2bool(dark)
 
     ui.run(
         title=f'WLEDVideoSync Mobile - {port}',
@@ -263,7 +262,7 @@ def start_server(shared_list, ip_address: str = '127.0.0.1', dark: str = 'False'
         ssl_certfile=cert,
         ssl_keyfile=key,
         reload=False,
-        dark=dark_mode
+        dark=dark
     )
 
 
@@ -284,4 +283,4 @@ if __name__ == "__main__":
     # local IP
     my_ip = Utils.get_local_ip_address()
     # run niceGui server
-    start_server(sl_instance, my_ip,'True')
+    start_server(sl_instance, my_ip,True)
