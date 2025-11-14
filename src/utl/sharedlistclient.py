@@ -93,38 +93,39 @@ class SharedListClient:
             return None
 
     def create_shared_list(self, name, w, h, start_time=0):
-        """Requests the server to create a shared list and returns a ShareableList."""
+        """Requests the server to create a shared list and returns a ShareableList.
 
-        slclient_logger.info(f"Request to Create SL '{name}' for  {w}-{h}.")
-        shm_name_proxy = self.manager.create_shared_list(name, w, h, start_time)  # This is an AutoProxy object
-
-        # Instead of treating the proxy as a normal string, access its actual value using 'shm_name_proxy'
-        try:
-            """
-            __str__() Method on Proxy Objects: 
-            An important point about proxy objects (specifically, AutoProxy) is that they override the __str__() method. 
-            The purpose of this method is to define how the object should be represented when it is coerced into 
+                    __str__() Method on Proxy Objects:
+            An important point about proxy objects (specifically, AutoProxy) is that they override the __str__() method.
+            The purpose of this method is to define how the object should be represented when it is coerced into
             a string, such as with string formatting (f'{shm_name}').
-            """
-            # This line ensures the AutoProxy resolves to the actual value (string)
-            proxy_result = f'{shm_name_proxy}'  # this will provide a str representation of the return value from the server
 
-            if proxy_result == 'True':  # Now comparing the string directly
+        """
+
+        try:
+            slclient_logger.info(f"Request to create shared list '{name}'.")
+            # The manager returns a status string: 'success', 'exists', or 'error'
+            result_proxy = self.manager.create_shared_list(name, w, h, start_time)
+            status = str(result_proxy)  # Resolve the proxy to a string
+
+            if 'success' in status:
+                slclient_logger.info(f"Successfully created '{name}' on server. Attaching client-side.")
+                return ShareableList(name=name)
+
+            elif 'exists' in status :
+                slclient_logger.warning(f"Shared list '{name}' already exists on server. Attaching client-side.")
                 try:
-                    slclient_logger.info(f'Attach to SL : {name}')
-                    return ShareableList(name=name)  # Attach to the existing list
-                except Exception as er:
-                    slclient_logger.error(f"Error attaching to SL '{name}': {er}")
+                    return ShareableList(name=name)
+
+                except FileNotFoundError:
+                    slclient_logger.error(f"Server reported '{name}' exists, but it could not be found. It may have been deleted")
                     return None
             else:
-                if proxy_result == 'None':
-                    slclient_logger.warning(f"Failed to create SL '{name}'. Already  exist.: {proxy_result}")
-                else:
-                    slclient_logger.error(f"Failed to create SL '{name}'. Received unexpected response: {proxy_result}")
+                slclient_logger.error(f"Server failed to create shared list '{name}'. Status: {status}")
                 return None
 
         except Exception as er:
-            slclient_logger.info(f"Failed to resolve proxy value: {er}")
+            slclient_logger.error(f"An unexpected error occurred in create_shared_list: {er}", exc_info=True)
             return None
 
     @staticmethod
@@ -211,4 +212,5 @@ if __name__ == "__main__":
         slclient_logger.error("Client Error:", e)
 
     finally:
+        client.stop_manager()
         slclient_logger.info("Client shutting down.")

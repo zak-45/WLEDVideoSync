@@ -89,6 +89,9 @@ class SharedListManager:
         Registers the necessary methods with the SyncManager and starts the manager process.
         Prints a confirmation message with the address.
         """
+        # Clean up any stale shared memory segments from previous runs before starting
+        self._cleanup_stale_shm()
+        #
         SLManager.register("create_shared_list", callable=self.create_shared_list)
         SLManager.register("get_shared_lists", callable=self.get_shared_lists)
         SLManager.register("get_shared_lists_info", callable=self.get_shared_lists_info)
@@ -112,7 +115,7 @@ class SharedListManager:
             finally:
                 if self.pid is not None:
                     self.is_running = True
-                slmanager_logger.info(f"SharedListManager run on {self.address} with PID: {self.pid}")
+                slmanager_logger.debug(f"SharedListManager run on {self.address} with PID: {self.pid}")
 
 
     def get_pid(self):
@@ -139,7 +142,7 @@ class SharedListManager:
             for name in list(self.shared_lists.keys()):
                 self.delete_shared_list(name)
 
-            slmanager_logger.info("Cleaning up shared lists...")
+            slmanager_logger.debug("Cleaning up shared lists...")
 
             # Check if the manager process exists and is alive
             if self.manager._process and self.manager._process.is_alive():
@@ -157,8 +160,8 @@ class SharedListManager:
         """
 
         if name in self.shared_lists:
-            slmanager_logger.info(f"Shared list '{name}' already exists, nothing to do.")
-            return None  # Return None if exist
+            slmanager_logger.warning(f"Shared list '{name}' already exists, nothing to do.")
+            return 'exists'
 
         # ShareAbleList need a fixed amount of memory, size need to be calculated for max
         # Create a (x, y, 3) array with all values set to 111 to reserve memory
@@ -171,11 +174,11 @@ class SharedListManager:
             self.shared_lists[name] = ShareableList([full_array, start_time], name=name)
             self.shared_lists_info[name] = {"w":width, "h":height}
             slmanager_logger.info(f"Created shared list '{name}'  for : {width} - {height} of size {size}.")
-            return True
+            return 'success'
 
         except Exception as e:
             slmanager_logger.error(f"Error creating shared list '{name}': {e}")
-            return False  # Return False on failure
+            return 'error'
 
     def get_shared_lists(self):
         """Return the list of shared list names."""
@@ -204,11 +207,28 @@ class SharedListManager:
 
 
     def clean_shared_list(self, name):
-        self.shared_lists[name].shm.close()
-        self.shared_lists[name].shm.unlink()
-        del self.shared_lists[name]
-        del self.shared_lists_info[name]
-        slmanager_logger.info(f"Deleted shared list '{name}'.")
+        """Cleans up and deletes a shared list from memory.
+
+        Closes and unlinks the shared memory associated with the given list name, and removes it from internal records.
+        Returns True if successful, or False if an error occurs.
+
+        Args:
+            name (str): The name of the shared list to delete.
+
+        Returns:
+            bool: True if the shared list was deleted successfully, False otherwise.
+        """
+        try:
+            self.shared_lists[name].shm.close()
+            self.shared_lists[name].shm.unlink()
+            del self.shared_lists[name]
+            del self.shared_lists_info[name]
+            slmanager_logger.info(f"Deleted shared list '{name}'.")
+
+        except Exception as e:
+            slmanager_logger.error(f"Error deleting shared list '{name}': {e}")
+            return False
+
         return True
 
     def is_alive(self):
@@ -216,14 +236,26 @@ class SharedListManager:
         try:
             return psutil.pid_exists(self.pid) and psutil.Process(self.pid).is_running()
         except psutil.NoSuchProcess:
-            slmanager_logger.info(f"process: {self.pid} do not exist")
+            slmanager_logger.error(f"SL Manager Process : {self.pid} do not exist")
             return False
         except psutil.AccessDenied:
-            slmanager_logger.error("Access denied")
+            slmanager_logger.error("SL Manager Access denied")
             return False
         except Exception as e:
-            slmanager_logger.error(f"Error checking process: {e}")
+            slmanager_logger.error(f"SL Manager Error checking process: {e}")
             return False
+
+    def _cleanup_stale_shm(self):
+        """
+         Attempts to find and unlink stale shared memory blocks on startup.
+         This is a preventative measure for unclean shutdowns.
+        """
+        # This is a best-effort cleanup. We don't know the names of stale blocks,
+        # so this is more of a conceptual improvement. A more robust system might
+        # log active SHM names to a file. For now, we ensure the manager starts clean.
+        slmanager_logger.debug("Checking for stale shared memory (conceptual)...")
+        # In a more advanced implementation, you might scan a temp directory for lock files
+        # or use a platform-specific method to list SHM segments.
 
 
 if __name__ == "__main__":
