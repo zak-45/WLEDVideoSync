@@ -265,19 +265,14 @@ def start_server(shared_list, ip_address: str = '127.0.0.1', dark: bool = False,
         dark=dark
     )
 
-
+# Example running mobile server
 if __name__ == "__main__":
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
-    # args
-    host = sys.argv[1] if len(sys.argv) > 1 else '127.0.0.1'
-    wled = len(sys.argv) > 2 and sys.argv[2] == 'wled'
     # cast
     Desktop = desktop.CASTDesktop()
     Desktop.viinput = 'queue'
     Desktop.stopcast = False
     Desktop.preview = True
-    Desktop.host = host
-    Desktop.wled = wled
     # as viinput = queue, this will create a ShareAble List {t_name}_p
     sl_instance = Desktop.cast()
     # local IP

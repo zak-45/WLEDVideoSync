@@ -1383,8 +1383,9 @@ class CASTUtils:
         parser.add_argument('--run-mobile-server', action='store_true', help='Run Mobile server application.')
         #
         mobile_group = parser.add_argument_group('Mobile Server Options', 'These arguments are only used with --run-mobile-server')
-        mobile_group.add_argument('--wled', action='store_true', help='Set Desktop cast to WLED mode to auto-detect matrix size.')
+        mobile_group.add_argument('--preview', action='store_true', help='Enable Preview Window for the Desktop cast.')
         mobile_group.add_argument('--no-text', action='store_true', help='Disable text overlay for the Desktop cast.')
+        mobile_group.add_argument('--wled', action='store_true', help='Set Desktop cast to WLED mode to auto-detect matrix size.')
         mobile_group.add_argument('--ip', type=str, help='Set the target IP address for the Desktop cast.')
         mobile_group.add_argument('--width', type=int, help='Set the width for the Desktop cast matrix.')
         mobile_group.add_argument('--height', type=int, help='Set the height for the Desktop cast matrix.')
@@ -1400,23 +1401,27 @@ class CASTUtils:
         if obj_name is not None:
             if args.wled:
                 obj_name.wled = True
-                utils_logger.info("Command-line override: WLED mode enabled.")
+                utils_logger.debug("Command-line override: WLED mode enabled.")
 
             if args.no_text:
                 obj_name.allow_text_animator = False
-                utils_logger.info("Command-line override: Text overlay mode disabled.")
+                utils_logger.debug("Command-line override: Text overlay mode disabled.")
 
             if args.width is not None:
                 obj_name.scale_width = args.width
-                utils_logger.info(f"Command-line override: scale_width set to {obj_name.scale_width}")
+                utils_logger.debug(f"Command-line override: scale_width set to {obj_name.scale_width}")
 
             if args.height is not None:
                 obj_name.scale_height = args.height
-                utils_logger.info(f"Command-line override: scale_height set to {obj_name.scale_height}")
+                utils_logger.debug(f"Command-line override: scale_height set to {obj_name.scale_height}")
 
             if args.ip is not None:
                 obj_name.host = args.ip
-                utils_logger.info(f"Command-line override: host set to {obj_name.host}")
+                utils_logger.debug(f"Command-line override: host set to {obj_name.host}")
+
+            if args.preview:
+                obj_name.preview = True
+                utils_logger.debug(f"Command-line override: preview set to {obj_name.preview}")
 
         return True, args
 
