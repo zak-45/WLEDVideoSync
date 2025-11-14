@@ -37,7 +37,7 @@ It also ensures proper cleanup of shared memory when the manager is stopped or a
 
 Main Execution Block (if __name__ == "__main__":):
 This block demonstrates how to instantiate and use the SharedListManager.
-It starts the manager, waits for clients to connect, and then shuts down the manager gracefully.
+It starts the manager, waits for clients to connect.
 """
 
 from multiprocessing.managers import SyncManager
@@ -268,6 +268,3 @@ if __name__ == "__main__":
 
     while manager.is_alive():
         time.sleep(2)  # Check every 2 seconds
-
-    # slmanager_logger.info("\nShutting down manager.")
-    # manager.stop()
