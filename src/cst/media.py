@@ -394,9 +394,14 @@ class CASTMedia(TextAnimatorMixin):
                 return False
 
         if t_protocol == 'ddp':
-            ddp_host = DDPDevice(self.host)  # init here as queue thread necessary even if 127.0.0.1
+            ddp_host = DDPDevice(self.host, self.port)  # init here as queue thread necessary even if 127.0.0.1
+            #
+            CASTMedia.t_media_lock.acquire()
             # add to global DDP list
             Utils.update_ddp_list(self.host, ddp_host)
+            #
+            CASTMedia.t_media_lock.release()
+            #
 
         elif t_protocol == 'e131':
             e131_host = E131Device(name=self.e131_name,

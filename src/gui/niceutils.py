@@ -905,6 +905,13 @@ async def edit_protocol(class_obj):
     new_protocol.bind_value(class_obj, 'protocol')
     new_protocol.classes('w-20')
     new_protocol.tooltip('Select other to test experimental feature ....')
+    new_retry = ui.number('Retry', placeholder='number of retry time', min=0, max=10, step=1, value=0)
+    new_retry.bind_value(class_obj, 'retry_number', forward=lambda value: int(value or 0))
+    new_retry.tooltip('Select number of time to resend DDP packet (in case of bad network)')
+    new_port = ui.number('Port', placeholder='port number', min=1, max=65535, step=1, value=4048)
+    new_port.bind_value(class_obj, 'port', forward=lambda value: int(value or 0))
+    new_port.tooltip('Select new DDP port number')
+
 
     return new_protocol
 
