@@ -611,6 +611,8 @@ for that.
  - Check network connectivity between the application and WLED. For optimal performance, be on the same VLAN.
  - On Linux, Wayland does not support screen capture for the preview window. Please use an **X11** session.
  - On macOS/Linux, ensure the main application file has execute permissions (`chmod +x WLEDVideoSync-app`).
+ - On Linux, to use  **'Native'** mode, you need to have `libxcb-cursor-dev` installed:
+    > ``sudo apt-get install libxcb-cursor-dev``
  
  ### Contributing
  Contributions to the project are welcome. Please follow the standard GitHub fork and pull request workflow.
