@@ -65,7 +65,6 @@ like any other video source, such as a desktop capture or a video file.
 
 
 """
-import sys
 
 from nicegui import ui, app
 from PIL import Image
@@ -79,12 +78,13 @@ from configmanager import cfg_mgr
 import base64
 import qrcode
 import numpy as np
-import str2bool
 
 # Global placeholders to be set by the start_server function.
 # This is a common pattern for web frameworks where route handlers are defined at the module level.
 _stream_url = ''
 _my_sl = None
+_sl_ip = None
+_sl_port = None
 
 @ui.page('/')
 async def index():
@@ -200,7 +200,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
     to NumPy arrays, and forwards them to the shared memory queue for processing by the casting engine.
     """
     # retrieve shared memory and cast info
-    sl, w, h = Utils.attach_to_manager_queue(f'{_my_sl.name}_q')
+    sl, w, h = Utils.attach_to_manager_queue(f'{_my_sl}_q', _sl_ip, _sl_port)
 
     # accept connection from mobile
     try:
@@ -231,7 +231,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def start_server(shared_list, ip_address: str = '127.0.0.1', dark: bool = False, file: str = ''):
+def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, sl_ip:str = '127.0.0.1', sl_port:int = 50000):
     """
     Configures and starts the mobile streaming server.
 
@@ -239,12 +239,13 @@ def start_server(shared_list, ip_address: str = '127.0.0.1', dark: bool = False,
     endpoint, then launches the secure NiceGUI web server.
 
     Args:
-        shared_list: The shared list instance from the casting process.
+        thread_name: The shared list thread name, used to identify from the casting process.
         ip_address (str): The local IP address of the server.
         dark (bool): Whether to use dark mode.
-        file: inter proc file absolute path name
+        sl_ip: SL Manager IP Address
+        sl_port: SL Manager port Number
     """
-    global _stream_url, _my_sl
+    global _stream_url, _my_sl, _sl_ip, _sl_port
 
     # params from config
     port = int(cfg_mgr.app_config['ssl_port'])
@@ -252,7 +253,9 @@ def start_server(shared_list, ip_address: str = '127.0.0.1', dark: bool = False,
     key = cfg_mgr.app_config['ssl_key_file']
 
     _stream_url = f'https://{ip_address}:{port}/stream'
-    _my_sl = shared_list
+    _my_sl = thread_name
+    _sl_ip = sl_ip
+    _sl_port = sl_port
 
     ui.run(
         title=f'WLEDVideoSync Mobile - {port}',

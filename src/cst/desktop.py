@@ -270,8 +270,10 @@ class CASTDesktop(TextAnimatorMixin):
         self.universe_size = 510  # size of each universe e131/artnet
         self.channel_offset = 0  # The channel offset within the universe. e131/artnet
         self.channels_per_pixel = 3  # Channels to use for e131/artnet
+        #
+        self.sl_manager = None
 
-    def set_from_media(self, media_obj):
+    def set_from_obj(self, obj):
         """
         Copies relevant attributes from a media object (like CASTMedia) to this
         desktop casting instance.
@@ -283,7 +285,7 @@ class CASTDesktop(TextAnimatorMixin):
         and maintainable.
 
         Args:
-            media_obj: An instance of CASTMedia or a similar object.
+            obj: An instance of CASTMedia or a similar object.
         """
         # Attributes to exclude from automatic copying.
         # - 'viinput' and 'stopcast' are intentionally set for the mobile server
@@ -293,15 +295,16 @@ class CASTDesktop(TextAnimatorMixin):
             'viinput',
             'stopcast',
             'frame_buffer',
-            'cast_frame_buffer'
+            'cast_frame_buffer',
+            'sl_manager'
         }
 
         # Iterate over instance attributes of the source object (media_obj).
-        for attr in media_obj.__dict__:
+        for attr in obj.__dict__:
             # Copy the attribute if it's not in the exclusion list and
             # if the destination object (self) also has it.
             if attr not in exclusion_list and hasattr(self, attr):
-                value_to_copy = getattr(media_obj, attr)
+                value_to_copy = getattr(obj, attr)
                 setattr(self, attr, value_to_copy)
 
     def t_desktop_cast(self, shared_buffer=None, port=0):
@@ -924,21 +927,28 @@ class CASTDesktop(TextAnimatorMixin):
 
         if self.viinput == 'queue':
 
-            if cfg_mgr.manager_config is not None:
-                sl_manager = SharedListManager(cfg_mgr.manager_config['manager_ip'],
-                                               int(cfg_mgr.manager_config['manager_port']))
-                sl_client = SharedListClient(cfg_mgr.manager_config['manager_ip'],
-                                             int(cfg_mgr.manager_config['manager_port']))
-            else:
-                sl_manager = SharedListManager()
-                sl_client = SharedListClient()
+            if self.sl_manager is None:
+                if cfg_mgr.manager_config is not None:
+                    self.sl_manager = SharedListManager(cfg_mgr.manager_config['manager_ip'],
+                                                   int(cfg_mgr.manager_config['manager_port']))
+                else:
+                    self.sl_manager = SharedListManager()
 
-            # check server is running
-            if sl_manager.is_running:
+                self.sl_manager.start()
+                #Let some time to init
+                time.sleep(1)
+
+            # check SL Manager server is running
+            if self.sl_manager.is_running:
+                # retrieve IP,port from SL Manager
+                sl_ip, sl_port = self.sl_manager.address
+                # create SL Client
+                sl_client = SharedListClient(sl_ip, sl_port)
                 sl_client.connect()
+
             else:
-                sl_manager.start()
-                sl_client.connect()
+                desktop_logger.error('SL Manager not running')
+                return False
 
             # create ShareAbleList
             sl_queue = sl_client.create_shared_list(sl_name_q, t_scale_width, t_scale_height, time.time())
@@ -1425,13 +1435,24 @@ class CASTDesktop(TextAnimatorMixin):
         if t_name in CastAPI.previews:
             del CastAPI.previews[t_name]
         #
+        # cleanup SL
+        if sl_queue is not None:
+            sl_client.delete_shared_list(sl_name_q)
+            # check if last SL
+            sl_list = ast.literal_eval(sl_client.get_shared_lists())
+            if len(sl_list) == 0:
+                # stop manager
+                self.sl_manager.stop()
+                self.sl_manager = None
+        #
         CASTDesktop.t_desktop_lock.release()
+
         #
         if capture_methode == 'mss':
             with contextlib.suppress(Exception):
                 sct.close()
 
-        # Clean ShareableList
+        # Clean ShareableList for Preview
         Utils.sl_clean(sl, sl_process, t_name)
 
         # stop e131/artnet
@@ -1440,15 +1461,7 @@ class CASTDesktop(TextAnimatorMixin):
         elif t_protocol == 'artnet':
             artnet_host.deactivate()
 
-        # cleanup SL
-        if sl_queue is not None:
-            sl_client.delete_shared_list(sl_name_q)
-            # check if last SL
-            sl_list = ast.literal_eval(sl_client.get_shared_lists())
-            if len(sl_list) == 0:
-                # stop manager
-                sl_manager.stop()
-
+        #
         desktop_logger.debug("_" * 50)
         desktop_logger.debug(f'Cast {t_name} end using this input: {t_viinput}')
         desktop_logger.debug(f'Using these devices: {ip_addresses}')

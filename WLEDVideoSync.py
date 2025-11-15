@@ -462,10 +462,20 @@ if __name__  == "__main__":
                 # 1. Initialize the desktop cast to create and listen on a shared memory queue.
                 from src.cst import desktop
                 from src.utl.utils import CASTUtils as Utils
+                from src.utl.sharedlistmanager import SharedListManager
+                from nicegui import native
 
                 Desktop = desktop.CASTDesktop()
                 Desktop.viinput = 'queue'
                 Desktop.stopcast = False
+
+                # define shared list manager
+                sl_port = native.find_open_port(start_port=8800)
+                sl_ip= '127.0.0.1'
+                sl_manager = SharedListManager(sl_ip_address=sl_ip, sl_port=sl_port)
+                sl_manager.start()
+                # set it in Desktop
+                Desktop.sl_manager = sl_manager
 
                 # Check for special command-line flags to run in a different mode.
                 # set Desktop Cast obj attributes
@@ -483,13 +493,13 @@ if __name__  == "__main__":
                         media = proc_file.get("media") # Use .get for safer access
                     if media:
                         # update Desktop attributes from media attributes (have been copied into proc_file)
-                        Desktop.set_from_media(media)
+                        Desktop.set_from_obj(media)
                     else:
                         main_logger.warning("Inter-process Media object not found. Proceeding with default settings.")
                 else:
                     main_logger.warning(f"Inter-process file {file_to_check} not found. Proceeding with default settings.")
 
-                shared_list_instance_thread = Desktop.cast()  # This creates the shared list and returns the handle
+                sl_thread = Desktop.cast()  # This creates the shared list and returns the handle
 
                 # 2. Get necessary info for the mobile server.
                 local_ip = Utils.get_local_ip_address()
@@ -499,7 +509,7 @@ if __name__  == "__main__":
 
                 main_logger.info('WLEDVideoSync -- Run mobile process')
                 # 4. Start the mobile server. This is a blocking call.
-                mobile.start_server(shared_list_instance_thread, local_ip, CastAPI.dark_mode, file)
+                mobile.start_server(sl_thread.name, local_ip, CastAPI.dark_mode, sl_ip, sl_port)
 
             except Exception as e:
                 main_logger.error(f'Error in mobile server : {e}')

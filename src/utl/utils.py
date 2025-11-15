@@ -707,7 +707,7 @@ class CASTUtils:
         return ip, port
 
     @staticmethod
-    def attach_to_queue_manager():
+    def attach_to_queue_manager(sl_ip=None, sl_port=None):
         """Create and return a SharedListClient connected to the queue manager.
 
         Retrieves the queue manager's IP and port from configuration and returns a SharedListClient instance.
@@ -717,11 +717,18 @@ class CASTUtils:
         """
         from src.utl.sharedlistclient import SharedListClient
 
-        ip, port = CASTUtils.get_queue_manager_settings()
+        #
+        if sl_ip is None or sl_port is None:
+            ip, port = CASTUtils.get_queue_manager_settings()
+
+        else:
+            ip = sl_ip
+            port = sl_port
+
         return SharedListClient(sl_ip_address=ip, sl_port=port)
 
     @staticmethod
-    def attach_to_manager_queue(queue_name):
+    def attach_to_manager_queue(queue_name, manager_ip=None, manager_port=None):
         """Attach to a shared manager queue and retrieve its dimensions.
 
         Connects to the shared list manager and attaches to the specified queue,
@@ -729,6 +736,8 @@ class CASTUtils:
 
         Args:
             queue_name (str): The name of the shared queue to attach to.
+            manager_ip (str): The IP address of the SL manager.
+            manager_port (int): The port of the SL manager.
 
         Returns:
             tuple: A tuple containing the shared list object, its width, and its height.
@@ -738,7 +747,7 @@ class CASTUtils:
         width = None
         height = None
         with contextlib.suppress(Exception):
-            client =  CASTUtils.attach_to_queue_manager()
+            client =  CASTUtils.attach_to_queue_manager(manager_ip, manager_port)
             if client.connect():
                 sl = client.attach_to_shared_list(queue_name)
                 sl_info = client.get_shared_list_info(queue_name)
