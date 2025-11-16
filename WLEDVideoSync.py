@@ -291,7 +291,7 @@ def select_gui():
     try:
         if native_ui.lower() == 'none' or str2bool(cfg_mgr.app_config['put_on_systray']):
             native_ui_size = None
-            native_ui = False
+            native_ui = None
             show = False
         elif str2bool(native_ui):
             native_ui = True
@@ -334,12 +334,6 @@ def main():
 
     print(f'Start WLEDVideoSync - NiceGui for : {PLATFORM}')
 
-    if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']):
-        # Show splash screen in a separate thread to not block the main app
-        import threading
-        splash_thread = threading.Thread(target=Utils.show_splash_screen, daemon=True)
-        splash_thread.start()
-
     if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.server_config is not None:
         server_ip, server_port = check_server()
         if server_ip is None or server_port is None:
@@ -378,6 +372,13 @@ def main():
 
     # choose GUI
     show, native_ui, native_ui_size = select_gui()
+
+    # show or not splash window
+    if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']) and native_ui != 'none':
+        # Show splash screen in a separate thread to not block the main app
+        import threading
+        splash_thread = threading.Thread(target=Utils.show_splash_screen, daemon=True)
+        splash_thread.start()
 
     """
     RUN

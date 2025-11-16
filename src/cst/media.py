@@ -1014,7 +1014,7 @@ class CASTMedia(TextAnimatorMixin):
                         # create a child process, so cv2.imshow() will run from its own Main Thread
                         media_logger.debug(f'Define sl_process for Preview : {sl_name}')
                         window_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"[:64]
-                        sl_process = CASTMedia.Process(target=CV2Utils.sl_main_preview,
+                        sl_process = CASTMedia.Process(target=CV2Utils.sl_main_proc_preview,
                                                        args=(sl_name, 'Media', window_name,))
                         # start the child process
                         # small delay occur during necessary time OS take to initiate the new process

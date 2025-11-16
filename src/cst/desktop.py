@@ -771,10 +771,13 @@ class CASTDesktop(TextAnimatorMixin):
                 desktop_logger.error(traceback.format_exc())
                 desktop_logger.error(f'{t_name} Exception on shared list {sl_name_p} creation : {err}')
 
-            # run main_preview in another process
+            #
+            # run sl_main_proc_preview in another process
             # create a child process, so cv2.imshow() will run from its own Main Thread
+            #
             w_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"
-            i_sl_process = CASTDesktop.Process(target=CV2Utils.sl_main_preview, args=(sl_name_p, 'Desktop', w_name,))
+            i_sl_process = CASTDesktop.Process(target=CV2Utils.sl_main_proc_preview,
+                                               args=(sl_name_p, 'Desktop', w_name,))
             i_sl_process.daemon = True
             # start the child process
             # small delay should occur, OS take some time to initiate the new process
@@ -950,7 +953,7 @@ class CASTDesktop(TextAnimatorMixin):
                 desktop_logger.error('SL Manager not running')
                 return False
 
-            # create ShareAbleList
+            # create ShareAbleList ( frame, time )
             sl_queue = sl_client.create_shared_list(sl_name_q, t_scale_width, t_scale_height, time.time())
 
         elif capture_methode == 'av':
@@ -1214,14 +1217,16 @@ class CASTDesktop(TextAnimatorMixin):
 
                 elif sl_queue is not None:
 
-                    desktop_logger.debug('process from ShareAbleList-queue')
-                    # Default image to display when no more frame
-                    default_img = cv2.imread(cfg_mgr.app_root_path('assets/Source-intro.png'))
-                    default_img = cv2.cvtColor(default_img, cv2.COLOR_BGR2RGB)
-                    default_img = CV2Utils.resize_image(default_img, 640, 360, keep_ratio=False)
-                    frame = default_img
-                    #
+                    desktop_logger.debug('process from ShareableList-queue')
+                    # Create a correctly sized black frame for initialization.
+                    # This ensures the preview's shared memory is allocated with the correct dimensions
+                    # from the start, preventing errors when the real frames arrive.
+                    frame = np.zeros((t_scale_height, t_scale_width, 3), dtype=np.uint8)
+                    # The default image to show if the queue is empty for too long.
+                    default_img = CV2Utils.resize_image(cv2.imread(cfg_mgr.app_root_path('assets/Source-intro.png')), 640, 360)
+
                     # create ShareableList for preview if necessary
+                    # this list contains more array and values than for simple frame queue
                     #
                     if t_preview and str2bool(cfg_mgr.app_config['preview_proc']):
                         sl, sl_process = create_preview_sl(i_frame=frame, i_grid=False)
@@ -1229,7 +1234,9 @@ class CASTDesktop(TextAnimatorMixin):
                             desktop_logger.error(f'{t_name} Error on SharedList creation for Preview')
                             raise ExitFromLoop
 
+                    #
                     # infinite loop for queue-ShareAbleList
+                    #
                     while sl_queue:
 
                         # Calculate the expected time for the current frame

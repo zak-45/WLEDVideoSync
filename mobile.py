@@ -82,7 +82,7 @@ import numpy as np
 # Global placeholders to be set by the start_server function.
 # This is a common pattern for web frameworks where route handlers are defined at the module level.
 _stream_url = ''
-_my_sl = None
+_my_thread = None
 _sl_ip = None
 _sl_port = None
 
@@ -198,9 +198,10 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
     This function receives base64-encoded image frames from the client, decodes and converts them
     to NumPy arrays, and forwards them to the shared memory queue for processing by the casting engine.
+    SL name is thread name + _q for a queue cast
     """
     # retrieve shared memory and cast info
-    sl, w, h = Utils.attach_to_manager_queue(f'{_my_sl}_q', _sl_ip, _sl_port)
+    sl_name, w, h = Utils.attach_to_manager_queue(f'{_my_thread}_q', _sl_ip, _sl_port)
 
     # accept connection from mobile
     try:
@@ -221,8 +222,8 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
             # transform to numpy
             # send to shared memory
             frame = np.array(img)
-            if all(item is not None for item in [sl, w, h]):
-                ImgUtils.send_to_queue(frame, sl, w, h)
+            if all(item is not None for item in [sl_name, w, h]):
+                ImgUtils.send_to_queue(frame, sl_name, w, h)
 
         except Exception as e:
             print(f'Received WebSocket error: {e}')
@@ -231,7 +232,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, sl_ip:str = '127.0.0.1', sl_port:int = 50000):
+def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, i_sl_ip:str = '127.0.0.1', i_sl_port:int = 50000):
     """
     Configures and starts the mobile streaming server.
 
@@ -242,10 +243,10 @@ def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, s
         thread_name: The shared list thread name, used to identify from the casting process.
         ip_address (str): The local IP address of the server.
         dark (bool): Whether to use dark mode.
-        sl_ip: SL Manager IP Address
-        sl_port: SL Manager port Number
+        i_sl_ip: SL Manager IP Address
+        i_sl_port: SL Manager port Number
     """
-    global _stream_url, _my_sl, _sl_ip, _sl_port
+    global _stream_url, _my_thread, _sl_ip, _sl_port
 
     # params from config
     port = int(cfg_mgr.app_config['ssl_port'])
@@ -253,9 +254,9 @@ def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, s
     key = cfg_mgr.app_config['ssl_key_file']
 
     _stream_url = f'https://{ip_address}:{port}/stream'
-    _my_sl = thread_name
-    _sl_ip = sl_ip
-    _sl_port = sl_port
+    _my_thread = thread_name
+    _sl_ip = i_sl_ip
+    _sl_port = i_sl_port
 
     ui.run(
         title=f'WLEDVideoSync Mobile - {port}',
@@ -270,6 +271,9 @@ def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, s
 
 # Example running mobile server
 if __name__ == "__main__":
+    from nicegui import native
+    from src.utl.sharedlistmanager import SharedListManager
+
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     # cast
     Desktop = desktop.CASTDesktop()
@@ -280,5 +284,13 @@ if __name__ == "__main__":
     sl_instance = Desktop.cast()
     # local IP
     my_ip = Utils.get_local_ip_address()
+
+    # define shared list manager
+    sl_port = native.find_open_port(start_port=8800)
+    sl_ip = '127.0.0.1'
+    sl_manager = SharedListManager(sl_ip_address=sl_ip, sl_port=sl_port)
+    sl_manager.start()
+    # set it in Desktop
+    Desktop.sl_manager = sl_manager
     # run niceGui server
-    start_server(sl_instance, my_ip,True)
+    start_server(sl_instance.name, my_ip,True, sl_ip, sl_port)

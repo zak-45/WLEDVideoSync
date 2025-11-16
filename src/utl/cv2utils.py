@@ -60,6 +60,7 @@
 import asyncio
 import ast
 import time
+import collections
 
 import cv2
 from multiprocessing.shared_memory import ShareableList
@@ -285,31 +286,73 @@ class CV2Utils:
             except Exception as e:
                 cv2utils_logger.error(f'Error on thread  {t_name} closing window with error : {e} ')
 
+
     @staticmethod
-    def sl_main_preview(shared_list, class_name, window_name):
-        """Used by platform <> win32, in this way cv2.imshow() will run on MainThread from a subprocess
-        This one will read data from a ShareAbleList created by cast thread.
-                
-        This static method displays a preview of a video or image stream in a separate process. 
-        It receives frame data and other parameters from a shared memory list and updates preview-related flags 
-        in the shared list based on user interaction. It's designed to handle preview display on non-Windows platforms 
-        where cv2.imshow() needs to run in the main thread.
-        
-        The method attaches to a ShareableList containing frame data, preview settings, and control flags. 
-        It continuously reads data from the list, converts the byte data back to a NumPy array representing the frame, 
-        and displays it using cv2.imshow(). It handles potential data corruption issues during the byte-to-array 
-        conversion by displaying a default image if the data size is incorrect. User interactions with the preview 
-        window are captured, and the corresponding flags (t_preview, t_todo_stop, text) are updated in the shared list.
-        The loop terminates when t_todo_stop is set or t_preview is cleared.        
-
-        Updated data are: t_preview, to_todo_stop and text caught from user entry on preview window
-        :param window_name:
-        :param class_name:  Desktop or Media
-        :param shared_list:
-        :return:
+    def sl_main_proc_preview(shared_list, class_name, window_name):
         """
+        Preview Window from ShareableList
 
-        # attach to a shareable list by name: name is Thread Name
+        Used by platform <> win32, in this way cv2.imshow() will run on MainThread from a subprocess.
+        This one will read data from a ShareAbleList created by cast thread.
+
+        Refactored for clarity, maintainability, and robustness:
+        - Uses a named tuple for shared list structure.
+        - Extracts frame extraction and validation into a helper.
+        - Adds explicit error logging for data mismatches.
+        - Encapsulates shared list access.
+
+        It handles potential data corruption issues during the byte-to-array
+        conversion by displaying a default image if the data size is incorrect. User interactions with the preview
+        window are captured, and the corresponding flags (t_preview, t_todo_stop, text) are updated in the shared list.
+        The loop terminates when t_todo_stop is set or t_preview is cleared.
+
+        Args:
+            shared_list (str): Name of the shared memory list containing frame data and metadata.
+            class_name (str): Name of the class or process for logging and window identification.
+            window_name (str): Name of the OpenCV window to display the preview.
+
+        Returns:
+            None
+        """
+        # Define a named tuple for the shared list structure
+        SLFields = collections.namedtuple('SLFields', [
+            'total_frame', 'frame_bytes', 'server_port', 't_viinput', 't_name', 'preview_top', 't_preview',
+            'preview_w', 'preview_h', 'pixel_w', 'pixel_h', 't_todo_stop', 'frame_count', 'fps', 'ip_addresses',
+            'text', 'custom_text', 'cast_x', 'cast_y', 'grid', 'frame_info'
+        ])
+
+        def extract_fields(sl):
+            """Extracts and returns a SLFields namedtuple from the ShareableList."""
+            try:
+                return SLFields(
+                    sl[0], sl[1], sl[2], sl[3], sl[4], sl[5], sl[6], sl[7], sl[8], sl[9], sl[10],
+                    sl[11], sl[12], sl[13], sl[14], sl[15], sl[16], sl[17], sl[18], sl[19], sl[20]
+                )
+            except Exception as e:
+                cv2utils_logger.error(f"Error extracting fields from ShareableList: {e}")
+                raise
+
+        def get_frame_from_bytes(frame_bytes, frame_info, default_img):
+            """Converts bytes to a numpy array frame, or returns default_img on error."""
+            try:
+                frame_data = CV2Utils.frame_remove_one(frame_bytes)
+                frame_np = np.frombuffer(frame_data, dtype=np.uint8)
+                shape = tuple(map(int, ast.literal_eval(frame_info)))
+                expected_bytes = shape[0] * shape[1] * shape[2]
+                if frame_np.nbytes == expected_bytes:
+                    # shape need to be the same
+                    return frame_np.reshape(shape)
+                else:
+                    cv2utils_logger.warning(
+                        f"Frame data size mismatch: got {frame_np.nbytes}, expected {expected_bytes}. Using default image."
+                    )
+                    return default_img
+            except Exception as e:
+                cv2utils_logger.error(f"Error reconstructing frame from bytes: {e}")
+                return default_img
+
+        # attach to a shareable list by name: name is Thread Name + _p for a preview shareable list
+        # sl[0]...sl[20] are used to store work data
         sl = ShareableList(name=shared_list)
 
         # Default image to display in case of np.array conversion problem
@@ -319,86 +362,60 @@ class CV2Utils:
 
         cv2utils_logger.info(f'Preview from ShareAbleList for {class_name}')
 
+        # Check if window already exists otherwise create it
         if not CV2Utils.window_exists(window_name):
             cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
         # Display image on preview window
         while True:
-            # Data from shared List
-            sl_total_frame = sl[0]
-            # remove the last byte and convert back to numpy (1D)
-            sl_frame = CV2Utils.frame_remove_one(sl[1])
-            sl_frame = np.frombuffer(sl_frame, dtype=np.uint8)
-            #
-            sl_server_port = sl[2]
-            sl_t_viinput = sl[3]
-            sl_t_name = sl[4]
-            sl_preview_top = sl[5]
-            sl_t_preview = sl[6]
-            sl_preview_w = sl[7]
-            sl_preview_h = sl[8]
-            sl_pixel_w = sl[9]
-            sl_pixel_h = sl[10]
-            sl_t_todo_stop = sl[11]
-            sl_frame_count = sl[12]
-            sl_fps = sl[13]
-            sl_ip_addresses = sl[14]
-            sl_text = sl[15]
-            sl_custom_text = sl[16]
-            sl_cast_x = sl[17]
-            sl_cast_y = sl[18]
-            sl_grid = sl[19]
-            sl_frame_info = tuple(ast.literal_eval(sl[20]))
-
-
-            # calculate new shape value
-            # ( w * h * (colors number)) e.g. 640(w) * 360()h * 3(rgb)
-            shape_bytes = int(sl_frame_info[0]) * int(sl_frame_info[1]) * int(sl_frame_info[2])
+            fields = extract_fields(sl)
 
             # Generate new frame (2D) from ShareableList. Display default img in case of problem
             # original np.array has been transformed to bytes with 'tobytes()'
             # re-created as array with 'frombuffer()'
             # ... looks like some data can miss (ShareableList bug)  !!!
             # see https://github.com/python/cpython/issues/106939
-            # shape need to be the same
-            if sl_frame.nbytes == shape_bytes:
-                # we need to reshape the array to provide right dim. ( h, w, 3-->rgb)
-                frame_to_view = sl_frame.reshape(int(sl_frame_info[0]), int(sl_frame_info[1]), int(sl_frame_info[2]))
-            else:
-                # in case of any array data/size problem
-                frame_to_view = default_img
+            frame_to_view = get_frame_from_bytes(fields.frame_bytes, fields.frame_info, default_img)
 
-            sl[6], sl[11], sl[15] = CV2Utils.cv2_display_frame(
-                sl_total_frame,
+            # Display the frame and update control flags in the shared list
+            #
+            # Display the frame (frame_to_view) into preview window
+            # here we work with value from ShareAbleList
+            #
+            t_preview, t_todo_stop, text = CV2Utils.cv2_display_frame(
+                fields.total_frame,
                 frame_to_view,
-                sl_server_port,
-                sl_t_viinput,
-                sl_t_name,
-                sl_preview_top,
-                sl_t_preview,
-                sl_preview_w,
-                sl_preview_h,
-                sl_pixel_w,
-                sl_pixel_h,
-                sl_t_todo_stop,
-                sl_frame_count,
-                sl_fps,
-                sl_ip_addresses,
-                sl_text,
-                sl_custom_text,
-                sl_cast_x,
-                sl_cast_y,
-                sl_grid)
+                fields.server_port,
+                fields.t_viinput,
+                fields.t_name,
+                fields.preview_top,
+                fields.t_preview,
+                fields.preview_w,
+                fields.preview_h,
+                fields.pixel_w,
+                fields.pixel_h,
+                fields.t_todo_stop,
+                fields.frame_count,
+                fields.fps,
+                fields.ip_addresses,
+                fields.text,
+                fields.custom_text,
+                fields.cast_x,
+                fields.cast_y,
+                fields.grid
+            )
+            # and put back new returned value into ShareAbleList
+            sl[6], sl[11], sl[15] = t_preview, t_todo_stop, text
 
             # Stop if requested
-            if sl[11] is True:
-                cv2utils_logger.debug(f'SL STOP Cast for : {sl_t_name}')
+            if t_todo_stop is True:
+                cv2utils_logger.debug(f'SL STOP Cast for : {fields.t_name}')
                 break
-            elif sl[6] is False:
-                cv2utils_logger.debug(f'SL END Preview for : {sl_t_name}')
+            elif t_preview is False:
+                cv2utils_logger.debug(f'SL END Preview for : {fields.t_name}')
                 break
 
-        cv2utils_logger.debug(f'Child process exit for : {sl_t_name}')
+        cv2utils_logger.info(f'Child process exit for : {fields.t_name}')
 
     @staticmethod
     def cv2_display_frame(total_frame,
@@ -421,9 +438,37 @@ class CV2Utils:
                           cast_x,
                           cast_y,
                           grid=False):
-        """
-        CV2 preview window
-        Main logic for imshow() and waitKey()
+        """Displays a video frame in an OpenCV window with overlays and interactive controls.
+
+        This function resizes and processes the frame, adds overlays such as text and grid, and displays it in a named
+        OpenCV window.
+        It also handles user keyboard input for toggling preview, text, help, and settings, and returns updated preview
+        and control flags.
+
+        Args:
+            total_frame (int): Total number of frames.
+            frame (np.ndarray): The image frame to display.
+            server_port (int or str): Server port identifier.
+            t_viinput: Video input identifier.
+            t_name (str): Name of the thread or process.
+            preview_top (bool): Whether to keep the window on top.
+            t_preview (bool): Preview enabled flag.
+            preview_w (int): Width of the preview window.
+            preview_h (int): Height of the preview window.
+            pixel_w (int): Pixel width for pixel art effect.
+            pixel_h (int): Pixel height for pixel art effect.
+            t_todo_stop (bool): Stop flag for the preview.
+            frame_count (int): Current frame number.
+            fps (int or float): Frames per second.
+            ip_addresses (list or str): Device IP addresses.
+            text (bool): Whether to show text overlays.
+            custom_text (str): Custom text to display.
+            cast_x (int): Grid X dimension.
+            cast_y (int): Grid Y dimension.
+            grid (bool, optional): Whether to overlay a grid. Defaults to False.
+
+        Returns:
+            tuple: Updated (t_preview, t_todo_stop, text) flags after user interaction.
         """
         frame = cv2.resize(frame, (preview_w, preview_h))
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
@@ -495,6 +540,25 @@ class CV2Utils:
 
     @staticmethod
     def cv2_text_on_frame(frame, custom_text, preview_w, preview_h, ip_addresses, fps, server_port, frame_count, total_frame):
+        """Draws informational text overlays on a video preview frame.
+
+        This function adds device information, frame statistics, and custom text to the top and bottom of a preview image.
+        It is used to enhance the OpenCV preview window with real-time status and user-provided messages.
+
+        Args:
+            frame (np.ndarray): The image frame to annotate.
+            custom_text (str): Custom text to display at the top of the frame. If empty, default info is shown.
+            preview_w (int): Width of the preview window.
+            preview_h (int): Height of the preview window.
+            ip_addresses (list or str): List or string of device IP addresses to display.
+            fps (int or float): Frames per second to display.
+            server_port (int or str): Server port identifier.
+            frame_count (int): Current frame number.
+            total_frame (int): Total number of frames.
+
+        Returns:
+            np.ndarray: The annotated image frame.
+        """
         # common param
         # font
         font = cv2.FONT_HERSHEY_SIMPLEX

@@ -155,8 +155,24 @@ class SharedListManager:
     def create_shared_list(self, name, width, height, start_time=0):
         """Creates a new shared list.
 
-        Creates a shared list with the given name, size, and default value, using
+        Creates a new shared list with the specified name, width, and height, using
         multiprocessing.shared_memory.ShareableList.  Handles existing lists and potential errors.
+
+        Initializes a shared memory list for concurrent access by multiple processes. If a list with the given name
+        already exists, the function returns 'exists'. On success, returns 'success'; on error, returns 'error'.
+
+        SL[0] = data frame, image in np array
+        SL[1] = start time, time (timestamp) will be used to determine if data frame need to be streamed
+
+        Args:
+            name (str): The name of the shared list to create.
+            width (int): The width of the shared list (typically for image data).
+            height (int): The height of the shared list (typically for image data).
+            start_time (int, optional): The initial start time value. Defaults to 0.
+
+        Returns:
+            str: 'success' if the list was created, 'exists' if the name is taken, or 'error' on failure.
+
         """
 
         if name in self.shared_lists:
