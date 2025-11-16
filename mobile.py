@@ -201,7 +201,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
     SL name is thread name + _q for a queue cast
     """
     # retrieve shared memory and cast info
-    sl_name, w, h = Utils.attach_to_manager_queue(f'{_my_thread}_q', _sl_ip, _sl_port)
+    sl_name, w, h = Utils.attach_to_manager_list(f'{_my_thread}_q', _sl_ip, _sl_port)
 
     # accept connection from mobile
     try:
@@ -223,7 +223,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
             # send to shared memory
             frame = np.array(img)
             if all(item is not None for item in [sl_name, w, h]):
-                ImgUtils.send_to_queue(frame, sl_name, w, h)
+                ImgUtils.update_sl_with_frame(frame, sl_name, w, h)
 
         except Exception as e:
             print(f'Received WebSocket error: {e}')

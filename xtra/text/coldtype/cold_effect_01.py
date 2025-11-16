@@ -4,7 +4,7 @@ from coldtype.raster import *
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils as ImgUtils
 
-sl, w, h = Utils.attach_to_manager_queue('Thread-37 (t_desktop_cast)_q')
+sl, w, h = Utils.attach_to_manager_list('Thread-37 (t_desktop_cast)_q')
 
 states = [
     dict(wdth=0, rotate=-10),
@@ -56,6 +56,6 @@ def cold_effect_01(f):
     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
 
     if all(item is not None for item in [sl, w, h]):
-        ImgUtils.send_to_queue(frame, sl, w, h)
+        ImgUtils.update_sl_with_frame(frame, sl, w, h)
 
     return SkiaImage(gen_image)

@@ -394,10 +394,10 @@ class CASTDesktop(TextAnimatorMixin):
                 # timeout provided to not have thread waiting infinitely
                 if t_send_frame.wait(timeout=.5):
                     # send ddp data, we select DDPDevice based on the IP
-                    for dev in t_ddp_multi_names:
-                        if ip == dev._destination:
-                            dev.send_to_queue(image, self.retry_number)
-                            CASTDesktop.total_packets += dev.frame_count
+                    for ddp_dev in t_ddp_multi_names:
+                        if ip == ddp_dev._destination:
+                            ddp_dev.send_to_queue(image, self.retry_number)
+                            CASTDesktop.total_packets += ddp_dev.frame_count
                             break
                 else:
                     desktop_logger.warning(f'{t_name} Multicast frame dropped')
@@ -726,7 +726,7 @@ class CASTDesktop(TextAnimatorMixin):
         create shareable list for preview      
         """
 
-        def create_preview_sl(i_frame, i_grid):
+        def create_sl_for_preview(i_frame, i_grid):
             i_sl = None
             # Create a (9999, 9999, 3) array with all values set to 111 to reserve memory
             frame_info = i_frame.shape
@@ -1194,7 +1194,7 @@ class CASTDesktop(TextAnimatorMixin):
                                 if t_preview:
                                     # create ShareableList if necessary
                                     if frame_count == 1 and str2bool(cfg_mgr.app_config['preview_proc']):
-                                        sl, sl_process = create_preview_sl(frame, grid)
+                                        sl, sl_process = create_sl_for_preview(frame, grid)
                                         if sl is None or sl_process is None:
                                             desktop_logger.error(f'{t_name} Error on SharedList creation')
                                             raise ExitFromLoop
@@ -1229,7 +1229,7 @@ class CASTDesktop(TextAnimatorMixin):
                     # this list contains more array and values than for simple frame queue
                     #
                     if t_preview and str2bool(cfg_mgr.app_config['preview_proc']):
-                        sl, sl_process = create_preview_sl(i_frame=frame, i_grid=False)
+                        sl, sl_process = create_sl_for_preview(i_frame=frame, i_grid=False)
                         if sl is None or sl_process is None:
                             desktop_logger.error(f'{t_name} Error on SharedList creation for Preview')
                             raise ExitFromLoop
@@ -1381,7 +1381,7 @@ class CASTDesktop(TextAnimatorMixin):
                             if t_preview:
                                 # create ShareableList if necessary
                                 if frame_count == 1 and str2bool(cfg_mgr.app_config['preview_proc']):
-                                    sl, sl_process = create_preview_sl(frame, grid)
+                                    sl, sl_process = create_sl_for_preview(frame, grid)
                                     if sl is None or sl_process is None:
                                         desktop_logger.error(f'{t_name} Error on SharedList creation')
                                         raise ExitFromLoop

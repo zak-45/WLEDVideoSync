@@ -179,11 +179,21 @@ class CV2Utils:
         return composite
 
     @staticmethod
-    def send_to_queue(frame, sl, w, h):
-        """Resizes a frame and adds it to a shared memory queue.
+    def update_sl_with_frame(frame, sl, w, h):
+        """Resizes a frame and places it into a shared memory list for inter-process communication.
+        This SL is used by the 'queue' feature of desktop cast.
 
-        This method prepares a frame for inter-process communication by resizing it, applying a workaround for ShareableList,
-        and storing it along with a timestamp in the provided shared list.
+        This method resizes the input frame to the specified width and height,applies a workaround for ShareableList
+        to ensure proper compatibility, and stores the processed frame and a timestamp in the provided shared list.
+
+        Args:
+            frame (np.ndarray): The image frame to be sent.
+            sl (ShareableList): The shared memory list to store the frame and timestamp.
+            w (int): The target width for resizing the frame.
+            h (int): The target height for resizing the frame.
+
+        Returns:
+            None
         """
 
         try:
@@ -194,7 +204,7 @@ class CV2Utils:
             sl[1] = time.time()
 
         except Exception as e:
-            cv2utils_logger.error(f'Error to put frame in SL queue : {str(e)}')
+            cv2utils_logger.error(f'Error to set frame in SL : {str(e)}')
 
     @staticmethod
     def frame_add_one(frame):
@@ -366,7 +376,10 @@ class CV2Utils:
         if not CV2Utils.window_exists(window_name):
             cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
+        #
         # Display image on preview window
+        # infinite loop
+        #
         while True:
             fields = extract_fields(sl)
 

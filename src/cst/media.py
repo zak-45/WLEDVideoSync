@@ -335,10 +335,10 @@ class CASTMedia(TextAnimatorMixin):
                 # timeout provided to not have thread waiting infinitely
                 if t_send_frame.wait(timeout=.5):
                     # send ddp data, we select DDPDevice based on the IP
-                    for dev in t_ddp_multi_names:
-                        if ip == dev._destination:
-                            dev.send_to_queue(image, self.retry_number)
-                            CASTMedia.total_packets += dev.frame_count
+                    for ddp_dev in t_ddp_multi_names:
+                        if ip == ddp_dev._destination:
+                            ddp_dev.send_to_queue(image, self.retry_number)
+                            CASTMedia.total_packets += ddp_dev.frame_count
                             break
                 else:
                     media_logger.warning(f'{t_name} Multicast frame dropped')
