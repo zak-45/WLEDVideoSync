@@ -1,7 +1,7 @@
 """
 a: zak-45
 d: 01/05/2025
-v: 1.0.0.0
+v: 1.0.0
 
 overview
     This code provides a graphical user interface (GUI) for selecting a rectangular area on a specific monitor.
@@ -38,6 +38,15 @@ class ScreenAreaSelection:
     pid_file = ''
 
     def __init__(self, tk_root, dk_monitor):
+        """Initialize the ScreenAreaSelection instance with the given tkinter root and monitor.
+
+        Sets up the window geometry, canvas, and event bindings for area selection on the specified monitor.
+
+        Args:
+            tk_root: The tkinter root window to use for the selection interface.
+            dk_monitor: The monitor object specifying the screen area for the selection window.
+
+        """
         self.root = tk_root
         self.monitor = dk_monitor
 
@@ -62,10 +71,26 @@ class ScreenAreaSelection:
         self.root.after(100, self.apply_transparency)
 
     def apply_transparency(self):
+        """Set the window transparency and display the window.
+
+        Applies a semi-transparent effect to the window and makes it visible to the user.
+
+        """
         self.root.wm_attributes('-alpha', 0.5)  # Set window transparency
         self.root.deiconify()  # Show the window
 
     def on_button_press(self, event):
+        """Begin the area selection process when the mouse button is pressed.
+
+        Records the starting position of the mouse and creates a new selection rectangle if one does not exist.
+
+        Args:
+            event: The tkinter event object containing mouse press information.
+
+        """
+
+        tkarea_logger.debug(f'Tkarea event : {event}')
+
         # Save mouse drag start position
         self.start_x = event.x
         self.start_y = event.y
@@ -74,17 +99,38 @@ class ScreenAreaSelection:
             self.rect = self.canvas.create_rectangle(self.start_x, self.start_y, 1, 1, outline='blue', width=4)
 
     def on_mouse_drag(self, event):
+        """Update the selection rectangle as the mouse is dragged.
+
+        Adjusts the rectangle on the canvas to follow the current mouse position, allowing the user to visually select an area.
+
+        Args:
+            event: The tkinter event object containing mouse drag information.
+
+        """
+
+        tkarea_logger.debug(f'Tkarea event : {event}')
+
         cur_x, cur_y = (event.x, event.y)
         # Expand rectangle as you drag the mouse
         self.canvas.coords(self.rect, self.start_x, self.start_y, cur_x, cur_y)
 
     def on_button_release(self, event):
+        """Handle mouse button release event to finalize area selection.
+
+        Captures the coordinates of the selected rectangle, updates class variables with the selection,
+        and saves the screen-relative coordinates to a shelve file. The window is then scheduled to close.
+
+        Args:
+            event: The tkinter event object containing mouse release information.
+
+        """
+
+        tkarea_logger.debug(f'Tkarea event : {event}')
+
         # Get the coordinates of the rectangle
         # y,x,w,h
         coordinates = self.canvas.coords(self.rect)
         ScreenAreaSelection.coordinates = coordinates
-
-        tkarea_logger.debug(event)
 
         # Adjust coordinates to be relative to the screen
         screen_coordinates = [
@@ -100,24 +146,31 @@ class ScreenAreaSelection:
         try:
             with shelve.open(pid_tmp_file, 'c') as process_file:
                 process_file["sc_area"] = ScreenAreaSelection.screen_coordinates
+                tkarea_logger.debug(f"Set Coordinates {ScreenAreaSelection.screen_coordinates} to shelve:{process_file}")
         except Exception as er:
             tkarea_logger.error(f"Error saving screen coordinates to shelve: {er}")
 
+        # Schedule the window destruction after the mainloop has had a chance to quit
         self.root.quit()
-        self.root.destroy()
+        self.root.after(200, self.root.destroy)
 
     @staticmethod
     def run(monitor_number: int = 0, pid_file: str = str(os.getpid())):
-        """
-        Initiate tk-inter
-        param : monitor number to draw selection
-                pid_file , shelve file name
+        """Launch the area selection GUI on the specified monitor.
+
+        Initializes the tkinter environment, displays the selection window on the chosen monitor,
+        and stores the selected area's coordinates in class variables.
+
+        Args:
+            monitor_number: The index of the monitor to display the selection window on.
+            pid_file: The file path used to store the selected screen coordinates.
+
         """
 
         def on_closing():
             # Close the window when OK button is clicked
             root.quit()
-            root.destroy()
+            root.after(200, root.destroy)
 
         # get all monitors info
         monitors = get_monitors()
@@ -143,18 +196,17 @@ class ScreenAreaSelection:
         except Exception as er:
             tkarea_logger.warning(f'Closed by exception : {er}')
             root.quit()
-            root.destroy()
+            root.after(200, root.destroy)
 
 
 if __name__ == '__main__':
 
     ScreenAreaSelection.run(monitor_number=1)
     print(ScreenAreaSelection.screen_coordinates)
-    if PLATFORM == 'darwin':
-        # Read saved screen coordinates from shelve file
-        try:
-            with shelve.open(str(os.getpid()), 'r') as proc_file:
-                if saved_screen_coordinates := proc_file.get("sc_area"):
-                    print(f'for darwin : {saved_screen_coordinates}')
-        except Exception as e:
-            tkarea_logger.error(f"Error loading screen coordinates from shelve: {e}")
+    # Read saved screen coordinates from shelve file
+    try:
+        with shelve.open(str(os.getpid()), 'r') as proc_file:
+            if saved_screen_coordinates := proc_file.get("sc_area"):
+                print(f'Get Coordinates from shelve : {saved_screen_coordinates}')
+    except Exception as e:
+        tkarea_logger.error(f"Error loading screen coordinates from shelve: {e}")
