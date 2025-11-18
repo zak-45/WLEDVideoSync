@@ -207,6 +207,7 @@ def init_darwin():
     Utils.update_ini_key(config_file, 'app', 'native_ui', 'True')
     Utils.update_ini_key(config_file, 'app', 'native_ui_size', '1200,720')
     Utils.update_ini_key(config_file, 'app', 'mac_first_run', 'False')
+    Utils.update_ini_key(config_file, 'app', 'splash', 'False')
     Utils.update_ini_key(config_file, 'desktop', 'capture', 'mss')
 
     # chmod +x info window
