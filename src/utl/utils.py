@@ -249,13 +249,15 @@ class CASTUtils:
         monitor = int(class_obj.monitor_number)
         tmp_file = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
 
-        # run in no blocking mode, another process
-
+        # run in another process
         area_proc , _ = CASTUtils.mp_setup()
         process = area_proc(target=SCArea.run, args=(monitor, tmp_file))
         process.daemon = True
+        utils_logger.debug(f'Process start : {process}')
         process.start()
         process.join()
+        process.terminate()
+        utils_logger.debug(f'Process stop : {process}')
 
         # Read saved screen coordinates from shelve file
         try:

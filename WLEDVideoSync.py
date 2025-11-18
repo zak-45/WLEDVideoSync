@@ -379,7 +379,7 @@ def main():
         # Show splash screen in a separate thread to not block the main app
         # put in another process for macOS compatibility
         process, _ = Utils.mp_setup()
-        splash_process = process(target=Utils.show_splash_screen, daemon=True)
+        splash_process = process(target=Utils.show_splash_screen)
         splash_process.start()
 
     """
