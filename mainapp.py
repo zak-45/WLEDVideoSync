@@ -71,6 +71,8 @@ import webbrowser
 from threading import Lock, current_thread
 from datetime import datetime
 
+from nicegui import ui, run
+
 import cv2
 import numpy as np
 import psutil
@@ -804,7 +806,7 @@ async def main_page_desktop():
                     ui.number('', value=Desktop.monitor_number, min=-1, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number', forward=lambda value: int(value or 0)) \
                         .tooltip('Enter monitor number')
-                    ui.button('ScreenArea', on_click=lambda: Utils.select_sc_area(Desktop)) \
+                    ui.button('ScreenArea', on_click=lambda: run.io_bound(lambda: Utils.select_sc_area(Desktop))) \
                         .tooltip('Select area from monitor')
 
             with ui.card():
