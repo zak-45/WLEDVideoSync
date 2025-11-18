@@ -613,6 +613,8 @@ for that.
  - On macOS/Linux, ensure the main application file has execute permissions (`chmod +x WLEDVideoSync-app`).
  - On Linux, to use  **'Native'** mode, you need to have `libxcb-cursor-dev` installed:
     > ``sudo apt-get install libxcb-cursor-dev``
+ - On macOS, if you're in trouble with 'Native' mode (default one), try to put the application into 'browser' mode.
+    > edit config/WLEDVideoSync.ini and set **native_ui = False**   
  
  ### Contributing
  Contributions to the project are welcome. Please follow the standard GitHub fork and pull request workflow.

@@ -376,9 +376,10 @@ def main():
     # show or not splash window
     if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']) and native_ui != 'none':
         # Show splash screen in a separate thread to not block the main app
-        import threading
-        splash_thread = threading.Thread(target=Utils.show_splash_screen, daemon=True)
-        splash_thread.start()
+        # put in another process for macOS compatibility
+        process, _ = Utils.mp_setup()
+        splash_process = process(target=Utils.show_splash_screen, daemon=True)
+        splash_process.start()
 
     """
     RUN
