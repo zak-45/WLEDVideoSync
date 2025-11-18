@@ -1445,9 +1445,8 @@ class CASTUtils:
         from PIL import Image, ImageTk
 
         def on_closing():
-            # Close the window when OK button is clicked
+            # Quit the mainloop and then destroy the window to ensure it closes properly.
             root.quit()
-            root.destroy()
 
         try:
             root = tk.Tk()
@@ -1487,6 +1486,8 @@ class CASTUtils:
             root.protocol("WM_DELETE_WINDOW", on_closing)
 
             root.mainloop()
+            root.destroy()
+
         except Exception as er:
             utils_logger.error(f"Failed to show splash screen: {er}")
 

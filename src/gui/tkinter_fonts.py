@@ -8,7 +8,6 @@ def run():
     def on_closing():
         # Close the window when OK button is clicked
         root.quit()
-        root.destroy()
 
     def update_preview():
         """Update the preview text with the selected font and style."""
@@ -148,7 +147,8 @@ def run():
     try:
         root.mainloop()
     except Exception as e:
-        print(f'Close by exception : {e}')
+        print(f'Exception : {e}')
+    finally:
         root.quit()
         root.destroy()
 

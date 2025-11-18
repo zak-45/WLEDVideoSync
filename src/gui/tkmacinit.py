@@ -47,7 +47,6 @@ def init():
     def on_ok_click():
         # Close the window when OK button is clicked
         root.quit()
-        root.destroy()
 
     # Create the main window
     root = tk.Tk()
@@ -83,6 +82,8 @@ def init():
 
     # Start the Tkinter event loop
     root.mainloop()
+    # Exit the script
+    root.destroy()
 
 if __name__ == "__main__":
     init()

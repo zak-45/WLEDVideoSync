@@ -150,9 +150,7 @@ class ScreenAreaSelection:
         except Exception as er:
             tkarea_logger.error(f"Error saving screen coordinates to shelve: {er}")
 
-        # Schedule the window destruction after the mainloop has had a chance to quit
         self.root.quit()
-        self.root.after(200, self.root.destroy)
 
     @staticmethod
     def run(monitor_number: int = 0, pid_file: str = str(os.getpid())):
@@ -168,9 +166,8 @@ class ScreenAreaSelection:
         """
 
         def on_closing():
-            # Close the window when OK button is clicked
+            # This will stop the mainloop, allowing the script to proceed to root.destroy()
             root.quit()
-            root.after(200, root.destroy)
 
         # get all monitors info
         monitors = get_monitors()
@@ -194,9 +191,12 @@ class ScreenAreaSelection:
         try:
             root.mainloop()
         except Exception as er:
-            tkarea_logger.warning(f'Closed by exception : {er}')
+            tkarea_logger.warning(f'Tkinter mainloop closed by exception: {er}')
+        finally:
+            # This ensures the window is always destroyed after the mainloop exits,
+            # whether normally (via root.quit()) or through an exception.
             root.quit()
-            root.after(200, root.destroy)
+            root.destroy()
 
 
 if __name__ == '__main__':
