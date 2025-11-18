@@ -488,7 +488,7 @@ if __name__  == "__main__":
                     sys.exit(1) # Exit if argument parsing fails
 
                 # retrieve Media objects from other process
-                # Shelve creates files with extensions like .dat, .bak, .dir depend on py version
+                # Shelve creates files with extensions like .dat, .bak, .dir , db depend on py version and platform
                 file_to_check = Utils.get_shelve_file_path(file)
                 # Check if the file exists
                 if os.path.exists(file_to_check):

@@ -1508,4 +1508,7 @@ class CASTUtils:
         Returns:
             The path that should be checked with os.path.exists().
         """
-        return f'{base_path}.dat' if sys.version_info < (3, 13) else base_path
+        if PLATFORM == "darwin":
+            return f'{base_path}.db' if sys.version_info < (3, 13) else base_path
+        else:
+            return f'{base_path}.dat' if sys.version_info < (3, 13) else base_path
