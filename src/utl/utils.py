@@ -1444,6 +1444,11 @@ class CASTUtils:
         import tkinter as tk
         from PIL import Image, ImageTk
 
+        def on_closing():
+            # Close the window when OK button is clicked
+            root.quit()
+            root.destroy()
+
         try:
             root = tk.Tk()
             # Use a specific color that will be made transparent
@@ -1477,7 +1482,9 @@ class CASTUtils:
                 root.wm_attributes('-transparentcolor', transparent_color)
 
             # Close the splash screen after 3 seconds
-            root.after(3000, root.destroy)
+            root.after(3000, on_closing)
+
+            root.protocol("WM_DELETE_WINDOW", on_closing)
 
             root.mainloop()
         except Exception as er:

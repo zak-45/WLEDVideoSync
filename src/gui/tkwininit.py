@@ -51,6 +51,7 @@ def init():
     """
     def on_ok_click():
         # Close the window when OK button is clicked
+        root.quit()
         root.destroy()
 
     # Create the main window
@@ -85,6 +86,8 @@ def init():
     # Create the OK button
     ok_button = tk.Button(root, text="Ok", command=on_ok_click, bg='gray', fg='white')
     ok_button.pack(pady=10)
+
+    root.protocol("WM_DELETE_WINDOW", on_ok_click)
 
     # Start the Tkinter event loop
     root.mainloop()

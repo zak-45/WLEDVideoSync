@@ -104,6 +104,7 @@ class ScreenAreaSelection:
             except Exception as er:
                 tkarea_logger.error(f"Error saving screen coordinates to shelve: {er}")
 
+        self.root.quit()
         self.root.destroy()
 
     @staticmethod
@@ -113,6 +114,12 @@ class ScreenAreaSelection:
         param : monitor number to draw selection
                 pid_file , shelve file name
         """
+
+        def on_closing():
+            # Close the window when OK button is clicked
+            root.quit()
+            root.destroy()
+
         # get all monitors info
         monitors = get_monitors()
         ScreenAreaSelection.monitors = monitors
@@ -129,7 +136,15 @@ class ScreenAreaSelection:
         root = tk.Tk()
         root.title("Area Selection on Monitor")
         ScreenAreaSelection(root, monitor)
-        root.mainloop()
+
+        root.protocol("WM_DELETE_WINDOW", on_closing)
+
+        try:
+            root.mainloop()
+        except Exception as er:
+            tkarea_logger.warning(f'Closed by exception : {er}')
+            root.quit()
+            root.destroy()
 
 
 if __name__ == '__main__':

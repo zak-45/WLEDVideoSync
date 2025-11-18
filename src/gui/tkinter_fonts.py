@@ -4,6 +4,12 @@ from tkinter import font
 import platform
 
 def run():
+
+    def on_closing():
+        # Close the window when OK button is clicked
+        root.quit()
+        root.destroy()
+
     def update_preview():
         """Update the preview text with the selected font and style."""
         try:
@@ -136,8 +142,15 @@ def run():
     # Set the default font based on the OS
     set_default_font()
 
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+
     # Run the main event loop
-    root.mainloop()
+    try:
+        root.mainloop()
+    except Exception as e:
+        print(f'Close by exception : {e}')
+        root.quit()
+        root.destroy()
 
 if __name__ in "__main__":
     run()
