@@ -107,6 +107,7 @@ def cfg_settings(config_file, preview_subprocess, native_ui, native_size, first_
     Utils.update_ini_key(config_file, 'app', 'native_ui', native_ui)
     Utils.update_ini_key(config_file, 'app', 'native_ui_size', native_size)
     Utils.update_ini_key(config_file, 'app', first_run_os, 'False')
+    Utils.update_ini_key(config_file, 'app', 'splash', 'True')
     Utils.update_ini_key(config_file, 'desktop', 'capture', 'av')
 
 def init_linux_win():
@@ -235,7 +236,6 @@ def init_common(config_file):
     Utils.update_ini_key(config_file, 'app', 'put_on_systray', 'False')
     Utils.update_ini_key(config_file, 'app', 'font_file', '')
     Utils.update_ini_key(config_file, 'custom', 'bg_image', '')
-    Utils.update_ini_key(config_file, 'app', 'splash', 'True')
 
     # generate self signed cert
     from src.utl.self_signed_cert import generate_self_signed_cert
