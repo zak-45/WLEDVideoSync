@@ -96,13 +96,12 @@ class ScreenAreaSelection:
 
         ScreenAreaSelection.screen_coordinates = screen_coordinates
 
-        if PLATFORM == 'darwin':
-            pid_tmp_file = ScreenAreaSelection.pid_file
-            try:
-                with shelve.open(pid_tmp_file, 'c') as process_file:
-                    process_file["sc_area"] = ScreenAreaSelection.screen_coordinates
-            except Exception as er:
-                tkarea_logger.error(f"Error saving screen coordinates to shelve: {er}")
+        pid_tmp_file = ScreenAreaSelection.pid_file
+        try:
+            with shelve.open(pid_tmp_file, 'c') as process_file:
+                process_file["sc_area"] = ScreenAreaSelection.screen_coordinates
+        except Exception as er:
+            tkarea_logger.error(f"Error saving screen coordinates to shelve: {er}")
 
         self.root.quit()
         self.root.destroy()

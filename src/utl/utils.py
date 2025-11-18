@@ -249,29 +249,24 @@ class CASTUtils:
         monitor = int(class_obj.monitor_number)
         tmp_file = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
 
-        # run in no blocking mode, another process for macOS else thread
-        if PLATFORM == 'darwin':
+        # run in no blocking mode, another process
 
-            # await run.cpu_bound(SCArea.run, monitor, tmp_file)
-            area_proc , _ = CASTUtils.mp_setup()
-            process = area_proc(target=SCArea.run, args=(monitor, tmp_file))
-            process.daemon = True
-            process.start()
-            process.join()
+        area_proc , _ = CASTUtils.mp_setup()
+        process = area_proc(target=SCArea.run, args=(monitor, tmp_file))
+        process.daemon = True
+        process.start()
+        process.join()
 
-            # Read saved screen coordinates from shelve file
-            try:
+        # Read saved screen coordinates from shelve file
+        try:
 
-                with shelve.open(tmp_file, 'r') as process_file:
-                    if saved_screen_coordinates := process_file.get("sc_area"):
-                        SCArea.screen_coordinates = saved_screen_coordinates
-                        utils_logger.debug(f"Loaded screen coordinates from shelve: {saved_screen_coordinates}")
+            with shelve.open(tmp_file, 'r') as process_file:
+                if saved_screen_coordinates := process_file.get("sc_area"):
+                    SCArea.screen_coordinates = saved_screen_coordinates
+                    utils_logger.debug(f"Loaded screen coordinates from shelve: {saved_screen_coordinates}")
 
-            except Exception as er:
-                utils_logger.error(f"Error loading screen coordinates from shelve: {er}")
-        else:
-
-            run.io_bound(SCArea.run, monitor, tmp_file)
+        except Exception as er:
+            utils_logger.error(f"Error loading screen coordinates from shelve: {er}")
 
         # For Calculate crop parameters
         class_obj.screen_coordinates = SCArea.screen_coordinates
