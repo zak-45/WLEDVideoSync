@@ -33,18 +33,19 @@
  1.  **Download**: Grab the latest release for your OS from the **Releases Page**.
  2.  **Extract**:
      -   **Windows/Linux**: Run the downloaded executable. It will extract a `WLEDVideoSync` folder.
-     -   **macOS**: Double-click the downloaded `.zip` or `.tar.gz` file to extract the `.app` bundle.
+     -   **macOS**: Double-click the downloaded `.zip` or `.tar.gz` file to extract the `.app` bundle to `WLEDVideoSync` folder.
  3.  **Run**:
      -   **Windows/Linux**: Open the extracted `WLEDVideoSync` folder and run the `WLEDVideoSync-{OS}` executable.
      -   **macOS**: Before running, you must remove the quarantine attribute. Open a terminal and run:
          ```bash
          # Navigate to the folder where the app was extracted, e.g., Downloads
-         cd ~/Downloads
+         cd ~/Downloads/WLEDVideoSync
          # Remove the attribute (replace x86_64 with arm64 if you have an Apple Silicon Mac)
          xattr -d com.apple.quarantine WLEDVideoSync-macOS_x86_64.app
          ```
          Afterward, you can double-click the `WLEDVideoSync-macOS...app` to run it.
- 
+     >NOTA: on macOS, the first run will set all default settings depending on the platform
+
  ### From Source (Manual)
  1.  **Clone Repository**: `git clone https://github.com/zak-45/WLEDVideoSync.git`
  2.  **Install Dependencies**: `pip install -r requirements.txt` (or `pip3` on macOS/Linux).
