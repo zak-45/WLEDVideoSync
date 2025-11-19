@@ -18,7 +18,7 @@ import tkinter as tk
 
 from screeninfo import get_monitors
 
-from configmanager import LoggerManager, PLATFORM
+from configmanager import cfg_mgr, LoggerManager, PLATFORM
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.tkarea')
 tkarea_logger = logger_manager.logger
@@ -201,11 +201,12 @@ class ScreenAreaSelection:
 
 if __name__ == '__main__':
 
-    ScreenAreaSelection.run(monitor_number=1)
+    p_file = cfg_mgr.app_root_path(f'tmp/{os.getpid()}')
+    ScreenAreaSelection.run(monitor_number=1, pid_file=p_file)
     print(ScreenAreaSelection.screen_coordinates)
     # Read saved screen coordinates from shelve file
     try:
-        with shelve.open(str(os.getpid()), 'r') as proc_file:
+        with shelve.open(p_file, 'r') as proc_file:
             if saved_screen_coordinates := proc_file.get("sc_area"):
                 print(f'Get Coordinates from shelve : {saved_screen_coordinates}')
     except Exception as e:
