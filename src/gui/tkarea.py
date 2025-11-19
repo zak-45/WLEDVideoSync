@@ -152,7 +152,7 @@ class ScreenAreaSelection:
             tkarea_logger.error(f"Error saving screen coordinates to shelve: {er}")
 
         self.root.quit()
-        tkarea_logger.debug(f'Root quit requested')
+        tkarea_logger.debug('Root quit requested')
 
     @staticmethod
     def run(monitor_number: int = 0, pid_file: str = str(os.getpid())):
@@ -166,10 +166,6 @@ class ScreenAreaSelection:
             pid_file: The file path used to store the selected screen coordinates.
 
         """
-
-        def on_closing():
-            # This will stop the mainloop, allowing the script to proceed to root.destroy()
-            root.quit()
 
         # get all monitors info
         monitors = get_monitors()
@@ -200,7 +196,7 @@ class ScreenAreaSelection:
             root.destroy()
             tkarea_logger.debug('Root destroy requested')
             # added for macOS
-            sys.exit()
+            if PLATFORM == "darwin":sys.exit()
 
 
 if __name__ == '__main__':
