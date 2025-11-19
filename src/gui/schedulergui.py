@@ -64,6 +64,7 @@ scheduler_logger = logger_manager.logger
 AllJobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'))
 jobs = AllJobs()
 
+
 def format_job_descriptions(job_list, history=False, filter_tag=None):
     """Formats job descriptions for display.
 
@@ -146,7 +147,6 @@ def format_job_descriptions(job_list, history=False, filter_tag=None):
     return "\n".join(lines) if lines else "No matching jobs."
 
 
-
 def get_all_unique_tags(job_list):
     """Returns a sorted list of all unique tags from a list of jobs."""
     tag_set = set()
@@ -156,12 +156,14 @@ def get_all_unique_tags(job_list):
 
     return sorted(tag_set)
 
+
 def refresh_all_jobs():
     global jobs
 
     new_jobs = load_jobs(cfg_mgr.app_root_path('xtra/jobs/WLEDJobs.py'))
     jobs = new_jobs()
     ui.navigate.reload()
+
 
 class SchedulerGUI:
     """Creates and manages the scheduler GUI.
@@ -342,7 +344,7 @@ class SchedulerGUI:
                 if job_func is None:
                     ui.notify(f'Job not found: {job_name}', type='negative')
                     return
-                
+
                 sched = self.WLEDScheduler.every(interval)
 
                 # Attach period
@@ -438,7 +440,7 @@ class SchedulerGUI:
               <script src="assets/js/clock.js"></script>
               <script src="assets/js/analog-clock.js"></script>
         """
-        )
+                         )
 
         """
         scheduler timer 
@@ -453,14 +455,15 @@ class SchedulerGUI:
         with (ui.row(wrap=False).classes('w-1/3 self-center')):
             with ui.card().tight().classes('w-full self-center').props('flat'):
                 with ui.row().classes('self-center'):
-                    scheduler_switch = ui.switch('activate', value=self.scheduler.is_running, on_change=activate_scheduler) \
+                    scheduler_switch = ui.switch('activate', value=self.scheduler.is_running,
+                                                 on_change=activate_scheduler) \
                         .tooltip('Master switch to start or stop the entire scheduler.')
                     scheduler_status = ui.icon('history', size='lg', color='yellow').on('click',
                                                                                         lambda: self.show_running()) \
                         .style('cursor:pointer').tooltip('View a detailed list of all currently scheduled jobs.')
                     # editor
                     editor = ui.icon('edit', size='md')
-                    editor.on('click',lambda: editor_row.set_visibility(not editor_row.visible))
+                    editor.on('click', lambda: editor_row.set_visibility(not editor_row.visible))
                     editor.tooltip('Show/Hide the Python script editors for jobs and schedules.')
                     editor.style('cursor:pointer')
                     with ui.row().classes('w-full') as editor_row:
@@ -473,7 +476,8 @@ class SchedulerGUI:
                                 'bg-gray-200 mt-2 dark:bg-gray-600'):
                             await job_editor.setup_ui()
                             ui.separator()
-                            ui.button(icon='refresh', on_click=refresh_all_jobs).tooltip('Reload jobs from the script file.')
+                            ui.button(icon='refresh', on_click=refresh_all_jobs).tooltip(
+                                'Reload jobs from the script file.')
 
         """
          add clock
@@ -536,7 +540,8 @@ class SchedulerGUI:
                     label="day").classes('w-30').tooltip('Specify the day of the week for weekly jobs.')
                 recurring_timing_mode = ui.select(['', 'at', 'until'], label="timing").classes('w-20')
                 recurring_timing_mode.tooltip('Schedule at a specific time or until a specific time.')
-                with ui.input('Date (opt.)').bind_visibility_from(recurring_timing_mode, 'value', value='until') as date_until:
+                with ui.input('Date (opt.)').bind_visibility_from(recurring_timing_mode, 'value',
+                                                                  value='until') as date_until:
                     date_until.tooltip('The end date for an "until" schedule.')
                     with ui.menu().props('no-parent-event') as menu:
                         with ui.date().bind_value(date_until):
@@ -544,7 +549,8 @@ class SchedulerGUI:
                                 ui.button('Close', on_click=menu.close).props('flat')
                     with date_until.add_slot('append'):
                         ui.icon('edit_calendar').on('click', menu.open).classes('cursor-pointer')
-                with ui.input('Time').tooltip('The time of day for "at" or "until" schedules (e.g., 14:30).') as time_recurring:
+                with ui.input('Time').tooltip(
+                        'The time of day for "at" or "until" schedules (e.g., 14:30).') as time_recurring:
                     with ui.menu().props('no-parent-event') as menu:
                         with ui.time().bind_value(time_recurring):
                             with ui.row().classes('justify-end'):
@@ -555,7 +561,8 @@ class SchedulerGUI:
                 job_select_recurring = ui.select(jobs.names, label='job').classes('w-40')
                 job_select_recurring.tooltip('Select the job function to run.')
                 ui.space()
-                ui.button(icon='add_to_queue', on_click=add_recurring_job).tooltip('Add this recurring job to the schedule.')
+                ui.button(icon='add_to_queue', on_click=add_recurring_job).tooltip(
+                    'Add this recurring job to the schedule.')
 
         with ui.card().classes('self-center w-full'):
             with ui.row().classes('self-center w-full'):
@@ -581,7 +588,8 @@ class SchedulerGUI:
                 job_select_one_time = ui.select(jobs.names, label='job').classes('w-40')
                 job_select_one_time.tooltip('Select the job function to run.')
                 ui.space()
-                ui.button(icon='add_to_queue', on_click=add_one_time_job).tooltip('Add this one-time job to the schedule.')
+                ui.button(icon='add_to_queue', on_click=add_one_time_job).tooltip(
+                    'Add this one-time job to the schedule.')
 
         with ui.card().classes('w-full'):
             with ui.row().classes('w-full'):
@@ -592,18 +600,22 @@ class SchedulerGUI:
                 with ui.dialog() as clear_tag:
                     with ui.card().classes('self-center w-full'):
                         with ui.row().classes('items-center'):
-                            ui.label("Clear by Tag:")                           
+                            ui.label("Clear by Tag:")
                             tag_dropdown = ui.select(options=get_all_unique_tags(self.WLEDScheduler.get_jobs()),
-                                                    label="Choose Tag").classes('w-64')
+                                                     label="Choose Tag").classes('w-64')
                             ui.button("Clear", icon="delete", color="red",
-                                      on_click=lambda: clear_jobs_by_tag(tag_dropdown.value)).tooltip('Remove all jobs with the selected tag.')
-                ui.button('Cancel Job(s)',icon='clear', on_click=clear_tag.open).tooltip('Open a dialog to remove jobs by tag.')
+                                      on_click=lambda: clear_jobs_by_tag(tag_dropdown.value)).tooltip(
+                                'Remove all jobs with the selected tag.')
+                ui.button('Cancel Job(s)', icon='clear', on_click=clear_tag.open).tooltip(
+                    'Open a dialog to remove jobs by tag.')
             with ui.slide_item('Cancel All') as slide_item:
                 slide_item.classes('bg-sky-800')
                 with slide_item.right():
-                    ui.button(icon='cancel',color='red', on_click=cancel_all_jobs).tooltip('Slide to reveal and click to cancel ALL scheduled jobs.')
+                    ui.button(icon='cancel', color='red', on_click=cancel_all_jobs).tooltip(
+                        'Slide to reveal and click to cancel ALL scheduled jobs.')
                 with slide_item.left():
-                    ui.button(icon='cancel',color='red', on_click=cancel_all_jobs).tooltip('Slide to reveal and click to cancel ALL scheduled jobs.')
+                    ui.button(icon='cancel', color='red', on_click=cancel_all_jobs).tooltip(
+                        'Slide to reveal and click to cancel ALL scheduled jobs.')
 
         """
         with ui.card().tight().classes('w-full').props('flat'):
@@ -627,7 +639,8 @@ class SchedulerGUI:
         if self.use_capture:
             sched_exp_param = ui.expansion('Console', icon='feed', value=False)
             with sched_exp_param.classes('w-full bg-sky-800 mt-2'):
-                ui.button('re-capture', on_click=self.restart_capture).tooltip('Restart the console capture if it stops responding.')
+                ui.button('re-capture', on_click=self.restart_capture).tooltip(
+                    'Restart the console capture if it stops responding.')
                 self.capture.setup_ui()
 
 
@@ -639,6 +652,7 @@ if __name__ == "__main__":
 
     print('start main')
 
+
     @ui.page('/')
     async def main_page():
         print('main scheduler page')
@@ -646,7 +660,7 @@ if __name__ == "__main__":
 
         ui.button('shutdown', on_click=app.shutdown).classes('self-center')
 
+
     ui.run(reload=False)
 
     print('End main')
-    

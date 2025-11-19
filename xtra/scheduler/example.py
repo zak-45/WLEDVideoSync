@@ -17,7 +17,7 @@ schedule.every().minute.at(":17").do(job)
 def job_with_argument(name):
     print(f"I am {name}")
 
-schedule.every(10).seconds.do(job_with_argument, name="Peter")
+schedule.every(10).seconds.do(job_with_argument, name="WLEDVideoSync")
 
 while True:
     schedule.run_pending()

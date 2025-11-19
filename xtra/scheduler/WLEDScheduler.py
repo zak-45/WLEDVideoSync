@@ -6,17 +6,19 @@ full schedule help : https://schedule.readthedocs.io/en/stable/examples.html
 """
 #required import
 #scheduler
-from src.gui.schedulergui import WLEDScheduler, scheduler
+from mainapp import scheduler_app
 #defined jobs xtra/jobs/WLEDJobs.py
 from src.gui.schedulergui import jobs
 #end required import
-
 """
 scheduler examples (assume job2 exist)
 uncomment #WLEDScheduler to use
 """
+WLEDScheduler = scheduler_app.WLEDScheduler
+scheduler = scheduler_app.scheduler
+
 # Run job every 3 second/minute/hour/day/week,
-# Starting 3 second/minute/hour/day/week from now
+# Starting 3 second/minute/hour/day/week from now, add two custom tags : Custom & job2
 #WLEDScheduler.every(3).seconds.do(scheduler.send_job_to_queue, jobs.job2).tag('Custom', 'job2')
 #WLEDScheduler.every(3).minutes.do(scheduler.send_job_to_queue, jobs.job2).tag('Custom', 'job2')
 #WLEDScheduler.every(3).hours.do(scheduler.send_job_to_queue, jobs.job2).tag('Custom', 'job2')
@@ -43,3 +45,4 @@ uncomment #WLEDScheduler to use
 #WLEDScheduler.every().wednesday.at("13:15").do(scheduler.send_job_to_queue, jobs.job2).tag('Custom', 'job2')
 
 print('End of custom schedules file')
+

@@ -141,6 +141,7 @@ def job1(name='test'):
     # cast desktop
     print(sys.platform.lower())
     Desktop.stopcast=False
+    Desktop.preview=True
     Desktop.cast()
     time.sleep(10)
     Desktop.stopcast=True

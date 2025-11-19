@@ -7,6 +7,7 @@ Desktop = desktop.CASTDesktop()
 def job():
     print("I'm casting Desktop ...")
     Desktop.stopcast = False
+    Desktop.preview = True
     Desktop.cast()
 
 schedule.every().minutes.do(job)
