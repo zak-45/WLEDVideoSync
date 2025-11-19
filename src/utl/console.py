@@ -51,6 +51,16 @@ class StreamCapture:
     Process, Queue = None, None
 
     def __init__(self, original_stream: io.TextIOBase, log_queue, capture_controller: 'ConsoleCapture'):
+        """Initializes the StreamCapture with the given stream, queue, and controller.
+
+        Sets up the stream capture to intercept writes, queue messages for the UI, and pass through to the original stream.
+
+        Args:
+            original_stream: The original stdout or stderr stream to wrap.
+            log_queue: The queue used to send log messages to the UI.
+            capture_controller: The ConsoleCapture instance managing this stream capture.
+
+        """
         if not isinstance(original_stream, io.TextIOBase):
             original_stream = sys.__stderr__
         self.original_stream = original_stream
@@ -58,6 +68,15 @@ class StreamCapture:
         self.capture_controller = capture_controller
 
     def write(self, text: str):
+        """Writes text to the log queue and original stream.
+
+        Sends the provided text to the UI log queue if capturing is active, and always writes to the original stream.
+        Handles queue full and write errors gracefully.
+
+        Args:
+            text: The string to write to the log queue and original stream.
+
+        """
         if self.capture_controller.running and \
                 self.capture_controller._queue_read_thread and \
                 self.capture_controller._queue_read_thread.is_alive():
@@ -78,16 +97,37 @@ class StreamCapture:
                     f"Fallback write error ({'stdout' if fallback_stream == sys.__stdout__ else 'stderr'}): {e}\n{text}")
 
     def flush(self):
+        """Flushes the original stream.
+
+        Ensures that any buffered output in the original stream is written out immediately.
+
+        """
         with contextlib.suppress(Exception):
             self.original_stream.flush()
 
     def fileno(self):
+        """Returns the file descriptor of the original stream.
+
+        Provides compatibility with APIs that require a file descriptor.
+
+        Returns:
+            The file descriptor integer, or -1 if unavailable.
+
+        """
         try:
             return self.original_stream.fileno()
         except Exception:
             return -1
 
     def isatty(self):
+        """Checks if the original stream is attached to a terminal.
+
+        Returns True if the original stream is a TTY device, otherwise False.
+
+        Returns:
+            bool: True if the stream is a TTY, False otherwise.
+
+        """
         try:
             return self.original_stream.isatty()
         except Exception:
@@ -99,6 +139,16 @@ class ConsoleCapture:
     Process, Queue = None, None
 
     def __init__(self, show_console=False, text_color='text-white', bg_color='bg-black'):
+        """Initializes the ConsoleCapture utility for redirecting console output to the UI.
+
+        Sets up stream redirection, a log queue, and optionally displays the console UI. Prepares the capture system for use.
+
+        Args:
+            show_console: Whether to immediately display the console UI log.
+            text_color: The CSS class for the log text color.
+            bg_color: The CSS class for the log background color.
+
+        """
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
         self.text_color = text_color
@@ -120,6 +170,11 @@ class ConsoleCapture:
         self._create_stream_handler()
 
     def _create_stream_handler(self):
+        """Sets up stream redirection and starts the queue reading thread.
+
+        Redirects sys.stdout and sys.stderr to StreamCapture instances and ensures log messages are captured for the UI.
+
+        """
         self.stdout_capture = StreamCapture(self.original_stdout, self.log_queue, self)
         self.stderr_capture = StreamCapture(self.original_stderr, self.log_queue, self)
         if sys.stdout is not self.stdout_capture:
@@ -129,12 +184,22 @@ class ConsoleCapture:
         self._start_read_thread()
 
     def _start_read_thread(self):
+        """Starts the background thread for reading log messages from the queue.
+
+        Launches a daemon thread that continuously reads from the log queue and updates the UI log element.
+
+        """
         if not self.running:
             self.running = True
             self._queue_read_thread = threading.Thread(target=self.read_queue, daemon=True)
             self._queue_read_thread.start()
 
     def setup_ui(self):
+        """Initializes and displays the UI log element for console output.
+
+        Creates a NiceGUI log element if it does not exist and starts the background thread for updating the log.
+
+        """
         if self.log_ui is None:
             self.log_ui = ui.log(max_lines=100).classes(
                 f'console-output w-full h-30 {self.bg_color} {self.text_color}'
@@ -142,7 +207,12 @@ class ConsoleCapture:
         self._start_read_thread()
 
     def restore(self):
-        """Restore original stdout/stderr and stop the queue reading thread."""
+        """Restores the original stdout and stderr streams and stops capturing.
+
+        Reverts sys.stdout and sys.stderr to their original streams, stops the queue reading thread,
+        and cleans up the log queue. Ensures that console output is no longer redirected to the UI.
+
+        """
         if not self.running:
             return
 
@@ -169,7 +239,11 @@ class ConsoleCapture:
         print("Console streams restored.")
 
     def recapture(self):
-        """Re-enable console UI capture after restore()."""
+        """Restarts console capturing by reattaching stream handlers and log queue.
+
+        Reinitialized the log queue and stream redirection if capturing is not already active.
+
+        """
         if self.running:
             return
 
@@ -186,6 +260,12 @@ class ConsoleCapture:
         self._start_read_thread()
 
     def read_queue(self):
+        """Continuously reads log messages from the queue and updates the UI log.
+
+        Runs in a background thread, retrieving messages from the log queue and pushing them to the UI log element.
+        Handles UI update errors and queue exceptions gracefully, and logs when the thread finishes.
+
+        """
         original_stderr_ref = self.original_stderr
         while self.running:
             try:

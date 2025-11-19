@@ -245,7 +245,7 @@ class SchedulerGUI:
                 ui.button('close', on_click=running_jobs.close)
 
     def restart_capture(self):
-        self.capture._create_stream_handler()
+        self.capture.recapture()
 
     async def setup_ui(self):
         """Sets up the user interface for the scheduler.
