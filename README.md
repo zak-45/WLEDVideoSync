@@ -360,7 +360,7 @@ The editor dialog allows you to fine-tune every aspect of the text animation in 
 
  > **Note:** Your phone must need to be connected on the same network
 
-> **Note:** This will take Settings from Media even if using a Desktop feature (queue) 
+> **Note:** This will take Settings from Media even if using a Desktop feature (SL) 
 
  **How to Use:**
  1.  **Start the Server**: In the **Cast Center**, find the **TOOLS** section and click the **Mobile Camera** icon.

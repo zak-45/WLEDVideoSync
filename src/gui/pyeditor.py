@@ -101,7 +101,7 @@ class PythonEditor:
     indicating the file is running.
     """
     def __init__(self,
-                 upload_folder=cfg_mgr.app_root_path('xtra/text'),
+                 upload_folder='xtra/text',
                  show_upload: bool = False,
                  file_to_load: str = None,
                  use_capture:bool = True,
@@ -130,7 +130,7 @@ class PythonEditor:
         self.syntax = None
         self.py_run = None
         self.log_queue = None
-        self.upload_folder = upload_folder
+        self.upload_folder = cfg_mgr.app_root_path(upload_folder)
         self.use_capture = use_capture
         if self.use_capture:
             self.capture = ConsoleCapture(show_console=False)
