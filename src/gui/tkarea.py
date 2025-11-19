@@ -13,6 +13,7 @@ overview
 
 import os
 import shelve
+import sys
 import tkinter as tk
 
 from screeninfo import get_monitors
@@ -187,11 +188,9 @@ class ScreenAreaSelection:
         root.title("Area Selection on Monitor")
         ScreenAreaSelection(root, monitor)
 
-        root.protocol("WM_DELETE_WINDOW", on_closing)
-
         try:
             root.mainloop()
-            tkarea_logger.debug(f'Main Loop finished')
+            tkarea_logger.debug('Main Loop finished')
         except Exception as er:
             tkarea_logger.error(f'Tkinter mainloop closed by exception: {er}')
         finally:
@@ -199,7 +198,9 @@ class ScreenAreaSelection:
             # whether normally (via root.quit()) or through an exception.
             root.quit()
             root.destroy()
-            tkarea_logger.debug(f'Root destroy requested')
+            tkarea_logger.debug('Root destroy requested')
+            # added for macOS
+            sys.exit()
 
 
 if __name__ == '__main__':
