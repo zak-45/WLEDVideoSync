@@ -184,18 +184,18 @@ async def init_actions():
         None
     """
     #
-    # We do not want init execution when using command line arguments
-    #
-    if '--run-mobile-server' in sys.argv or '--run-sys-charts' in sys.argv:
-        return
-
-    #
     # This is the definitive point of initialization for the temp file path.
     # We update the global variable in the configmanager module so all other
     # modules that import it will get the correct, process-specific path.
     import configmanager    
     configmanager.WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{cfg_mgr.pid}_file")
     from configmanager import WLED_PID_TMP_FILE
+
+    #
+    # We do not want init execution when using command line arguments
+    #
+    if '--run-mobile-server' in sys.argv or '--run-sys-charts' in sys.argv:
+        return
 
     # from WLEDVideoSync import check_server
     server_ip = None
@@ -380,6 +380,12 @@ async def grid_view(columns:int = 0):
 Class
 """
 class CastAPI:
+    """
+    Provides a global namespace for sharing UI-related state across the WLEDVideoSync application.
+
+    This class holds variables and references needed by different UI components and pages, such as timers, preview frames,
+    and shared configuration. It is used to coordinate state and actions throughout the application's lifecycle.
+    """
 
     dark_mode = False
     netstat_process = None
@@ -454,7 +460,11 @@ NiceGUI
 @ui.page(main_page_url)
 async def main_page():
     """
-    Root page definition
+    Displays the main landing page of the WLEDVideoSync application.
+
+    This page provides access to core controls, status displays, and navigation for casting, configuration, and help.
+    It initializes the main UI layout, sets up timers, and integrates all major UI components for user interaction.
+
     """
     dark = ui.dark_mode(CastAPI.dark_mode).bind_value_to(CastAPI, 'dark_mode')
 
@@ -616,8 +626,13 @@ async def main_page():
 
 @ui.page('/Manage')
 async def main_page_cast_manage():
-    """ Cast manage with full details page """
+    """
+    Displays the cast management page for configuring and monitoring cast devices.
 
+    This page provides access to device management features, displays main tab information, and includes a footer with
+    network and media device controls.
+
+    """
     ui.dark_mode(CastAPI.dark_mode)
 
     await apply_custom()
@@ -644,7 +659,11 @@ async def main_page_cast_manage():
 @ui.page('/Player')
 async def run_video_player_page():
     """
-    timer created on video creation to refresh datas
+    Displays the video player page for casting and controlling media playback.
+
+    This page sets up the video player interface, applies animation styles if enabled, and initializes
+    the player timer for synchronization.
+
     """
     if str2bool(cfg_mgr.custom_config['animate_ui']):
         # Add Animate.css to the HTML head
@@ -659,7 +678,11 @@ async def run_video_player_page():
 @ui.page('/Desktop')
 async def main_page_desktop():
     """
-    Desktop param page
+    Displays the Desktop parameters page for configuring and monitoring desktop casting.
+
+    This page provides controls for desktop capture settings, device management, multicast options, and buffer previews.
+    It allows users to edit parameters, view current settings, and interact with desktop casting features.
+
     """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
@@ -916,7 +939,11 @@ async def main_page_desktop():
 @ui.page('/Media')
 async def main_page_media():
     """
-    Media param page
+    Displays the Media parameters page for configuring and monitoring media casting.
+
+    This page provides controls for media capture settings, device management, multicast options, and buffer previews.
+    It allows users to edit parameters, view current settings, and interact with media casting features.
+
     """
     ui.dark_mode(CastAPI.dark_mode)
 
@@ -1105,8 +1132,9 @@ async def main_page_media():
 @ui.page('/WLEDVideoSync')
 async def splash_page():
     """
-    Page displayed on the webview window
-    :return:
+    Displays the splash page for the WLEDVideoSync application.
+
+    This page shows an introductory animation and provides navigation buttons to the main interface and API documentation.
     """
     ui.dark_mode(True)
     ui.image('media/intro.gif').classes('self-center').style('width: 50%')
@@ -1122,8 +1150,11 @@ async def splash_page():
 @ui.page('/ws/docs')
 async def ws_page():
     """
-    websocket docs page
-    :return:
+    Displays the WebSocket API documentation page for WLEDVideoSync.
+
+    This page provides information about the WebSocket API endpoint, data format, example usage, and available utility
+    functions for real-time communication and scripting.
+
     """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
@@ -1207,7 +1238,12 @@ async def manage_info_page():
 
 @ui.page('/Fonts')
 async def manage_font_page():
+    """
+    Displays the font management page for selecting and managing fonts.
 
+    This page sets up the UI theme, applies custom settings, and loads the font manager interface.
+
+    """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
     from src.txt.fontsmanager import font_page
@@ -1231,7 +1267,13 @@ async def config_editor_page():
 
 @ui.page('/Coldtype')
 async def coldtype_test_page():
+    """
+    Displays the Coldtype Script Runner page for executing Coldtype Python scripts.
 
+    This page allows users to select a Coldtype script file and run it, providing an interface for script selection
+    and execution.
+
+    """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
     await nice.head_menu(name='Coldtype', target='/Coldtype', icon='gesture')
@@ -1271,7 +1313,13 @@ async def coldtype_test_page():
 
 @ui.page('/Pyeditor')
 async def pyeditor_test_page(from_menu: bool = False):
+    """
+    Displays the PyEditor page for editing Python scripts, text animators, or Coldtype files.
 
+    This page allows users to select and open different types of Python editors, providing an interface for
+    script management and editing.
+
+    """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
     if from_menu:
@@ -1310,6 +1358,11 @@ async def pyeditor_test_page(from_menu: bool = False):
 
 @ui.page('/ShutDown')
 async def stop_app():
+    """
+    Displays the shutdown page for the application.
+
+    This page provides a button to shut down the application and applies the current UI theme.
+    """
 
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
@@ -1319,11 +1372,33 @@ async def stop_app():
 
 @ui.page(cast_center_url)
 async def cast_center_page():
+    """
+    Displays the Cast Center page for managing and monitoring cast operations.
+    use cast_center_url variable ( '/' or '/Cast-Center')
+
+    This page initializes the Cast Center UI by invoking the setup routine of the center_app.
+    """
     await center_app.setup_ui()
+
+
+@ui.page('/Center')
+async def center_page():
+    """
+    Displays the Cast Center page for managing and monitoring cast operations.
+    used for systray
+
+    This page initializes the Cast Center UI by invoking the setup routine of the center_app.
+    """
+    await center_app.setup_ui()
+
 
 @ui.page('/Scheduler')
 async def scheduler_page():
+    """
+    Displays the Scheduler page for managing scheduled cast operations.
 
+    This page sets up the UI theme, applies custom settings, and loads the scheduler UI if enabled.
+    """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
     if str2bool(cfg_mgr.scheduler_config['enable']):
@@ -1331,8 +1406,6 @@ async def scheduler_page():
         await scheduler_app.setup_ui()
     else:
         ui.label('DISABLED')
-
-    print('end of Scheduler page load')
 
 
 @ui.page('/manage_cast/{thread_name}')
@@ -1370,9 +1443,19 @@ async def create_control_panel_page():
     CastAPI.info_timer = ui.timer(int(cfg_mgr.app_config['timer']), callback=lambda: nice.cast_manage(CastAPI, Desktop, Media))
     # Generate the control panel
     await control_panel_page()
+    # make it visible
+    if CastAPI.player is not None:
+        CastAPI.player.set_visibility(False)
+    CastAPI.control_panel.set_visibility(True)
 
 @ui.page('/preview_help')
 async def create_preview_help_page():
+    """
+    Displays a help page with keyboard shortcuts for the preview window.
+
+    This page provides users with a list of available keyboard shortcuts and their descriptions for controlling the
+    preview window.
+    """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
 
@@ -1757,7 +1840,14 @@ async def tabs_info_page():
 
 
 async def action_to_casts(class_name, cast_name, action, params, clear, execute, data=None, exp_item=None):
-    """ execute action from icon click and display a message """
+    """
+    Handles actions for cast threads, such as changing IP, multicast effects, and stopping or modifying casts.
+
+    This function manages dialog interactions for IP and multicast changes, validates user input, and executes
+    the requested action on the specified cast thread.
+    It provides user notifications for each action and updates the cast state accordingly.
+
+    """
 
     def valid_check():
         if circular.value:

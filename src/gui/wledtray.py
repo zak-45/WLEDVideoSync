@@ -4,6 +4,7 @@ d: 07/03/2025
 v: 1.0.0.0
 
 Overview
+
 This Python file manages the system tray icon and menu for the WLEDVideoSync application.
 It uses the pystray library to create the tray icon and define its associated menu options.
 The menu provides quick access to various functionalities of the application, such as opening the main interface,
@@ -41,11 +42,14 @@ server_ip, server_port:
 """
 import asyncio
 import webbrowser
+import multiprocessing
+import tkinter as tk
+from tkinter import messagebox
 
 from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
-from mainapp import check_server
+from mainapp import check_server, CastAPI
 from src.utl.utils import CASTUtils as Utils
 from src.utl.webviewmanager import WebviewManager
 
@@ -124,7 +128,7 @@ def on_center():
     Open Cast Center
     :return:
     """
-    select_win(f"http://{server_ip}:{server_port}/Cast-Center", f'WLEDVideoSync Cast Center: {server_port}')
+    select_win(f"http://{server_ip}:{server_port}/Center", f'WLEDVideoSync Cast Center: {server_port}')
 
 def on_py():
     """
@@ -147,7 +151,7 @@ def on_charts():
     Menu Charts  option : show charts
     :return:
     """
-    asyncio.run(Utils.run_sys_charts(WLED_PID_TMP_FILE,True))
+    asyncio.run(Utils.run_sys_charts(WLED_PID_TMP_FILE,CastAPI.dark_mode))
 
 
 def on_details():
@@ -175,6 +179,46 @@ def on_exit():
     select_win(f"http://{server_ip}:{server_port}/ShutDown",f'WLEDVideoSync SHUTDOWN: {server_port}',
                width=380, height=150)
 
+def _show_tk_confirm_and_kill(pid):
+    """
+    This function runs in a separate process to show a tkinter confirmation dialog.
+    This is the robust way to avoid conflicts between pystray's thread and tkinter's mainloop.
+    """
+    import psutil
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+
+    # Bring the dialog to the front
+    root.attributes('-topmost', True)
+
+    if messagebox.askyesno("Confirm Force Exit",
+                           "Are you sure you want to force exit WLEDVideoSync?\nThis may cause data loss and is not recommended."):
+        systray_logger.warning("User confirmed force exit. Terminating process.")
+        try:
+            p = psutil.Process(pid)
+            p.kill()
+        except psutil.NoSuchProcess:
+            systray_logger.error(f"Process with PID {pid} not found. Cannot force kill.")
+        except Exception as e:
+            systray_logger.error(f"An error occurred during force kill: {e}")
+        finally:
+            WLEDVideoSync_systray.stop()
+    else:
+        systray_logger.info("User cancelled force exit.")
+
+    root.destroy()
+
+def on_force_exit():
+    """
+    Menu Force Exit option : kill main process
+    :return:
+    """
+    # Launch the tkinter confirmation dialog in a separate process
+    # to avoid blocking the pystray thread and ensure GUI responsiveness.
+    proc, _ = Utils.mp_setup()
+    p = proc(target=_show_tk_confirm_and_kill, args=(cfg_mgr.pid,))
+    p.start()
+
 
 """
 Pystray definition
@@ -200,6 +244,8 @@ pystray_menu = Menu(
     MenuItem('Charts', on_charts),
     MenuItem('PyEditor', on_py),
     Menu.SEPARATOR,
+    MenuItem(f'FORCE Exit - server :  {server_port}', on_force_exit),
+    Menu.SEPARATOR,
     MenuItem(f'Exit - server :  {server_port}', on_exit)
 )
 
@@ -216,6 +262,3 @@ if __name__ == "__main__":
         break
     WLEDVideoSync_systray.stop()
     print('end  of systray')
-
-
-
