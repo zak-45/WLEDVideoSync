@@ -784,7 +784,7 @@ async def main_page_desktop():
                 new_capture_methode.bind_value(Desktop,'capture_methode')
 
             with ui.card():
-                input_options=['desktop','area','win=','queue']
+                input_options=['desktop','area','win=','SharedList']
                 if PLATFORM == 'linux':
                     input_options.insert(0,os.getenv('DISPLAY'))
                 elif PLATFORM == 'darwin':

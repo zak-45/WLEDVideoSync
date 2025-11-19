@@ -469,7 +469,7 @@ if __name__  == "__main__":
                 from nicegui import native
 
                 Desktop = desktop.CASTDesktop()
-                Desktop.viinput = 'queue'
+                Desktop.viinput = 'SharedList'
                 Desktop.stopcast = False
 
                 # define shared list manager

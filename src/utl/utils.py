@@ -709,13 +709,13 @@ class CASTUtils:
         return ip, port
 
     @staticmethod
-    def attach_to_queue_manager(sl_ip=None, sl_port=None):
-        """Create and return a SharedListClient connected to the queue manager.
+    def attach_to_sl_manager(sl_ip=None, sl_port=None):
+        """Create and return a SharedListClient connected to the SL manager.
 
-        Retrieves the queue manager's IP and port from configuration and returns a SharedListClient instance.
+        Retrieves the SL manager's IP and port from configuration and returns a SharedListClient instance.
 
         Returns:
-            SharedListClient: An instance connected to the configured queue manager.
+            SharedListClient: An instance connected to the configured SL manager.
         """
         from src.utl.sharedlistclient import SharedListClient
 
@@ -748,13 +748,16 @@ class CASTUtils:
         sl = None
         width = None
         height = None
-        with contextlib.suppress(Exception):
-            client =  CASTUtils.attach_to_queue_manager(manager_ip, manager_port)
+
+        try:
+            client =  CASTUtils.attach_to_sl_manager(manager_ip, manager_port)
             if client.connect():
                 sl = client.attach_to_shared_list(list_name)
                 sl_info = client.get_shared_list_info(list_name)
                 width = sl_info['w']
                 height = sl_info['h']
+        except Exception as er:
+            utils_logger.error(f'Error  {er}  to attach to : {list_name} ')
 
         return sl, width, height
 

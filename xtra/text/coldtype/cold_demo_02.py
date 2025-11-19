@@ -4,7 +4,7 @@ from coldtype.raster import *
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils as ImgUtils
 
-# sl, w, h = Utils.attach_to_manager_queue('Thread-9 (t_desktop_cast)_q')
+# sl, w, h = Utils.attach_to_manager_list('Thread-9 (t_desktop_cast)_q')
 
 # Define the string to cycle through
 s = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -64,7 +64,7 @@ def cold_demo_02(f):
     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
 
     if all(item is not None for item in [sl, w, h]):
-        ImgUtils.send_to_queue(frame, sl, w, h)    
+        ImgUtils.update_sl_with_frame(frame, sl, w, h)    
     """
     
     return gen_image

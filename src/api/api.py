@@ -556,17 +556,17 @@ async def util_casts_info(img: bool = False):
     return {"t_info": sort_child_info_data}
 
 
-@app.get("/api/util/queues", tags=["casts"])
-async def list_cast_queues():
+@app.get("/api/util/sl", tags=["casts"])
+async def list_cast_sl():
     """
-        Get all queues (SL) from Desktop cast
+        Get all shared list (SL) from Desktop cast
         These SharedList are based on numpy array (y,x,3)
     """
-    client = Utils.attach_to_queue_manager()
+    client = Utils.attach_to_sl_manager()
     if client.connect():
-        return {"queues": ast.literal_eval(client.get_shared_lists())}
+        return {"shared_lists": ast.literal_eval(client.get_shared_lists())}
     else:
-        raise HTTPException(status_code=400, detail="No Queues defined in Desktop")
+        raise HTTPException(status_code=400, detail="No SL defined in Desktop")
 
 
 @app.get("/api/{class_name}/list_actions", tags=["casts"])

@@ -181,7 +181,7 @@ class CV2Utils:
     @staticmethod
     def update_sl_with_frame(frame, sl, w, h):
         """Resizes a frame and places it into a shared memory list for inter-process communication.
-        This SL is used by the 'queue' feature of desktop cast.
+        This SL is used by the 'SharedList' feature of desktop cast.
 
         This method resizes the input frame to the specified width and height,applies a workaround for ShareableList
         to ensure proper compatibility, and stores the processed frame and a timestamp in the provided shared list.

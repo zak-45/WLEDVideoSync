@@ -4,7 +4,7 @@ from coldtype.raster import *
 from src.utl.utils import CASTUtils as Utils
 from src.utl.cv2utils import CV2Utils as ImgUtils
 
-# sl, w, h = Utils.attach_to_manager_queue('Thread-9 (t_desktop_cast)_q')
+#sl, w, h = Utils.attach_to_manager_list('Thread-10 (t_desktop_cast)_q')
 
 @animation((800, 240), timeline=100, bg=hsl(.9))
 def cold_demo_01(f):
@@ -17,12 +17,14 @@ def cold_demo_01(f):
         .chain(rasterized(f.a.r, wrapped=False))  # Get skia.Image   
            )
 
-    """
+
     frame = gen_image.toarray()
     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
 
+    """
     if all(item is not None for item in [sl, w, h]):
-        ImgUtils.send_to_queue(frame, sl, w, h)
+        ImgUtils.update_sl_with_frame(frame, sl, w, h)
+
     """
     
     return SkiaImage(gen_image)

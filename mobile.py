@@ -13,11 +13,11 @@ This Python script creates a self-contained web application using `nicegui` to s
 1.  **Initialization**:
     *   The script is designed to be run as a separate process. When started, it initializes a `CASTDesktop` instance
     *   from the main application's library.
-    *   Crucially, it sets this instance's video input to `'queue'` (`Desktop.viinput = 'queue'`).
+    *   Crucially, it sets this instance's video input to `'SharedList'` (`Desktop.viinput = 'SharedList'`).
     *   This tells the casting engine not to capture the screen, but to instead listen for image frames from
-    *   a shared memory queue.
+    *   a shared memory List.
     *   It then calls `Desktop.cast()`, which starts the casting process in the background.
-    *   This process creates the shared memory queue and waits for data to be placed into it.
+    *   This process creates the shared memory List and waits for data to be placed into it.
 
 2.  **The Web Server**:
     *   The script starts a `nicegui` web server using a secure HTTPS connection (SSL/TLS).
@@ -53,7 +53,7 @@ This Python script creates a self-contained web application using `nicegui` to s
         1.  Decodes the Base64 string back into image bytes.
         2.  Uses the Pillow (`PIL`) library to open these bytes as an image.
         3.  Converts the image into a NumPy array, a standard format for video processing in Python.
-        4.  Puts this NumPy frame into the shared memory queue that the `CASTDesktop` process is listening on.
+        4.  Puts this NumPy frame into the shared memory List that the `CASTDesktop` process is attached on.
 
 
 ### Summary
@@ -277,10 +277,10 @@ if __name__ == "__main__":
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
     # cast
     Desktop = desktop.CASTDesktop()
-    Desktop.viinput = 'queue'
+    Desktop.viinput = 'SharedList'
     Desktop.stopcast = False
     Desktop.preview = True
-    # as viinput = queue, this will create a ShareAble List {t_name}_p
+    # as viinput = SharedList, this will create a ShareAble List {t_name}_p
     sl_instance = Desktop.cast()
     # local IP
     my_ip = Utils.get_local_ip_address()

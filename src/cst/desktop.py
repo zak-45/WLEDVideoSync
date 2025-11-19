@@ -42,7 +42,7 @@ encoding, removing the need for a standalone FFmpeg installation. It supports ad
     Casting to single or multiple devices (multicast), including virtual matrix arrangements.
     Real-time preview and video recording.
     Image adjustments (brightness, contrast, gamma, saturation, etc.).
-    Flexible capture sources: full desktop, specific window, area, or from a shared memory queue.
+    Flexible capture sources: full desktop, specific window, area, or from a shared memory list.
     Threaded and process-based architecture for performance and UI responsiveness.
     Integration with a configuration manager and logging system.
 
@@ -928,7 +928,7 @@ class CASTDesktop(TextAnimatorMixin):
         else:
             self.stop_text_animator()
 
-        if self.viinput == 'queue':
+        if self.viinput == 'SharedList':
 
             if self.sl_manager is None:
                 if cfg_mgr.manager_config is not None:
@@ -1012,7 +1012,7 @@ class CASTDesktop(TextAnimatorMixin):
                     desktop or :0 ...  : to stream full screen or a part of the screen
                     title=<window name> : to stream only window content for win
                     window_id : to stream only window content for Linux 
-                    queue to read np frame from a ShareAbleList (e.g: coldtype)           
+                    SharedList to read np frame from a ShareAbleList (e.g: coldtype)           
                     or str
         """
 
@@ -1032,7 +1032,7 @@ class CASTDesktop(TextAnimatorMixin):
         win_name = f"{Utils.get_server_port()}-{t_name}-{str(t_viinput)}"[:64]
 
         # Open av input container in read mode if not SL and not mss
-        if t_viinput != 'queue' and capture_methode == 'av':
+        if t_viinput != 'SharedList' and capture_methode == 'av':
             try:
 
                 input_container = av.open(t_viinput, 'r', format=self.viformat, options=input_options)

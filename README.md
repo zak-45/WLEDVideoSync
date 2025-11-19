@@ -138,9 +138,9 @@ All of this could be configured later, for the moment focus on default.
                 'area' --> see SCREENAREA
             To cast a specific window content:
                 'win=xxxxxxxxx'  where xxxxxx should be for Win the window title and for Linux window ID/or window title
-            To cast from a 'queue':
-                select 'queue', this will open a preview window with default image and waiting to receive images 
-                from other processes (e.g: text animation ...)
+            To cast from a 'SharedList':
+                select 'SharedList', this will open a preview window with default image and waiting to receive images 
+                from other processes (e.g: mobile / coldtype / text animation ...)
         Preview: True or False, if True a cast preview window will be displayed
         Format: 'gdigrab' for Win and 'x11grab' for Linux when want to cast Window/Desktop using av methode
         Codec: PyAV codec used, let it to 'libx264rgb' for now
@@ -535,13 +535,13 @@ for that.
      - View `print()` statements and errors from your script in the "Console" output section, which is invaluable for debugging.
  
  ##### How it Works: Streaming Frames
- To stream your Coldtype animation to WLEDVideoSync, your script needs to send its rendered frames to a shared queue. A `Desktop` cast can then be configured to read from this queue and stream the content to your LED devices.
+ To stream your Coldtype animation to WLEDVideoSync, your script needs to send its rendered frames to a shared list. A `Desktop` cast can then be configured to read from this SL and stream the content to your LED devices.
  
- 1.  **In your Coldtype script**: Use the `SharedListClient` to connect to the queue manager and put your rendered frames into a named queue.
+ 1.  **In your Coldtype script**: Use the `SharedListClient` to connect to the SL manager and put your rendered frames into a named SL.
  
         e.g. attach to **Thread-9 (t_desktop_cast)_q**
 
- ```sl, w, h = Utils.attach_to_manager_queue('Thread-9 (t_desktop_cast)_q')```
+ ```sl, w, h = Utils.attach_to_manager_list('Thread-9 (t_desktop_cast)_q')```
 
 - stream to :
                   
@@ -549,11 +549,11 @@ for that.
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGB)
     
                     if all(item is not None for item in [sl, w, h]):
-                        ImgUtils.send_to_queue(frame, sl, w, h)
+                        ImgUtils.update_sl_with_frame(frame, sl, w, h)
               
  2.  **In WLEDVideoSync**:
      - Go to the **Desktop Params** page.
-     - Set the **Input** to `queue`.
+     - Set the **Input** to `SharedList`.
      - A preview window will appear, waiting for frames.
      - When you run your Coldtype script, the frames will appear in the preview and can be cast to your devices.
 

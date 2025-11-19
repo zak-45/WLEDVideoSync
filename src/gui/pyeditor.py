@@ -146,7 +146,7 @@ class PythonEditor:
         available shared Lists . Returns an empty dictionary if the
         connection fails.
         """
-        client = Utils.attach_to_queue_manager()
+        client = Utils.attach_to_sl_manager()
         return client.get_shared_lists_info() if client.connect() else {}
 
 
