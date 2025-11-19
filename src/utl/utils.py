@@ -844,10 +844,14 @@ class CASTUtils:
 
         To check : py 3.13 support for 'spawn' start method (could make process reload on linux binary)
         """
-        if PLATFORM != 'linux':
-            return multiprocessing.Process, multiprocessing.Queue # Direct return
-        ctx = multiprocessing.get_context('spawn')
-        return ctx.Process, ctx.Queue # return modified context
+        if PLATFORM in ['darwin', 'linux']:
+            try:
+                multiprocessing.set_start_method('spawn', force=True)
+                utils_logger.debug("Multiprocessing start method set to 'spawn'.")
+            except RuntimeError:
+                # This can happen if the start method has already been set, which is fine.
+                utils_logger.debug("Multiprocessing start method was already set.")
+        return multiprocessing.Process, multiprocessing.Queue
 
     @staticmethod
     def sl_clean(sl, sl_process, t_name):

@@ -155,7 +155,7 @@ class ScreenAreaSelection:
         tkarea_logger.debug('Root quit requested')
 
     @staticmethod
-    def run(monitor_number: int = 0, pid_file: str = str(os.getpid())):
+    def run(monitor_number: int = 0, pid_file: str = f'{os.getpid()}_file'):
         """Launch the area selection GUI on the specified monitor.
 
         Initializes the tkinter environment, displays the selection window on the chosen monitor,
