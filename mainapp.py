@@ -195,6 +195,7 @@ async def init_actions():
     # modules that import it will get the correct, process-specific path.
     import configmanager    
     configmanager.WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{cfg_mgr.pid}_file")
+    from configmanager import WLED_PID_TMP_FILE
 
     # from WLEDVideoSync import check_server
     server_ip = None
