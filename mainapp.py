@@ -59,8 +59,10 @@ Design Philosophy:
 -   **Asynchronous by Default**: The extensive use of `async` functions ensures that the application remains responsive,
     even when performing I/O-bound tasks like fetching data or updating the UI.
 """
+
 import asyncio
 import base64
+import pathlib
 import shelve
 import socket
 import sys
@@ -191,8 +193,7 @@ async def init_actions():
     # This is the definitive point of initialization for the temp file path.
     # We update the global variable in the configmanager module so all other
     # modules that import it will get the correct, process-specific path.
-    import configmanager
-    WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{cfg_mgr.pid}_file")
+    import configmanager    
     configmanager.WLED_PID_TMP_FILE = cfg_mgr.app_root_path(f"tmp/{cfg_mgr.pid}_file")
 
     # from WLEDVideoSync import check_server
@@ -566,8 +567,7 @@ async def main_page():
                     log_filename = cfg_mgr.app_root_path('log/WLEDVideoSync.log')
                     if os.path.isfile(log_filename):
                         # file exists
-                        with open(log_filename) as my_file:
-                            log_data = my_file.read()
+                        log_data = pathlib.Path(log_filename).read_text()
                     else:
                         log_data = 'ERROR Log File Not Found ERROR'
                         main_logger.warning(f'Log File Not Found {log_filename}')
@@ -1236,7 +1236,7 @@ async def coldtype_test_page():
     await nice.head_menu(name='Coldtype', target='/Coldtype', icon='gesture')
 
     # A variable to hold the path of the selected file
-    selected_file = None
+    selected_file = ''
 
     with ui.card().classes('mx-auto mt-12'):
         ui.label('Coldtype Script Runner').classes('text-xl self-center')
@@ -1253,7 +1253,7 @@ async def coldtype_test_page():
                 run_button.enable()
 
         def cold_run():
-            if selected_file:
+            if selected_file != '':
                 ui.notify(f"Running Coldtype script: {os.path.basename(selected_file)}", type='info')
                 cold = RUNColdtype(script_file=selected_file)
                 cold.start()

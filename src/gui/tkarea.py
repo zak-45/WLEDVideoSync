@@ -201,7 +201,7 @@ class ScreenAreaSelection:
 
 if __name__ == '__main__':
 
-    p_file = cfg_mgr.app_root_path(f'tmp/{os.getpid()}')
+    p_file = cfg_mgr.app_root_path(f'tmp/{os.getpid()}_file')
     ScreenAreaSelection.run(monitor_number=1, pid_file=p_file)
     print(ScreenAreaSelection.screen_coordinates)
     # Read saved screen coordinates from shelve file
