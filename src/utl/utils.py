@@ -1445,59 +1445,65 @@ class CASTUtils:
 
         return True, args
 
-
     @staticmethod
     def show_splash_screen():
         """
         Displays a splash screen in a separate thread using tkinter.
-        This is cross-platform and doesn't block the main app startup.
+        macOS fix included so the splash window actually closes.
         """
         import tkinter as tk
         from PIL import Image, ImageTk
 
-        def on_closing():
-            # Quit the mainloop and then destroy the window to ensure it closes properly.
-            root.quit()
+        def force_close():
+            """macOS-safe forced window close."""
+            try:
+                root.update_idletasks()
+                root.update()
+            except:
+                pass
+
+            try:
+                root.quit()
+            except:
+                pass
+
+            try:
+                root.destroy()
+            except:
+                pass
 
         try:
             root = tk.Tk()
-            # Use a specific color that will be made transparent
             transparent_color = '#abcdef'
-            root.config(bg=transparent_color)
-            root.overrideredirect(True)  # Create a borderless window
 
-            # Load the splash screen image
+            root.config(bg=transparent_color)
+            root.overrideredirect(True)
+
+            # Load splash image
             image_path = cfg_mgr.app_root_path("splash-screen.png")
             pil_image = Image.open(image_path)
             splash_image = ImageTk.PhotoImage(pil_image)
 
-            # Get image dimensions
             img_width = splash_image.width()
             img_height = splash_image.height()
 
-            # Center the window on the screen
             screen_width = root.winfo_screenwidth()
             screen_height = root.winfo_screenheight()
             x = (screen_width // 2) - (img_width // 2)
             y = (screen_height // 2) - (img_height // 2)
-            root.geometry(f'{img_width}x{img_height}+{x}+{y}')
+            root.geometry(f"{img_width}x{img_height}+{x}+{y}")
 
-            # Display the image
-            splash_label = tk.Label(root, image=splash_image, bg=transparent_color, borderwidth=0)
-            splash_label.pack()
+            tk.Label(root, image=splash_image, bg=transparent_color, borderwidth=0).pack()
 
-            # Make the window transparent. This is the key step.
-            # It works on Windows and some Linux window managers.
             if PLATFORM == "win32":
                 root.wm_attributes('-transparentcolor', transparent_color)
 
-            # Close the splash screen after 3 seconds
-            root.after(3000, on_closing)
+            # Close splash after 3 seconds (calls forced macOS-safe close)
+            root.after(3000, force_close)
 
-            root.protocol("WM_DELETE_WINDOW", on_closing)
+            root.protocol("WM_DELETE_WINDOW", force_close)
 
             root.mainloop()
-            root.destroy()
 
         except Exception as er:
             utils_logger.error(f"Failed to show splash screen: {er}")
