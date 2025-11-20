@@ -14,11 +14,9 @@ the default web browser or in a native window using a webview.
 Compatibility fixes applied for macOS/Linux:
 - Added a macOS-safe `_safe_close` helper and used it to ensure Tk dialogs always close on macOS.
 - Moved the charts call out of the pystray callback thread into a separate process to avoid asyncio.run() inside tray thread.
-- Left WebviewManager usage unchanged (it already spawns webviews in separate processes).
 
 """
 import webbrowser
-import multiprocessing
 import tkinter as tk
 from tkinter import messagebox
 

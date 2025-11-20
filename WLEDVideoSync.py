@@ -307,6 +307,30 @@ def select_gui():
 
     return show, native_ui, native_ui_size
 
+def check_pystray():
+    if str2bool(cfg_mgr.app_config['put_on_systray']):
+        from src.gui.wledtray import WLEDVideoSync_systray
+
+        if PLATFORM == 'linux':
+            systray_backend = cfg_mgr.app_config['systray_backend'].lower()
+            if systray_backend in ['appindicator', 'gtk', 'xorg']:
+
+                os.environ["PYSTRAY_BACKEND"] = systray_backend
+            else:
+                main_logger.error(f'Bad value for systray_backend : {systray_backend}')
+                sys.exit(5)
+
+        # run systray in no blocking mode
+        WLEDVideoSync_systray.run_detached()
+
+def set_env():
+    # set QT in linux if compiled version (let choice when run from source)
+    if PLATFORM == 'linux' and (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])):
+        os.environ["PYWEBVIEW_GUI"] = "qt"
+    # Force software-based OpenGL rendering on Ubuntu
+    if PLATFORM == 'linux' and str2bool(cfg_mgr.custom_config['libgl']):
+        os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
+
 """
 MAIN Logic 
 """
@@ -346,41 +370,31 @@ def main():
     """
     Pystray
     """
-    if str2bool(cfg_mgr.app_config['put_on_systray']):
-        from src.gui.wledtray import WLEDVideoSync_systray
-
-        if PLATFORM == 'linux':
-            systray_backend = cfg_mgr.app_config['systray_backend'].lower()
-            if systray_backend in ['appindicator', 'gtk', 'xorg']:
-
-                os.environ["PYSTRAY_BACKEND"] = systray_backend
-            else:
-                main_logger.error(f'Bad value for systray_backend : {systray_backend}')
-                sys.exit(5)
-
-        # run systray in no blocking mode
-        WLEDVideoSync_systray.run_detached()
+    check_pystray()
 
     """
     GUI
     """
-    # set QT in linux if compiled version (let choice when run from source)
-    if PLATFORM == 'linux' and (cfg_mgr.compiled() or str2bool(cfg_mgr.app_config['native_set_qt'])):
-        os.environ["PYWEBVIEW_GUI"] = "qt"
-    # Force software-based OpenGL rendering on Ubuntu
-    if PLATFORM == 'linux' and str2bool(cfg_mgr.custom_config['libgl']):
-        os.environ["LIBGL_ALWAYS_SOFTWARE"] = "1"
+    # set env vars
+    set_env()
 
     # choose GUI
     show, native_ui, native_ui_size = select_gui()
 
+    """
+    splash screen
+    """
     # show or not splash window
     if cfg_mgr.app_config is not None and str2bool(cfg_mgr.app_config['splash']) and native_ui != 'none':
         # Show splash screen in a separate thread to not block the main app
         # put in another process for macOS compatibility
-        process, _ = Utils.mp_setup()
-        splash_process = process(target=Utils.show_splash_screen)
-        splash_process.start()
+        try:
+            process, _ = Utils.mp_setup()
+            splash_process = process(target=Utils.show_splash_screen)
+            splash_process.daemon = True
+            splash_process.start()
+        except Exception as er:
+            main_logger.error(f"Failed to launch splash process: {er}")
 
     """
     RUN
@@ -462,7 +476,7 @@ if __name__  == "__main__":
         elif '--run-mobile-server' in sys.argv :
 
             try:
-                # 1. Initialize the desktop cast to create and listen on a shared memory queue.
+                # 1. Initialize the desktop cast to create and read from a shared memory List.
                 from src.cst import desktop
                 from src.utl.utils import CASTUtils as Utils
                 from src.utl.sharedlistmanager import SharedListManager

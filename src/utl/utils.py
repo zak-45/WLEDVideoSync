@@ -1448,7 +1448,8 @@ class CASTUtils:
     @staticmethod
     def show_splash_screen():
         """
-        Displays a splash screen in a separate thread using tkinter.
+        Displays a splash screen using tkinter.
+        Should run in a separate process for macOS compatibility.
         macOS fix included so the splash window actually closes.
         """
         import tkinter as tk
@@ -1479,6 +1480,13 @@ class CASTUtils:
             root.config(bg=transparent_color)
             root.overrideredirect(True)
 
+            # Bring the window to the front (may not be honored on all window managers)
+            try:
+                root.attributes('-topmost', True)
+            except Exception:
+                # attributes may not be available on some platforms
+                pass
+
             # Load splash image
             image_path = cfg_mgr.app_root_path("splash-screen.png")
             pil_image = Image.open(image_path)
@@ -1495,8 +1503,11 @@ class CASTUtils:
 
             tk.Label(root, image=splash_image, bg=transparent_color, borderwidth=0).pack()
 
-            if PLATFORM == "win32":
+            # Bring the window to transparent background (may not be honored on all window managers)
+            try:
                 root.wm_attributes('-transparentcolor', transparent_color)
+            except Exception:
+                pass
 
             # Close splash after 3 seconds (calls forced macOS-safe close)
             root.after(3000, force_close)
@@ -1504,6 +1515,7 @@ class CASTUtils:
             root.protocol("WM_DELETE_WINDOW", force_close)
 
             root.mainloop()
+            force_close()
 
         except Exception as er:
             utils_logger.error(f"Failed to show splash screen: {er}")
