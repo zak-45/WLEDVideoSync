@@ -1542,5 +1542,7 @@ class CASTUtils:
         """
         if PLATFORM == "darwin":
             return f'{base_path}.db' if sys.version_info < (3, 13) else base_path
+        elif PLATFORM == "linux":
+            return f'{base_path}.pag' if sys.version_info < (3, 13) else base_path
         else:
             return f'{base_path}.dat' if sys.version_info < (3, 13) else base_path
