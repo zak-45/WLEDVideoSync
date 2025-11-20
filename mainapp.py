@@ -213,7 +213,6 @@ async def init_actions():
     # on python < 3.13 file extension will be .dat and added automatically otherwise none
     with shelve.open(WLED_PID_TMP_FILE,writeback=True) as wled_proc_file:
         wled_proc_file["server_port"] = server_port
-        wled_proc_file["sc_area"] = []
         wled_proc_file["media"] = None
         wled_proc_file["all_hosts"] = []
 

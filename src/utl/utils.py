@@ -244,38 +244,40 @@ class CASTUtils:
 
     @staticmethod
     def select_sc_area(class_obj):
-        """ with mouse, draw rectangle to monitor x """
+        """ with mouse, draw rectangle to monitor x
 
+        This should run from its own thread to not block main one.
+        Area selection (Tkinter) will run on another process and block this thread.
+        Update obj.screen_coordinates with coordinates from the selected area.
+
+        Args:
+            class_obj: Used to select monitor number
+        """
+
+        class_obj.screen_coordinates = []
         monitor = int(class_obj.monitor_number)
-        tmp_file = cfg_mgr.app_root_path(f"tmp/{os.getpid()}_file")
+        tmp_file = cfg_mgr.app_root_path(f"tmp/sc_{os.getpid()}_file")
 
-        # run in another process
+        # run in another process and wait for the selection
         area_proc , _ = CASTUtils.mp_setup()
         process = area_proc(target=SCArea.run, args=(monitor, tmp_file))
         process.daemon = True
         utils_logger.debug(f'Process start : {process}')
         process.start()
         process.join()
-        process.terminate()
-        utils_logger.debug(f'Process stop : {process}')
+        utils_logger.debug(f'Resume from Process : {process}')
 
         # Read saved screen coordinates from shelve file
         try:
 
             with shelve.open(tmp_file, 'r') as process_file:
                 if saved_screen_coordinates := process_file.get("sc_area"):
-                    SCArea.screen_coordinates = saved_screen_coordinates
+                    # For Calculate crop parameters
+                    class_obj.screen_coordinates = saved_screen_coordinates
                     utils_logger.debug(f"Loaded screen coordinates from shelve: {saved_screen_coordinates}")
 
         except Exception as er:
             utils_logger.error(f"Error loading screen coordinates from shelve: {er}")
-
-        # For Calculate crop parameters
-        class_obj.screen_coordinates = SCArea.screen_coordinates
-        #
-        utils_logger.debug(f'Monitor infos: {SCArea.monitors}')
-        utils_logger.debug(f'Area Coordinates: {SCArea.coordinates} from monitor {monitor}')
-        utils_logger.debug(f'Area screen Coordinates: {SCArea.screen_coordinates} from monitor {monitor}')
 
 
     @staticmethod
