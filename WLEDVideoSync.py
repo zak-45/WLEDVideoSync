@@ -64,6 +64,7 @@ Temporary File Handling:
     It also cleans up these temporary files on exit.
 
 """
+import multiprocessing
 import os
 
 from subprocess import Popen
@@ -432,6 +433,8 @@ def main():
 Do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 """
 if __name__  == "__main__":
+    # add multiprocessing support (not needed with Nuitka but for compatibility with other tools)
+    multiprocessing.freeze_support()
 
     # Check for special command-line flags to run in a different mode.
     # set inter-process file name, dark mode
