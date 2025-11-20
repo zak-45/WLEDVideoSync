@@ -837,26 +837,31 @@ class CASTUtils:
             # this will be print only during init app as logger is not yet defined (NameError)
             print(f"INI Updated '{key}' to '{new_value}' in section '{section}'.")
 
+
     @staticmethod
     def mp_setup():
         """
-        Set multiprocess action/type : fork, spawn ...
-        Main test for platform
-            linux need fork
-        Warning The 'spawn' and 'forkserver' start methods generally cannot be used with “frozen” executables
-        (i.e., binaries produced by packages like PyInstaller and cx_Freeze) on POSIX systems.
-        The 'fork' start method may work if code does not use threads.
+        Set multiprocess context: fork, spawn, etc.
 
-        To check : py 3.13 support for 'spawn' start method (could make process reload on linux binary)
+        Notes:
+        - On Linux/macOS, default is 'fork', but 'spawn' can be forced.
+        - spawn/forkserver may behave unpredictably in frozen binaries.
+        - fork is faster but unsafe with threads in some cases.
         """
+        import multiprocessing
         if PLATFORM in ['darwin', 'linux']:
             try:
-                multiprocessing.set_start_method('spawn', force=True)
-                utils_logger.debug("Multiprocessing start method set to 'spawn'.")
+                # Use explicit context to avoid conflicts
+                ctx = multiprocessing.get_context('spawn')
+                utils_logger.debug("Multiprocessing context set to 'spawn'.")
+                return ctx.Process, ctx.Queue
             except RuntimeError:
-                # This can happen if the start method has already been set, which is fine.
-                utils_logger.debug("Multiprocessing start method was already set.")
-        return multiprocessing.Process, multiprocessing.Queue
+                utils_logger.debug("Multiprocessing start method already set.")
+                ctx = multiprocessing.get_context()
+                return ctx.Process, ctx.Queue
+        else:
+            ctx = multiprocessing.get_context()
+            return ctx.Process, ctx.Queue
 
     @staticmethod
     def sl_clean(sl, sl_process, t_name):
