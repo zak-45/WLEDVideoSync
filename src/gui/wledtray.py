@@ -1,7 +1,7 @@
 """
 a: zak-45
 d: 07/03/2025
-v: 1.0.0.0
+v: 1.0.0.1
 
 Overview
 
@@ -11,36 +11,12 @@ The menu provides quick access to various functionalities of the application, su
 accessing API documentation, and viewing system information. It also offers the option to open these functionalities in
 the default web browser or in a native window using a webview.
 
-Key Components
-WLEDVideoSync_systray:
-    This is the main object representing the system tray icon. It's initialized with an icon image and a menu.
-
-pystray_menu:
-    This Menu object defines the items that appear in the system tray menu.
-    Each item is a MenuItem with a label and a callback function.
-
-Callback functions (e.g., on_open_main, on_blackout, on_exit):
-    These functions are triggered when the corresponding menu item is clicked.
-    They handle actions like opening specific URLs in a web browser or a native webview window,
-    controlling WLED devices (e.g., blackout), and exiting the application.
-
-select_win(url, title, width, height):
-    This function determines whether to open a given URL in the default web browser or in a native webview window
-    based on the native_ui configuration setting.
-
-WebviewManager:
-    This class is responsible for managing native webview windows. It's used when the native_ui setting is enabled.
-
-ConfigManager:
-    This class manages the application's configuration, including the native_ui setting and other parameters.
-    It is used to determine whether to use native windows or the default browser.
-
-server_ip, server_port:
-    These variables store the IP address and port number of the WLEDVideoSync server.
-    They are used to construct URLs for various application functionalities.
+Compatibility fixes applied for macOS/Linux:
+- Added a macOS-safe `_safe_close` helper and used it to ensure Tk dialogs always close on macOS.
+- Moved the charts call out of the pystray callback thread into a separate process to avoid asyncio.run() inside tray thread.
+- Left WebviewManager usage unchanged (it already spawns webviews in separate processes).
 
 """
-import asyncio
 import webbrowser
 import multiprocessing
 import tkinter as tk
@@ -63,6 +39,7 @@ server_ip = 'localhost'
 
 WLEDVideoSync_gui = WebviewManager()
 
+
 def select_win(url, title, width=800, height=600):
     """Open a URL in either a native webview or the default browser.
 
@@ -71,113 +48,100 @@ def select_win(url, title, width=800, height=600):
     """
 
     if SYS_TRAY_NATIVE_UI:
-        WLEDVideoSync_gui.open_webview(url=url, title=title, width=width, height=height)
+        # WebviewManager already runs webviews in separate processes, so just call it
+        try:
+            WLEDVideoSync_gui.open_webview(url=url, title=title, width=width, height=height)
+        except Exception as e:
+            systray_logger.error(f"Failed to open native webview: {e}")
+            # fallback to browser
+            webbrowser.open(url=url, new=0, autoraise=True)
     else:
         webbrowser.open(url=url, new=0, autoraise=True)
+
 
 """
 Pystray menu
 """
 
 def on_open_main():
-    """Open the main application interface.
-
-    Opens the main application URL in a native webview window if
-    native_ui is True, otherwise opens it in the default browser.
-    """
     select_win(f"http://{server_ip}:{server_port}", f'WLEDVideoSync Main Window : {server_port}',
                1200, 720)
 
-def on_open_main_browser():
-    """Force open the main application in the default browser.
 
-    Opens the main application URL in the default web browser,
-    regardless of the native_ui setting.
-    """
+def on_open_main_browser():
     webbrowser.open(f"http://{server_ip}:{server_port}", new=0, autoraise=True)
 
 
 def on_blackout():
-    """
-    Stop all casts
-
-    """
     select_win(f"http://{server_ip}:{server_port}/api/util/blackout",f'WLEDVideoSync BLACKOUT : {server_port}',
                400, 150)
 
 
 def on_player():
-    """Open the player interface.
-
-    Opens the player URL in a native webview or the default
-    browser, depending on the native_ui setting.
-    """
-
     select_win(f"http://{server_ip}:{server_port}/Player", f'WLEDVideoSync Player: {server_port}',
                1200, 720)
 
+
 def on_api():
-    """
-    Open API
-    :return:
-    """
     select_win(f"http://{server_ip}:{server_port}/docs", f'WLEDVideoSync API: {server_port}')
 
+
 def on_center():
-    """
-    Open Cast Center
-    :return:
-    """
     select_win(f"http://{server_ip}:{server_port}/Center", f'WLEDVideoSync Cast Center: {server_port}')
 
+
 def on_py():
-    """
-    Open Python Editor
-    :return:
-    """
     select_win(f"http://{server_ip}:{server_port}/Pyeditor", f'WLEDVideoSync Python Editor: {server_port}')
 
+
 def on_info():
-    """
-    Menu Info option : show cast information
-    :return:
-    """
     select_win(f"http://{server_ip}:{server_port}/info", f'WLEDVideoSync Infos: {server_port}',
                480, 220)
 
 
 def on_charts():
     """
-    Menu Charts  option : show charts
-    :return:
+    Menu Charts option : run charts in a separate process to avoid calling asyncio.run() in pystray thread
     """
-    asyncio.run(Utils.run_sys_charts(WLED_PID_TMP_FILE,CastAPI.dark_mode))
+    try:
+        proc, _ = Utils.mp_setup()
+        p = proc(target=Utils.run_sys_charts, args=(WLED_PID_TMP_FILE, CastAPI.dark_mode))
+        p.daemon = True
+        p.start()
+    except Exception as e:
+        systray_logger.error(f"Failed to launch charts process: {e}")
 
 
 def on_details():
-    """
-    Menu Info Details option : show details cast information
-    :return:
-    """
     select_win(f"http://{server_ip}:{server_port}/DetailsInfo",f'WLEDVideoSync Cast(s) Details: {server_port}')
 
 
 def on_control_panel():
-    """
-    Menu control panel option : show control panel
-    :return:
-    """
     select_win(f"http://{server_ip}:{server_port}/control_panel",f'WLEDVideoSync Control Panel: {server_port}',
                width=1200, height=520)
 
 
 def on_exit():
-    """
-    Menu Exit option : stop main Loop and continue
-    :return:
-    """
     select_win(f"http://{server_ip}:{server_port}/ShutDown",f'WLEDVideoSync SHUTDOWN: {server_port}',
                width=380, height=150)
+
+
+def _safe_close(root: tk.Tk):
+    """macOS-safe forced window close: flush events, quit, destroy."""
+    try:
+        root.update_idletasks()
+        root.update()
+    except Exception:
+        pass
+    try:
+        root.quit()
+    except Exception:
+        pass
+    try:
+        root.destroy()
+    except Exception:
+        pass
+
 
 def _show_tk_confirm_and_kill(pid):
     """
@@ -185,39 +149,54 @@ def _show_tk_confirm_and_kill(pid):
     This is the robust way to avoid conflicts between pystray's thread and tkinter's mainloop.
     """
     import psutil
+    # Create an isolated Tk instance in this process
     root = tk.Tk()
     root.withdraw()  # Hide the root window
 
-    # Bring the dialog to the front
-    root.attributes('-topmost', True)
+    # Bring the dialog to the front (may not be honored on all window managers)
+    try:
+        root.attributes('-topmost', True)
+    except Exception:
+        # attributes may not be available on some platforms
+        pass
 
-    if messagebox.askyesno("Confirm Force Exit",
-                           "Are you sure you want to force exit WLEDVideoSync?\nThis may cause data loss and is not recommended."):
-        systray_logger.warning("User confirmed force exit. Terminating process.")
-        try:
-            p = psutil.Process(pid)
-            p.kill()
-        except psutil.NoSuchProcess:
-            systray_logger.error(f"Process with PID {pid} not found. Cannot force kill.")
-        except Exception as e:
-            systray_logger.error(f"An error occurred during force kill: {e}")
-        finally:
-            WLEDVideoSync_systray.stop()
-    else:
-        systray_logger.info("User cancelled force exit.")
+    try:
+        if messagebox.askyesno("Confirm Force Exit",
+                               "Are you sure you want to force exit WLEDVideoSync?\nThis may cause data loss and is not recommended."):
+            systray_logger.warning("User confirmed force exit. Terminating process.")
+            try:
+                p = psutil.Process(pid)
+                p.kill()
+            except psutil.NoSuchProcess:
+                systray_logger.error(f"Process with PID {pid} not found. Cannot force kill.")
+            except Exception as e:
+                systray_logger.error(f"An error occurred during force kill: {e}")
+            finally:
+                try:
+                    WLEDVideoSync_systray.stop()
+                except Exception:
+                    pass
+        else:
+            systray_logger.info("User cancelled force exit.")
+    except Exception as e:
+        systray_logger.error(f"Error showing confirmation dialog: {e}")
+    finally:
+        _safe_close(root)
 
-    root.destroy()
 
 def on_force_exit():
     """
     Menu Force Exit option : kill main process
-    :return:
+    Launches the confirmation dialog in a separate process.
     """
     # Launch the tkinter confirmation dialog in a separate process
-    # to avoid blocking the pystray thread and ensure GUI responsiveness.
-    proc, _ = Utils.mp_setup()
-    p = proc(target=_show_tk_confirm_and_kill, args=(cfg_mgr.pid,))
-    p.start()
+    try:
+        proc, _ = Utils.mp_setup()
+        p = proc(target=_show_tk_confirm_and_kill, args=(cfg_mgr.pid,))
+        p.daemon = True
+        p.start()
+    except Exception as e:
+        systray_logger.error(f"Failed to start force-exit dialog process: {e}")
 
 
 """
