@@ -70,7 +70,7 @@ import queue
 import tkinter as tk
 import webbrowser
 
-from threading import Lock, current_thread
+from threading import current_thread
 from datetime import datetime
 
 from nicegui import ui, run
@@ -80,6 +80,7 @@ import numpy as np
 import psutil
 from PIL import Image
 
+from src.utl.utils import CastAPI
 from src.cst import desktop, media
 from src.net.discover import HTTPDiscovery
 from src.gui.niceutils import apply_custom, media_dev_view_page, discovery_net_notify, net_view_button
@@ -378,68 +379,6 @@ async def grid_view(columns:int = 0):
 """
 Class
 """
-class CastAPI:
-    """
-    Provides a global namespace for sharing UI-related state across the WLEDVideoSync application.
-
-    This class holds variables and references needed by different UI components and pages, such as timers, preview frames,
-    and shared configuration. It is used to coordinate state and actions throughout the application's lifecycle.
-    """
-
-    dark_mode = False
-    netstat_process = None
-    charts_row = None
-    player = None
-    video_fps = 0
-    video_frames = 0
-    current_frame = 0
-    progress_bar = None
-    cpu_chart = None
-    video_slider = None
-    media_button_sync = None
-    slider_button_sync = None
-    type_sync = 'none'  # none, slider , player
-    last_type_sync = ''  # slider , player
-    search_areas = []  # contains YT search
-    media_cast = None
-    media_cast_run = None
-    desktop_cast = None
-    desktop_cast_run = None
-    total_frames = 0
-    total_packets = 0
-    ram = 0
-    cpu = 0
-    w_image = None
-    windows_titles = {}
-    new_viinput_value = ''
-    root_timer = None
-    player_timer = None
-    info_timer = None
-    control_panel = None
-    loop = None
-    previews = {}  # Thread-safe dictionary to hold latest preview frames
-
-    def __init__(self):
-        pass
-
-class LatestFrame:
-    """A thread-safe class to hold the latest frame from a cast."""
-
-    def __init__(self):
-        self.frame = None
-        self.lock = Lock()
-
-    def set(self, frame):
-        """Safely sets the latest frame."""
-        with self.lock:
-            self.frame = frame
-
-    def get(self):
-        """Safely gets the latest frame."""
-        with self.lock:
-            return self.frame
-
-
 
 # Instantiate Cast Center with Desktop and Media
 center_app = CastCenter(Desktop, Media, CastAPI, t_data_buffer, shutdown_func=cleanup_on_shutdown, grid_view_func=grid_view)

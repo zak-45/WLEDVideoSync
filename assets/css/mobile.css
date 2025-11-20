@@ -1,0 +1,32 @@
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.2; }
+    100% { opacity: 1; }
+}
+
+.blinking-dot {
+    animation: blink 1.5s infinite;
+}
+
+.control-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
+}
+
+.control-btn:hover { background-color: #0056b3; }
+.control-btn:active { transform: scale(0.98); box-shadow: none; }
+
+#status-indicator {
+    position: absolute; top: 10px; left: 10px; background-color: rgba(128, 128, 128, 0.7);
+    padding: 5px 10px; border-radius: 10px; display: none;
+    align-items: center; cursor: pointer; z-index: 10;
+}

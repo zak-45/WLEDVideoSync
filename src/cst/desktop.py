@@ -1117,7 +1117,7 @@ class CASTDesktop(TextAnimatorMixin):
         """
         Manage preview frame
         """
-        from mainapp import CastAPI, LatestFrame
+        from src.utl.utils import LatestFrame, CastAPI
         if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
 
         #

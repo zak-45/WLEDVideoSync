@@ -65,7 +65,6 @@ like any other video source, such as a desktop capture or a video file.
 
 
 """
-
 from nicegui import ui, app
 from PIL import Image
 from io import BytesIO
@@ -87,7 +86,7 @@ _sl_ip = None
 _sl_port = None
 
 @ui.page('/')
-async def index():
+async def mobile_main_page():
     """
     Displays the landing page with a QR code for joining the WLEDVideoSync stream.
 
@@ -125,73 +124,16 @@ async def stream():
 
     await apply_custom()
 
-    ui.add_body_html('''
-    <style>
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.2; }
-            100% { opacity: 1; }
-        }
-        .blinking-dot {
-            animation: blink 1.5s infinite;
-        }
-        .control-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
-        }
-        .control-btn:hover {
-            background-color: #0056b3;
-        }
-        .control-btn:active {
-            transform: scale(0.98);
-            box-shadow: none;
-        }
-        #status-indicator {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(128, 128, 128, 0.7);
-            padding: 5px 10px;
-            border-radius: 10px;
-            display: none;
-            align-items: center;
-            cursor: pointer;
-            z-index: 10;
-        }
-    </style>
-    <div style="display: flex; flex-direction: column; align-items: center; padding-top: 2vh;">
-        <h4>WLEDVideoSync - Mobile Webcam / Media Stream (iOS/Android)</h4>
-        <div id="media-container" style="position: relative; width: 90%; max-width: 480px;">
-            <video id="video" muted autoplay playsinline style="width: 100%; height: auto; border: 4px solid #ccc;"></video>
-            <img id="image-preview" style="display: none; width: 100%; height: auto; border: 4px solid #ccc; object-fit: contain;">
-            <div id="status-indicator">
-                <div id="status-dot" class="blinking-dot" style="width: 15px; height: 15px; background-color: #28a745; border-radius: 50%;"></div>
-                <span id="status-text" style="margin-left: 8px; color: white; font-weight: bold;">Streaming...</span>
-            </div>
-        </div>
-        <p id="source-info" style="margin-top: 5px; font-style: italic; color: #555; height: 20px;"></p>
-        <div id="controls" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-top: 10px; gap: 15px;">
-            <input type="file" id="file-input" accept="image/*,video/*" style="display: none;">
-            <button id="select-file-btn" class="control-btn">Select File</button>
-            <button id="camera-mode-btn" class="control-btn">Live Camera</button>
-            <button id="play-file-btn" class="control-btn" style="display: none;">Play File</button>
-            <button id="switch-camera-btn" class="control-btn" style="display: none;">Switch Camera</button>
-        </div>
-    </div>
-    <script src="/assets/js/mobile.js"></script>
-    ''')
+    # Load external CSS and JS files for a cleaner structure
+    ui.add_head_html('<link rel="stylesheet" href="/assets/css/mobile.css">')
 
+    # Read the HTML content from the external file
+    with open(cfg_mgr.app_root_path('assets/html/mobile.html'), 'r') as f:
+        ui.add_body_html(f.read())
 
-@app.websocket('/mobile')
+    ui.add_body_html('<script src="/assets/js/mobile.js"></script>')
+
+@app.websocket('/ws-mobile')
 async def websocket_mobile_endpoint(websocket: WebSocket):
     """
     Handles incoming WebSocket connections from mobile devices streaming video frames.
@@ -249,19 +191,21 @@ def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, i
     global _stream_url, _my_thread, _sl_ip, _sl_port
 
     # params from config
-    port = int(cfg_mgr.app_config['ssl_port'])
+    ssl_port = int(cfg_mgr.app_config['ssl_port'])
     cert = cfg_mgr.app_config['ssl_cert_file']
     key = cfg_mgr.app_config['ssl_key_file']
 
-    _stream_url = f'https://{ip_address}:{port}/stream'
+    _stream_url = f'https://{ip_address}:{ssl_port}/stream'
     _my_thread = thread_name
     _sl_ip = i_sl_ip
     _sl_port = i_sl_port
 
     ui.run(
-        title=f'WLEDVideoSync Mobile - {port}',
+        root=mobile_main_page,
+        title=f'WLEDVideoSync Mobile - {ssl_port}',
         favicon=cfg_mgr.app_root_path("favicon.ico"),
-        port=port,
+        host="0.0.0.0",
+        port=ssl_port,
         show=True,
         ssl_certfile=cert,
         ssl_keyfile=key,

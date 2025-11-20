@@ -74,7 +74,6 @@ import socket
 import ipaddress
 import requests
 import aiohttp
-import multiprocessing
 import av
 import cv2
 import numpy as np
@@ -84,6 +83,7 @@ try:
 except Exception as e:
     print(f'INFO : this is Not a YT version: {e}')
 
+from threading import Lock
 from str2bool import str2bool
 from pathlib import Path as PathLib
 from cv2_enumerate_cameras import enumerate_cameras
@@ -101,6 +101,71 @@ from configmanager import cfg_mgr, PLATFORM, WLED_PID_TMP_FILE, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.utils')
 utils_logger = logger_manager.logger
+
+
+class LatestFrame:
+    """A thread-safe class to hold the latest frame from a cast."""
+
+    def __init__(self):
+        self.frame = None
+        self.lock = Lock()
+
+    def set(self, frame):
+        """Safely sets the latest frame."""
+        with self.lock:
+            self.frame = frame
+
+    def get(self):
+        """Safely gets the latest frame."""
+        with self.lock:
+            return self.frame
+
+
+class CastAPI:
+    """
+    Provides a global namespace for sharing UI-related state across the WLEDVideoSync application.
+
+    This class holds variables and references needed by different UI components and pages, such as timers, preview frames,
+    and shared configuration. It is used to coordinate state and actions throughout the application's lifecycle.
+    """
+
+    dark_mode = False
+    netstat_process = None
+    charts_row = None
+    player = None
+    video_fps = 0
+    video_frames = 0
+    current_frame = 0
+    progress_bar = None
+    cpu_chart = None
+    video_slider = None
+    media_button_sync = None
+    slider_button_sync = None
+    type_sync = 'none'  # none, slider , player
+    last_type_sync = ''  # slider , player
+    search_areas = []  # contains YT search
+    media_cast = None
+    media_cast_run = None
+    desktop_cast = None
+    desktop_cast_run = None
+    total_frames = 0
+    total_packets = 0
+    ram = 0
+    cpu = 0
+    w_image = None
+    windows_titles = {}
+    new_viinput_value = ''
+    root_timer = None
+    player_timer = None
+    info_timer = None
+    control_panel = None
+    loop = None
+    previews = {}  # Thread-safe dictionary to hold latest preview frames
+
+    def __init__(self):
+        pass
+
+
 
 class CASTUtils:
     """Provides utility functions for various CAST operations.
