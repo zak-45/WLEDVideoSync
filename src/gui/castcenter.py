@@ -451,7 +451,7 @@ class CastCenter:
                             row_area = ui.row()
 
                         with row_area.classes('self-center'):
-                            ui.button('ScreenArea', on_click=lambda: run.cpu_bound(Utils.select_sc_area,self.Desktop)) \
+                            ui.button('ScreenArea', on_click=lambda: run.io_bound(Utils.select_sc_area,self.Desktop)) \
                                     .tooltip('Select area from monitor')
                             area_cast = ui.button(icon='cast').tooltip('Start Screen Area Cast')
                             area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))

@@ -769,7 +769,7 @@ async def main_page_desktop():
                     ui.number('', value=Desktop.monitor_number, min=-1, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number', forward=lambda value: int(value or 0)) \
                         .tooltip('Enter monitor number')
-                    ui.button('ScreenArea', on_click=lambda: run.cpu_bound(Utils.select_sc_area,Desktop)) \
+                    ui.button('ScreenArea', on_click=lambda: run.io_bound(Utils.select_sc_area,Desktop)) \
                         .tooltip('Select area from monitor')
 
             with ui.card():
