@@ -103,6 +103,52 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.utils')
 utils_logger = logger_manager.logger
 
 
+
+def check_server():
+    """Check and validate server IP and port configuration.
+
+    Retrieves server IP and port from configuration, validates the IP address,
+    and determines the port number. If the port is set to 'auto', it finds an
+    available port. Exits with an error code if the IP or port is invalid.
+
+    Returns:
+        tuple: A tuple containing the validated server IP and port.
+    """
+    from nicegui import native
+
+    srv_ip = cfg_mgr.server_config['server_ip']
+
+    if not CASTUtils.validate_ip_address(srv_ip):
+        utils_logger.error(f'Bad server IP: {srv_ip}')
+        return None, None
+
+    srv_port = cfg_mgr.server_config['server_port']
+
+    if srv_port == 'auto':
+        srv_port = native.find_open_port()
+    else:
+        # If a specific port is configured, check if it's available.
+        try:
+            srv_port = int(cfg_mgr.server_config['server_port'])
+            # Attempt to bind to the configured IP and port to check availability.
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind((srv_ip, srv_port))
+            # If bind is successful, the port is free. The 'with' statement closes it immediately.
+        except OSError as er:
+            # This error (e.g., "Address already in use") means the port is taken.
+            utils_logger.error(
+                f"Server Port {srv_port} on IP {srv_ip} is already in use. Please choose another port. Error: {er}")
+            return srv_ip, None
+        except Exception as er:
+            utils_logger.error(f"Invalid Server Port configuration for port {srv_port}. Error: {er}")
+            return srv_ip, None
+
+    if srv_port not in range(1, 65536):
+        utils_logger.error(f'Server Port {srv_port} is outside the valid range (1-65535).')
+        return srv_ip, None
+
+    return srv_ip, srv_port
+
 class LatestFrame:
     """A thread-safe class to hold the latest frame from a cast."""
 
@@ -1611,3 +1657,5 @@ class CASTUtils:
             return f'{base_path}.pag' if sys.version_info < (3, 13) else base_path
         else:
             return f'{base_path}.dat' if sys.version_info < (3, 13) else base_path
+
+

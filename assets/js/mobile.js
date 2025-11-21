@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
      // --- WebSocket Logic ---
      function connectWebSocket() {
-         const protocol = window.location.protocol === 'https' ? 'wss' : 'ws';
-         state.ws = new WebSocket(`${protocol}://${window.location.host}/mobile`);
+         const protocol = window.location.protocol === 'https' ? 'wss' : 'wss';
+         state.ws = new WebSocket(`${protocol}://${window.location.host}/ws-mobile`);
 
          state.ws.onopen = () => {
              console.log('WebSocket connection established');
@@ -64,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
          imagePreviewEl.src = '';
      }
 
-     funct
      function streamFrame() {
          if (!state.isStreaming || !state.ws || state.ws.readyState !== WebSocket.OPEN) {
              state.isStreaming = false;

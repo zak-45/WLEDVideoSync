@@ -64,7 +64,6 @@ import asyncio
 import base64
 import pathlib
 import shelve
-import socket
 import sys
 import queue
 import tkinter as tk
@@ -81,6 +80,7 @@ import psutil
 from PIL import Image
 
 from src.utl.utils import CastAPI
+from src.utl.utils import check_server
 from src.cst import desktop, media
 from src.net.discover import HTTPDiscovery
 from src.gui.niceutils import apply_custom, media_dev_view_page, discovery_net_notify, net_view_button
@@ -2005,51 +2005,6 @@ async def auth_cast(class_obj):
     # ui.notify(f'Cast(s) Authorized for : {class_obj}', position='center', type='info', close_button=True)
     await nice.cast_manage(CastAPI, Desktop, Media)
     main_logger.info(f' Cast auth. for {str(class_obj)}')
-
-def check_server():
-    """Check and validate server IP and port configuration.
-
-    Retrieves server IP and port from configuration, validates the IP address,
-    and determines the port number. If the port is set to 'auto', it finds an
-    available port. Exits with an error code if the IP or port is invalid.
-
-    Returns:
-        tuple: A tuple containing the validated server IP and port.
-    """
-    from nicegui import native
-
-    srv_ip = cfg_mgr.server_config['server_ip']
-
-    if not Utils.validate_ip_address(srv_ip):
-        main_logger.error(f'Bad server IP: {srv_ip}')
-        return None, None
-
-    srv_port = cfg_mgr.server_config['server_port']
-
-    if srv_port == 'auto':
-        srv_port = native.find_open_port()
-    else:
-        # If a specific port is configured, check if it's available.
-        try:
-            srv_port = int(cfg_mgr.server_config['server_port'])
-            # Attempt to bind to the configured IP and port to check availability.
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind((srv_ip, srv_port))
-            # If bind is successful, the port is free. The 'with' statement closes it immediately.
-        except OSError as er:
-            # This error (e.g., "Address already in use") means the port is taken.
-            main_logger.error(f"Server Port {srv_port} on IP {srv_ip} is already in use. Please choose another port. Error: {er}")
-            return srv_ip, None
-        except Exception as er:
-            main_logger.error(f"Invalid Server Port configuration for port {srv_port}. Error: {er}")
-            return srv_ip, None
-
-    if srv_port not in range(1, 65536):
-        main_logger.error(f'Server Port {srv_port} is outside the valid range (1-65535).')
-        return srv_ip, None
-
-    return srv_ip, srv_port
-
 
 
 async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
