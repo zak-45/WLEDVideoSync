@@ -5,7 +5,6 @@
 # nuitka-project: --include-raw-dir=xtra=xtra
 # nuitka-project: --include-module=tkinter
 # nuitka-project: --enable-plugin=tk-inter
-# nuitka-project: --include-data-dir=/System/Library/Frameworks/Tk.framework=./Tk.framework
 # nuitka-project-if: {OS} == "Windows":
 #   nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
 #   nuitka-project: --include-module=winloop
