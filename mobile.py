@@ -140,9 +140,9 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
     This function receives base64-encoded image frames from the client, decodes and converts them
     to NumPy arrays, and forwards them to the shared memory queue for processing by the casting engine.
-    SL name is thread name + _q for a queue cast
+    SL name is thread name + _q for shared memory SL on which we put the frame + time.time
     """
-    # retrieve shared memory and cast info
+    # retrieve shared memory to write frame and receive back name and cast info (w x h)
     sl_name, w, h = Utils.attach_to_manager_list(f'{_my_thread}_q', _sl_ip, _sl_port)
 
     # accept connection from mobile
@@ -162,7 +162,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
             img = Image.open(BytesIO(jpeg_bytes))
 
             # transform to numpy
-            # send to shared memory
+            # write to shared memory
             frame = np.array(img)
             if all(item is not None for item in [sl_name, w, h]):
                 ImgUtils.update_sl_with_frame(frame, sl_name, w, h)
@@ -219,25 +219,30 @@ if __name__ == "__main__":
     from src.utl.sharedlistmanager import SharedListManager
 
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
-    # cast
+
+    # cast settings
     Desktop = desktop.CASTDesktop()
     Desktop.viinput = 'SharedList'
     Desktop.stopcast = False
     Desktop.preview = True
 
-    # as viinput = SharedList, this will create a ShareAble List {t_name}_p
-    sl_instance = Desktop.cast()
-
     # local IP
     my_ip = Utils.get_local_ip_address()
 
-    # define shared list manager
+    # find a free port
     sl_port = native.find_open_port(start_port=8800)
+    # set to localhost
     sl_ip = '127.0.0.1'
+
+    # define shared list manager we will use to access SL (not using the default one)
     sl_manager = SharedListManager(sl_ip_address=sl_ip, sl_port=sl_port)
     sl_manager.start()
+
     # set it in Desktop
     Desktop.sl_manager = sl_manager
+
+    # as viinput = SharedList, this will create a ShareAble List {t_name}_q waiting for frames to be placed
+    sl_instance = Desktop.cast()
 
     # run niceGui server
     start_server(sl_instance.name, my_ip,True, sl_ip, sl_port)

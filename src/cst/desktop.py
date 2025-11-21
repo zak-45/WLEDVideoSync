@@ -1488,8 +1488,9 @@ class CASTDesktop(TextAnimatorMixin):
             if log_ui not in root_logger:
                 desktop_logger.addHandler(log_ui)
         if os.getenv('WLEDVideoSync_trace'):
-            threading.settrace(self.t_desktop_cast())
-        thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer, Utils.get_server_port(),))
+            threading.settrace(self.t_desktop_cast)
+        srv_port = Utils.get_server_port()
+        thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer, srv_port,))
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         desktop_logger.debug('Child Desktop cast initiated')
