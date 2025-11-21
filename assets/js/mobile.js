@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
                  if (blob && state.ws.readyState === WebSocket.OPEN) {
                      state.ws.send(blob);
                  }
-             }, 'image/jpeg', 0.7); // Quality at 0.7 is a good balance
+             }, 'image/jpeg', 0.5); // Quality at 0.7 is a good balance
          }
 
          requestAnimationFrame(streamFrame); // Continue the loop

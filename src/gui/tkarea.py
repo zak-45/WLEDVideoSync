@@ -169,6 +169,11 @@ class ScreenAreaSelection:
         finally:
             # Final cleanup for safety
             try:
+                root.update_idletasks()
+                root.update()
+            except Exception:
+                pass
+            try:
                 root.quit()
             except:
                 pass

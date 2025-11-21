@@ -174,7 +174,7 @@ async def websocket_mobile_endpoint(websocket: WebSocket):
 
 # run app with SSL certificate
 # SSL required to stream from remote browser (that's the case for mobile phone)
-def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, i_sl_ip:str = '127.0.0.1', i_sl_port:int = 50000):
+def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, mgr_sl_ip:str = '127.0.0.1', mgr_sl_port:int = 50000):
     """
     Configures and starts the mobile streaming server.
 
@@ -185,8 +185,8 @@ def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, i
         thread_name: The shared list thread name, used to identify from the casting process.
         ip_address (str): The local IP address of the server.
         dark (bool): Whether to use dark mode.
-        i_sl_ip: SL Manager IP Address
-        i_sl_port: SL Manager port Number
+        mgr_sl_ip: SL Manager IP Address
+        mgr_sl_port: SL Manager port Number
     """
     global _stream_url, _my_thread, _sl_ip, _sl_port
 
@@ -197,14 +197,14 @@ def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, i
 
     _stream_url = f'https://{ip_address}:{ssl_port}/stream'
     _my_thread = thread_name
-    _sl_ip = i_sl_ip
-    _sl_port = i_sl_port
+    _sl_ip = mgr_sl_ip
+    _sl_port = mgr_sl_port
 
     ui.run(
         root=mobile_main_page,
         title=f'WLEDVideoSync Mobile - {ssl_port}',
         favicon=cfg_mgr.app_root_path("favicon.ico"),
-        host="0.0.0.0",
+        host=ip_address,
         port=ssl_port,
         show=True,
         ssl_certfile=cert,
@@ -224,8 +224,10 @@ if __name__ == "__main__":
     Desktop.viinput = 'SharedList'
     Desktop.stopcast = False
     Desktop.preview = True
+
     # as viinput = SharedList, this will create a ShareAble List {t_name}_p
     sl_instance = Desktop.cast()
+
     # local IP
     my_ip = Utils.get_local_ip_address()
 
@@ -236,5 +238,6 @@ if __name__ == "__main__":
     sl_manager.start()
     # set it in Desktop
     Desktop.sl_manager = sl_manager
+
     # run niceGui server
     start_server(sl_instance.name, my_ip,True, sl_ip, sl_port)
