@@ -23,7 +23,20 @@ logger_manager = LoggerManager(logger_name='WLEDLogger.tkarea')
 tkarea_logger = logger_manager.logger
 
 class ScreenAreaSelection:
-    """ Retrieve coordinates from selected monitor region """
+    """
+    Provides a GUI for selecting a rectangular area on a specific monitor using tkinter.
+    Allows users to click and drag to define a rectangle, storing the selected coordinates for later use.
+
+    Attributes:
+        coordinates (list): Stores the coordinates of the selected area.
+        screen_coordinates (list): Stores the screen coordinates of the selected area.
+        monitors (list): List of detected monitors.
+        pid_file (str): Path to the file used for saving coordinates.
+
+    Args:
+        tk_root: The tkinter root window.
+        dk_monitor: The monitor object on which to select the area.
+    """
 
     coordinates = []
     screen_coordinates = []
@@ -31,6 +44,14 @@ class ScreenAreaSelection:
     pid_file = ''
 
     def __init__(self, tk_root, dk_monitor):
+        """
+        Initializes the area selection window and sets up the canvas for user interaction.
+        Configures the window to match the selected monitor and prepares event bindings for area selection.
+
+        Args:
+            tk_root: The tkinter root window.
+            dk_monitor: The monitor object on which to select the area.
+        """
         self.root = tk_root
         self.monitor = dk_monitor
 
@@ -58,10 +79,21 @@ class ScreenAreaSelection:
         self.root.after(100, self.apply_transparency)
 
     def apply_transparency(self):
+        """
+        Makes the selection window semi-transparent and displays it to the user.
+        This helps users see the underlying screen while selecting an area.
+        """
         self.root.wm_attributes('-alpha', 0.5)
         self.root.deiconify()
 
     def on_button_press(self, event):
+        """
+        Handles the mouse button press event to start area selection.
+        Records the starting coordinates and initializes the selection rectangle.
+
+        Args:
+            event: The tkinter event object containing mouse position data.
+        """
         tkarea_logger.debug(f'Tkarea event : {event}')
 
         self.start_x = event.x_root
@@ -78,6 +110,13 @@ class ScreenAreaSelection:
             )
 
     def on_mouse_drag(self, event):
+        """
+        Handles the mouse drag event to update the selection rectangle.
+        Dynamically resizes the rectangle as the user drags the mouse.
+
+        Args:
+            event: The tkinter event object containing mouse position data.
+        """
         tkarea_logger.debug(f'Tkarea event : {event}')
 
         cur_x, cur_y = event.x_root, event.y_root
@@ -91,6 +130,13 @@ class ScreenAreaSelection:
         )
 
     def on_button_release(self, event):
+        """
+        Handles the mouse button release event to finalize area selection.
+        Stores the selected coordinates and saves them to a file for later retrieval.
+
+        Args:
+            event: The tkinter event object containing mouse position data.
+        """
         tkarea_logger.debug(f'Tkarea event : {event}')
 
         end_x, end_y = event.x_root, event.y_root
@@ -117,29 +163,43 @@ class ScreenAreaSelection:
             )
 
         # *** macOS FIX: force event flush then quit/destroy ***
-        self.root.after(50, self.force_close)
+        self.root.after(50, ScreenAreaSelection.force_close, self.root)
 
-    def force_close(self):
-        """macOS-safe forced window close to ensure Tk mainloop exits."""
+    @staticmethod
+    def force_close(obj):
+        """Linux/macOS-safe forced window close to ensure Tk mainloop exits.
+                Safely closes and destroys a tkinter window or widget.
+        Attempts to update, quit, and destroy the object, ignoring any exceptions that occur.
+
+        Args:
+            obj: The tkinter window or widget to be closed.
+        """
         try:
-            self.root.update_idletasks()
-            self.root.update()
+            obj.update_idletasks()
+            obj.update()
         except Exception:
             pass
 
         try:
-            self.root.quit()
+            obj.quit()
         except Exception:
             pass
 
         try:
-            self.root.destroy()
+            obj.destroy()
         except Exception:
             pass
 
     @staticmethod
     def run(monitor_number: int = 0, pid_file: str = f'{os.getpid()}_file'):
+        """
+        Launches the area selection GUI on the specified monitor and saves the selected coordinates.
+        Initializes the tkinter main loop and handles monitor selection, window setup, and cleanup.
 
+        Args:
+            monitor_number (int): The index of the monitor to use for area selection.
+            pid_file (str): The file path for saving the selected coordinates.
+        """
         monitors = get_monitors()
         ScreenAreaSelection.monitors = monitors
         ScreenAreaSelection.pid_file = pid_file
@@ -158,6 +218,7 @@ class ScreenAreaSelection:
         ScreenAreaSelection(root, monitor)
 
         try:
+            tkarea_logger.debug(f'Main Loop entering ...: {os.getpid()}')
             root.mainloop()
             tkarea_logger.debug('Main Loop finished')
             tkarea_logger.debug(f'Monitors infos: {ScreenAreaSelection.monitors}')
@@ -168,20 +229,8 @@ class ScreenAreaSelection:
             tkarea_logger.error(f'Tkinter mainloop closed by exception: {er}')
         finally:
             # Final cleanup for safety
-            try:
-                root.update_idletasks()
-                root.update()
-            except Exception:
-                pass
-            try:
-                root.quit()
-            except:
-                pass
-            try:
-                root.destroy()
-            except:
-                pass
-            tkarea_logger.debug('Root destroy requested')
+            ScreenAreaSelection.force_close(root)
+            tkarea_logger.debug(f'Root destroy requested : {os.getpid()}')
 
 
 if __name__ == '__main__':

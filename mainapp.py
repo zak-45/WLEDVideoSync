@@ -219,6 +219,7 @@ async def init_actions():
 
     # Main Event Loop
     CastAPI.loop = asyncio.get_running_loop()
+    main_logger.debug('Running loop : {}'.format(CastAPI.loop))
 
     # Initial, non-blocking call to psutil to establish a baseline for cpu_percent
     psutil.cpu_percent(interval=None, percpu=False)
