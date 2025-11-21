@@ -10,14 +10,13 @@ overview
     in the class variables coordinates and screen_coordinates.
 
 """
-
-import os
+import os, signal
 import shelve
 import tkinter as tk
 
 from screeninfo import get_monitors
 
-from configmanager import cfg_mgr, LoggerManager
+from configmanager import cfg_mgr, LoggerManager, PLATFORM
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.tkarea')
 tkarea_logger = logger_manager.logger
@@ -231,6 +230,10 @@ class ScreenAreaSelection:
             # Final cleanup for safety
             ScreenAreaSelection.force_close(root)
             tkarea_logger.debug(f'Root destroy requested : {os.getpid()}')
+
+            if PLATFORM in ['macos','linux']:
+                tk_pid = os.getpid()
+                os.kill(tk_pid, signal.SIGKILL)
 
 
 if __name__ == '__main__':
