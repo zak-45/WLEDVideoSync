@@ -769,7 +769,7 @@ async def main_page_desktop():
                     ui.number('', value=Desktop.monitor_number, min=-1, max=1).classes('w-10') \
                         .bind_value(Desktop, 'monitor_number', forward=lambda value: int(value or 0)) \
                         .tooltip('Enter monitor number')
-                    ui.button('ScreenArea', on_click=lambda: run.io_bound(lambda: Utils.select_sc_area(Desktop))) \
+                    ui.button('ScreenArea', on_click=lambda: run.io_bound(Utils.select_sc_area,Desktop)) \
                         .tooltip('Select area from monitor')
 
             with ui.card():
@@ -2057,7 +2057,7 @@ async def light_box_image(index, image, txt1, txt2, class_obj, buffer):
 
 # do not use if __name__ in {"__main__", "__mp_main__"}, made code reload with cpu_bound !!!!
 if __name__ == "__main__":
-    from nicegui import app, native
+    from nicegui import app
 
     print('start nicegui')
 

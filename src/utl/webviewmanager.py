@@ -81,7 +81,7 @@ class WebviewManager:
     def open_webview(self, url: str, title: str, width: int, height: int):
         """Open a new process for a webview window."""
         # Create a new process and pass the parameters to it
-        process = self.Process(target=start_webview, args=(url, title, width, height))
+        process = self.Process(target=start_webview, args=(url, title, width, height,))
         process.daemon = True
         process.start()
         self.webview_processes.append(process)

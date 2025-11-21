@@ -103,7 +103,7 @@ def on_charts():
     """
     try:
         proc, _ = Utils.mp_setup()
-        p = proc(target=Utils.run_sys_charts, args=(WLED_PID_TMP_FILE, CastAPI.dark_mode))
+        p = proc(target=Utils.run_sys_charts, args=(WLED_PID_TMP_FILE, CastAPI.dark_mode,))
         p.daemon = True
         p.start()
     except Exception as e:

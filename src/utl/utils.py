@@ -95,8 +95,6 @@ from coldtype.text.reader import Font
 from wled.exceptions import WLEDConnectionError, WLEDError # Specific WLED errors
 from ping3 import ping as wled_ping
 
-from src.gui.tkarea import ScreenAreaSelection as SCArea
-
 from configmanager import cfg_mgr, PLATFORM, WLED_PID_TMP_FILE, LoggerManager
 
 logger_manager = LoggerManager(logger_name='WLEDLogger.utils')
@@ -364,6 +362,7 @@ class CASTUtils:
         Args:
             class_obj: Used to select monitor number
         """
+        from src.gui.tkarea import ScreenAreaSelection as SCArea
 
         class_obj.screen_coordinates = []
         monitor = int(class_obj.monitor_number)
@@ -371,7 +370,7 @@ class CASTUtils:
 
         # run in another process and wait for the selection
         area_proc , _ = CASTUtils.mp_setup()
-        process = area_proc(target=SCArea.run, args=(monitor, tmp_file))
+        process = area_proc(target=SCArea.run, args=(monitor, tmp_file,))
         process.daemon = True
         utils_logger.debug(f'Process start : {process}')
         process.start()

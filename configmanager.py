@@ -31,7 +31,6 @@ This library also has comparable performance to it's brother uvloop
 # set winloop
 if PLATFORM == 'win32':
     import winloop
-
     winloop.install()
 
 

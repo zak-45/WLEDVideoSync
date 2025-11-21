@@ -466,8 +466,9 @@ async def run_gif_player(wled_host):
 
     player_exist = await Utils.check_wled_file_exists(wled_host, 'gifplayer.htm')
     if not player_exist:
+        gifplayer_path = cfg_mgr.app_root_path('xtra/gif/gifplayer.htm')
         await run.io_bound(
-            lambda: Utils.wled_upload_file(wled_host, cfg_mgr.app_root_path('xtra/gif/gifplayer.htm')))
+            Utils.wled_upload_file,wled_host, gifplayer_path)
     ui.navigate.to(f'http://{wled_host}/gifplayer.htm', new_tab=True)
 
 

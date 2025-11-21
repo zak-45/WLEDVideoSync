@@ -40,6 +40,7 @@ External Libraries and Modules:
 """
 import os
 import shelve
+from turtledemo.sorting_animate import qsort
 
 import src.gui.tkinter_fonts
 
@@ -264,8 +265,11 @@ class CastCenter:
             YtSearch(self.yt_input, True)
 
     @staticmethod
-    async def view_fonts():
-        await run.cpu_bound(src.gui.tkinter_fonts.run)
+    def view_fonts():
+        p ,_ = Utils.mp_setup()
+        vf = p(target=src.gui.tkinter_fonts.run)
+        vf.daemon = True
+        vf.start()
 
     async def cast_class(self,class_obj, cast_type):
         """Stops any running cast, configures the selected casting type, and starts a new cast.
@@ -447,7 +451,7 @@ class CastCenter:
                             row_area = ui.row()
 
                         with row_area.classes('self-center'):
-                            ui.button('ScreenArea', on_click=lambda: run.io_bound(lambda: Utils.select_sc_area(self.Desktop))) \
+                            ui.button('ScreenArea', on_click=lambda: run.io_bound(Utils.select_sc_area,self.Desktop)) \
                                     .tooltip('Select area from monitor')
                             area_cast = ui.button(icon='cast').tooltip('Start Screen Area Cast')
                             area_cast.on('click', lambda : self.cast_class(self.Desktop, 'Area'))

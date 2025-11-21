@@ -628,7 +628,7 @@ class DevCharts:
         self.ips = None
         self.maxTimeSec = 600
         self.pingAlertLimitMs = 100
-        self.maxPingResponseTimeS = 0.3
+        self.maxPingResponseTimeS:int  = 1
         self.chart_refresh_s = 2
         self.wled_chart_refresh_s = 5
         self.ip_chart = []
@@ -959,7 +959,7 @@ class DevCharts:
         date_time_str = now.strftime("%H:%M:%S")
 
         for cast_ip in self.ips:
-            response_time = await run.io_bound(lambda: ping(cast_ip, timeout=self.maxPingResponseTimeS, unit='ms'))
+            response_time = await run.io_bound(ping,dest_addr=cast_ip, timeout=self.maxPingResponseTimeS, unit='ms')
             if response_time is None or response_time is False:
                 self.log.push(datetime.now().strftime('%H:%M:%S') + " no ping reply from " + cast_ip)
                 if self.notify.value:

@@ -183,7 +183,7 @@ class PythonEditor:
 
                 # Execute the code
                 if self.back_ground.value is True:
-                    await run.io_bound(lambda: exec(code))
+                    await run.io_bound(exec,code)
                 else:
                     exec(code)
 

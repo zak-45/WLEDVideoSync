@@ -80,7 +80,7 @@ class Scheduler:
         while not self.bg_stop.is_set():
             try:
                 job_func, args, kwargs = self.job_queue.get(timeout=.1)
-                job_thread = threading.Thread(target=job_func, args=args, kwargs=kwargs)
+                job_thread = threading.Thread(target=job_func, args=args, kwargs=kwargs,)
                 job_thread.daemon = True
                 job_thread.start()
                 scheduler_logger.info(f'Scheduler run function: {job_func.__name__} in thread: {job_thread} '

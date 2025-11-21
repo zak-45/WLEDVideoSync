@@ -336,7 +336,7 @@ class VideoPlayer:
             ui.notify('Start GIF Uploading')
             send_gif.props(add='loading')
             gif_to_upload = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
-            await run.io_bound(lambda: Utils.wled_upload_file(self.Media.host, gif_to_upload, 'media/gif'))
+            await run.io_bound(Utils.wled_upload_file,self.Media.host, gif_to_upload, 'media/gif')
             led = WLED(self.Media.host)
             try:
                 presets = await led.request('/presets.json')
@@ -384,12 +384,16 @@ class VideoPlayer:
                 # current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
                 gif_out = cfg_mgr.app_root_path(f'media/gif/{Utils.extract_filename(video_in)}_.gif')
                 ui.notify(f'Generating GIF : {gif_out} ...')
-                await run.io_bound(lambda: CV2Utils.video_to_gif(video_in,gif_out,
-                                                                 self.Media.rate,
-                                                                 int(start_gif.value),
-                                                                 int(end_gif.value),
-                                                                 self.Media.scale_width,
-                                                                 self.Media.scale_height))
+
+                await run.io_bound(CV2Utils.video_to_gif,
+                                   video_in,
+                                   gif_out,
+                                   self.Media.rate,
+                                   int(start_gif.value),
+                                   int(end_gif.value),
+                                   self.Media.scale_width,
+                                   self.Media.scale_height)
+
                 ui.notify('GIF finished !')
                 if self.Media.wled:
                     send_gif.enable()
