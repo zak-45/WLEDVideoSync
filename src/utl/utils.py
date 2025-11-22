@@ -63,6 +63,7 @@ import urllib.parse
 import shelve
 import os
 import sys
+import signal
 import inspect
 import traceback
 import json
@@ -77,6 +78,7 @@ import aiohttp
 import av
 import cv2
 import numpy as np
+import tkinter as tk
 
 try:
     from yt_dlp import YoutubeDL as YTdl
@@ -89,7 +91,7 @@ from pathlib import Path as PathLib
 from cv2_enumerate_cameras import enumerate_cameras
 from wled import WLED
 from nicegui import run
-from PIL import Image
+from PIL import Image, ImageTk
 from unidecode import unidecode
 from coldtype.text.reader import Font
 from wled.exceptions import WLEDConnectionError, WLEDError # Specific WLED errors
@@ -1567,26 +1569,23 @@ class CASTUtils:
         Should run in a separate process for macOS compatibility.
         macOS fix included so the splash window actually closes.
         """
-        import tkinter as tk
-        from PIL import Image, ImageTk
-
         def force_close():
-            """macOS-safe forced window close."""
-            try:
+            """Linux/macOS-safe forced window close to ensure Tk mainloop exits.
+                    Safely closes and destroys a tkinter window or widget.
+            Attempts to update, quit, and destroy the object, ignoring any exceptions that occur.
+
+            """
+            with contextlib.suppress(Exception):
                 root.update_idletasks()
                 root.update()
-            except:
-                pass
-
-            try:
+            with contextlib.suppress(Exception):
                 root.quit()
-            except:
-                pass
-
-            try:
+            with contextlib.suppress(Exception):
                 root.destroy()
-            except:
-                pass
+
+            if PLATFORM =='darwin':
+                tk_pid = os.getpid()
+                os.kill(tk_pid, signal.SIGKILL)
 
         try:
             root = tk.Tk()

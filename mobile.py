@@ -207,8 +207,8 @@ def start_server(thread_name, ip_address:str = '127.0.0.1', dark:bool = False, m
         host=ip_address,
         port=ssl_port,
         show=True,
-        ssl_certfile=cert,
-        ssl_keyfile=key,
+        ssl_certfile=cfg_mgr.app_root_path(cert),
+        ssl_keyfile=cfg_mgr.app_root_path(key),
         reload=False,
         dark=dark
     )

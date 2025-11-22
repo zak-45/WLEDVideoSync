@@ -91,7 +91,7 @@ def init():
     # Start the Tkinter event loop
     root.mainloop()
     # Exit the script
-    root.destroy()
+    on_ok_click()
 
 if __name__ == "__main__":
     init()
