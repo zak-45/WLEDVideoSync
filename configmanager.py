@@ -21,19 +21,6 @@ from str2bool import str2bool
 
 PLATFORM = sys.platform.lower()
 
-"""
-Windows:
-There is a performance increase of about 5 times vs using the WindowsSelectorEventLoopPolicy and 
-WindowsProactorEventLoopPolicy which have been known to trigger ssl problems in python 3.9. 
-Winloop is a very good replacement for solving those ssl problems as well. 
-This library also has comparable performance to it's brother uvloop
-"""
-# set winloop
-if PLATFORM == 'win32':
-    import winloop
-    winloop.install()
-
-
 def root_path(filename):
     """
     Determines the root path of the application based on whether it's running from a compiled binary or in development mode.

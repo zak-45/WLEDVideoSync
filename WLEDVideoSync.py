@@ -402,6 +402,16 @@ def main():
     """
     RUN
     """
+    # On Windows, tell uvicorn to use our factory to get the event loop.
+    # We use "__main__" so uvicorn can find the function in the currently running script.
+    if sys.platform == 'win32':
+        if 'winloop' in sys.modules:
+            loop_param = "__main__:get_winloop_loop"
+        else:
+            loop_param = "asyncio"
+    else:
+        loop_param = "uvloop"
+    # Run the app
     ui.run(title=f'WLEDVideoSync - {server_port}',
            favicon=cfg_mgr.app_root_path("favicon.ico"),
            host=server_ip,
@@ -416,6 +426,7 @@ def main():
            native=native_ui,
            window_size=native_ui_size,
            access_log=False,
+           loop=loop_param,
            fullscreen=str2bool(cfg_mgr.app_config['fullscreen'] if cfg_mgr.app_config is not None else 'False'))
 
     """

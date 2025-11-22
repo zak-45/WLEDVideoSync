@@ -12,6 +12,7 @@ overview
 """
 import os, signal
 import shelve
+import sys
 import tkinter as tk
 
 from screeninfo import get_monitors
@@ -232,8 +233,9 @@ class ScreenAreaSelection:
             tkarea_logger.debug(f'Root destroy requested : {os.getpid()}')
 
             if PLATFORM in ['darwin','linux']:
-                tk_pid = os.getpid()
-                os.kill(tk_pid, signal.SIGKILL)
+                #tk_pid = os.getpid()
+                #os.kill(tk_pid, signal.SIGKILL)
+                sys.exit(0)
 
 
 if __name__ == '__main__':

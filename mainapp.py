@@ -61,10 +61,15 @@ Design Philosophy:
 """
 
 import asyncio
+import sys
+
+if sys.platform == 'win32':
+    import winloop
+
 import base64
 import pathlib
 import shelve
-import sys
+
 import queue
 import tkinter as tk
 import webbrowser
@@ -110,12 +115,23 @@ window_native = WebviewManager()
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
-main_page_url = '/'
-cast_center_url = '/Cast-Center'
+def get_winloop_loop():
+    """
+    Factory function for uvicorn to get a winloop event loop.
+    """
+    # 1. Install winloop to patch the current process's event loop policy.
+    winloop.install()
+    # 2. Return a new event loop created by the now-patched policy.
+    return asyncio.new_event_loop()
+
 
 """
 Define root page based on ini
 """
+
+main_page_url = '/'
+cast_center_url = '/Cast-Center'
+
 if "NUITKA_ONEFILE_PARENT" not in os.environ and cfg_mgr.app_config is not None:
 
     if cfg_mgr.app_config['init_screen'].lower() == 'center':
