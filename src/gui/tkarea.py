@@ -231,7 +231,7 @@ class ScreenAreaSelection:
             ScreenAreaSelection.force_close(root)
             tkarea_logger.debug(f'Root destroy requested : {os.getpid()}')
 
-            if PLATFORM in ['macos','linux']:
+            if PLATFORM in ['darwin','linux']:
                 tk_pid = os.getpid()
                 os.kill(tk_pid, signal.SIGKILL)
 
