@@ -2,6 +2,7 @@ import contextlib
 import tkinter as tk
 from tkinter import font
 import sys
+import os, signal
 
 def run():
 
@@ -19,7 +20,8 @@ def run():
         with contextlib.suppress(Exception):
             root.destroy()
         if sys.platform.lower() == 'darwin':
-            sys.exit(0)
+            tk_pid = os.getpid()
+            os.kill(tk_pid, signal.SIGKILL)
 
     def update_preview():
         """Update the preview text with the selected font and style."""

@@ -510,7 +510,6 @@ if __name__  == "__main__":
                 # set it in Desktop
                 Desktop.sl_manager = sl_manager
 
-                # Check for special command-line flags to run in a different mode.
                 # set Desktop Cast obj attributes
                 status, args = Utils.handle_command_line_args(sys.argv, Desktop)
                 if not status:
