@@ -36,8 +36,7 @@ sys.exit():
     This ensures the script doesn't continue running in the background after the window is closed.
 
 """
-
-import sys
+import contextlib
 import tkinter as tk
 from tkinter import PhotoImage
 
@@ -50,8 +49,18 @@ def init():
     instructions on running the application, and shows a disclaimer.
     """
     def on_ok_click():
-        # Close the window when OK button is clicked
-        root.quit()
+        """Linux/macOS-safe forced window close to ensure Tk mainloop exits.
+                Safely closes and destroys a tkinter window or widget.
+        Attempts to update, quit, and destroy the object, ignoring any exceptions that occur.
+
+        """
+        with contextlib.suppress(Exception):
+            root.update_idletasks()
+            root.update()
+        with contextlib.suppress(Exception):
+            root.quit()
+        with contextlib.suppress(Exception):
+            root.destroy()
 
     # Create the main window
     root = tk.Tk()

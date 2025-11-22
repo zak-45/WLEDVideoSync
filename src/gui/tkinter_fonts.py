@@ -6,8 +6,18 @@ import platform
 def run():
 
     def on_closing():
-        # Close the window when OK button is clicked
-        root.quit()
+        """Linux/macOS-safe forced window close to ensure Tk mainloop exits.
+                Safely closes and destroys a tkinter window or widget.
+        Attempts to update, quit, and destroy the object, ignoring any exceptions that occur.
+
+        """
+        with contextlib.suppress(Exception):
+            root.update_idletasks()
+            root.update()
+        with contextlib.suppress(Exception):
+            root.quit()
+        with contextlib.suppress(Exception):
+            root.destroy()
 
     def update_preview():
         """Update the preview text with the selected font and style."""
@@ -149,8 +159,7 @@ def run():
     except Exception as e:
         print(f'Exception : {e}')
     finally:
-        root.quit()
-        root.destroy()
+        on_closing()
 
 if __name__ in "__main__":
     run()
