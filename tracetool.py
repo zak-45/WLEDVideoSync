@@ -101,10 +101,11 @@ from datetime import datetime
 import configparser
 
 # === CONFIGURATION ===
-PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-LOG_FILE = os.path.join(PROJECT_ROOT, "trace_log.txt")
-HTML_LOG_FILE = os.path.join(PROJECT_ROOT, "trace_log.html")
-CONFIG_PATH = os.path.join(PROJECT_ROOT, "tracetool.ini")
+from configmanager import cfg_mgr
+
+LOG_FILE = cfg_mgr.app_root_path("trace_log.txt")
+HTML_LOG_FILE = cfg_mgr.app_root_path("trace_log.html")
+CONFIG_PATH = cfg_mgr.app_root_path("tracetool.ini")
 
 DEFAULT_CONFIG = {
     'trace': {
@@ -193,7 +194,7 @@ FILE_FILTERS = get_list('filter', 'file_name_contains')
 ALLOWED_PATHS_CONFIG = get_list('filter', 'allowed_paths')
 
 ALLOWED_PATHS = [
-    os.path.abspath(os.path.join(PROJECT_ROOT, path))
+    os.path.abspath(cfg_mgr.app_root_path(path))
     for path in ALLOWED_PATHS_CONFIG
 ]
 
@@ -207,30 +208,6 @@ last_locals = {}
 active_call_ids = set()
 
 
-def is_external_file(filename):
-    """Checks if a file is likely part of an external library or environment.
-
-    This function determines if a given filename belongs to the Python standard library,
-    a virtual environment, or installed site packages. These external files are typically
-    excluded from tracing.
-
-    Args:
-        filename (str): The absolute path to the file.
-
-    Returns:
-        bool: True if the file is considered external, False otherwise.
-    """
-    if not filename or not os.path.isabs(filename):
-        return True
-    filename = os.path.abspath(filename)
-    if any(venv_part in filename for venv_part in VENVS):
-        return True
-    if any(filename.startswith(path) for path in SITE_PACKAGES_PATHS):
-        return True
-    if "Python" in filename and "Lib" in filename and "site-packages" not in filename:
-        return True
-    return False
-
 def is_allowed_file(filename):
     """Checks if a file is within the allowed paths for tracing.
 
@@ -243,6 +220,9 @@ def is_allowed_file(filename):
     Returns:
         bool: True if the file is within an allowed path, False otherwise.
     """
+    if not filename or not os.path.isabs(filename):
+        return False
+
     filename = os.path.abspath(filename)
     return any(filename.startswith(path) for path in ALLOWED_PATHS)
 
@@ -424,10 +404,10 @@ def trace_calls(frame, event, arg):
     module_name = frame.f_globals.get('__name__', '')
     func_name = code.co_name
 
-    if not filename or is_external_file(filename) or not is_allowed_file(filename):
+    if not is_allowed_file(filename):
         return
 
-    rel_path = os.path.relpath(filename, PROJECT_ROOT).replace('\\', '/')
+    rel_path = os.path.relpath(filename, cfg_mgr.app_root_path('')).replace('\\', '/')
 
     if any(block in rel_path for block in BLOCKED_PATHS):
         return
@@ -443,11 +423,11 @@ def trace_calls(frame, event, arg):
     frame_id = id(frame)
 
     try:
-        with open(filename, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            current_line = lines[line_no - 1].strip()
+        # In a compiled app, source code may not be available.
+        with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
+            current_line = f.readlines()[line_no - 1].strip()
     except Exception:
-        current_line = "<could not read line>"
+        current_line = "<source not available>"
 
     local_vars = frame.f_locals.copy()
     local_vars_str = ", ".join(f"{k}={safe_repr(v)}" for k, v in local_vars.items())
