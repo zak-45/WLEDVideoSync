@@ -115,9 +115,20 @@ window_native = WebviewManager()
 # to share data between threads and main
 t_data_buffer = queue.Queue()  # create a thread safe queue
 
+"""
+winloop
+"""
+
 def get_winloop_loop():
     """
     Factory function for uvicorn to get a winloop event loop.
+
+    Windows:
+    There is a performance increase of about 5 times vs using the WindowsSelectorEventLoopPolicy and
+    WindowsProactorEventLoopPolicy which have been known to trigger ssl problems in python 3.9.
+    Winloop is a very good replacement for solving those ssl problems as well.
+    This library also has comparable performance to its brother uvloop
+
     """
     # 1. Install winloop to patch the current process's event loop policy.
     winloop.install()
@@ -352,6 +363,12 @@ async def grid_view(columns:int = 0):
 
     def update_grid():
         """Fetches all preview frames and combines them into a grid."""
+        # Optimization: If no casts are running, ensure the placeholder is shown and do nothing else.
+        if Desktop.count == 0 and Media.count == 0:
+            if grid_image_element.source != cfg_mgr.app_root_path('assets/Source-intro.png'):
+                 grid_image_element.set_source(cfg_mgr.app_root_path('assets/Source-intro.png'))
+            return
+
         active_frames = []
 
         # Safely get all available frames from the preview dictionary
@@ -389,9 +406,8 @@ async def grid_view(columns:int = 0):
             grid_image_element.set_source(cfg_mgr.app_root_path('assets/Source-intro.png'))
 
     # Set a timer to refresh the grid view periodically
-    grid_timer = ui.timer(float(cfg_mgr.app_config['grid_view_refresh_interval']), update_grid)
-
-    return grid_timer
+    # It is created inactive and will be managed by the root_timer_action.
+    CastAPI.grid_timer = ui.timer(float(cfg_mgr.app_config['grid_view_refresh_interval']), update_grid, active=False)
 
 """
 Class
@@ -1946,6 +1962,14 @@ async def root_timer_action():
 
     if str2bool(cfg_mgr.custom_config['system_stats']):
         await nice.system_stats(CastAPI, Desktop, Media)
+
+    # Manage the grid view timer based on active casts
+    if CastAPI.grid_timer is not None:
+        if Desktop.count > 0 or Media.count > 0:
+            CastAPI.grid_timer.activate()
+        else:
+            CastAPI.grid_timer.deactivate()
+
 
 
 async def cast_to_wled(class_obj, image_number):

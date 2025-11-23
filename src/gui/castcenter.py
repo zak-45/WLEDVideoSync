@@ -373,6 +373,15 @@ class CastCenter:
             self.desktop_text_status.props('color="gray"')
             self.media_text_status.props('color="gray"')
 
+        # Manage the grid view timer based on active casts
+        if self.CastAPI.grid_timer is not None:
+            if self.Desktop.count > 0 or self.Media.count > 0:
+                self.CastAPI.grid_timer.activate()
+            else:
+                self.CastAPI.grid_timer.deactivate()
+
+
+
     async def setup_ui(self):
         """Initializes and displays the main user interface for the casting application.
 
