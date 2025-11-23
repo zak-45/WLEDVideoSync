@@ -53,6 +53,28 @@ let isStreaming = false;
 let currentFacingMode = 'environment'; // Start with 'environment' (rear camera)
 
 /**
+* Displays a non-blocking notification message to the user.
+* @param {string} message - The message to display.
+* @param {string} type - The type of notification ('info', 'warning', 'error').
+* @param {number} duration - How long the notification should be visible in milliseconds.
+*/
+function showNotification(message, type = 'info', duration = 4000) {
+     const notification = document.createElement('div');
+     notification.className = `notification ${type}`;
+     notification.textContent = message;
+     document.body.appendChild(notification);
+
+     // Animate in
+     setTimeout(() => notification.classList.add('show'), 10);
+
+     // Animate out and remove
+     setTimeout(() => {
+         notification.classList.remove('show');
+         setTimeout(() => document.body.removeChild(notification), 500);
+     }, duration);
+}
+
+/**
  * Initializes and manages the secure WebSocket connection to the server for video streaming.
  * Automatically handles connection establishment, reconnection, and updates the UI status.
  *
@@ -237,8 +259,9 @@ function startVideoStream(facingMode) {
         }
     }).catch(error => {
         console.error('Could not access any camera:', error);
-        const errorDiv = document.createElement('p');
-        errorDiv.textContent = 'Error: Could not access webcam. Please check permissions.';
+        showNotification('Error: Could not access webcam. Please check permissions.', 'error');
+        const errorDiv = document.createElement('p'); // Keep a small indicator on the page
+        errorDiv.textContent = 'Camera access failed.';
         errorDiv.style.color = 'red';
         video.parentElement.appendChild(errorDiv);
         switchCameraButton.style.display = 'none';
@@ -292,9 +315,10 @@ fileInput.addEventListener('change', (event) => {
         const canPlay = video.canPlayType(file.type);
         if (!canPlay || canPlay === '') {
             // Show error message
+            showNotification(`Error: Video format (${file.type}) is not supported.`, 'error');
             const errorDiv = document.createElement('p');
             errorDiv.id = 'file-error-message';
-            errorDiv.textContent = `Error: The selected video format (${file.type}) is not supported by your browser.`;
+            errorDiv.textContent = 'Unsupported video format.';
             errorDiv.style.color = 'red';
             video.parentElement.appendChild(errorDiv);
             selectedFile = null;
@@ -342,13 +366,19 @@ playFileButton.addEventListener('click', () => {
             statusDot.classList.add('blinking-dot');
         }).catch(error => {
             console.error("Playback was prevented:", error);
-            alert("Could not play video. Please ensure your browser has permissions and try again.");
+            showNotification("Could not play video. Please ensure permissions and try again.", 'error');
         });
     };
 });
 
 screenModeButton.addEventListener('click', async () => {
     stopCurrentStream();
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        showNotification("Screen sharing is not supported by your browser or device.", 'error');
+        startVideoStream(currentFacingMode); // Revert to camera
+        return;
+    }
 
     try {
         const screenStream = await navigator.mediaDevices.getDisplayMedia({
@@ -383,6 +413,7 @@ screenModeButton.addEventListener('click', async () => {
 
     } catch (err) {
         console.error("Screen capture canceled or failed:", err);
+        showNotification("Screen capture was canceled or failed. Please grant permissions.", 'warning');
         isScreenMode = false;
         startVideoStream(currentFacingMode);
     }

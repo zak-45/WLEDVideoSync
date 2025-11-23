@@ -30,3 +30,35 @@
     padding: 5px 10px; border-radius: 10px; display: none;
     align-items: center; cursor: pointer; z-index: 10;
 }
+
+/* Custom Notification Styling */
+.notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 20px;
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.5s, top 0.5s;
+    text-align: center;
+}
+
+.notification.show {
+    opacity: 1;
+    top: 40px;
+}
+
+.notification.error {
+    background-color: #dc3545; /* Red for errors */
+}
+
+.notification.warning {
+    background-color: #ffc107; /* Yellow for warnings */
+    color: #333;
+}
