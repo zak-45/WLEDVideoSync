@@ -40,7 +40,6 @@ External Libraries and Modules:
 """
 import os
 import shelve
-from turtledemo.sorting_animate import qsort
 
 import src.gui.tkinter_fonts
 

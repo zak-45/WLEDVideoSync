@@ -12,7 +12,6 @@ overview
 """
 import os, signal
 import shelve
-import sys
 import tkinter as tk
 
 from screeninfo import get_monitors
