@@ -61,4 +61,5 @@
 .notification.warning {
     background-color: #ffc107; /* Yellow for warnings */
     color: #333;
+    top: 80px;
 }
