@@ -64,11 +64,13 @@ Temporary File Handling:
     The script uses temporary files (stored in a tmp directory) for inter-process communication, 
     specifically for sharing the server port between the main process and the system tray icon. 
     It also cleans up these temporary files on exit.
-
 """
-import multiprocessing
-import os
 
+import os
+if os.getenv('WLEDVideoSync_trace'):
+    import tracetool
+
+import multiprocessing
 from subprocess import Popen
 
 # Suppress the specific UserWarning from the 'fs' library about pkg_resources.
@@ -76,9 +78,6 @@ from subprocess import Popen
 # The warning is informational and does not affect the application's functionality.
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message="pkg_resources is deprecated as an API")
-
-if os.getenv('WLEDVideoSync_trace'):
-    import tracetool
 
 # import everything from mainapp.py: the main logic come from there
 from mainapp import *

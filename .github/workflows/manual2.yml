@@ -170,6 +170,7 @@ jobs:
 
           include-module: |
             pygments.formatters.html
+            pygments.lexers.special
             dbm.dumb
             av.opaque
             zeroconf._utils.ipaddress

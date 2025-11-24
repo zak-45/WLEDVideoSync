@@ -311,14 +311,6 @@ class CASTDesktop(TextAnimatorMixin):
         """
             Cast desktop screen or a window content based on the title
         """
-
-        # Set the trace function for this new thread if tracing is enabled.
-        # This is necessary because sys.settrace is thread-specific.
-        if os.getenv('WLEDVideoSync_trace'):
-            from tracetool import trace_calls
-            threading.settrace(trace_calls)
-            desktop_logger.debug("Trace function set for new desktop cast thread.")
-
         t_name = threading.current_thread().name
         if CASTDesktop.count == 0 or self.reset_total is True:
             CASTDesktop.total_frames = 0

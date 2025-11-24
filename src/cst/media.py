@@ -233,12 +233,6 @@ class CASTMedia(TextAnimatorMixin):
         media frames to DDP devices. It supports various media types, multicast,
         synchronization, and preview functionalities.
         """
-        # Set the trace function for this new thread if tracing is enabled.
-        # This is necessary because sys.settrace is thread-specific.
-        if os.getenv('WLEDVideoSync_trace'):
-            from tracetool import trace_calls
-            threading.settrace(trace_calls)
-            media_logger.debug("Trace function set for new media cast thread.")
 
         t_name = threading.current_thread().name
         if CASTMedia.count == 0 or self.reset_total is True:
