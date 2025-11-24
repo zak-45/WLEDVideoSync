@@ -1,4 +1,5 @@
 import contextlib
+import platform
 import tkinter as tk
 from tkinter import font
 import sys

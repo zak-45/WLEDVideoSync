@@ -206,8 +206,6 @@ async def font_page(font_manager: 'FontPreviewManager' = None):
 
         font_name = ui.label('Font name :')
         font_name.classes('self-center')
-        font_name.bind_text_from(font_manager,'selected_font_label',
-                                 backward=lambda v: font_manager.selected_font_label.text)
         font_path = ui.label('Font PATH :')
         font_path.classes('self-center')
         font_path.bind_text_from(font_manager,'selected_font_path')

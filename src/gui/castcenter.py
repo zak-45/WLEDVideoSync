@@ -423,8 +423,13 @@ class CastCenter:
                 self.desktop_status.tooltip('Desktop Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
                 ui.label(f'DESKTOP : {self.Desktop.host}').classes('self-center')
             with ui.row().classes('self-center'):
-                ui.label().bind_text_from(self.Desktop, 'scale_width', lambda v: f'width: {v}')
-                ui.label().bind_text_from(self.Desktop, 'scale_height', lambda v: f'height: {v}')
+                # do not use backward into bind from
+                # ui.label().bind_text_from(self.Desktop, 'scale_width', lambda v: f'width: {v}')
+                ui.label('Width: ')
+                ui.label().bind_text_from(self.Desktop, 'scale_width')
+                ui.label('Height: ')
+                ui.label().bind_text_from(self.Desktop, 'scale_height')
+
 
             with ui.row(wrap=False).classes('w-full'):
                 card_desktop = ui.card().classes('w-1/3')
@@ -489,8 +494,13 @@ class CastCenter:
                 self.media_status.tooltip('Media Cast Status: Green (Idle), Yellow (Stopped), Red (Running)')
                 ui.label(f'MEDIA : {self.Media.host}').classes('self-center')
             with ui.row().classes('self-center'):
-                ui.label().bind_text_from(self.Media, 'scale_width', lambda v: f'width: {v}')
-                ui.label().bind_text_from(self.Media, 'scale_height', lambda v: f'height: {v}')
+                # do not use backward with lambda into bind from
+                # ui.label().bind_text_from(self.Desktop, 'scale_width', lambda v: f'width: {v}')
+                ui.label('Width: ')
+                ui.label().bind_text_from(self.Media, 'scale_width')
+                ui.label('Height: ')
+                ui.label().bind_text_from(self.Media, 'scale_height')
+
 
             with ui.row(wrap=False).classes('w-full'):
                 card_capture = ui.card().classes('w-1/3')

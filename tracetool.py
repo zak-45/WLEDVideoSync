@@ -413,6 +413,11 @@ def trace_calls(frame, event, arg):
     module_name = frame.f_globals.get('__name__', '')
     func_name = code.co_name
 
+    # --- Venv Filtering ---
+    # Immediately ignore anything inside a virtual environment directory.
+    if any(f"/{venv_path}/" in filename.replace('\\', '/') for venv_path in VENVS):
+        return None
+
     # --- Filtering Logic ---
     # CRITICAL: First, check if the file is allowed. If not, return immediately
     # to keep the tracer alive. Do NOT perform any other operations like relpath,
