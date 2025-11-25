@@ -1488,6 +1488,7 @@ class CASTDesktop(TextAnimatorMixin):
                 desktop_logger.addHandler(log_ui)
         srv_port = Utils.get_server_port()
         thread = threading.Thread(target=self.t_desktop_cast, args=(shared_buffer, srv_port,))
+        thread.name = thread.name.replace('Thread', 'Cast')
         thread.daemon = True  # Ensures the thread exits when the main program does
         thread.start()
         desktop_logger.debug('Child Desktop cast initiated')

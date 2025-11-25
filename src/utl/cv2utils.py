@@ -91,7 +91,7 @@ class CV2Utils:
         pass
 
     @staticmethod
-    def create_grid_from_images(images: list, grid_cols: int = None, gap: int = 2) -> np.ndarray:
+    def create_grid_from_images(images: list, grid_cols: int = None, gap: int = 10, names: list = None) -> np.ndarray:
         """
         Arranges a list of images into a single grid image.
 
@@ -100,6 +100,7 @@ class CV2Utils:
             grid_cols (int, optional): The number of columns in the grid.
                                        If None, it will be calculated to create a squarish layout.
             gap (int, optional): The size of the gap in pixels between images. Defaults to 2.
+            names (list, optional): A list of names to overlay on each image. Must match the length of `images`.
 
         Returns:
             np.ndarray: A single image representing the grid of input images.
@@ -152,6 +153,28 @@ class CV2Utils:
             if img.shape[2] == 4:
                 img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
             resized_img = cv2.resize(img, (max_w, max_h))
+
+            # Overlay the name if provided
+            if names and i < len(names):
+                name_text = names[i]
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 0.3
+                font_thickness = 1
+                max_text_width = resized_img.shape[1] - 10  # 5px padding on each side
+
+                # Truncate text if it's too long to fit in the image
+                while cv2.getTextSize(name_text, font, font_scale, font_thickness)[0][0] > max_text_width:
+                    name_text = name_text[:-1]
+                if len(name_text) < len(names[i]):
+                    name_text = f'{name_text[:-2]}...'
+
+                text_size = cv2.getTextSize(name_text, font, font_scale, font_thickness)[0] # Recalculate size
+                text_x = (resized_img.shape[1] - text_size[0]) // 2
+                text_y = resized_img.shape[0] - 10  # 10 pixels from the bottom
+                cv2.putText(resized_img, name_text, (text_x, text_y), font, font_scale, (0, 0, 0), font_thickness + 2,
+                           cv2.LINE_AA)  # Black outline
+                cv2.putText(resized_img, name_text, (text_x, text_y), font, font_scale, (255, 255, 255), font_thickness,
+                            cv2.LINE_AA)  # White text
 
             # Calculate position with gap and paste the image
             y_offset = (row + 1) * gap + row * max_h

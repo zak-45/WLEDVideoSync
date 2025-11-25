@@ -370,12 +370,13 @@ async def grid_view(columns:int = 0):
             return
 
         active_frames = []
+        active_names = []
 
         # Safely get all available frames from the preview dictionary
         # A try/except block is used to handle the rare race condition where a cast
         # is added or removed while iterating, which is acceptable for a preview.
         try:
-            for preview in CastAPI.previews.values():
+            for name, preview in CastAPI.previews.items():
                 frame_b64 = preview.get()
                 if frame_b64:
                     # Decode base64 and convert to NumPy array
@@ -384,6 +385,7 @@ async def grid_view(columns:int = 0):
                     img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
                     if img is not None:
                         active_frames.append(img)
+                        active_names.append(name)
         except RuntimeError:
             # This can happen if a cast starts/stops while we are iterating.
             # It's safe to just skip this one frame update.
@@ -400,7 +402,7 @@ async def grid_view(columns:int = 0):
                 final_col = columns
             gap = abs(int(cfg_mgr.app_config['grid_view_border']))
 
-            grid_img = CV2Utils.create_grid_from_images(active_frames, final_col, gap)
+            grid_img = CV2Utils.create_grid_from_images(active_frames, final_col, gap, names=active_names)
             grid_b64 = ImageUtils.image_array_to_base64(cv2.cvtColor(grid_img, cv2.COLOR_BGR2RGB))
             grid_image_element.set_source(f'data:image/jpeg;base64,{grid_b64}')
         else:
