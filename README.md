@@ -539,9 +539,9 @@ for that.
  
  1.  **In your Coldtype script**: Use the `SharedListClient` to connect to the SL manager and put your rendered frames into a named SL.
  
-        e.g. attach to **Thread-9 (t_desktop_cast)_q**
+        e.g. attach to **Cast-9 (t_desktop_cast)_q**
 
- ```sl, w, h = Utils.attach_to_manager_list('Thread-9 (t_desktop_cast)_q')```
+ ```sl, w, h = Utils.attach_to_manager_list('Cast-9 (t_desktop_cast)_q')```
 
 - stream to :
                   

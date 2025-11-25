@@ -6,7 +6,7 @@
 # nuitka-project: --include-module=tkinter
 # nuitka-project: --enable-plugin=tk-inter
 # nuitka-project-if: {OS} == "Windows":
-#   nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/splash-screen.png
+#   nuitka-project: --onefile-windows-splash-screen-image={MAIN_DIRECTORY}/xtra/splash-screen.png
 #   nuitka-project: --include-module=winloop
 #   nuitka-project: --windows-console-mode=attach
 # nuitka-project-if: os.getenv("DEBUG_COMPILATION", "no") == "yes":

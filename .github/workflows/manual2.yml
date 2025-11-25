@@ -199,7 +199,6 @@ jobs:
             favicon.ico=favicon.ico
             favicon.png=favicon.png
             favicon.icns=favicon.icns
-            splash-screen.png=splash-screen.png
 
           user-package-configuration-file: |
             coldtype-nuitka-package.config.yml
