@@ -30,7 +30,6 @@ sys.exit():
     This script is invoked once during the initial setup process and is not a persistent part of the application's runtime.
 
 """
-import contextlib
 import tkinter as tk
 from tkinter import PhotoImage
 
@@ -43,18 +42,8 @@ def init():
     of the application, and displays a software disclaimer.
     """
     def on_ok_click():
-        """Linux/macOS-safe forced window close to ensure Tk mainloop exits.
-                Safely closes and destroys a tkinter window or widget.
-        Attempts to update, quit, and destroy the object, ignoring any exceptions that occur.
-
-        """
-        with contextlib.suppress(Exception):
-            root.update_idletasks()
-            root.update()
-        with contextlib.suppress(Exception):
-            root.quit()
-        with contextlib.suppress(Exception):
-            root.destroy()
+        # Close the window when OK button is clicked
+        root.quit()
 
     # Create the main window
     root = tk.Tk()
@@ -91,7 +80,7 @@ def init():
     # Start the Tkinter event loop
     root.mainloop()
     # Exit the script
-    on_ok_click()
+    root.destroy()
 
 if __name__ == "__main__":
     init()
