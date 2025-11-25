@@ -368,6 +368,10 @@ async def grid_view(columns:int = 0):
             if grid_image_element.source != cfg_mgr.app_root_path('assets/Source-intro.png'):
                  grid_image_element.set_source(cfg_mgr.app_root_path('assets/Source-intro.png'))
             return
+        # column zero into ini disable preview
+        final_col = int(cfg_mgr.app_config['grid_view_columns'],0)
+        if final_col == 0:
+            return
 
         active_frames = []
         active_names = []
@@ -393,7 +397,6 @@ async def grid_view(columns:int = 0):
             return
 
         if active_frames:
-
             if columns == 0:
                 final_col = int(cfg_mgr.app_config['grid_view_columns'])
                 if final_col == 0:

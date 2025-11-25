@@ -91,7 +91,7 @@ class CV2Utils:
         pass
 
     @staticmethod
-    def create_grid_from_images(images: list, grid_cols: int = None, gap: int = 10, names: list = None) -> np.ndarray:
+    def create_grid_from_images(images: list, grid_cols: int = None, gap: int = 2, names: list = None) -> np.ndarray:
         """
         Arranges a list of images into a single grid image.
 
@@ -123,13 +123,13 @@ class CV2Utils:
             grid_cols = int(np.ceil(np.sqrt(num_images)))
         grid_rows = int(np.ceil(num_images / grid_cols))
 
-        # Find the max dimensions to standardize frame size
-        max_h = max(img.shape[0] for img in images)
-        max_w = max(img.shape[1] for img in images)
+        # Use fixed preview dimensions from the configuration
+        preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 90))
+        preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 160))
 
         # Calculate the total size of the grid canvas, including gaps
-        grid_height = grid_rows * max_h + (grid_rows + 1) * gap
-        grid_width = grid_cols * max_w + (grid_cols + 1) * gap
+        grid_height = grid_rows * preview_h + (grid_rows + 1) * gap
+        grid_width = grid_cols * preview_w + (grid_cols + 1) * gap
 
         # Create the canvas for the grid
         try:
@@ -152,7 +152,7 @@ class CV2Utils:
             # Standardize image size and format
             if img.shape[2] == 4:
                 img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-            resized_img = cv2.resize(img, (max_w, max_h))
+            resized_img = cv2.resize(img, (preview_w, preview_h))
 
             # Overlay the name if provided
             if names and i < len(names):
@@ -177,9 +177,9 @@ class CV2Utils:
                             cv2.LINE_AA)  # White text
 
             # Calculate position with gap and paste the image
-            y_offset = (row + 1) * gap + row * max_h
-            x_offset = (col + 1) * gap + col * max_w
-            grid_image[y_offset:y_offset + max_h, x_offset:x_offset + max_w] = resized_img
+            y_offset = (row + 1) * gap + row * preview_h
+            x_offset = (col + 1) * gap + col * preview_w
+            grid_image[y_offset:y_offset + preview_h, x_offset:x_offset + preview_w] = resized_img
 
         return grid_image
 
