@@ -91,7 +91,7 @@ class CV2Utils:
         pass
 
     @staticmethod
-    def create_grid_from_images(images: list, grid_cols: int = None) -> np.ndarray:
+    def create_grid_from_images(images: list, grid_cols: int = None, gap: int = 2) -> np.ndarray:
         """
         Arranges a list of images into a single grid image.
 
@@ -99,6 +99,7 @@ class CV2Utils:
             images (list): A list of images as NumPy arrays (BGR or BGRA).
             grid_cols (int, optional): The number of columns in the grid.
                                        If None, it will be calculated to create a squarish layout.
+            gap (int, optional): The size of the gap in pixels between images. Defaults to 2.
 
         Returns:
             np.ndarray: A single image representing the grid of input images.
@@ -125,6 +126,10 @@ class CV2Utils:
         max_h = max(img.shape[0] for img in images)
         max_w = max(img.shape[1] for img in images)
 
+        # Calculate the total size of the grid canvas, including gaps
+        grid_height = grid_rows * max_h + (grid_rows + 1) * gap
+        grid_width = grid_cols * max_w + (grid_cols + 1) * gap
+
         # Create the canvas for the grid
         try:
             # Load the background image and resize it to the full grid dimensions
@@ -132,25 +137,25 @@ class CV2Utils:
             grid_image = cv2.imread(bg_img_path)
             if grid_image is None:
                 raise FileNotFoundError("Background image could not be loaded.")
-            grid_image = cv2.resize(grid_image, (grid_cols * max_w, grid_rows * max_h))
+            grid_image = cv2.resize(grid_image, (grid_width, grid_height))
         except Exception as e:
             cv2utils_logger.warning(f"Could not load background for grid, falling back to black: {e}")
             # Fallback to a black canvas if the image can't be loaded
-            grid_image = np.zeros((grid_rows * max_h, grid_cols * max_w, 3), dtype=np.uint8)
+            grid_image = np.zeros((grid_height, grid_width, 3), dtype=np.uint8)
 
         # Place each image into the grid
         for i, img in enumerate(images):
             row = i // grid_cols
             col = i % grid_cols
 
-            # Resize image to max dimensions, converting to BGR if it has an alpha channel
+            # Standardize image size and format
             if img.shape[2] == 4:
                 img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
             resized_img = cv2.resize(img, (max_w, max_h))
 
-            # Calculate position and paste the image
-            y_offset = row * max_h
-            x_offset = col * max_w
+            # Calculate position with gap and paste the image
+            y_offset = (row + 1) * gap + row * max_h
+            x_offset = (col + 1) * gap + col * max_w
             grid_image[y_offset:y_offset + max_h, x_offset:x_offset + max_w] = resized_img
 
         return grid_image

@@ -398,8 +398,9 @@ async def grid_view(columns:int = 0):
                     final_col = None
             else:
                 final_col = columns
+            gap = abs(int(cfg_mgr.app_config['grid_view_border']))
 
-            grid_img = CV2Utils.create_grid_from_images(active_frames, final_col)
+            grid_img = CV2Utils.create_grid_from_images(active_frames, final_col, gap)
             grid_b64 = ImageUtils.image_array_to_base64(cv2.cvtColor(grid_img, cv2.COLOR_BGR2RGB))
             grid_image_element.set_source(f'data:image/jpeg;base64,{grid_b64}')
         else:

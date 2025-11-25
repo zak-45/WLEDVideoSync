@@ -85,6 +85,7 @@
 # grid_view_refresh_interval: 1.0, seconds between each refresh of the grid view.
 # grid_view_columns : 0..x, number of columns to display in the grid view.
 #                     if 0 it will be calculated to create a squarish layout.
+# grid_view_border  : 2, number of pixels between each preview cast image
 # splash        : True or False, show splash screen at app init, need to be false if you run app as a service !
 #                   forced to be False if native_ui is None
 
