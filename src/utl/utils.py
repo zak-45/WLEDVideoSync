@@ -1603,7 +1603,7 @@ class CASTUtils:
                 pass
 
             # Load splash image
-            image_path = cfg_mgr.app_root_path("splash-screen.png")
+            image_path = cfg_mgr.app_root_path("xtra/splash-screen.png")
             pil_image = Image.open(image_path)
             splash_image = ImageTk.PhotoImage(pil_image)
 

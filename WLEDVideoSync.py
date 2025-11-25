@@ -68,7 +68,7 @@ Temporary File Handling:
 
 import os
 if os.getenv('WLEDVideoSync_trace'):
-    import tracetool
+    import xtra.tracetool.tracetool
 
 import multiprocessing
 from subprocess import Popen
@@ -474,7 +474,7 @@ if __name__  == "__main__":
 
             try:
                 main_logger.info('WLEDVideoSync -- Run System Charts process')
-                import runcharts
+                from xtra.charts import runcharts
 
                 dev_list = asyncio.run(Utils.get_all_running_hosts(file))
 
@@ -536,7 +536,7 @@ if __name__  == "__main__":
                 local_ip = Utils.get_local_ip_address()
 
                 # 3. import mobile.
-                import mobile
+                from xtra.mobile import mobile
 
                 main_logger.info('WLEDVideoSync -- Run mobile process')
                 # 4. Start the mobile server. This is a blocking call.

@@ -104,9 +104,9 @@ import threading
 # === CONFIGURATION ===
 from configmanager import cfg_mgr
 
-LOG_FILE = cfg_mgr.app_root_path("trace_log.txt")
-HTML_LOG_FILE = cfg_mgr.app_root_path("trace_log.html")
-CONFIG_PATH = cfg_mgr.app_root_path("tracetool.ini")
+LOG_FILE = cfg_mgr.app_root_path("log/trace_log.txt")
+HTML_LOG_FILE = cfg_mgr.app_root_path("log/trace_log.html")
+CONFIG_PATH = cfg_mgr.app_root_path("config/tracetool.ini")
 
 DEFAULT_CONFIG = {
     'trace': {

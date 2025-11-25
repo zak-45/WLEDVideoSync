@@ -686,7 +686,7 @@ class DevCharts:
     async def refresh_devices(self):
         """Refreshes the list of devices from the inter-process file and reloads the charts."""
         import shelve
-        import runcharts  # Import the runcharts module to access its globals
+        from xtra.charts import runcharts
         import sys
         new_ips = []
 
