@@ -62,11 +62,10 @@ Design Philosophy:
 
 import asyncio
 import sys
-
 if sys.platform == 'win32':
     import winloop
 
-import base64
+import math
 import pathlib
 import shelve
 
@@ -79,8 +78,6 @@ from datetime import datetime
 
 from nicegui import ui, run
 
-import cv2
-import numpy as np
 import psutil
 from PIL import Image
 
@@ -372,7 +369,6 @@ async def grid_view(columns:int = 0):
         Dynamically updates the grid, adding/removing previews as casts start/stop,
         and refreshes the image source for each active preview.
         """
-        print('update grid')
         # Get the configured preview size for the thumbnails
         preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
         preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
@@ -638,10 +634,18 @@ async def main_page():
             item_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
             gap = int(cfg_mgr.app_config.get('grid_view_border', 2))
 
-            # Calculate width based on columns, item width, and gaps
+            # --- Calculate width based on columns, item width, and gaps ---
             width = (cols * item_w) + ((cols + 1) * gap) + 80  # Add some padding
-            # Calculate height for 2 rows as a reasonable default
-            height = (2 * item_h) + (3 * gap) + 120  # Add padding for title bar etc.
+
+            # --- Calculate height based on the number of active casts ---
+            num_casts = len(CastAPI.previews)
+            if num_casts > 0:
+                # Calculate rows needed, ensuring at least 1 row.
+                rows = math.ceil(num_casts / cols)
+            else:
+                # Default to 2 rows if no casts are active for a reasonable default window size.
+                rows = 2
+            height = (rows * item_h) + ((rows + 1) * gap) + 120  # Add padding for title bar etc.
 
             await _open_page_in_new_window('/grid_view', 'Grid View', width=width, height=height)
 
