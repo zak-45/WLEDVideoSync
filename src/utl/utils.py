@@ -205,6 +205,8 @@ class CastAPI:
     player_timer = None
     info_timer = None
     grid_timer = None
+    preview_card = None
+    grid_card = None
     control_panel = None
     loop = None
     previews = {}  # Thread-safe dictionary to hold latest preview frames

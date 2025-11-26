@@ -373,14 +373,16 @@ class CastCenter:
             self.desktop_text_status.props('color="gray"')
             self.media_text_status.props('color="gray"')
 
-        # Manage the grid view timer based on active casts
+        # Manage the grid view timer based on active casts and active views
         if self.CastAPI.grid_timer is not None:
             if self.Desktop.count > 0 or self.Media.count > 0:
-                self.CastAPI.grid_timer.activate()
+                if (self.CastAPI.preview_card.visible or
+                        (self.CastAPI.grid_card is not None and self.CastAPI.grid_card.visible)):
+                    self.CastAPI.grid_timer.activate()
+                else:
+                    self.CastAPI.grid_timer.deactivate()
             else:
                 self.CastAPI.grid_timer.deactivate()
-
-
 
     async def setup_ui(self):
         """Initializes and displays the main user interface for the casting application.
@@ -392,8 +394,8 @@ class CastCenter:
         await apply_custom()
 
         async def toggle_preview():
-            await toggle_animated(preview_card, 'slideInRight', 'slideOutLeft')
-            ui.timer(1.0, lambda: toggle_timer(grid_timer,preview_card), once=True)
+            await toggle_animated(self.CastAPI.preview_card, 'slideInRight', 'slideOutLeft')
+            ui.timer(1.0, lambda: toggle_timer(self.CastAPI.grid_timer,self.CastAPI.preview_card), once=True)
 
         # Search for all system fonts and initialize the manager
         Utils.get_system_fonts()
@@ -575,11 +577,15 @@ class CastCenter:
             ui.icon('build', size='sm').classes('cursor-pointer').tooltip('Show/Hide Tools') \
                 .on('click', lambda: toggle_animated(tools_card))
 
-        with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') as preview_card:
-            preview_card.set_visibility(False)
-            grid_timer = await self.grid_view_func(2)
+        # Preview Grid
+        with ui.card().tight() as self.CastAPI.preview_card:
+            self.CastAPI.preview_card.classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
+            self.CastAPI.preview_card.set_visibility(False)
+            await self.grid_view_func(2)
 
-        with ui.card().tight().classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]') as text_card:
+        # text
+        with ui.card().tight() as text_card:
+            text_card.classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
             text_card.set_visibility(False)
             ui.label('TEXT Overlay').classes('self-center')
 
@@ -614,6 +620,7 @@ class CastCenter:
                         self.media_font_size_label = ui.label(str(self.Media.font_size))
             ui.separator().classes('mt-6')
 
+        # Tools
         with ui.card().classes('self-center w-full') as tools_card:
             tools_card.set_visibility(False)
             ui.label('TOOLS').classes('self-center')
