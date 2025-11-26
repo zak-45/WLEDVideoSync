@@ -630,10 +630,22 @@ async def main_page():
         root_page_url = Utils.root_page()
         go_to_url = '/' if root_page_url == '/Cast-Center' else '/Cast-Center'
         ui.button('Center', on_click=lambda: ui.navigate.to(go_to_url)).tooltip('Go to Cast Center Page')
-        ui.button('Grid View', on_click=lambda: _open_page_in_new_window('/grid_view',
-                                                                         'Grid View',
-                                                                         width=600,
-                                                                         height=400), icon='grid_on').classes('m-2')
+
+        async def open_grid_window():
+            """Calculates window size and opens the grid view in a new window."""
+            cols = int(cfg_mgr.app_config.get('grid_view_columns', 4))
+            item_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
+            item_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
+            gap = int(cfg_mgr.app_config.get('grid_view_border', 2))
+
+            # Calculate width based on columns, item width, and gaps
+            width = (cols * item_w) + ((cols + 1) * gap) + 80  # Add some padding
+            # Calculate height for 2 rows as a reasonable default
+            height = (2 * item_h) + (3 * gap) + 120  # Add padding for title bar etc.
+
+            await _open_page_in_new_window('/grid_view', 'Grid View', width=width, height=height)
+
+        ui.button('Grid View', on_click=open_grid_window, icon='grid_on').classes('m-2')
         ui.button('Fonts', on_click=center_app.font_select, color='bg-red-800')
         ui.button('Config', on_click=lambda: ui.navigate.to('/config_editor'), color='bg-red-800')
         ui.button('PYEditor', on_click=lambda: ui.navigate.to('/Pyeditor?from_menu=true'), color='bg-red-800')
