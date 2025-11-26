@@ -948,10 +948,14 @@ class CASTMedia(TextAnimatorMixin):
                             media_logger.debug(f"{t_name} Reached END ...")
                             break
 
-            """
-            Update latest frame preview dict
-            """
-            CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
+            # --- UI Preview Frame ---
+            # Resize the frame to thumbnail size for efficient UI preview.
+            preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
+            preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
+            # Use a copy to avoid affecting the original 'frame' used elsewhere.
+            thumbnail_frame = CV2Utils.resize_image(frame.copy(), preview_w, preview_h, keep_ratio=False)
+            # Update the shared preview dictionary for the UI with the small thumbnail.
+            CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(thumbnail_frame))
 
             """
             Manage preview window, depend on the platform

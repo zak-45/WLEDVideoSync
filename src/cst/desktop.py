@@ -1200,8 +1200,14 @@ class CASTDesktop(TextAnimatorMixin):
 
                                     t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
 
-                            # Update the shared preview dictionary for the UI
-                            CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
+                            # --- UI Preview Frame ---
+                            # Resize the frame to thumbnail size for efficient UI preview.
+                            preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
+                            preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
+                            # Use a copy to avoid affecting the original 'frame' used elsewhere.
+                            thumbnail_frame = CV2Utils.resize_image(frame.copy(), preview_w, preview_h, keep_ratio=False)
+                            # Update the shared preview dictionary for the UI with the small thumbnail.
+                            CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(thumbnail_frame))
 
                             # check to see if something to do
                             if CASTDesktop.t_todo_event.is_set() and shared_buffer is not None:
@@ -1278,9 +1284,13 @@ class CASTDesktop(TextAnimatorMixin):
                                 #
                                 frame, grid = process_frame(frame)
                                 #
-                                #
-                                # Update the shared preview dictionary for the UI (thread safe)
-                                CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
+                                # --- UI Preview Frame ---
+                                # Resize the frame to thumbnail size for efficient UI preview.
+                                preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
+                                preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
+                                thumbnail_frame = CV2Utils.resize_image(frame.copy(), preview_w, preview_h, keep_ratio=False)
+                                # Update the shared preview dictionary for the UI with the small thumbnail.
+                                CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(thumbnail_frame))
                                 #
                                 if t_preview:
                                     t_preview, t_todo_stop = show_preview(frame, t_preview, t_todo_stop, grid)
@@ -1373,8 +1383,13 @@ class CASTDesktop(TextAnimatorMixin):
                             frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
                             frame, grid = process_frame(frame)
 
-                            # Update the shared preview dictionary for the UI
-                            CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(frame))
+                            # --- UI Preview Frame ---
+                            # Resize the frame to thumbnail size for efficient UI preview.
+                            preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
+                            preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
+                            thumbnail_frame = CV2Utils.resize_image(frame.copy(), preview_w, preview_h, keep_ratio=False)
+                            # Update the shared preview dictionary for the UI with the small thumbnail.
+                            CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(thumbnail_frame))
 
                             #
                             if t_preview:
