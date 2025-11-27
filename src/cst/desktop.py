@@ -337,7 +337,6 @@ class CASTDesktop(TextAnimatorMixin):
         sl = None
         sl_process = None
         sl_client = None
-        sl_manager = None
         sl_name_q = f'{t_name}_q'
 
         t_todo_stop = False

@@ -581,7 +581,14 @@ class CastCenter:
         with ui.card().tight() as self.CastAPI.preview_card:
             self.CastAPI.preview_card.classes('self-center w-full text-sm shadow-[0px_1px_4px_0px_rgba(0,0,0,0.5)_inset]')
             self.CastAPI.preview_card.set_visibility(False)
-            await self.grid_view_func(2)
+            # await self.grid_view_func(2)
+            # Set a timer to refresh the grid view periodically
+            # It is created inactive and will be managed by the root_timer_action.
+            self.CastAPI.grid_timer = ui.timer(float(cfg_mgr.app_config['grid_view_refresh_interval']), callback='',
+                                          active=False)
+            # run preview on its own thread
+            await run.io_bound(self.grid_view_func, self.CastAPI.preview_card, 2, self.CastAPI.grid_timer, False)
+
 
         # text
         with ui.card().tight() as text_card:
@@ -746,10 +753,11 @@ class CastCenter:
 
 
 if __name__ == "__main__":
-    from mainapp import Desktop as Dk, Media as Md, CastAPI as Api, t_data_buffer as queue, grid_view
+    from mainapp import Desktop as Dk, Media as Md, CastAPI as Api, t_data_buffer as queue
+    from niceutils import run_preview_grid
 
     app.add_static_files('/assets', cfg_mgr.app_root_path('assets'))
-    cast_app = CastCenter(Dk, Md, Api, queue,None ,grid_view)
+    cast_app = CastCenter(Dk, Md, Api, queue,None ,run_preview_grid)
 
     print('start cast center main')
     @ui.page('/')

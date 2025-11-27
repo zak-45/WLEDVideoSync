@@ -55,6 +55,7 @@ Design Philosophy:
 """
 import traceback
 
+from datetime import datetime
 from threading import current_thread
 from str2bool import str2bool
 
@@ -63,9 +64,9 @@ from src.utl.utils import CASTUtils as Utils
 
 class ActionExecutor:
     """
-    Manages and executes actions requested for a specific casting thread (Media or Desktop).
+    Encapsulates the logic for processing and executing actions on a running casting thread.
+    Manages action dispatch, state changes, and communication for background casting threads in a performant and extensible way.
     """
-
     # Define the handlers map at the class level to be accessible by the static method
     # This makes the list of actions static and accessible without an instance.
     _ACTION_HANDLERS_MAP = {
@@ -149,7 +150,19 @@ class ActionExecutor:
         self.logger.debug(f'{self.t_name}: Snapshot taken.')
 
     def _handle_info_action(self, frame, params, frame_count):
-        """Handles the 'info' action: sends thread status information."""
+        """
+        Handles the 'info' action: gathers and shares current casting thread information.
+        Collects status, configuration, and optionally image data, then places the info in the shared buffer.
+
+        Args:
+            frame: The current video/image frame to be encoded if requested.
+            params: Parameters indicating whether to include image data.
+            frame_count: The current frame count for reporting.
+
+        Returns:
+            None
+        """
+
         # Determine if image data should be included based on params
         include_image = str2bool(params) if params else False  # Default to not including image if params missing
 
@@ -166,6 +179,7 @@ class ActionExecutor:
         t_info = {self.t_name: {
             "type": "info",
             "data": {
+                "start_time_hr": datetime.fromtimestamp(self.start_time).strftime('%Y-%m-%d %H:%M:%S'),
                 "start": self.start_time,
                 "cast_type": self.class_obj.__class__.__name__,  # Get class name correctly
                 "tid": current_thread().native_id,

@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Optional
 
 from src.txt.fontsmanager import FontSetApplication
-from src.utl.utils import CASTUtils as Utils
+from src.utl.utils import CASTUtils as Utils, CastAPI
 from src.utl.cv2utils import CV2Utils
 from src.utl.cv2utils import VideoThumbnailExtractor
 
@@ -39,6 +39,97 @@ from configmanager import cfg_mgr, PLATFORM, LoggerManager
 logger_manager = LoggerManager(logger_name='WLEDLogger.nice')
 nice_logger = logger_manager.logger
 
+
+def run_preview_grid(grid_container, columns:int = 0, timer = None, activate:bool = False):
+
+    from mainapp import action_to_casts
+
+    preview_elements = {}
+
+    with grid_container:
+
+        grid_timer = timer
+        activate = activate
+
+        # Wrap the grid in a full-width row to handle centering.
+        # The grid itself will have an intrinsic size based on its content,
+        # ensuring gaps remain fixed and items do not overlap on resize.
+        with ui.row().classes('w-full justify-center'):
+            # Add a placeholder that is only visible when no casts are active.
+            placeholder = ui.image(cfg_mgr.app_root_path('assets/Source-intro.png')).classes('self-center w-1/3')
+            gap = abs(int(cfg_mgr.app_config.get('grid_view_border', 2)))
+            # Use a different name for the inner grid to avoid shadowing the passed-in container
+            with ui.grid(columns=columns).style(f'gap: {gap}px;') as grid:
+                pass  # The grid will be populated dynamically by the timer.
+
+        async def update_grid():
+            """
+            Dynamically updates the grid, adding/removing previews as casts start/stop,
+            and refreshes the image source for each active preview.
+            """
+            # Get the configured preview size for the thumbnails
+            preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
+            preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
+
+            active_cast_names = set(CastAPI.previews.keys())
+            displayed_cast_names = set(preview_elements.keys())
+
+            # Add new previews for casts that have started
+            for name in active_cast_names - displayed_cast_names:
+                # Determine the class_name from the thread name for the action call
+                class_name = 'Desktop' if 'desktop' in name.lower() else 'Media'
+
+                placeholder.set_visibility(False)
+                # This is the crucial fix: Explicitly enter the context of the grid
+                # to tell NiceGUI where to add the new UI elements from the timer's task.
+                with grid:
+                    # The card will fill the grid cell.
+                    with ui.card().tight().style(f'width: {preview_w}px; height: auto;') as card:
+                        ui.label(name).classes(
+                            'absolute-top-left m-1 text-white text-xs bg-black bg-opacity-50 px-1 rounded z-10')
+                        image = ui.image().props('no-transition').classes('w-full h-full object-contain')
+                        # Add a clickable icon to open the preview window for this specific cast.
+                        preview_icon = ui.icon('preview', size='sm', color='white') \
+                            .classes('absolute-top-right m-1 cursor-pointer opacity-60 hover:opacity-100') \
+                            .tooltip('Open Preview Window')
+                        preview_icon.on('click', lambda n=name, cn=class_name: action_to_casts(
+                            class_name=cn, cast_name=n, action='open-preview',
+                            params='', clear=False, execute=True
+                        ))
+
+                preview_elements[name] = {'card': card, 'image': image}
+                nice_logger.debug(f"Added '{name}' to grid view.")
+
+            # Remove previews for casts that have stopped
+            for name in displayed_cast_names - active_cast_names:
+                preview_elements[name]['card'].delete()
+                del preview_elements[name]
+                nice_logger.debug(f"Removed '{name}' from grid view.")
+
+            # If no casts are running, show the placeholder
+            if not active_cast_names:
+                placeholder.set_visibility(True)
+
+            # Update the image for each active preview
+            try:
+                for name, elements in preview_elements.items():
+                    if preview := CastAPI.previews.get(name):  # The LatestFrame class is thread-safe
+                        if frame_b64 := preview.get():
+                            elements['image'].set_source(f'data:image/jpeg;base64,{frame_b64}')
+            except RuntimeError:
+                nice_logger.debug("Skipping one grid view update due to a dictionary change during iteration.")
+
+        # Set grid columns based on config
+        grid_cols = int(cfg_mgr.app_config.get('grid_view_columns', 4))
+        if grid_cols > 0:
+            grid.classes(f'grid-cols-{grid_cols}')
+
+        # Set a timer to refresh the grid view periodically
+        # It is created inactive and will be managed by the root_timer_action if needed
+        # update_grid is the timer callback
+        grid_timer.callback=update_grid
+        if activate:
+            grid_timer.activate()
 
 
 async def toggle_timer(timer: ui.timer, element: ui.element):
