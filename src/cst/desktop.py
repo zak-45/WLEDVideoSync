@@ -888,7 +888,7 @@ class CASTDesktop(TextAnimatorMixin):
                                         f'{t_name} DDPDevice already exist : {cast_ip} as device number {i}')
                                     ddp_exist = True
                                     break
-                            if ddp_exist is not True:
+                            if not ddp_exist:
                                 new_ddp = DDPDevice(cast_ip)
                                 t_ddp_multi_names.append(new_ddp)
                                 # add to global DDP list
