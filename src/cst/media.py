@@ -598,6 +598,10 @@ class CASTMedia(TextAnimatorMixin):
         from src.utl.utils import LatestFrame, CastAPI
         if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
 
+        preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
+        preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
+
+
         """
             Media Loop
         """
@@ -950,8 +954,6 @@ class CASTMedia(TextAnimatorMixin):
 
             # --- UI Preview Frame ---
             # Resize the frame to thumbnail size for efficient UI preview.
-            preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
-            preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
             # Use a copy to avoid affecting the original 'frame' used elsewhere.
             thumbnail_frame = CV2Utils.resize_image(frame.copy(), preview_w, preview_h, keep_ratio=False)
             # Update the shared preview dictionary for the UI with the small thumbnail.
@@ -1131,6 +1133,9 @@ class CASTMedia(TextAnimatorMixin):
         if t_name in CastAPI.previews:
             del CastAPI.previews[t_name]
         #
+        # Clean ShareableList
+        Utils.sl_clean(sl, sl_process, t_name)
+        #
         CASTMedia.t_media_lock.release()
         #
         self.all_sync = False
@@ -1151,9 +1156,6 @@ class CASTMedia(TextAnimatorMixin):
                 media_logger.debug(f'{t_name} Release Media')
         except Exception as e:
             media_logger.warning(f'{t_name} Release Media status : {e}')
-
-        # Clean ShareableList
-        Utils.sl_clean(sl, sl_process, t_name)
 
         # stop e131/artnet
         if t_protocol == 'e131':

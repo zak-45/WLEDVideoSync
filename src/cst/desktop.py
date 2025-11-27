@@ -1113,10 +1113,13 @@ class CASTDesktop(TextAnimatorMixin):
         # --- End Initialization ---
 
         """
-        Manage preview frame
+        Manage latest frame preview dict
         """
         from src.utl.utils import LatestFrame, CastAPI
         if t_name not in CastAPI.previews: CastAPI.previews[t_name] = LatestFrame()
+
+        preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
+        preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
 
         #
         # Main loop
@@ -1201,8 +1204,6 @@ class CASTDesktop(TextAnimatorMixin):
 
                             # --- UI Preview Frame ---
                             # Resize the frame to thumbnail size for efficient UI preview.
-                            preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
-                            preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
                             # Use a copy to avoid affecting the original 'frame' used elsewhere.
                             thumbnail_frame = CV2Utils.resize_image(frame.copy(), preview_w, preview_h, keep_ratio=False)
                             # Update the shared preview dictionary for the UI with the small thumbnail.
@@ -1285,8 +1286,6 @@ class CASTDesktop(TextAnimatorMixin):
                                 #
                                 # --- UI Preview Frame ---
                                 # Resize the frame to thumbnail size for efficient UI preview.
-                                preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
-                                preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
                                 thumbnail_frame = CV2Utils.resize_image(frame.copy(), preview_w, preview_h, keep_ratio=False)
                                 # Update the shared preview dictionary for the UI with the small thumbnail.
                                 CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(thumbnail_frame))
@@ -1384,8 +1383,6 @@ class CASTDesktop(TextAnimatorMixin):
 
                             # --- UI Preview Frame ---
                             # Resize the frame to thumbnail size for efficient UI preview.
-                            preview_w = int(cfg_mgr.app_config.get('grid_preview_width', 240))
-                            preview_h = int(cfg_mgr.app_config.get('grid_preview_height', 135))
                             thumbnail_frame = CV2Utils.resize_image(frame.copy(), preview_w, preview_h, keep_ratio=False)
                             # Update the shared preview dictionary for the UI with the small thumbnail.
                             CastAPI.previews[t_name].set(ImageUtils.image_array_to_base64(thumbnail_frame))
@@ -1455,9 +1452,16 @@ class CASTDesktop(TextAnimatorMixin):
         if t_name in CastAPI.previews:
             del CastAPI.previews[t_name]
         #
+        # Clean ShareableList for Preview
+        Utils.sl_clean(sl, sl_process, t_name)
         # cleanup SL
         if sl_queue is not None:
             sl_client.delete_shared_list(sl_name_q)
+        #
+        CASTDesktop.t_desktop_lock.release()
+        #
+        # cleanup SL
+        if sl_queue is not None:
             # check if last SL
             sl_list = ast.literal_eval(sl_client.get_shared_lists())
             if len(sl_list) == 0:
@@ -1465,15 +1469,10 @@ class CASTDesktop(TextAnimatorMixin):
                 self.sl_manager.stop()
                 self.sl_manager = None
         #
-        CASTDesktop.t_desktop_lock.release()
-
         #
         if capture_methode == 'mss':
             with contextlib.suppress(Exception):
                 sct.close()
-
-        # Clean ShareableList for Preview
-        Utils.sl_clean(sl, sl_process, t_name)
 
         # stop e131/artnet
         if t_protocol == 'e131':
@@ -1488,6 +1487,8 @@ class CASTDesktop(TextAnimatorMixin):
         desktop_logger.debug("_" * 50)
 
         desktop_logger.info(f'{t_name} Cast closed')
+
+        return True
 
     def cast(self, shared_buffer=None, log_ui=None):
         """
