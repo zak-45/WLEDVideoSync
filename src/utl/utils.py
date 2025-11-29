@@ -954,7 +954,7 @@ class CASTUtils:
 
 
     @staticmethod
-    def mp_setup():
+    def mp_setup(manager: bool = False):
         """
         Set multiprocess context: fork, spawn, etc.
 
@@ -962,6 +962,9 @@ class CASTUtils:
         - On Linux/macOS, default is 'fork', but 'spawn' can be forced.
         - spawn/forkserver may behave unpredictably in frozen binaries.
         - fork is faster but unsafe with threads in some cases.
+
+         Args:
+             manager (bool): If True, return Process and Manager. If False, return Process and Queue.
         """
         import multiprocessing
         if PLATFORM in ['darwin', 'linux']:
@@ -969,14 +972,14 @@ class CASTUtils:
                 # Use explicit context to avoid conflicts
                 ctx = multiprocessing.get_context('spawn')
                 utils_logger.debug("Multiprocessing context set to 'spawn'.")
-                return ctx.Process, ctx.Queue
+                return (ctx.Process, ctx.Manager) if manager else (ctx.Process, ctx.Queue)
             except RuntimeError:
                 utils_logger.debug("Multiprocessing start method already set.")
                 ctx = multiprocessing.get_context()
-                return ctx.Process, ctx.Queue
+                return (ctx.Process, ctx.Manager) if manager else (ctx.Process, ctx.Queue)
         else:
             ctx = multiprocessing.get_context()
-            return ctx.Process, ctx.Queue
+            return (ctx.Process, ctx.Manager) if manager else (ctx.Process, ctx.Queue)
 
     @staticmethod
     def sl_clean(sl, sl_process, t_name):

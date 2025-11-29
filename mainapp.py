@@ -182,7 +182,6 @@ async def cleanup_on_shutdown():
 
     # Webview
     window_native.close_all_webviews()
-    if app.native.main_window: app.native.main_window.destroy()
 
     # Stop the scheduler and its worker threads
     if 'scheduler_app' in globals() and scheduler_app.scheduler.is_running:
@@ -192,7 +191,7 @@ async def cleanup_on_shutdown():
 
     RUNColdtype.stop_all()
 
-    #Give a brief moment for processes to terminate
+    # Give a brief moment for processes to terminate
     await asyncio.sleep(0.2)
 
 """
@@ -1448,20 +1447,34 @@ async def create_preview_help_page():
 
 
 @ui.page('/grid_view')
-async def grid_view_page():
-    """Displays a grid of all active cast previews."""
+async def grid_view_page(wid: int = -1):
+    """Displays a grid of all active cast previews.
+    args:
+        wid: native window ID to toggle fullscreen, -1 if run from browser
+    """
     ui.dark_mode(CastAPI.dark_mode)
     await apply_custom()
 
-    ui.label('Live Grid View').classes('text-2xl font-bold self-center mb-2')
+    with ui.row().classes('w-full justify-center items-center'):
+        ui.label('Live Grid View').classes('text-2xl font-bold self-center mb-2')
+        # Add a fullscreen toggle icon that calls the WebviewManager with the correct window ID.
+        if wid != -1:
+            ui.icon('fullscreen').classes('cursor-pointer ml-4').tooltip('Toggle Fullscreen').on('click',
+                lambda: window_native.toggle_fullscreen(wid))
+        else:
+            # this run in browser
+            fullscreen = ui.fullscreen()
+            ui.icon('fullscreen').classes('cursor-pointer ml-4').tooltip('Toggle Fullscreen').on('click',
+                fullscreen.toggle)
 
+    #
     # niceGUI placeholder for background task
+    #
     grid_container = ui.card().tight().classes('self-center w-full').props('flat no-border')
     # grid columns come from config
     columns = cfg_mgr.app_config['grid_view_columns']
     # Set a timer to refresh the grid view periodically
     timer = ui.timer(float(cfg_mgr.app_config['grid_view_refresh_interval']),callback='', active=False)
-
     # run preview on its own thread
     await run.io_bound(nice.run_preview_grid, grid_container, columns, timer, True)
 
@@ -1478,23 +1491,30 @@ async def _open_page_in_new_window(path: str, title: str, width: int, height: in
         title: The title for the new window.
         width: The width of the new native window.
         height: The height of the new native window.
+    return:
+        window: The ID of the new window or True.
     """
 
     server_port = Utils.get_server_port()
     title = f'{title} - {str(server_port)}'
 
-    url = f"http://localhost:{server_port}{path}"
-    main_logger.debug(f"Requesting new window for: {url}")
+    base_url = f"http://localhost:{server_port}{path}"
 
     if app.native.main_window:
-        window_native.open_webview(url=url, title=title, width=width, height=height)
-        main_logger.debug(f"New native window for: {url}")
+        # open_webview returns the window ID, which we append to the URL
+        wid = window_native.open_webview(url=base_url, title=title, width=width, height=height)
+        url = f"{base_url}?wid={wid}"
+        window = wid # The 'window' returned is the ID
+        new_window_url = f"{base_url}?wid={window}"
+        window_native.url(window, new_window_url)
+        main_logger.debug(f"New native window for {window}: {new_window_url}")
     else:
-        webbrowser.open_new(url=url)
+        window = webbrowser.open_new(url=base_url)
 
     if notify:
-        ui.notify(f'Opening new window _ {url}',position='center',timeout=3000,close_button=True, type='info')
+        ui.notify(f'Opening new window _ {base_url}',position='center',timeout=3000,close_button=True, type='info')
 
+    return window
 
 async def control_panel_page():
     """
