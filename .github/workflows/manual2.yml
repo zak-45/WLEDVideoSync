@@ -143,7 +143,7 @@ jobs:
         uses: Nuitka/Nuitka-Action@main
         with:
           # nuitka-version: 2.6.2 or main
-          nuitka-version: 2.8.10
+          nuitka-version: main
           script-name: WLEDVideoSync.py
           mode: app
           deployment: true
