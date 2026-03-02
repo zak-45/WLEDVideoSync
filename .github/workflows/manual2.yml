@@ -202,8 +202,8 @@ jobs:
             favicon.icns=favicon.icns
 
           user-package-configuration-file: |
-            coldtype-nuitka-package.config.yml
             yt_dlp-fix-nuitka-package.config.yml
+            coldtype-nuitka-package.config.yml
 
 
       #  Use tar to preserve attribute
