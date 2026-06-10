@@ -161,7 +161,10 @@ jobs:
           macos-app-icon: assets/favicon.ico
           linux-icon: assets/favicon.ico
 
-          include-package: certifi
+          include-package: |
+            nicegui
+            coldtype
+            certifi
 
           include-package-data: |
             nicegui
