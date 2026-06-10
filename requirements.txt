@@ -5,7 +5,6 @@
 # Platform dependant
 # urllib3==1.26.20 ; sys_platform == "darwin"
 winloop ; sys_platform == "win32"
-pythonnet ; sys_platform == "win32"
 
 # Specific version & Common to all OS
 setuptools==81.0.0
@@ -13,6 +12,7 @@ nicegui==3.13.0
 av==15.1.0  # problem nuitka/ 16.1.0
 #fonttools==4.58.5 # problem nuitka/ pkg_resource with 4.59.0
 moviepy==1.0.3
+pywebview[pyside6]==6.2.0
 
 # any version & Common to all OS
 coldtype[viewer]
@@ -25,7 +25,6 @@ opencv-python
 cv2_enumerate_cameras
 pillow
 screeninfo
-pywebview[pyside6]
 mss
 skia-python
 PyWinCtl
