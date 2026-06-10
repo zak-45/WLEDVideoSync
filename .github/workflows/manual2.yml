@@ -163,7 +163,6 @@ jobs:
 
           include-package: |
             nicegui
-            coldtype
             certifi
 
           include-package-data: |
