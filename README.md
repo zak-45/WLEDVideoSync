@@ -24,7 +24,9 @@
  - **Full-Featured Scheduler**: Automate your casts with recurring, one-shot, or custom-timed jobs.
  - **Coldtype Integration**: a powerful Python library for typographic and graphic animation.
  - **Advanced Scripting**: Extend functionality with a built-in Python editor and an external API for third-party integration.
- 
+
+ You can see review from here :
+ https://www.blog.brightcoding.dev/2026/05/31/wledvideosync-transform-any-screen-into-dazzling-led-art
  ---
  
  ## Installation
