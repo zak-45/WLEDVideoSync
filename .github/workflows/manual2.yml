@@ -92,7 +92,6 @@ jobs:
         # brew update
         # brew upgrade
         run: |
-          brew link --overwrite ruby@3.4
           brew unlink python@3.13 && brew link --overwrite python@3.13
           brew cleanup
           brew install portaudio
