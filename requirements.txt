@@ -15,6 +15,7 @@ moviepy==1.0.3
 pywebview[pyside6]==6.2.0
 
 # any version & Common to all OS
+av
 coldtype[viewer]
 fonttools
 numpy
