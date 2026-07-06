@@ -70,6 +70,9 @@ import os
 if os.getenv('WLEDVideoSync_trace'):
     import xtra.tracetool.tracetool
 
+# disable not used costly import (from nicegui)
+os.environ['MATPLOTLIB'] = 'false'
+
 import multiprocessing
 from subprocess import Popen
 
@@ -83,9 +86,6 @@ warnings.filterwarnings("ignore", category=UserWarning, message="pkg_resources i
 from mainapp import *
 
 from src.gui.niceutils import custom_openapi
-
-# disable not used costly import (from nicegui)
-os.environ['MATPLOTLIB'] = 'false'
 
 def cfg_settings(config_file, preview_subprocess, native_ui, native_size, first_run_os):
     """Update configuration settings based on OS and user preferences.
