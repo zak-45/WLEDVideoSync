@@ -175,7 +175,6 @@ jobs:
             pygments.lexers.special
             pygments.lexers.data
             dbm.dumb
-            av.opaque
             zeroconf._utils.ipaddress
             zeroconf._handlers.answers
             src.txt.textanimator
